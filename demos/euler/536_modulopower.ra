@@ -4,12 +4,14 @@ rem https://projecteuler.net/problem=536
 use numbers
 use sequences
 use algo
+use bits
 use io
 use cli
 
 arg N integer = 1000000000000
 arg U0 integer = 10000000
-arg T integer = 10000
+arg T integer = 2500
+arg Batch integer = 262144
 
 rem a^(m+4) = a mod m for all a iff m is
 rem squarefree and p - 1 | m + 3 for
@@ -22,220 +24,342 @@ rem Branch on the next prime while too
 rem many u remain; check u by tables of
 rem lambda(u) = lcm(p - 1) up to U0, or
 rem by 2^(m+3) = 1 mod u then exactly.
-Uz = U0 min N
-rem Tables: least prime factor, then
-rem peel it off to get squarefree, the
-rem largest prime and lambda.
-Sp = 0 to Uz copy
-Rz = Uz isqrt
-for P in primes to Rz array reverse
-  Sp (P * P to Uz by P) = P
-end
-Sf = (0 to Uz) mod 2 equal 1
-Mp = array shape (Uz + 1) fill 1
-Lm = Mp
-Ix = 3 to Uz by 2 copy
-Rr = Ix
-for It in 1 to 30
-  if Ix len equal 0
-    break
+Cut = U0 min N max 1
+fun Limit factor_tables
+  Count = (Limit + 1) // 2 max 1
+  Last = 2 * Count - 1
+  Sieve = 1 to Last by 2 copy
+  Root = Last isqrt
+  OddPrimes = primes to Root array
+  OddPrimes = OddPrimes drop 1
+  for Prime in OddPrimes reverse
+    Begin = (Prime * Prime - 1) // 2
+    Slots = Begin till Count by Prime
+    Sieve Slots = Prime
   end
-  Pq = Sp Rr
-  Rn = Rr // Pq
-  Sq = Rn mod Pq equal 0
-  Sf (Ix (Sq indices)) = false
-  Mp Ix = Pq
-  La = Lm Ix
-  P1 = Pq - 1
-  Gc = La gcd P1
-  Lm Ix = La // Gc * P1
-  Kp = Rn greater 1 indices
-  Ix = Ix Kp
-  Rr = Rn Kp
+  fun Work peel
+    Places = Work 0
+    Rest = Work 1
+    Flags = Work 2
+    Largest = Work 3
+    Lambda = Work 4
+    Factor = Sieve (Rest // 2)
+    Next = Rest // Factor
+    Repeated = Next mod Factor equal 0
+    RepeatedSlots = Places Repeated
+    Flags RepeatedSlots = false
+    Largest Places = Factor
+    Previous = Lambda Places
+    Less = Factor - 1
+    Divisor = Previous gcd Less
+    Updated = Previous // Divisor * Less
+    Lambda Places = Updated
+    Keep = Next greater 1 indices
+    Indices = Places Keep
+    Remaining = Next Keep
+    return (tuple Indices Remaining
+      Flags Largest Lambda)
+  end
+  fun Before peeled After
+    Places = After 0
+    return Places len equal 0
+  end
+  Slots = 1 till Count copy
+  Values = 2 * Slots + 1
+  Valid = array shape Count fill true
+  Ones = array shape Count fill 1
+  Initial = (tuple Slots Values
+    Valid Ones Ones)
+  Steps = Limit binary len
+  Done = (
+    Initial peel repeat Steps
+    till peeled
+  )
+  Validity = Done 2
+  Maximal = Done 3
+  Period = Done 4
+  return tuple Validity Maximal Period
 end
-rem Odd primes to sqrt N and Cp(i), the
+Table = Cut factor_tables
+Squarefree = Table 0
+Largest = Table 1
+Periods = Table 2
+rem Bound remaining factors by the
 rem product of the first i, capped.
-Nq = (N isqrt) + 4
-Pr = primes from 3 to Nq array
-Npr = Pr len
-Cp = array shape (Npr + 1) fill (N + 1)
-Cp 0 = 1
-for I in 1 to Npr
-  Cm = Cp (I - 1) * Pr (I - 1)
-  N1 = N + 1
-  Cp I = Cm min N1
-  if Cp I greater N
-    break
-  end
-end
+PrimeLimit = (N isqrt) + 4
+Primes = primes to PrimeLimit array
+Primes = Primes drop 1
+PrimeCount = Primes len
+PrefixCount = N binary len
+PrefixCount = PrefixCount min PrimeCount
+FirstPrimes = Primes take PrefixCount
+Products = FirstPrimes scan * with 1
+Upper = N + 1
+Caps = Products min Upper
 rem Inverse of A mod B (coprime, B > 1)
 rem by Euclid over arrays.
 fun A inv B
-  R0 = B
-  R1 = A mod B
-  T0 = R0 * 0
-  T1 = T0 + 1
-  Sv = T0
-  Bn = B len
-  Ix = 0 till Bn copy
-  for It in 1 to 60
-    Dz = R1 equal 0 indices
-    Sv (Ix Dz) = T0 Dz
-    Nz = R1 greater 0 indices
-    if Nz len equal 0
-      break
-    end
-    Ix = Ix Nz
-    R0 = R0 Nz
-    R1 = R1 Nz
-    T0 = T0 Nz
-    T1 = T1 Nz
-    Q = R0 // R1
-    Nr = R0 - Q * R1
-    Nt = T0 - Q * T1
-    R0 = R1
-    T0 = T1
-    R1 = Nr
-    T1 = Nt
+  fun Work euclid
+    R0 = Work 0
+    R1 = Work 1
+    T0 = Work 2
+    T1 = Work 3
+    Saved = Work 4
+    Slots = Work 5
+    Finished = R1 equal 0 indices
+    Saved (Slots Finished) = T0 Finished
+    Active = R1 greater 0 indices
+    Slots = Slots Active
+    R0 = R0 Active
+    R1 = R1 Active
+    T0 = T0 Active
+    T1 = T1 Active
+    Quotient = R0 // R1
+    Rest = R0 - Quotient * R1
+    Coefficient = T0 - Quotient * T1
+    return (tuple R1 Rest T1 Coefficient
+      Saved Slots)
   end
-  return Sv mod B
+  fun Before inverted After
+    Rest = After 1
+    return Rest len equal 0
+  end
+  Zero = B * 0
+  One = Zero + 1
+  Size = B len
+  Indices = 0 till Size copy
+  Initial = (tuple B (A mod B)
+    Zero One Zero Indices)
+  Done = (
+    Initial euclid repeat 60
+    till inverted
+  )
+  Result = Done 4
+  return Result mod B
 end
-rem Level by level: chosen primes Bm,
-rem their product Q, Bi the index of
-rem the smallest (the next ones lie
-rem below it).
-Ok = Pr at least 7 indices
-Q = Pr Ok
-Bi = Ok
-Bm = Q reshape (Q len) 1
-D = 1
-Mv = array shape 0 fill 0
-Fq = Mv
-Fu = Mv
-Fb = Mv
-for Q len greater 0
-  Nn = Q len
-  Bf = Bm reshape (Nn * D)
-  Rw = 0 till Nn copy
-  R = Rw * 0
-  M = R + 1
-  V = R equal 0
-  Cl = V equal false
-  for C in 0 till D
-    Pc = Bf (Rw * D + C)
-    Md = Pc - 1
-    A = Q // Pc mod Md
-    G = A gcd Md
-    V = V and (3 mod G equal 0)
-    M2 = Md // G
-    Rh = (0 - 3 // G) mod M2
-    A2 = A // G mod M2
-    Rp = Rh * (A2 inv M2) mod M2
-    rem Merge with u = Rp mod M2.
-    Ck = R mod M2 equal Rp
-    G2 = M gcd M2
-    Dr = Rp - R
-    Gd = Dr mod G2 equal 0
-    M1 = M // G2
-    Mg = M2 // G2
-    Df = Dr // G2 mod Mg
-    Am = M1 mod Mg
-    Iv = Am inv Mg
-    Tt = Df * Iv mod Mg
-    Nm = M1 * M2
-    Nr = R + M * Tt
-    Big = Nm greater N + 1
-    Fit = Nr at most N
-    Nb = Big equal false
-    Vn = Gd and (Nb or Fit)
-    rem Boolean choose returns numbers
-    rem (#436), so mix with and / or.
-    Nl = Cl equal false
-    Xv = Cl and Ck or (Nl and Vn)
-    V = V and Xv
-    R = Cl choose R Nr
-    N1 = N + 1
-    Mn = Big choose N1 Nm
-    M = Cl choose M Mn
-    Cl = Cl or Big
-  end
+
+rem Carry the CRT into each child,
+rem rather than rebuilding it from
+rem a matrix of chosen prime factors.
+fun State grow
+  Q = State 0
+  Smallest = State 1
+  R = State 2
+  M = State 3
+  Matches = State 4
+  TailProducts = State 5
+  TailValues = State 6
+  TailBounds = State 7
   rem Bound on u, and its candidates.
-  Lq = N // Q
-  Cb = Cp Bi
-  Lt = Lq min Cb
-  F0 = R equal 0 choose M R
-  Cn = (Lt - F0) // M + 1
-  Cn = F0 greater Lt choose 0 Cn
-  Cn = V equal false choose 0 Cn
-  En = Lt at most Uz or (Cn at most T)
-  Ei = (En and (Cn greater 0)) indices
-  Ce = Cn Ei
-  Cs = Ce scan +
-  Tc = Cs last default 0
-  if Tc greater 0
-    Po = 0 till Tc copy
-    Jx = Cs upperindex Po
-    Tk = Po - (Cs - Ce) Jx
-    Ni = Ei Jx
-    U = (F0 Ni) + Tk * (M Ni)
-    Qn = Q Ni
-    Bp = Pr (Bi Ni)
-    Ts = U at most Uz indices
-    Ut = U Ts
-    Mt = (Qn Ts) * Ut
-    Lu = Lm Ut
-    Bt = Bp Ts
-    Gt = Sf Ut and (Mp Ut less Bt)
-    Dl = (Mt + 3) mod Lu
-    Gt = Gt and (Dl equal 0)
-    Mv = concat Mv (Mt (Gt indices))
-    Fs = U greater Uz indices
-    Uf = U Fs
-    Qf = Qn Fs
-    Mf = Qf * Uf
-    Go = Uf gcd Qf equal 1
-    Ex = Mf + 3
-    Pw = 2 Ex Uf powmod
-    Go = Go and (Pw equal 1)
-    Gi = Go indices
-    Fq = concat Fq (Qf Gi)
-    Fu = concat Fu (Uf Gi)
-    Fb = concat Fb ((Bp Fs) Gi)
+  Limits = N // Q
+  Cap = Caps (Smallest min PrefixCount)
+  Bound = Limits min Cap
+  Starts = R equal 0 choose M R
+  Counts = (Bound - Starts) // M + 1
+  Outside = Starts greater Bound
+  Counts = Outside choose 0 Counts
+  WithinTable = Bound at most Cut
+  Few = Counts at most (T max 1)
+  Ready = WithinTable or Few
+  Positive = Counts greater 0
+  Select = Ready and Positive
+  Selected = Select indices
+  Sizes = Counts Selected
+  Prefix = Sizes scan +
+  Cells = Prefix last default 0
+  fun Work evaluate
+    Begin = Work 0
+    End = Cells min (Begin + Batch)
+    Visits = Begin till End
+    Parents = Prefix upperindex Visits
+    Origins = Prefix - Sizes
+    Offsets = Visits - Origins Parents
+    Nodes = Selected Parents
+    InitialValues = Starts Nodes
+    Stride = M Nodes
+    Steps = Offsets * Stride
+    Values = InitialValues + Steps
+    Products = Q Nodes
+    Bounds = Primes (Smallest Nodes)
+    Small = Values at most Cut indices
+    SmallValues = Values Small
+    Cofactors = Products Small
+    Numbers = Cofactors * SmallValues
+    Lambda = Periods (SmallValues // 2)
+    SmallBounds = Bounds Small
+    Lookup = SmallValues // 2
+    Square = Squarefree Lookup
+    Maximum = Largest Lookup
+    Below = Maximum less SmallBounds
+    Accepted = Square and Below
+    Shifted = Numbers + 3
+    Residues = Shifted mod Lambda
+    PeriodFits = Residues equal 0
+    Accepted = Accepted and PeriodFits
+    Hit = Numbers Accepted
+    Prior = Work 1
+    Found = concat Prior Hit
+    Large = Values greater Cut indices
+    LargeValues = Values Large
+    LargeProducts = Products Large
+    Whole = (
+      LargeProducts * LargeValues
+    )
+    Coprime = (
+      LargeValues gcd LargeProducts
+    )
+    Possible = Coprime equal 1
+    Exponents = Whole + 3
+    Powers = (
+      2 Exponents LargeValues powmod
+    )
+    Fermat = Powers equal 1
+    Possible = Possible and Fermat
+    Passed = Possible indices
+    Hit = LargeProducts Passed
+    Prior = Work 2
+    SavedProducts = concat Prior Hit
+    Hit = LargeValues Passed
+    Prior = Work 3
+    SavedValues = concat Prior Hit
+    RemainderBounds = Bounds Large
+    Hit = RemainderBounds Passed
+    Prior = Work 4
+    SavedBounds = concat Prior Hit
+    return (tuple End Found
+      SavedProducts SavedValues
+      SavedBounds)
   end
+  Parts = (Cells + Batch - 1) // Batch
+  Work = (tuple 0 Matches TailProducts
+    TailValues TailBounds)
+  Checked = Work evaluate repeat Parts
+  Matches = Checked 1
+  TailProducts = Checked 2
+  TailValues = Checked 3
+  TailBounds = Checked 4
   rem Children: primes below the
   rem smallest with Q q <= N.
-  Xi = (En equal false and V) indices
-  Lx = Lq Xi
-  Kp = Pr upperindex Lx
-  Bx = Bi Xi
-  Kc = Kp min Bx
-  Cs = Kc scan +
-  Tc = Cs last default 0
-  Po = 0 till Tc copy
-  Jx = Cs upperindex Po
-  Pj = Xi Jx
-  Cj = Po - (Cs - Kc) Jx
-  Nc = (Pr Cj) reshape Tc 1
-  Bm = concat (Bm Pj) Nc axis 1
-  Q = (Q Pj) * Pr Cj
-  Bi = Cj
-  D += 1
+  Branches = Ready equal false indices
+  ChildLimits = Limits Branches
+  UnderLimit = (
+    Primes upperindex ChildLimits
+  )
+  UnderPrime = Smallest Branches
+  Widths = UnderLimit min UnderPrime
+  Prefix = Widths scan +
+  Cells = Prefix last default 0
+  Positions = 0 till Cells copy
+  Owners = Prefix upperindex Positions
+  Sources = Branches Owners
+  Begins = Prefix - Widths
+  Children = Positions - Begins Owners
+  Next = Primes Children
+  Product = Q Sources
+  Residue = R Sources
+  Modulus = M Sources
+  Divisor = Next gcd Modulus
+  Other = Next - 1
+  Factor = Product gcd Other
+  Valid = Residue mod Divisor equal 0
+  Divides = 3 mod Factor equal 0
+  Valid = Valid and Divides
+  Keep = Valid indices
+  ChildIndices = Children Keep
+  Next = Next Keep
+  Product = Product Keep
+  Residue = Residue Keep
+  Modulus = Modulus Keep
+  Divisor = Divisor Keep
+  Other = Other Keep
+  Factor = Factor Keep
+  FirstMod = Modulus // Divisor
+  LeftBase = Next // Divisor
+  First = Residue // Divisor
+  Inverse = LeftBase inv FirstMod
+  First = First * Inverse
+  First = First mod FirstMod
+  SecondMod = Other // Factor
+  RightBase = Product // Factor
+  Second = 0 - 3 // Factor
+  Inverse = RightBase inv SecondMod
+  Second = Second * Inverse
+  Second = Second mod SecondMod
+  Common = FirstMod gcd SecondMod
+  Difference = Second - First
+  Fits = Difference mod Common equal 0
+  Keep = Fits indices
+  FirstMod = FirstMod Keep
+  SecondMod = SecondMod Keep
+  Common = Common Keep
+  Difference = Difference Keep
+  FactorMod = SecondMod // Common
+  Base = FirstMod // Common
+  Shift = Difference // Common
+  Inverse = Base inv FactorMod
+  Shift = Shift * Inverse
+  Shift = Shift mod FactorMod
+  R = First Keep + FirstMod * Shift
+  M = FirstMod * FactorMod
+  Q = (Product Keep) * Next Keep
+  Smallest = ChildIndices Keep
+  return (tuple Q Smallest R M Matches
+    TailProducts TailValues TailBounds)
 end
-rem Survivors above U0: trial division
-rem by the primes below b, exactly.
-for K in 0 till Fu len
-  Y = Fu K
-  Mk = (Fq K) * Y
-  Bk = Fb K
-  Pb = Pr (Pr less Bk indices)
-  Ds = Pb (Y mod Pb equal 0 indices)
-  Pd = Ds reduce * with 1
-  Dv = (Mk + 3) mod (Ds - 1)
-  Al = Dv equal 0 all
-  Fine = Pd equal Y and Al
-  if Fine
-    Mv = concat Mv (array Mk)
+fun Before exhausted After
+  Frontier = After 0
+  return Frontier len equal 0
+end
+Ok = Primes at least 7 indices
+Seeds = Primes Ok
+Empty = array shape 0 fill 0
+Initial = (tuple Seeds Ok (Seeds - 4)
+  (Seeds - 1) Empty Empty Empty Empty)
+Depth = N binary len
+Complete = (
+  Initial grow repeat Depth
+  till exhausted
+)
+Matches = Complete 4
+TailProducts = Complete 5
+TailValues = Complete 6
+TailBounds = Complete 7
+rem Finish the rare survivors exactly.
+fun Row finish
+  Product = Row 0
+  Value = Row 1
+  Bound = Row 2
+  Factors = Value factors array
+  Primes = Factors unique
+  Count = Factors len
+  Distinct = Primes len
+  if Count not equal Distinct
+    return false
   end
+  if Distinct equal 0
+    return true
+  end
+  Last = Primes last
+  if Last at least Bound
+    return false
+  end
+  Whole = Product * Value
+  Shifted = Whole + 3
+  Divisors = Primes - 1
+  Residues = Shifted mod Divisors
+  return Residues equal 0 all
 end
-Answer = (Mv unique sum) + 11
+Rows = (stack
+  TailProducts TailValues TailBounds
+  axis 1
+)
+Valid = Rows finish rank 1
+Whole = TailProducts * TailValues
+Matches = concat Matches (Whole Valid)
+Solutions = Matches unique
+Small = array 1 2 3 5
+Base = Small (Small at most N)
+Total = Solutions sum
+Extra = Base sum
+Answer = Total + Extra
 Answer print

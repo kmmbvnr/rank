@@ -15,3 +15,22 @@ test "statement values, fallback check"
   run
   Answer equal 12718106902
 end
+
+test "small limits and tiny fallback table"
+  use "536_modulopower"
+  U0 = 1
+  T = 1
+  Batch = 7
+  N = 0
+  run
+  Answer equal 0
+  N = 1
+  run
+  Answer equal 1
+  N = 5
+  run
+  Answer equal 11
+  N = 21
+  run
+  Answer equal 32
+end

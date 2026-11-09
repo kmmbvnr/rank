@@ -70,6 +70,40 @@ export function safeIntegerModularPower(base: number, exponent: number, modulus:
     return result;
 }
 
+/** One base with independent safe exponents and moduli in (0, 2^30].
+ * Interleave four multiplication chains without converting wide exponent
+ * bits through a 32-bit shift. Entry owns cancellation and domain guards. */
+export function modularModuliQuad(base: number, e0: number, e1: number, e2: number, e3: number,
+    m0: number, m1: number, m2: number, m3: number, out: Int32Array, at: number): void {
+    let f0 = ((base % m0) + m0) % m0, f1 = ((base % m1) + m1) % m1;
+    let f2 = ((base % m2) + m2) % m2, f3 = ((base % m3) + m3) % m3;
+    let r0 = m0 === 1 ? 0 : 1, r1 = m1 === 1 ? 0 : 1;
+    let r2 = m2 === 1 ? 0 : 1, r3 = m3 === 1 ? 0 : 1;
+    while (Math.max(e0, e1, e2, e3) > 4294967295) {
+        if (e0 % 2) r0 = multiply(r0, f0, m0);
+        if (e1 % 2) r1 = multiply(r1, f1, m1);
+        if (e2 % 2) r2 = multiply(r2, f2, m2);
+        if (e3 % 2) r3 = multiply(r3, f3, m3);
+        e0 = Math.floor(e0 / 2); e1 = Math.floor(e1 / 2);
+        e2 = Math.floor(e2 / 2); e3 = Math.floor(e3 / 2);
+        f0 = multiply(f0, f0, m0); f1 = multiply(f1, f1, m1);
+        f2 = multiply(f2, f2, m2); f3 = multiply(f3, f3, m3);
+    }
+    let a = e0 >>> 0, b = e1 >>> 0, c = e2 >>> 0, d = e3 >>> 0;
+    while ((a | b | c | d) !== 0) {
+        if (a & 1) r0 = multiply(r0, f0, m0);
+        if (b & 1) r1 = multiply(r1, f1, m1);
+        if (c & 1) r2 = multiply(r2, f2, m2);
+        if (d & 1) r3 = multiply(r3, f3, m3);
+        a >>>= 1; b >>>= 1; c >>>= 1; d >>>= 1;
+        if ((a | b | c | d) !== 0) {
+            f0 = multiply(f0, f0, m0); f1 = multiply(f1, f1, m1);
+            f2 = multiply(f2, f2, m2); f3 = multiply(f3, f3, m3);
+        }
+    }
+    out[at] = r0; out[at + 1] = r1; out[at + 2] = r2; out[at + 3] = r3;
+}
+
 /** Keep the established <=2^30 cache and four-lane kernels unchanged.
  * The wider domain uses the already-proved centered low-word multiplier. */
 function wideIntegerModularPower(base: number, exponent: number, modulus: number): number {

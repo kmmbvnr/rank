@@ -5,10 +5,10 @@ import { createOwned, consumeSafeIntegerBuffer } from '../owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from '../array-storage.js';
 import { greatestCommonDivisor, leastCommonMultiple, safeIntegerGcd } from '../integer-gcd.js';
 import { RankError } from '../errors.js';
-import { modularExponentQuad, modularPowerQuad, multiply, safeIntegerModularPower } from '../modular-power.js';
+import { modularExponentQuad, modularPowerQuad, modularModuliQuad, multiply, safeIntegerModularPower } from '../modular-power.js';
 import { prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { storedOperand } from '../array-copy.js';
-import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, InterruptedError, interruptsEnabled, privateLoopPolling } from '../interrupt.js';
 import { floorDivide, floorRemainder } from '../numeric-division.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
@@ -877,9 +877,12 @@ export function mapStoredIntegerTernary(args: readonly RankValue[],
     return cells.array(shape);
 }
 
-/** powmod with a scalar modulus and packed Int32 bases or exponents.
- * Four independent powers run in lockstep; other shapes use the general mapper. */
+/** Packed powmod stages for scalar-modulus bases/exponents and matched
+ * exponent/modulus arrays. Other broadcast shapes use the general mapper. */
 export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: RankValue): RankArray | undefined {
+    if (typeof base === 'bigint' && isRankArray(exponent) && isRankArray(modulus)) {
+        return powerStoredModuli(base, exponent, modulus);
+    }
     if (typeof base === 'bigint' && isRankArray(exponent)) {
         return powerStoredExponents(base, exponent, modulus);
     }
@@ -916,6 +919,63 @@ export function powerStoredInt32(base: RankValue, exponent: RankValue, modulus: 
         throw error;
     }
     return typedArray(cells, base.shape);
+}
+
+/** Matched stored exponent/modulus arrays need no generic broadcast readers.
+ * Four independent chains overlap integer division latencies. */
+function powerStoredModuli(base: bigint, exponent: RankArray, modulus: RankArray): RankArray | undefined {
+    const b = Number(base);
+    if (!Number.isSafeInteger(b) || inspectionEnabled() || !privateLoopPolling()
+        || demandBudgetEnabled() || interruptsEnabled()) return undefined;
+    const exponents = prepareStoredScalarView(exponent, true), moduli = prepareStoredScalarView(modulus, true);
+    if (!exponents?.linear || !exponents.validateUniform || !moduli?.linear || !moduli.compact || !moduli.validateUniform
+        || !exponents.kinds?.every(kind => kind === 'integer') || !moduli.kinds?.every(kind => kind === 'integer')
+        || !same(exponent.shape, modulus.shape)) return undefined;
+    const size = exponent.shape.reduce((n, dimension) => n * dimension, 1), cells = new Int32Array(size);
+    const { offset: eo, stride: es } = exponents.linear, { offset: mo, stride: ms } = moduli.linear;
+    const values = exponents.items, compact = moduli.compact;
+    const words = values instanceof BigInt64Array ? new Uint32Array(values.buffer, values.byteOffset, values.length * 2) : undefined;
+    const read = words ? (index: number) => {
+        const position = 2 * (eo + index * es);
+        return (words[position + 1 - lowWord] | 0) * 4294967296 + words[position + lowWord];
+    } : (index: number) => Number(exponents.compact ? exponents.compact[eo + index * es] : values[eo + index * es]);
+    const validExponent = (value: number) => Number.isSafeInteger(value) && value >= 0;
+    // Compact moduli already fit signed Int32. A wider positive word in
+    // one group must not discard all preceding work and replay the array.
+    const validModulus = (value: number) => value > 0;
+    try {
+        if (size) { exponents.validateUniform(values[eo]); moduli.validateUniform(moduli.items[mo]); }
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing integer array', end - start);
+            let i = start;
+            for (; i + 4 <= end; i += 4) {
+                const e0 = read(i), e1 = read(i + 1), e2 = read(i + 2), e3 = read(i + 3);
+                const m0 = compact[mo + i * ms], m1 = compact[mo + (i + 1) * ms];
+                const m2 = compact[mo + (i + 2) * ms], m3 = compact[mo + (i + 3) * ms];
+                if (!validExponent(e0) || !validExponent(e1) || !validExponent(e2) || !validExponent(e3)
+                    || !validModulus(m0) || !validModulus(m1) || !validModulus(m2) || !validModulus(m3)) return undefined;
+                if (m0 <= 1073741824 && m1 <= 1073741824 && m2 <= 1073741824 && m3 <= 1073741824) {
+                    modularModuliQuad(b, e0, e1, e2, e3, m0, m1, m2, m3, cells, i);
+                } else {
+                    cells[i] = safeIntegerModularPower(b, e0, m0);
+                    cells[i + 1] = safeIntegerModularPower(b, e1, m1);
+                    cells[i + 2] = safeIntegerModularPower(b, e2, m2);
+                    cells[i + 3] = safeIntegerModularPower(b, e3, m3);
+                }
+            }
+            for (; i < end; i++) {
+                const e = read(i), m = compact[mo + i * ms];
+                if (!validExponent(e) || !validModulus(m)) return undefined;
+                cells[i] = safeIntegerModularPower(b, e, m);
+            }
+        }
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return typedArray(cells, exponent.shape);
 }
 
 /** One base/modulus with varying packed exponents shares its squaring table.
