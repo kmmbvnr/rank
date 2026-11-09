@@ -6,7 +6,7 @@ import { isRankArray, type RankArray, type RankValue } from '../value.js';
 const DENSE_REAL_MIN = 64;
 
 /** Elementwise `min` or `max` of stored real arrays (or a real scalar) in one
- * typed loop, with the scalar comparison `a < b ? a : b` / `a > b ? a : b`
+ * typed loop, with the scalar comparison `b < a ? b : a` / `b > a ? b : a`
  * for every cell. Anything else declines. */
 export function mapStoredRealExtreme(left: RankValue, right: RankValue, name: string): RankArray | undefined {
     if ((name !== 'min' && name !== 'max') || inspectionEnabled() || !privateLoopPolling()) return undefined;
@@ -26,9 +26,10 @@ export function mapStoredRealExtreme(left: RankValue, right: RankValue, name: st
         const cells = (typeof a === 'number' ? b : a) as Float64Array, s = (typeof a === 'number' ? a : b) as number;
         const scalarLeft = typeof a === 'number';
         checkpoint('computing array', size);
-        // The scalar keeps its operand position: a < b ? a : b is not symmetric on NaN and -0.
-        if (min) { if (scalarLeft) for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = s < x ? s : x; } else for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = x < s ? x : s; } }
-        else if (scalarLeft) for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = s > x ? s : x; } else for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = x > s ? x : s; }
+        // The scalar keeps its operand position: b < a ? b : a is not symmetric on NaN and -0.
+        if (min) { if (scalarLeft) for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = x < s ? x : s; } else for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = s < x ? s : x; } }
+        else if (scalarLeft) for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = x > s ? x : s; }
+        else for (let i = 0; i < size; i++) { const x = cells[i]; out[i] = s > x ? s : x; }
         return typedArray(out, [...shape]);
     }
     // Broadcast strides: 0 where an operand has length 1 (or is missing).
@@ -45,8 +46,8 @@ export function mapStoredRealExtreme(left: RankValue, right: RankValue, name: st
     let oa = 0, ob = 0, at = 0;
     while (at < size) {
         checkpoint('computing array', n);
-        if (min) for (let i = 0, p = oa, q = ob; i < n; i++, p += ia, q += ib) { const x = a[p], y = b[q]; out[at + i] = x < y ? x : y; }
-        else for (let i = 0, p = oa, q = ob; i < n; i++, p += ia, q += ib) { const x = a[p], y = b[q]; out[at + i] = x > y ? x : y; }
+        if (min) for (let i = 0, p = oa, q = ob; i < n; i++, p += ia, q += ib) { const x = a[p], y = b[q]; out[at + i] = y < x ? y : x; }
+        else for (let i = 0, p = oa, q = ob; i < n; i++, p += ia, q += ib) { const x = a[p], y = b[q]; out[at + i] = y > x ? y : x; }
         at += n;
         let axis = last - 1;
         for (; axis >= 0; axis--) {

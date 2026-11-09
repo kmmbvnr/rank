@@ -136,7 +136,7 @@ export class RankApplication {
         }
         if (arguments_.length === 2 && fn.dyadicRanks
             && !isRankLabel(arguments_[1])
-            && arguments_.some(isRankArray)) {
+            && arguments_.some(value => isRankArray(value) || isRankSequence(value) && value.plan.size.kind === 'infinite')) {
             return this.applyDyadicAtRank(
                 arguments_[0], arguments_[1], fn,
             );
@@ -154,6 +154,26 @@ export class RankApplication {
         const [defaultLeftRank, defaultRightRank] = fn.dyadicRanks ?? ['all', 'all'];
         const leftRank = customLeftRank ?? defaultLeftRank;
         const rightRank = customRightRank ?? defaultRightRank;
+        // An open sequence cannot be completed for array broadcasting. A fixed
+        // primitive scalar needs no frame assembly, so map its other operand lazily.
+        const primitive = (value: RankValue) => typeof value === 'bigint' || typeof value === 'number' || typeof value === 'boolean';
+        const openLeft = isRankSequence(left) && left.plan.size.kind === 'infinite' && resolveCellRank(leftRank, 1) === 0 && primitive(right);
+        const openRight = isRankSequence(right) && right.plan.size.kind === 'infinite' && resolveCellRank(rightRank, 1) === 0 && primitive(left);
+        if (openLeft || openRight) {
+            const source = (openLeft ? left : right) as Extract<RankValue, { kind: 'sequence' }>;
+            const fixed = openLeft ? right : left;
+            fn = snapshotLazyFunction(fn);
+            const scalar = this.scalarCallback(fn);
+            const stack = fn.arrayCells || (customLeftRank !== undefined && !fn.dyadicRanks);
+            return completed(mapSequence(source, fn.name, item => {
+                const args = openLeft ? [item, fixed] : [fixed, item];
+                const result = demandValue(scalar ? scalar(args) : fn.call(args));
+                if (!stack && valueRank(result) !== 0 && typeof result !== 'string')
+                    throw new RankError(`rank operation ${fn.name} must return a scalar`);
+                this.ownFiles(result);
+                return result;
+            }, isPureLazyFunction(fn), [new Map<string, RankValue>([['source', source], ['callback', fn], ['fixed', fixed]])]));
+        }
         // Only an elementwise sequence operand participates in array broadcasting.
         // Whole-sequence arguments (rank 1/all) retain their function contract.
         if ((isRankSequence(left) && resolveCellRank(leftRank, 1) === 0)

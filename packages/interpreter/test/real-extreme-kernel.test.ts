@@ -4,7 +4,7 @@ import { readArrayItem, typedArray } from '../src/array-storage.js';
 
 const pool = [0, -0, 1.5, -2.25, 3, NaN, Infinity, -Infinity, 1e300, 0.1];
 const fill = (n: number, seed: number) => Float64Array.from({ length: n }, (_, i) => pool[(i * 7 + seed * 3 + (i >> 3)) % pool.length]);
-const pick = { min: (a: number, b: number) => a < b ? a : b, max: (a: number, b: number) => a > b ? a : b };
+const pick = { min: (a: number, b: number) => b < a ? b : a, max: (a: number, b: number) => b > a ? b : a };
 
 function run(name: string, left: Float64Array | number, ls: number[], right: Float64Array | number, rs: number[], size: number): number[] {
     const runtime = new Interpreter();
@@ -47,4 +47,15 @@ describe('real min and max over stored arrays', () => {
             });
         }
     }
+});
+
+// The scalar operation retains its first operand on ties and unordered comparisons.
+it.each(['min', 'max'] as const)('agrees with scalar %s for every special-value pair', name => {
+    const runtime = new Interpreter();
+    try {
+        for (const a of pool) for (const b of pool) {
+            runtime.variables.set('A', a); runtime.variables.set('B', b);
+            expect(Object.is(runtime.execute(`A ${name} B`), pick[name](a, b))).toBe(true);
+        }
+    } finally { runtime.dispose(); }
 });

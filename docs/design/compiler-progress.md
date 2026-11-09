@@ -3387,3 +3387,20 @@ both compact-result boundaries. The final Euler 560 demo uses reshape/unpack
 butterflies, a fold over stages, and an odd-only sieve with library prime counts.
 See [Euler 560 controls](../../benchmarks/euler560.md) for separate source and
 compiler effects, peak RSS and the numeric-backend test isolation repair.
+
+### Euler 562: open ranked scalars and numeric clamps
+
+Known infinite sequences can participate in a dyadic rank-zero call when the
+other operand is an immutable integer, real or boolean scalar. The result is a
+lazy map with a snapshotted function; whole-sequence parameters keep their
+ordinary completion contract. This supports modular nonresidue search without
+materializing an infinite input. Finite/unknown-size broadcasting is unchanged.
+
+Numeric array functions now support same-kind `min` and `max` in elementwise
+outputs and fused reductions. They keep left-operand ties and unordered real
+comparisons, matching the scalar operation. The existing stored real extreme
+kernel was corrected to the same semantics. Mixed kinds and unsafe integer
+ranges retain fallback. Number admission thresholds are unchanged.
+
+The demo uses exact CRT roots and integer translation intervals; see
+[the benchmark](../../benchmarks/euler562.md) for controls, correctness and RSS.

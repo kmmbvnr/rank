@@ -10,7 +10,7 @@ const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? un
 export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
     if (roots.every(root => !bound.get(root)!.shape.length)) return emitReductions(roots, bound, scalarSlots);
     if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum'
-        || node.kind === 'binary' && !['+', '-', '*', '/', '//', 'band', 'bor', 'bxor'].includes(node.op)))) return undefined;
+        || node.kind === 'binary' && !['+', '-', '*', '/', '//', 'band', 'bor', 'bxor', 'min', 'max'].includes(node.op)))) return undefined;
     const sources = roots.map(unshape);
     const first = sources[0], concat = first.kind === 'concat' ? first : undefined;
     const common = concat && sources.every(n => n.kind === 'concat' && n.axis === concat.axis && n.sources.length === concat.sources.length
@@ -62,7 +62,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
         else if (node.kind === 'binary') {
             const a = emit(node.left, broadcast(index, info.shape, bound.get(node.left)!.shape));
             const b = emit(node.right, broadcast(index, info.shape, bound.get(node.right)!.shape));
-            expression = node.op === '//' ? `Math.floor((${a}) / (${b}))` : `(${a}) ${operators[node.op] ?? node.op} (${b})`;
+            expression = ['min', 'max'].includes(node.op) ? `((${b}) ${node.op === 'min' ? '<' : '>'} (${a}) ? (${b}) : (${a}))` : node.op === '//' ? `Math.floor((${a}) / (${b}))` : `(${a}) ${operators[node.op] ?? node.op} (${b})`;
         } else throw new Error('unsupported numeric function node');
         const name = `v${serial++}`;
         let entries = emitted.get(node); if (!entries) emitted.set(node, entries = new Map()); entries.set(index, name);
@@ -136,7 +136,7 @@ function emitReductions(roots: NumericNode[], bound: ReadonlyMap<NumericNode, Nu
             } else if (node.kind === 'binary') {
                 const a = emit(node.left, index(at, info.shape, bound.get(node.left)!.shape));
                 const b = emit(node.right, index(at, info.shape, bound.get(node.right)!.shape));
-                expression = node.op === '//' ? `Math.floor((${a}) / (${b}))`
+                expression = ['min', 'max'].includes(node.op) ? `((${b}) ${node.op === 'min' ? '<' : '>'} (${a}) ? (${b}) : (${a}))` : node.op === '//' ? `Math.floor((${a}) / (${b}))`
                     : node.op === 'mod' ? `(${a}) % (${b})` : `(${a}) ${operators[node.op] ?? node.op} (${b})`;
                 if (node.op === 'mod') {
                     const name = `v${serial++}`;

@@ -133,7 +133,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 return { kind: 'concat', sources: sources as NumericNode[], axis: axis ? Number(axis.value) : 0 };
             }
             const parts = flattenApplication(e);
-            if (parts.length === 3 && isNameExpression(parts[2]) && ['band', 'bor', 'bxor'].includes(parts[2].name)) {
+            if (parts.length === 3 && isNameExpression(parts[2]) && ['band', 'bor', 'bxor', 'min', 'max'].includes(parts[2].name)) {
                 const left = parse(parts[0]), right = parse(parts[1]);
                 builtins.add(parts[2].name);
                 return left && right ? { kind: 'binary', op: parts[2].name, left, right } : undefined;
@@ -233,7 +233,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         const bad = (reason = 'domain'): NumericBound => { rejected = true; recordFallback(`numeric-function:${reason}`); return { shape: [], size: 1, integer: false }; };
         function viewOnly(node: NumericNode): boolean { return node.kind === 'input' || node.kind === 'reshape' && viewOnly(node.source); }
         function binary(op: string, a: number, b: number): number {
-            return op === 'band' ? a & b : op === 'bor' ? a | b : op === 'bxor' ? a ^ b : op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? a / b
+            return op === 'min' ? b < a ? b : a : op === 'max' ? b > a ? b : a : op === 'band' ? a & b : op === 'bor' ? a | b : op === 'bxor' ? a ^ b : op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? a / b
                 : op === '//' ? Math.floor(a / b) : a - Math.floor(a / b) * b;
         }
         function readInput(name: string): NumericBound {
@@ -354,6 +354,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             } else if (node.kind === 'unary' || node.kind === 'binary') {
                 const a = bind(node.kind === 'unary' ? node.child : node.left), b = node.kind === 'binary' ? bind(node.right) : undefined;
                 if (b && ['//', 'mod'].includes(node.op) && (!a.integer || !b.integer)) return bad();
+                if (b && ['min', 'max'].includes(node.op) && a.integer !== b.integer) return bad();
                 const shape = b ? broadcastShape(a.shape, b.shape) : a.shape;
                 const comparison = ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(node.op);
                 if (a.boolean || b?.boolean) return bad();

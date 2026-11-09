@@ -1,140 +1,204 @@
 rem Maximal Perimeter
 rem https://projecteuler.net/problem=562
-
 use numbers
+use algo
 use sequences
 use io
 use cli
-
 arg R integer = 10000000
 arg Dm integer = 2000000
+if R less 1 or Dm less 1
+  Message = "positive radius and band"
+  .domain Message raise
+end
+Bound = R * R
+Diameter = 4 * Bound
+Small = primes to 1000 array
+Bad = Small mod 4 equal 3
+Wheel = Small Bad reduce * with 1
 
-rem Perimeter is 2 L plus a term below
-rem 10^-14, so take the largest L^2 =
-rem a^2 + b^2 <= 4 R^2 that has a
-rem triangle, then the largest term.
-rem For a primitive edge u = (a, b)
-rem look for lattice points A with A
-rem and A + u in the disc (a thin lens
-rem around -u / 2). The third vertex is
-rem A + w or A + u - w, w = (wx, wy)
-rem solving a wy - b wx = 1 with
-rem q = u . w in [0, L^2). The
-rem circumradius is sqrt((q^2 + 1)
-rem (m^2 + 1)) / (2 L), m = L^2 - q.
-Q4 = 4 * R * R
-R2 = R * R
-Bl = 0
-Bd = 0.0
-Ba = 0
-Bb = 0
-Bq = 0
-A0 = Q4 // 2 isqrt
-for A in A0 to 2 * R
-  Mx = Q4 - A * A isqrt
-  Mx = Mx min A
-  Mn = (Q4 - Dm - A * A max 0) isqrt
-  for B in Mn to Mx
-    L2 = A * A + B * B
-    G = A
-    H = B
-    for H greater 0
-      Tg = G mod H
-      G = H
-      H = Tg
-    end
-    Ok = G equal 1
-    Ok = Ok and (L2 at least Bl)
-    Ok = Ok and (L2 at least Q4 - Dm)
-    if Ok
-      R0 = A
-      R1 = B
-      S0 = 1
-      S1 = 0
-      T0 = 0
-      T1 = 1
-      for R1 greater 0
-        Qq = R0 // R1
-        Tp = R0 - Qq * R1
-        R0 = R1
-        R1 = Tp
-        Tp = S0 - Qq * S1
-        S0 = S1
-        S1 = Tp
-        Tp = T0 - Qq * T1
-        T0 = T1
-        T1 = Tp
-      end
-      Wy = S0
-      Wx = 0 - T0
-      Qv = A * Wx + B * Wy
-      Kf = Qv // L2
-      Wx -= Kf * A
-      Wy -= Kf * B
-      Qv = A * Wx + B * Wy
-      Mm = L2 - Qv
-      D = Q4 - L2
-      Lf = L2 * 1.0
-      Ln = Lf sqrt
-      Hw = D * 1.0 sqrt
-      Hx = Hw * 0.5 * B / Ln + 3
-      Hx += D * A / (8.0 * R * Ln)
-      Xc = 0.0 - A / 2.0
-      X0 = (Xc - Hx floor) integer
-      X1 = (Xc + Hx ceil) integer
-      Fe = 0
-      for X in X0 to X1
-        S1q = R2 - X * X
-        S2q = R2 - (X + A) * (X + A)
-        Fit = S1q at least 0
-        Fit = Fit and (S2q at least 0)
-        if Fit
-          Y1 = S1q isqrt
-          Y2 = S2q isqrt
-          Lo = 0 - Y1 max (0 - B - Y2)
-          Hi = Y1 min (Y2 - B)
-          for Y in Lo to Hi
-            Cx = X + Wx
-            Cy = Y + Wy
-            Dx = X + A - Wx
-            Dy = Y + B - Wy
-            C2 = Cx * Cx + Cy * Cy
-            E2 = Dx * Dx + Dy * Dy
-            In1 = C2 at most R2
-            In2 = E2 at most R2
-            if In1 or In2
-              Fe = 1
-            end
-          end
-        end
-      end
-      if Fe equal 1
-        Qf = Qv * 1.0
-        Mf = Mm * 1.0
-        Sa = Qf * Qf + 1.0 sqrt
-        Sb = Mf * Mf + 1.0 sqrt
-        T1f = 1.0 / (Sa + Qf)
-        T2f = 1.0 / (Sb + Mf)
-        Dt = (T1f + T2f) / Ln
-        Nw = L2 greater Bl
-        Nw = Nw or (Dt greater Bd)
-        if Nw
-          Bl = L2
-          Bd = Dt
-          Ba = A
-          Bb = B
-          Bq = Qv
-        end
-      end
+rem Test integer translations of a
+rem unimodular basis (A,B), (X,Y).
+fun A B X Y placements Bound
+  Norm = A * A + B * B
+  Gap = 4 * Bound - Norm
+  Length = Norm isqrt
+  Root = Gap isqrt + 1
+  Unit = 2 * Length
+  Across = (B * Root + Unit - 1) // Unit
+  Unit = 4 * Norm
+  Along = (A * Gap + Unit - 1) // Unit
+  Span = Across + Along + 1
+  Center = 0 - A // 2
+  First = Center - Span
+  Last = Center + Span + 1
+  Columns = First to Last
+  Space = Bound - Columns * Columns
+  Other = Columns + A
+  Second = Bound - Other * Other
+  Third = Columns + X
+  Third = Bound - Third * Third
+  Low = Space max 0 isqrt
+  High = Second max 0 isqrt
+  Lower = (0 - Low) max (0 - B - High)
+  Upper = Low min (High - B)
+  Height = Third max 0 isqrt
+  Lower = Lower max (0 - Y - Height)
+  Upper = Upper min (Height - Y)
+  Valid = Space at least 0
+  FitsFirst = Valid choose 1 0
+  Valid = Second at least 0
+  FitsSecond = Valid choose 1 0
+  Valid = Third at least 0
+  FitsThird = Valid choose 1 0
+  Valid = Lower at most Upper
+  FitsY = Valid choose 1 0
+  Good = FitsFirst * FitsSecond
+  Good = Good * FitsThird * FitsY
+  return Good sum
+end
+
+rem Cornacchia reduces a square root
+rem of -1 to a primitive lattice edge.
+fun A B descend Cut
+  if B at most Cut
+    return B
+  end
+  return B (A mod B) descend Cut
+end
+fun Prime legendre Value rank 0 0
+  Half = (Prime - 1) // 2
+  return Value Half Prime powmod
+end
+memo Prime nonresidue
+  Values' = 2 to #
+  Powers' = Prime legendre Values
+  Mask' = Powers equal (Prime - 1)
+  Base = Values first where Mask
+  return Base
+end
+fun Norm orientation Root rank 0 0
+  Cut = Norm isqrt
+  A = Norm Root descend Cut
+  Space = Norm - A * A
+  B = Space isqrt
+  if B * B not equal Space
+    return -1
+  end
+  if A gcd B not equal 1
+    return -1
+  end
+  High = A max B
+  Low = A min B
+  Q = Root
+  if High * Q mod Norm not equal Low
+    Q = Norm - Q
+  end
+  if High * Q mod Norm not equal Low
+    return -1
+  end
+  X = (High * Q - Low) // Norm
+  Y = (Low * Q + High) // Norm
+  Count = High Low X Y placements Bound
+  if Count greater 0
+    return Root
+  end
+  return -1
+end
+fun Norm roots
+  if Norm less 2
+    return array shape 0 fill 0
+  end
+  Rest = Norm mod 4
+  if Rest equal 0 or Rest equal 3
+    return array shape 0 fill 0
+  end
+  Grouped = Norm factors unique .counts
+  Primes = Grouped 0
+  Exponents = Grouped 1
+  Bad = Primes mod 4 equal 3
+  if Bad any
+    return array shape 0 fill 0
+  end
+  rem CRT combines both roots for each
+  rem odd prime power; 2 has one root.
+  Moduli = Primes ** Exponents
+  Phi = Moduli // Primes * (Primes - 1)
+  Parts = Norm // Moduli
+  Powers = Phi - 1
+  Inverses = Parts Powers Moduli powmod
+  Count = Primes len
+  Bases = array shape Count fill 1
+  Odd = Primes greater 2 indices
+  Values = Primes Odd
+  if Odd len greater 0
+    Bases Odd = Values nonresidue rank 0
+  end
+  Powers = Phi // 4
+  Values = Bases Powers Moduli powmod
+  Terms = Parts * Inverses * Values
+  Terms = Terms mod Norm
+  Roots = array 0
+  for I in 0 till Count
+    Term = Terms I
+    Plus = (Roots + Term) mod Norm
+    if Primes I equal 2
+      Roots = Plus
+    else
+      Minus = (Roots - Term) mod Norm
+      Roots = concat Plus Minus
     end
   end
+  Roots = Roots min (Norm - Roots)
+  return Roots unique
 end
-Mq = Bl - Bq
-Nm = (Bq * Bq + 1) * (Mq * Mq + 1)
-Dn = 4 * Bl * R2
-T = Nm // Dn isqrt
-Tw = (2 * T + 1) * (2 * T + 1)
-Up = Tw * Dn at most 4 * Nm
-T += Up integer
-Answer = T
+fun Loss candidate
+  if Loss mod 4 less 2
+    return -1
+  end
+  Norm = Diameter - Loss
+  if Norm less 2
+    return -1
+  end
+  if Norm mod 8 equal 6
+    return -1
+  end
+  Residue = Wheel mod Norm
+  if Norm gcd Residue not equal 1
+    return -1
+  end
+  Roots = Norm roots
+  if Roots len equal 0
+    return -1
+  end
+  Scores = Norm orientation Roots
+  Good = Scores at least 0
+  if Good any
+    return Scores Good min
+  end
+  return -1
+end
+rem Larger squared edges win exactly;
+rem equal edges prefer the smaller root.
+Losses' = 1 to Dm
+Score' = Losses candidate rank 0
+Fits' = Score at least 0
+Hit' = Losses first index where Fits
+Index = Hit default -1
+if Index less 0
+  Message = "no triangle in search band"
+  .search Message raise
+end
+Loss = Index + 1
+Norm = Diameter - Loss
+Q = Score Index
+Other = Norm - Q
+Numerator = (Q * Q + 1)
+Numerator *= Other * Other + 1
+Denominator = 4 * Norm * Bound
+Floor = Numerator // Denominator isqrt
+Midpoint = 2 * Floor + 1
+Test = Midpoint * Midpoint * Denominator
+Up = Test at most 4 * Numerator integer
+Answer = Floor + Up
 Answer print
