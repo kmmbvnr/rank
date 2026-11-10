@@ -68,6 +68,7 @@ export interface FunctionDefinition {
     readonly statement: FunctionStatement;
     readonly context: LocalFrame | undefined;
     readonly direct: (() => RankValue) | undefined;
+    readonly selectScalar: (arguments_: RankValue[]) => PreparedScalarCall | undefined;
 }
 
 /** What defining and running a function body needs from execution and the fast-path owner. */
@@ -540,7 +541,7 @@ export class FunctionInvocation {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { call: fn.call, owner: this, statement, context, direct, specialization, bindParameters });
+            if (!statement.memo) functionDefinitions.set(fn, { call: fn.call, owner: this, statement, context, direct, specialization, bindParameters, selectScalar });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
             if (memoMiss && this.compiler.scalars.functions
@@ -697,13 +698,21 @@ export class FunctionInvocation {
                 for (const value of arguments_) {
                     // Prove each storage argument once per invocation.
                     // An ineligible first argument needs no signature array.
-                    const type = compiledScalarType(value) ?? compiledEntryArgumentType(value);
+                    const candidate = isNativeFunction(value) ? this.definitionOf(value) : undefined;
+                    const definition = candidate && Object.getOwnPropertyDescriptor(value, 'call')?.value === candidate.call ? candidate : undefined;
+                    const type: CompiledCalleeType | undefined = definition ? { kind: 'function', statement: definition.statement,
+                        captures: definition.owner.scalarCaptureTypes(definition.statement, definition.context) }
+                        : compiledScalarType(value) ?? compiledEntryArgumentType(value);
                     if (!type) return undefined;
                     (types ??= []).push(type);
                 }
                 const key = types!.map(compiledCalleeTypeKey).join(',');
                 let entry = typedEntries.get(key);
                 if (entry === undefined) {
+                    if (types!.some(type => typeof type !== 'string' && type.kind === 'function') && typedEntries.size >= 16) {
+                        rejectCompilerGuard(statement, 'scalar-function', 'callable-specialization-limit');
+                        return undefined;
+                    }
                     const typedProof = this.host.scalarEntry(statement, generator, types, captures);
                     const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops, captures) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, nonnegative: typedProof!.nonnegative, call: typedCall } : null;
@@ -715,7 +724,9 @@ export class FunctionInvocation {
             }
             return call && !locals!.some(name => context?.find(name))
                 && !nonnegative!.some(index => typeof arguments_[index] !== 'bigint' || (arguments_[index] as bigint) < 0n)
-                && (!call.available || call.available()) ? call : undefined;
+                && (!call.available || call.available())
+                && (!call.argumentsAvailable || call.argumentsAvailable(arguments_)
+                    || rejectCompilerGuard(statement, 'scalar-function', 'callable-argument-guard')) ? call : undefined;
         };
     }
 
@@ -791,12 +802,13 @@ export class FunctionInvocation {
             || kernel.userCalls.some(call => call.tail) && !this.compiler.scalars.tailCalls) return undefined;
         const resolve = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
         const numberUsers: LoopCallable[] = [];
+        const argumentGuards: ((arguments_: readonly RankValue[]) => boolean)[] = [];
         const userBinders = kernel.userCalls.map((call, index) => {
             let cached: { value: RankValue; compiled: PreparedScalarCall; bound: LoopCallable; plain: boolean } | undefined;
-            return () => {
-                const value = resolve(call.name);
+            const bind = (value: RankValue | undefined) => {
                 const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
                 if (!definition || definition.statement !== call.statement
+                    || call.parameter && Object.getOwnPropertyDescriptor(value, 'call')?.value !== definition.call
                     || call.locals.some(name => definition.context?.find(name))) return undefined;
                 if (call.recursive) {
                     if (definition.owner !== this || definition.context !== context) return undefined;
@@ -839,7 +851,7 @@ export class FunctionInvocation {
                 if (call.tail) {
                     const bound = ((arguments_: RankValue[]) => {
                         if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
-                        return compiled(arguments_, true);
+                        return call.parameter ? definition.call(arguments_) : compiled(arguments_, true);
                     }) as LoopCallable;
                     cached = { value: value!, compiled, bound, plain: privateEntry };
                     return bound;
@@ -857,6 +869,27 @@ export class FunctionInvocation {
                 cached = { value: value!, compiled, bound, plain: privateEntry };
                 return bound;
             };
+            if (call.parameter) {
+                const parameter = statement.parameters.indexOf(call.name);
+                argumentGuards.push(arguments_ => !!bind(arguments_[parameter]));
+            } else if (!call.recursive && call.functionArguments?.length) {
+                argumentGuards.push(arguments_ => {
+                    const value = resolve(call.name);
+                    const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
+                    if (!definition || definition.statement !== call.statement) return false;
+                    const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
+                    const forwarded: RankValue[] = [];
+                    for (const [target, source] of call.functionArguments!) forwarded[target] = arguments_[source];
+                    return !!compiled && (!compiled.argumentsAvailable || compiled.argumentsAvailable(forwarded));
+                });
+            }
+            if (call.parameter) return () => ((value: RankValue, ...arguments_: unknown[]) => {
+                const bound = bind(value);
+                if (bound) return (bound as (...args: unknown[]) => RankValue)(...arguments_);
+                if (!isNativeFunction(value)) throw new RankError('expected a function', 'TypeError');
+                return runExecution(this.host.apply(value, (call.tail ? arguments_[0] : arguments_) as RankValue[]));
+            }) as LoopCallable;
+            return () => bind(resolve(call.name));
         });
         const rankedCalls = kernel.rankedCalls.map(call => () => {
             const value = resolve(call.name);
@@ -1255,6 +1288,8 @@ export class FunctionInvocation {
             };
         }
 
+        if (argumentGuards.length) Object.defineProperty(run, 'argumentsAvailable', { value: (arguments_: readonly RankValue[]) => argumentGuards.every(guard => guard(arguments_)) });
+
         const observableFold = kernel.privateFolds && Object.values(this.compiler.hooks).some(value => typeof value === 'function');
         if (kernel.privateFolds || kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             const reject = (reason: string) => rejectCompilerGuard(statement, 'scalar-function', reason);
@@ -1398,11 +1433,12 @@ export class FunctionInvocation {
                 if (transfer) {
                     this.host.inputs?.tail(transfer.definition.statement, transfer.inputRequirement);
                     tailContracts.add(transfer.definition.specialization(transfer.arguments_));
-                    if (transfer.compiled && (!transfer.compiled.available || transfer.compiled.available())) {
+                    const selected = transfer.compiled ?? transfer.definition.selectScalar(transfer.arguments_);
+                    if (selected && (!selected.available || selected.available())) {
                         compiledTail = true;
                         // Keep the tail driver's logical depth and resource scope;
                         // this proven scalar body needs no new lexical frame.
-                        try { result = transfer.compiled(transfer.arguments_, true); }
+                        try { result = selected(transfer.arguments_, true); }
                         catch (error) { pending = error; }
                         break;
                     }

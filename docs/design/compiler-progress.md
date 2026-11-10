@@ -3796,3 +3796,61 @@ produces generator chunks; ragged array expansion and bounded search batches
 replace the double generation pass and separate rectangle table. The
 [benchmark](../../benchmarks/euler583.md) records the geometry argument,
 compiler controls, rejected experiments and Mac/Intel measurements.
+
+### Function composition: ranked cells and callable arguments
+
+A linked user call now checks declared cell ranks against proven operand ranks.
+Scalar cells can enter `rank 0` helpers; whole text and array operands can enter
+helpers whose declared rank includes them. Text has rank one, so `rank 0` text
+mapping is not erased. Lifted frames, broadcasting and empty-frame assembly stay
+with ordinary rank dispatch. Call-site rank/axis modifiers retain their boundary.
+
+Scalar entry specialization now accepts declared function arguments. Its key
+contains the function declaration and captured scalar domains, never a function
+value or closure frame. Generated calls read the actual callable argument;
+runtime guards check its declaration, implementation, lexical locals and callee
+availability. Forwarding a callable through another strict helper preserves these
+guards. Different closures of the same declaration resolve their own captures.
+The Number tier does not reinterpret function values as numeric registers.
+
+The exact tier supports scalar and owned-array callback results and self-recursive
+functions that carry the same callable parameters unchanged. Tail transfers from
+interpreted bodies now consult the destination's scalar entry selector, including
+nested closures passed to a higher-order helper. Tail errors retain the ordinary
+logical stack. Callable specialization stops at 16 cached argument-domain entries
+per capture variant and reports `callable-specialization-limit`; later calls keep
+ordinary execution.
+
+This is a partial implementation of issue #565's fourth workstream. Creating a
+nested closure still needs an interpreter frame; this change compiles eligible
+nested callees and higher-order consumers, not the whole enclosing declaration.
+Mutual recursion reports `unsupported-recursive-call-graph`, distinct from the
+`call-graph-depth-limit` cost boundary. Native callbacks without a declared-body
+proof, effectful callbacks, function-valued results, configurable/deferred
+higher-order calls and lifted callable application still retain their ordinary
+paths. They are not covered by a claim of complete function composition.
+
+`function-composition.test.ts` checks compiled entry selection, exact integers,
+real inputs, callable identity/forwarding, captures, protected writes, recursion,
+array results, errors and the specialization bound. The capability matrix adds
+12 composition cases, including the remaining nested-body/mutual-recursion
+boundaries and empty/nonempty ranked array results. Existing snapshots are
+unchanged. `benchmarks/function-composition.mjs` compares fresh interpreters in
+separate baseline/current processes; its cold sample includes parsing and first
+compilation, and its warm samples still create fresh interpreters. Peak RSS is
+process-wide, including module loading.
+
+Median results for 2,000 calls (milliseconds, before → after):
+
+| Case | Mac warm | Intel warm |
+| --- | ---: | ---: |
+| named | 2.74 → 2.06 | 5.62 → 7.26 |
+| ranked | 32.10 → 2.13 | 111.00 → 5.51 |
+| callable | 43.46 → 10.99 | 148.31 → 33.38 |
+| capture | 69.59 → 36.25 | 279.17 → 140.27 |
+
+The longer ordinary-call control (200,000 calls, seven process pairs) measured
+6.84 → 6.94 ms on Mac and 16.24 → 16.04 ms on Intel. Short named-call timing
+includes preparation overhead; these measurements do not establish a universal
+speedup. The raw cold times, warm samples and process RSS observations are in
+`benchmarks/function-composition-results.json`.

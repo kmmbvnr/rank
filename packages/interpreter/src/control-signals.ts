@@ -7,6 +7,7 @@ export type NumberCallArgument = number | boolean | ArrayLike<number | bigint>;
 /** A prepared scalar body whose native bindings, if any, need entry validation. */
 export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => RankValue) & {
     readonly available?: () => boolean;
+    readonly argumentsAvailable?: (arguments_: readonly RankValue[]) => boolean;
     direct?: (...arguments_: RankValue[]) => RankValue;
     numberDirect?: (...arguments_: NumberCallArgument[]) => number;
     /** Entry-checked leaf ABI for a caller with a private-state proof. */

@@ -23,6 +23,7 @@ const kernels = new WeakMap<FunctionStatement, Map<string, Run | null>>();
  * retains its scalar/shape error order and unselected-cell demand semantics.
  * Callers must recheck the function identity and decline observable polling. */
 export function compileIntegerArrayFunction(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
+    if (types.some(type => typeof type !== 'string' && type.kind === 'function')) return declineCompiler('function-parameter', statement);
     const provenTypes = Object.fromEntries(types.map((type, index) => [statement.parameters[index], typeof type === 'string' ? type : JSON.stringify(type)]));
     const candidate = observeCompiler(statement, 'integer-array-function', 'prepare', () => compileIntegerArrayFunctionObservedImplementation(statement, types), provenTypes);
     return candidate && observedRun(statement, 'integer-array-function', candidate, provenTypes);

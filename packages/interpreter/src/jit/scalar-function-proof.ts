@@ -1,7 +1,7 @@
 import { observeCompiler } from '../compiler-observation.js';
 import { currentDiagnostics } from '../diagnostics.js';
-import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
-import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.js';
+import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, isCompiledArray, type CompiledCalleeType } from './compiled-callee-type.js';
+import { positionalDeclaredCall, strictDataCall, wholeDeclaredCall } from './declared-scalar-call.js';
 import {
     symbolicApplicationForm, scalarChooseOperands, functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
@@ -176,7 +176,7 @@ export interface ScalarFunctionInput {
     readonly reshapeDimensions?: readonly (CompiledExpression<CompiledCalleeType, ScalarFunctionInput> | undefined)[];
     readonly negative?: boolean;
     readonly keyed?: boolean;
-    readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes };
+    readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes; readonly parameter?: boolean };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly signs?: readonly boolean[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -227,7 +227,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     if (!currentDiagnostics()?.traceCompiler) return scalarFunctionResultObservedImplementation(statement, blocks, parameterTypes, loops, path, captures);
     const provenTypes = Object.fromEntries(statement.parameters.map((name, index) => {
         const type = parameterTypes?.[index] ?? 'integer';
-        return [name, typeof type === 'string' ? type : JSON.stringify(type)];
+        return [name, typeof type !== 'string' && type.kind === 'function' ? 'function' : typeof type === 'string' ? type : JSON.stringify(type)];
     }));
     return observeCompiler(statement, 'scalar-function-proof', 'prepare', () => {
         const proof = scalarFunctionResultObservedImplementation(statement, blocks, parameterTypes, loops, path, captures);
@@ -238,7 +238,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
 
 function scalarFunctionResultObservedImplementation(statement: FunctionStatement, blocks = false,
     parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = [], captures: ScalarCaptureTypes = noCaptures): ScalarFunctionProof | undefined {
-    if (path.includes(statement) || path.length >= 16) return recordFallback('scalar-function:call-graph');
+    if (path.includes(statement)) return recordFallback('scalar-function:unsupported-recursive-call-graph');
+    if (path.length >= 16) return recordFallback('scalar-function:call-graph-depth-limit');
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
     }
@@ -344,7 +345,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
             input: name => {
                 const domain = env.get(name);
                 if (typeof domain === 'string') return { element: domain, rank: 0 };
-                if (domain && !isCompiledContainer(domain) && (domain.rank === 1 || domain.rank === 2)) return { element: domain.element, rank: domain.rank };
+                if (domain && isCompiledArray(domain) && (domain.rank === 1 || domain.rank === 2)) return { element: domain.element, rank: domain.rank };
                 return undefined;
             },
             stage: name => stages.get(name),
@@ -358,7 +359,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
             callback: (name, element) => {
                 const callee = lexicalBinding(scope, name)?.function;
                 if (env.has(name) || !callee || callee.memo || callee.parameters.length !== 1
-                    || callee.ranks.some(rank => rank !== 'all')) return undefined;
+                    || !wholeDeclaredCall(callee, [element])) return undefined;
                 const signature = functionCallSignature(callee);
                 if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function' || parameter.deferred)) return undefined;
                 const proof = scalarFunctionResult(callee, true, [element], true, [...path, statement], captures);
@@ -377,20 +378,39 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
     }
     function userCall(parts: readonly Expression[], env: ReadonlyMap<string, CompiledCalleeType>, source?: Expression) {
         const last = parts.at(-1);
-        if (!loops || !last || !isNameExpression(last) || env.has(last.name)) return undefined;
-        const callee = (lexical?.reads.get(last) ?? lexicalBinding(scope, last.name))?.function;
-        if (!callee || callee.memo || callee.parameters.length !== parts.length - 1
-            || callee.ranks.some(rank => rank !== 'all')) return undefined;
+        if (!loops || !last || !isNameExpression(last)) return undefined;
+        const parameter = env.get(last.name);
+        const callable = parameter && typeof parameter !== 'string' && parameter.kind === 'function' ? parameter : undefined;
+        if (parameter && !callable) return undefined;
+        const callee = callable?.statement ?? (lexical?.reads.get(last) ?? lexicalBinding(scope, last.name))?.function;
+        if (!callee || callee.memo || callee.parameters.length !== parts.length - 1) return undefined;
         const signature = functionCallSignature(callee);
-        if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function')) return undefined;
+        if (signature.words.length) return undefined;
         const arguments_ = parts.slice(0, -1);
         if (signature.parameters.some(parameter => parameter.deferred && readsStage(arguments_[parameter.index]))) return undefined;
-        const inputs = arguments_.map(argument => type(argument, env));
+        const inputs = arguments_.map((argument, index) => {
+            const value = unwrap(argument);
+            const domain = isNameExpression(value) ? env.get(value.name) : undefined;
+            if (isNameExpression(value) && signature.parameters[index]?.kind === 'function' && domain && typeof domain !== 'string' && domain.kind === 'function') {
+                expressions.set(argument, { kind: 'input', source: argument, type: domain, input: { name: value.name } });
+                return domain;
+            }
+            return type(argument, env);
+        });
+        if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)
+            || !wholeDeclaredCall(callee, inputs)
+            || signature.parameters.some((parameter, index) => parameter.kind === 'function'
+                && !(typeof inputs[index] !== 'string' && inputs[index].kind === 'function'))) return undefined;
         // A base return establishes the self-call's scalar result. Its inputs
         // must preserve every domain, and the completed proof excludes array
         // writes; integer index mutations retain their shared-reference meaning.
         if (callee === statement && typeof resultType === 'string'
-            && inputs.every((input, index) => input !== undefined && sameCompiledCalleeType(input, types[index]))) {
+            && inputs.every((input, index) => {
+                if (!sameCompiledCalleeType(input, types[index])) return false;
+                if (typeof input === 'string' || input.kind !== 'function') return true;
+                const argument = unwrap(arguments_[index]);
+                return isNameExpression(argument) && argument.name === statement.parameters[index];
+            })) {
             recursive = true;
             callCount++;
             dependencies.add(last.name);
@@ -399,8 +419,8 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
         }
         // Read-only arguments and integer containers keep their proven domains
         // across linked calls. Writes to arguments still need a binding frame.
-        if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
-        const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], captures);
+        const callCaptures = callable?.captures ?? captures;
+        const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], callCaptures);
         if (!proof || !proof.localArrayWrites
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         if (proof.planReturn && (!consumerRoot || unwrap(consumerRoot) !== source)) return undefined;
@@ -408,16 +428,18 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
         callDepth = Math.max(callDepth, proof.callDepth + 1);
         callCount += proof.callCount + 1;
         observableCaptures ||= proof.observableCaptures;
-        dependencies.add(last.name);
-        for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
+        if (!callable) {
+            dependencies.add(last.name);
+            for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
+        }
         return { type: proof.type, input: { name: last.name, operation: 'user-call' as const,
-            callee: { statement: callee, types: inputs, proof, captures }, indices: arguments_.map(argument => expressions.get(argument)!) } };
+            callee: { statement: callee, types: inputs, proof, captures: callCaptures, parameter: !!callable }, indices: arguments_.map(argument => expressions.get(argument)!) } };
     }
     function type(expression: Expression, env: ReadonlyMap<string, CompiledCalleeType>): CompiledCalleeType | undefined {
         const sumReduction = terminalReductionForm(flattenApplication(unwrap(expression)), name => !env.has(name) && !lexicalBinding(scope, name));
         const stageSum = sumReduction?.operation === 'sum';
         if (loops && !stageSum && !isNameExpression(expression) && AstUtils.streamAst(expression).some(node => isNameExpression(node)
-            && (stages.has(node.name) || typeof env.get(node.name) === 'object' && !isCompiledContainer(env.get(node.name)!)))) {
+            && (stages.has(node.name) || env.has(node.name) && isCompiledArray(env.get(node.name)!)))) {
             const stage = plan(expression, env, false);
             if (stage) {
                 const domain = functionPlanType(stage);
@@ -442,7 +464,8 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     const parts = positionalDeclaredCall(source);
                     const callee = isNameExpression(source.callee)
                         ? (lexical?.reads.get(source.callee) ?? lexicalBinding(scope, source.callee.name))?.function : undefined;
-                    return parts && callee && strictDataCall(callee) ? userCall(parts, env, source) : undefined;
+                    return parts && callee && !functionCallSignature(callee).parameters.some(parameter => parameter.deferred)
+                        ? userCall(parts, env, source) : undefined;
                 }
                 if (loops && isBinaryExpression(source)) {
                     const fold = symbolicApplicationForm(source, name => !env.has(name) && !lexicalBinding(scope, name));
@@ -493,13 +516,13 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                             indices: [expressions.get(base)!, expressions.get(source.right)!] } };
                     }
                     const integer = (domain: CompiledCalleeType | undefined) => domain === 'integer'
-                        || domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.element === 'integer';
+                        || domain && typeof domain !== 'string' && isCompiledArray(domain) && domain.element === 'integer';
                     const exponent = unwrap(source.right);
                     if (integer(left) && integer(right) && (typeof left !== 'string' || typeof right !== 'string')
                         && !(typeof right !== 'string' && isNameExpression(exponent) && parameters.has(exponent.name))
                         && nonnegative(source.right)) {
                         return { type: { kind: 'array', element: 'integer', rank: Math.max(...[left, right].map(domain =>
-                            typeof domain === 'string' || !domain || isCompiledContainer(domain) ? 0 : domain.rank)) },
+                            domain && isCompiledArray(domain) ? domain.rank : 0)) },
                             input: { name: '', operation: 'array-power', negative: signed?.operator === '-',
                                 indices: [expressions.get(base)!, expressions.get(source.right)!] } };
                     }
@@ -514,7 +537,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                         const domains = form.items.map(item => type(item, env)), first = domains[0];
                         const axis = form.axis ? isNumberLiteral(form.axis) && typeof form.axis.value === 'bigint'
                             ? Number(form.axis.value) : -1 : 0;
-                        if (first && typeof first !== 'string' && !isCompiledContainer(first)
+                        if (first && typeof first !== 'string' && isCompiledArray(first)
                             && domains.every(domain => domain && sameCompiledCalleeType(domain, first))
                             && axis >= 0 && axis <= first.rank) {
                             modules.add('sequences');
@@ -525,13 +548,13 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     if (form.kind === 'named-reduce' && form.seed && !form.keys && !form.size && isNameExpression(form.operation)
                         && !env.has(form.operation.name)) {
                         const domain = type(form.source, env), seed = type(form.seed, env);
-                        const row = domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 2
+                        const row = domain && typeof domain !== 'string' && isCompiledArray(domain) && domain.rank === 2
                             && form.rank && isNumberLiteral(form.rank) && form.rank.value === 1n
                             && form.axes?.length === 1 && isNumberLiteral(form.axes[0]) && form.axes[0].value === 0n;
-                        const vector = domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 1
+                        const vector = domain && typeof domain !== 'string' && isCompiledArray(domain) && domain.rank === 1
                             && !form.rank && !form.axes;
                         const binding = lexicalBinding(scope, form.operation.name), callee = binding?.function;
-                        if ((row || vector) && seed && !isCompiledContainer(seed) && callee && callee !== statement
+                        if ((row || vector) && seed && (typeof seed === 'string' || isCompiledArray(seed)) && callee && callee !== statement
                             && binding?.scope.owner !== statement && !callee.memo && strictDataCall(callee)
                             && callee.parameters.length === 2 && callee.ranks.every(rank => rank === 'all')) {
                             const cell: CompiledCalleeType = row ? { kind: 'array', element: domain.element, rank: 1 } : domain.element;
@@ -553,7 +576,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     }
                     if (form.kind === 'reshape' && !form.rest.length) {
                         const array = type(form.source, env);
-                        if (array && typeof array !== 'string' && !isCompiledContainer(array)
+                        if (array && typeof array !== 'string' && isCompiledArray(array)
                             && form.dimensions.every(dimension => isAllAxisExpression(dimension) || type(dimension, env) === 'integer')) {
                             nativeReads.add('reshape');
                             modules.add('sequences');
@@ -567,7 +590,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                         && !env.has('powmod') && !lexicalBinding(scope, 'powmod')) {
                         const inputs = parts.slice(0, -1).map(operand => type(operand, env));
                         if (inputs.every(input => input === 'integer' || input && typeof input !== 'string'
-                            && !isCompiledContainer(input) && input.element === 'integer')
+                            && isCompiledArray(input) && input.element === 'integer')
                             && inputs.some(input => typeof input !== 'string')) {
                             nativeReads.add('powmod'); modules.add('numbers');
                             return { type: { kind: 'array', element: 'integer', rank: Math.max(...inputs.map(input =>
@@ -592,7 +615,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                         && !env.has('concat') && !lexicalBinding(scope, 'concat')) {
                         const domains = form.items.map(item => type(item, env));
                         const first = domains[0];
-                        if (first && typeof first !== 'string' && !isCompiledContainer(first) && first.rank === 1
+                        if (first && typeof first !== 'string' && isCompiledArray(first) && first.rank === 1
                             && domains.every(domain => domain && sameCompiledCalleeType(first, domain))) {
                             modules.add('sequences');
                             if (form.rest.length) nativeReads.add('copy');
@@ -707,7 +730,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     if (last && isNameExpression(last) && ['sort','unique','argsort'].includes(last.name)
                         && !env.has(last.name) && !lexicalBinding(scope,last.name)) {
                         const array = type(source.head,env);
-                        if (array && typeof array !== 'string' && !isCompiledContainer(array) && array.rank === 1) {
+                        if (array && typeof array !== 'string' && isCompiledArray(array) && array.rank === 1) {
                             nativeReads.add(last.name);
                             modules.add('sequences');
                             return {type:last.name === 'argsort' ? {...array,element:'integer'} : array,
@@ -719,14 +742,14 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     if (parts.length === 2 && isNameExpression(operation) && operation.name === 'copy'
                         && !env.has('copy') && !lexicalBinding(scope, 'copy')) {
                         const array = type(receiver, env);
-                        if (array && typeof array !== 'string' && !isCompiledContainer(array)) {
+                        if (array && typeof array !== 'string' && isCompiledArray(array)) {
                             nativeReads.add('copy');
                             return { type: array, input: { name: '', operation: 'copy', indices: [expressions.get(receiver)!] } };
                         }
                     }
                     const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
                     if (parts.length === 2 && isNameExpression(receiver) && domain && typeof domain !== 'string'
-                        && !isCompiledContainer(domain) && isNameExpression(operation) && operation.name === 'len'
+                        && isCompiledArray(domain) && isNameExpression(operation) && operation.name === 'len'
                         && !env.has('len') && !lexicalBinding(scope, 'len')) {
                         nativeReads.add('len');
                         return { type: 'integer', input: { name: receiver.name, operation: 'array-len' } };
@@ -752,7 +775,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 }
                 if (isNameExpression(source)) {
                     const known = env.get(source.name);
-                    if (known) return { type: known, input: { name: source.name } };
+                    if (known && !(typeof known !== 'string' && known.kind === 'function')) return { type: known, input: { name: source.name } };
                     const captured = captures.get(source.name), binding = lexical?.reads.get(source) ?? lexicalBinding(scope, source.name);
                     if (loops && captured && binding && binding.scope.owner !== statement && !binding.function
                         && !source.name.includes('.')) {
@@ -766,7 +789,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 if (form.kind === 'comparison-rank' && form.rank === 1 && form.axes === undefined) {
                     const left = type(form.left, env), right = type(form.right, env);
                     if (left && right && typeof left !== 'string' && typeof right !== 'string'
-                        && !isCompiledContainer(left) && !isCompiledContainer(right) && left.rank === 1 && right.rank === 1
+                        && isCompiledArray(left) && isCompiledArray(right) && left.rank === 1 && right.rank === 1
                         && left.element === right.element) return { type: 'boolean', input: { name: form.operator, operation: 'compare-array',
                             indices: [expressions.get(form.left)!, expressions.get(form.right)!] } };
                 }
@@ -791,10 +814,10 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     return { type: 'integer', input: { name: head.name, operation: 'captured-read',
                         indices: indices.map(index => expressions.get(index)!) } };
                 }
-                if (!array || typeof array === 'string' || (isCompiledContainer(array) ? indices.length !== 1 : indices.length !== array.rank)) return undefined;
-                if (!isCompiledContainer(array) && array.rank === 1 && indices.length === 1) {
+                if (!array || typeof array === 'string' || array.kind === 'function' || (isCompiledContainer(array) ? indices.length !== 1 : indices.length !== array.rank)) return undefined;
+                if (isCompiledArray(array) && array.rank === 1 && indices.length === 1) {
                     const selector = type(indices[0], env);
-                    if (selector && typeof selector !== 'string' && !isCompiledContainer(selector)
+                    if (selector && typeof selector !== 'string' && isCompiledArray(selector)
                         && selector.rank === 1 && ['integer', 'boolean'].includes(selector.element)) return { type: array,
                             input: { name: head.name, operation: 'gather', indices: [expressions.get(indices[0])!] } };
                 }
@@ -815,9 +838,9 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 if (!['+', '-', '*', '/', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'].includes(operation.name)
                     || inputs.some(isCompiledContainer)) return undefined;
                 const signature = matchCompiledOperatorSignature(operation.scalarFunction,
-                    inputs.map(input => typeof input === 'string' ? input : !isCompiledContainer(input) ? input.element : 'integer'));
+                    inputs.map(input => typeof input === 'string' ? input : isCompiledArray(input) ? input.element : 'integer'));
                 return signature ? { ...signature, inputs, result: { kind: 'array', element: signature.result,
-                    rank: Math.max(...inputs.map(input => typeof input === 'string' || isCompiledContainer(input) ? 0 : input.rank)) } } : undefined;
+                    rank: Math.max(...inputs.map(input => isCompiledArray(input) ? input.rank : 0)) } } : undefined;
             },
             call: (operation, inputs) => {
                 // Only explicit completion and the lowered sum own a plan's
@@ -825,7 +848,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 if (stages.size && readsStage(expression)) return undefined;
                 if (inputs.some(isCompiledContainer)) return undefined;
                 const signature = matchCompiledCallSignature(operation, inputs.map(value => typeof value === 'string' ? value
-                    : !isCompiledContainer(value) && (value.element === 'text' || value.element === 'integer') && value.rank === 1 ? `${value.element}-array` : 'array'));
+                    : isCompiledArray(value) && (value.element === 'text' || value.element === 'integer') && value.rank === 1 ? `${value.element}-array` : 'array'));
                 if (signature) nativeReads.add(operation.name);
                 return signature;
             },
@@ -868,7 +891,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
         }
         if (isArrayExpression(source) || isNameExpression(source) && env.has(source.name)) {
             const domain = type(source, env);
-            if (domain && typeof domain !== 'string' && !isCompiledContainer(domain) && domain.rank === 1) {
+            if (domain && typeof domain !== 'string' && isCompiledArray(domain) && domain.rank === 1) {
                 return { kind: 'literal', expression: source, element: domain.element };
             }
             return undefined;
@@ -1001,7 +1024,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
             }
             if (loops && isUnpackStatement(command)) {
                 const array = type(command.value, env);
-                if (!array || typeof array === 'string' || isCompiledContainer(array) || array.rank !== 1) return reject(command, 'unpack-domain');
+                if (!array || !isCompiledArray(array) || array.rank !== 1) return reject(command, 'unpack-domain');
                 for (const name of command.names) {
                     if (name === '#') continue;
                     if (name.includes('.') || protectedNames.has(name) || stages.has(name) || iterableNames.has(name)
@@ -1042,7 +1065,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 // its construction-time array after copy-on-write detaches it.
                 if (protectedNames.has(command.name)) return reject(command, 'plan-capture-write');
                 const receiver = env.get(command.name);
-                if (!receiver || typeof receiver === 'string' || isCompiledContainer(receiver) && receiver.kind !== 'index'
+                if (!receiver || typeof receiver === 'string' || !isCompiledArray(receiver) && !(isCompiledContainer(receiver) && receiver.kind === 'index')
                     || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
                     || command.indices.some(index => index.all || index.sign || !index.value || type(index.value, env) !== 'integer')
                     || type(command.value, env) !== (isCompiledContainer(receiver) ? 'integer' : receiver.element)) return reject(command, 'container-write');
@@ -1051,7 +1074,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     const signature = scalarOperatorSignature(command.operator.slice(0, -1), [element, element]);
                     if (!signature?.compound || signature.result !== element) return reject(command, 'array-compound');
                 }
-                if (!isCompiledContainer(receiver)) arrayWrites.add(command);
+                if (isCompiledArray(receiver)) arrayWrites.add(command);
                 else containerWrites.add(command.name);
                 continue;
             }

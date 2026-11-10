@@ -16,7 +16,7 @@ import { materializeValue } from '../materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource, numberBitwiseSource } from './operator-codegen.js';
 import { numericBoundSource } from './numeric-bound-codegen.js';
 import { membershipLookup } from '../membership-lookup.js';
-import { type CompiledCalleeType, isCompiledContainer, sameCompiledCalleeType } from './compiled-callee-type.js';
+import { type CompiledCalleeType, isCompiledContainer, isCompiledArray, sameCompiledCalleeType } from './compiled-callee-type.js';
 import { newStructure, addToCollection, expectAddCollection, setHas } from '../collections.js';
 import { indexGet, indexHas, indexRead, indexSet, indexKey } from '../index-storage.js';
 import {
@@ -55,7 +55,7 @@ interface Kernel {
     readonly privateFolds: boolean;
     readonly deques: boolean;
     readonly setMembership: boolean;
-    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[];
+    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; parameter?: boolean; functionArguments?: readonly (readonly [number, number])[]; captures?: ScalarCaptureTypes }[];
     readonly rankedCalls: ScalarFunctionProof['planCalls'];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
@@ -133,7 +133,7 @@ function compileScalarNumberKernel(
     // wider inputs replay exactly rather than silently truncate.
     const narrowMembership = memberships.length > 0;
     const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
-    const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && !isCompiledContainer(t)
+    const arrayParameter = (t: CompiledCalleeType) => typeof t !== 'string' && isCompiledArray(t)
         && t.rank === 1 && t.element === 'integer';
     const vectorOperands = (value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>) => {
         while (value.kind === 'group') value = value.operand;
@@ -161,7 +161,7 @@ function compileScalarNumberKernel(
         const owner = expression.$container;
         if (!owner || !isAssignmentStatement(owner) || owner.value !== expression || owner.operator !== '=') return undefined;
         if (value.input.operation === 'array') {
-            if (typeof value.type === 'string' || isCompiledContainer(value.type)
+            if (!isCompiledArray(value.type)
                 || value.type.rank !== 1 || !['integer', 'real'].includes(value.type.element)) return undefined;
             arrays.add(owner.name);
         } else {
@@ -178,7 +178,7 @@ function compileScalarNumberKernel(
         const node = expression.$container;
         if (!isAssignmentStatement(node) || node.value !== expression) continue;
         const value = inputOf(compiled);
-        if (!value || typeof value.type === 'string' || isCompiledContainer(value.type)) continue;
+        if (!value || !isCompiledArray(value.type)) continue;
         if (value.type.rank !== 1 || !['integer', 'real'].includes(value.type.element)) return undefined;
         arrays.add(node.name);
         if (!value.input.operation && !value.input.indices) aliases.push([node.name, value.input.name]);
@@ -304,7 +304,7 @@ function compileScalarNumberKernel(
                 const initial = input.indices![0].type === 'integer' ? `safe(${fill})` : fill;
                 const owner = compiled.source.$container;
                 lines.push(`const ${result} = ${isAssignmentStatement(owner) && cowArrays.has(owner.name)
-                    ? `new PrivateNumericArray([${count}], ${initial}, undefined, undefined, ${typeof compiled.type !== 'string' && !isCompiledContainer(compiled.type) && compiled.type.element === 'real'})`
+                    ? `new PrivateNumericArray([${count}], ${initial}, undefined, undefined, ${typeof compiled.type !== 'string' && isCompiledArray(compiled.type) && compiled.type.element === 'real'})`
                     : `Array(${count}).fill(${initial})`};`);
                 return result;
             }
@@ -797,7 +797,7 @@ function compileScalarNumberKernel(
 export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): Kernel | undefined {
     const provenTypes = Object.fromEntries(statement.parameters.map((name, index) => {
         const type = parameterTypes?.[index] ?? 'integer';
-        return [name, typeof type === 'string' ? type : JSON.stringify(type)];
+        return [name, typeof type !== 'string' && type.kind === 'function' ? 'function' : typeof type === 'string' ? type : JSON.stringify(type)];
     }));
     const candidate = observeCompiler(statement, 'scalar-function', 'prepare', () => compileScalarFunctionObservedImplementation(statement, parameterTypes, loops, capturedTypes), provenTypes);
     if (!candidate) return undefined;
@@ -819,7 +819,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
     // their cheaper binding bookkeeping; count scopes only when a
     // parameter, alias, unpack or returned array can benefit from retirement.
     const arrayType = (type: CompiledCalleeType | undefined) => type !== undefined
-        && typeof type !== 'string' && !isCompiledContainer(type);
+        && typeof type !== 'string' && isCompiledArray(type);
     const scopedArrays = !!proof.arrayWrites.size && (!proof.localArrayWrites
         || parameterTypes?.some(arrayType) || arrayType(proof.type)
         || AstUtils.streamAllContents(statement).some(node => isUnpackStatement(node)
@@ -842,7 +842,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
     const calls: { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
-    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
+    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; parameter?: boolean; functionArguments?: readonly (readonly [number, number])[]; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number; iteration?: boolean }[] = [];
@@ -1042,18 +1042,21 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
                 const values = expression.input.indices!.map(argument => lower(argument, lines));
                 const arguments_ = values.map((value, index) => {
                     const domain = expression.input.indices![index].type;
-                    if (typeof domain === 'string' || isCompiledContainer(domain)) return value;
+                    if (!isCompiledArray(domain)) return value;
                     const completed = `v${serial++}`;
                     lines.push(`const ${completed} = completeArgument(${value});`);
                     return completed;
                 });
                 const index = userCalls.push({ name: expression.input.name, statement: callee?.statement ?? statement,
                     types: callee?.types ?? expression.input.indices!.map(argument => argument.type),
-                    locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call', captures: callee?.captures }) - 1;
+                    functionArguments: expression.input.indices!.flatMap((argument, index) =>
+                        typeof argument.type !== 'string' && argument.type.kind === 'function' && argument.kind === 'input'
+                            ? [[index, statement.parameters.indexOf(argument.input.name)] as const] : []),
+                    locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call', parameter: callee?.parameter, captures: callee?.captures }) - 1;
                 const result = `v${serial++}`;
                 lines.push(tail
-                    ? `const ${result} = userCalls[${index}]([${arguments_.join(',')}], true);`
-                    : `const ${result} = userCalls[${index}](${arguments_.join(',')});`);
+                    ? `const ${result} = userCalls[${index}](${callee?.parameter ? slot(expression.input.name) + ',' : ''}[${arguments_.join(',')}], true);`
+                    : `const ${result} = userCalls[${index}](${callee?.parameter ? slot(expression.input.name) + ',' : ''}${arguments_.join(',')});`);
                 return result;
             }
             if (operation === 'sequence-contains' || operation === 'sequence-not-contains') {
@@ -1189,7 +1192,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
                 return result;
             }
             const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(({ type }) => typeof type === 'string' ? type
-                : !isCompiledContainer(type) && (type.element === 'text' || type.element === 'integer') && type.rank === 1 ? `${type.element}-array` : 'array') }) - 1;
+                : isCompiledArray(type) && (type.element === 'text' || type.element === 'integer') && type.rank === 1 ? `${type.element}-array` : 'array') }) - 1;
             const result = `v${serial++}`;
             lines.push(`const ${result} = calls[${index}](${arguments_.join(',')});`);
             return result;
@@ -1533,10 +1536,10 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
             direct,
             numberDirect,
             numberArrayArguments: (parameterTypes ?? []).flatMap((type,index) => typeof type !== 'string'
-                && !isCompiledContainer(type) && type.rank === 1 && type.element === 'integer' ? [index] : []),
+                && isCompiledArray(type) && type.rank === 1 && type.element === 'integer' ? [index] : []),
             numberStorage: proof.containers ? 'queues' : [...expressions.values()].some(expression =>
                 expression.kind === 'input' && expression.input.operation === 'array')
-                || parameterTypes?.some(type => typeof type !== 'string' && !isCompiledContainer(type)) ? 'arrays' : undefined,
+                || parameterTypes?.some(type => typeof type !== 'string' && isCompiledArray(type)) ? 'arrays' : undefined,
         };
     }
     catch { /* CSP keeps the ordinary function implementation. */ }

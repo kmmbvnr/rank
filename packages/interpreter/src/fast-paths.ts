@@ -5,12 +5,12 @@ import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
 import { interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { borrowIntegerBuffer } from './jit/borrowed-integer-buffer.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
-import { strictDataCall } from './jit/declared-scalar-call.js';
+import { strictDataCall, wholeDeclaredCall } from './jit/declared-scalar-call.js';
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
 import type { LoopHost, LoopContinuation, LoopCallable } from './jit/integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
-import { isCompiledContainer, type CompiledCalleeType } from './jit/compiled-callee-type.js';
+import { isCompiledContainer, isCompiledArray, type CompiledCalleeType } from './jit/compiled-callee-type.js';
 import type { CompiledCallee } from './jit/compiled-callee.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
@@ -660,13 +660,14 @@ export class FastPaths {
         if (!definition || definition.statement.parameters.length !== arity) return undefined;
         const statement = definition.statement;
         if (strictData && !strictDataCall(statement)) return undefined;
-        if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
+        if (statement.memo) return undefined;
         return types => {
+            if (!wholeDeclaredCall(statement, types)) return undefined;
             const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
             const proof = scalarFunctionResult(statement, this.compiler.scalars.blockCalls, types, true, [], scalarTypes);
             // Whole-loop registers do not yet accept returned containers.
             // Scalar helper chains retain their reference-valued result.
-            if (!proof || isCompiledContainer(proof.type) || proof.planReturn && typeof proof.type === 'string' && !consumed || proof.nonnegative.length) return undefined;
+            if (!proof || typeof proof.type !== 'string' && !isCompiledArray(proof.type) || proof.planReturn && typeof proof.type === 'string' && !consumed || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
                 type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
@@ -682,7 +683,7 @@ export class FastPaths {
                 ? compileRealArrayFunction(statement, types) : undefined;
             const arrayKernel = integerArrayKernel ?? realArrayKernel;
             const numberSafe = !!arrayKernel || stableReads && isScalarType(proof.type) && types.every(type => isScalarType(type)
-                || !isCompiledContainer(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
+                || isCompiledArray(type) && typeof type !== 'string' && type.rank === 1 && type.element === 'integer');
             return {
                 parameters: types,
                 effects: {

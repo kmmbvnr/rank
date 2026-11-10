@@ -25,6 +25,7 @@ const kernels = new WeakMap<FunctionStatement, Map<string, Run | null>>();
  * binding. Any failed finite/shape/integer proof replays the original body,
  * including its eager bindings and their error order. No input is mutated. */
 export function compileRealArrayFunction(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
+    if (types.some(type => typeof type !== 'string' && type.kind === 'function')) return declineCompiler('function-parameter', statement);
     const provenTypes = Object.fromEntries(types.map((type, index) => [statement.parameters[index], typeof type === 'string' ? type : JSON.stringify(type)]));
     const candidate = observeCompiler(statement, 'real-array-function', 'prepare', () => compileRealArrayFunctionObservedImplementation(statement, types), provenTypes);
     return candidate && observedRun(statement, 'real-array-function', candidate, provenTypes);

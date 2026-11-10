@@ -136,3 +136,19 @@ for (const storage of ['int32', 'int64', 'float64'] as const) for (const selecti
         inputs: [storage === 'float64' ? 'real[]' : 'integer[]'], result: storage === 'float64' ? 'real' : 'integer',
         ranks: [2], layout: `${storage} ${selection}`, effects: [], combination: 'stored input and reduction' });
 }
+
+// Function extraction, ranked cells and higher-order forwarding use the same inputs.
+for (const rank of ['', ' rank 0', ' rank 1', ' rank -1']) {
+    add(`composition/named${rank.replace(/ /g, '-') || '-plain'}`,
+        `fun X square${rank}\n return X * X\nend\nfun X helper\n return (X square) + 1\nend\n3 helper`, ['integer'], 'integer');
+}
+const square = 'fun X square\n return X * X\nend\n';
+const apply = 'fun X apply op\n return (X op) + 1\nend\n';
+add('composition/callable', square + apply + '3 apply square', ['integer', 'function'], 'integer');
+add('composition/forwarded-callable', square + apply + 'fun X forward op\n return (X apply op) + 1\nend\n3 forward square', ['integer', 'function'], 'integer');
+add('composition/nested-callable-capture', apply + 'fun Offset outer\n fun X shifted\n  return X + Offset\n end\n return 3 apply shifted\nend\nFirst = 4 outer\nSecond = 10 outer\nFirst + Second', ['integer', 'function'], 'integer');
+add('composition/recursive-callable', square + 'fun Count total op\n if Count equal 0\n  return 0\n end\n return (Count op) + ((Count - 1) total op)\nend\n4 total square', ['integer', 'function'], 'integer');
+add('composition/mutual-recursion-boundary', 'fun X even\n if X equal 0\n  return true\n end\n return (X - 1) odd\nend\nfun X odd\n if X equal 0\n  return false\n end\n return (X - 1) even\nend\n10 even', ['integer'], 'boolean');
+add('composition/nested-body-boundary', 'fun X helper\n fun Y shifted\n  return X + Y\n end\n return 3 shifted\nend\n4 helper', ['integer'], 'integer');
+for (const size of [0, 3]) add(`composition/ranked-array-result-${size}`,
+    `use sequences\nfun X pair rank 0\n return array X (X + 1)\nend\nValues = array shape ${size} fill 3\nResult = Values pair\nResult shape`, ['integer[]'], 'integer[]', [1, 2], 'ranked cells');
