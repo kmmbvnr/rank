@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, compilerSource, observeCompilerSource, observedSourceRun, withCompilerMethods } from '../compiler-observation.js';
 import { floorDivide, floorRemainder } from '../runtime/numeric-division.js';
 import { checkedNumberModularMultiply, numberOverflow } from './number-arithmetic.js';
 import { tensorReductionStep } from './tensor-reduction-codegen.js';
@@ -58,6 +59,14 @@ export type TensorCodeCache = Map<string, KernelRun>;
  * Checks belong to this demand; the optional cache retains executable code only. */
 export function compileNativeTensorReduction(root: TensorNode, operation: TensorReduction,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'native-tensor-reduction', 'prepare', () => compileNativeTensorReductionObservedImplementation(root, operation, domains, host, code), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'native-tensor-reduction', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileNativeTensorReductionObservedImplementation(root: TensorNode, operation: TensorReduction,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, operation, host, domains, operation.startsWith('reduce'), code, true);
 }
 /** One source graph serves every cell of an axis fold. The frame index is a
@@ -65,10 +74,27 @@ export function compileNativeTensorReduction(root: TensorNode, operation: Tensor
 export function compileNativeTensorAxisReduction(root: TensorNode, operation: TensorReduction,
     axes: readonly number[], domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
     host: TensorKernelHost, code: TensorCodeCache) {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'native-tensor-axis', 'prepare', () => compileNativeTensorAxisReductionObservedImplementation(root, operation, axes, domains, host, code), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'native-tensor-axis', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileNativeTensorAxisReductionObservedImplementation(root: TensorNode, operation: TensorReduction,
+    axes: readonly number[], domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
+    host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, operation, host, domains, false, code, true, undefined, undefined, axes);
 }
 /** Completion consumes native recipes at the existing binding boundary. */
 export function compileNativeTensorCopy(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'native-tensor-copy', 'prepare', () => compileNativeTensorCopyObservedImplementation(root, domains, host, code), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'native-tensor-copy', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileNativeTensorCopyObservedImplementation(root: TensorNode,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, 'copy', host, domains, true, code, true);
 }
@@ -76,10 +102,27 @@ export function compileNativeTensorCopy(root: TensorNode,
 export function compileNativeTensorVisit(root: TensorNode,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache,
     visit: (cell: RankValue, index: number) => void) {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'native-tensor-visit', 'prepare', () => compileNativeTensorVisitObservedImplementation(root, domains, host, code, visit), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'native-tensor-visit', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileNativeTensorVisitObservedImplementation(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache,
+    visit: (cell: RankValue, index: number) => void) {
     return build(root, 'copy', host, domains, true, code, true, undefined, visit);
 }
 /** Integer prefix sums consume the native source directly into final storage. */
 export function compileNativeIntegerScan(root: TensorNode, seed: bigint | undefined,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'native-integer-scan', 'prepare', () => compileNativeIntegerScanObservedImplementation(root, seed, domains, host, code), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'native-integer-scan', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileNativeIntegerScanObservedImplementation(root: TensorNode, seed: bigint | undefined,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, 'copy', host, domains, true, code, true, seed ?? null);
 }
@@ -100,6 +143,14 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 export function compileTensorKernel(statement: Statement, host: TensorKernelHost): {
     source: string; run(): RankValue | undefined;
 } | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statement, 'tensor', 'prepare', () => compileTensorKernelObservedImplementation(statement, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'tensor', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileTensorKernelObservedImplementation(statement: Statement, host: TensorKernelHost): {
+    source: string; run(): RankValue | undefined;
+} | undefined {
     // Both plans parse the same statement: report its first rejection once.
     const attempt = { rejected: false };
     return compileTensorPlan(statement, host, attempt)
@@ -109,6 +160,12 @@ export function compileTensorKernel(statement: Statement, host: TensorKernelHost
 /** A scalar demand may fuse its tensor expression without completing an array
  * result early. The caller still owns plan capture and binding validation. */
 export function compileTensorReduction(expression: Expression, host: TensorKernelHost) {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(expression, 'tensor-reduction', 'prepare', () => compileTensorReductionObservedImplementation(expression, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(expression, 'tensor-reduction', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileTensorReductionObservedImplementation(expression: Expression, host: TensorKernelHost) {
     const parts = pair(unwrap(expression));
     const terminal = parts && unwrap(parts[1]);
     if (!terminal || !isNameExpression(terminal) || terminal.name === 'copy'
@@ -274,7 +331,9 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
             }
             return false;
         };
-        if (!root || !arithmetic(root) || operations < 2) return undefined;
+        if (!root) return declineCompiler('unsupported-expression', statement.value);
+        if (!arithmetic(root)) return declineCompiler('pointwise-arithmetic-required', statement.value);
+        if (operations < 2) return declineCompiler('too-small', statement.value);
         const destinationName = isAssignmentStatement(statement) ? statement.name : undefined;
         return build(root, 'copy', host, domains, true, undefined, false, undefined, undefined, undefined, destinationName);
     }
@@ -283,11 +342,11 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const arithmetic = (node: TensorNode): boolean => node.kind === 'input'
             || node.kind === 'unary' && ['+', '-'].includes(node.op) && arithmetic(node.operand)
             || node.kind === 'binary' && ['+', '-', '*'].includes(node.op) && arithmetic(node.left) && arithmetic(node.right);
-        if (!right || !arithmetic(right)) return undefined;
+        if (!right || !arithmetic(right)) return declineCompiler('compound-arithmetic-required', statement.value);
         const left = typed({ kind: 'input', name: statement.name }, unknown);
         const op = statement.operator.slice(0, -1);
         const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
-        if (!matched) return undefined;
+        if (!matched) return declineCompiler('operator-domain', statement.value);
         const destinationName = statement.name;
         return build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
     }
@@ -295,10 +354,10 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
     // Only a single expression may enter this source frontend. Named deferred
     // stages compose through the checked native graph after normal demand.
     const assignment = isAssignmentStatement(statement) && statement.operator === '=';
-    if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
+    if ((!assignment && !isReturnStatement(statement)) || !statement.value) return declineCompiler('assignment-or-return-required', statement);
     const parts = pair(statement.value);
     const last = parts && unwrap(parts[1]);
-    if (!last || !isNameExpression(last) || !terminals.has(last.name)) return undefined;
+    if (!last || !isNameExpression(last) || !terminals.has(last.name)) return declineCompiler('reduction-or-copy-terminal-required', statement.value);
     // A dyadic overload such as `A 12 min` clips every cell; it is not
     // indexing followed by a monadic reduction. Parentheses retain the boundary.
     if (findOperation(last.name)?.arities.includes(2)
@@ -307,7 +366,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         return reject(statement, 'dyadic-terminal');
     }
     const root = parse(parts![0]);
-    if (!root || root.kind === 'input') return undefined;
+    if (!root) return declineCompiler('unsupported-expression', statement.value);
+    if (root.kind === 'input') return declineCompiler('no-fusible-operation', statement.value);
     const destinationName = assignment && last.name === 'copy' ? statement.name : undefined;
     return build(root, last.name as Terminal, host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
 }

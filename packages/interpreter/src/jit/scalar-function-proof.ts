@@ -1,3 +1,5 @@
+import { observeCompiler } from '../compiler-observation.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { compiledCalleeTypeKey, sameCompiledCalleeType, isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import { positionalDeclaredCall, strictDataCall } from './declared-scalar-call.js';
 import {
@@ -221,6 +223,20 @@ const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionPro
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
 export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
+    parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = [], captures: ScalarCaptureTypes = noCaptures): ScalarFunctionProof | undefined {
+    if (!currentDiagnostics()?.traceCompiler) return scalarFunctionResultObservedImplementation(statement, blocks, parameterTypes, loops, path, captures);
+    const provenTypes = Object.fromEntries(statement.parameters.map((name, index) => {
+        const type = parameterTypes?.[index] ?? 'integer';
+        return [name, typeof type === 'string' ? type : JSON.stringify(type)];
+    }));
+    return observeCompiler(statement, 'scalar-function-proof', 'prepare', () => {
+        const proof = scalarFunctionResultObservedImplementation(statement, blocks, parameterTypes, loops, path, captures);
+        if (proof) currentDiagnostics()?.compilerType('return', typeof proof.type === 'string' ? proof.type : JSON.stringify(proof.type));
+        return proof;
+    }, provenTypes);
+}
+
+function scalarFunctionResultObservedImplementation(statement: FunctionStatement, blocks = false,
     parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = [], captures: ScalarCaptureTypes = noCaptures): ScalarFunctionProof | undefined {
     if (path.includes(statement) || path.length >= 16) return recordFallback('scalar-function:call-graph');
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {

@@ -1,5 +1,6 @@
+import { declineCompiler, observeCompiler } from '../compiler-observation.js';
 import { flattenApplication, isApplicationExpression, isNameExpression, isParenthesizedExpression, numericUpdateExpression,
-    type Expression, type NumericUpdateExpression } from '@arrrank/language';
+    type Expression, type Statement, type NumericUpdateExpression } from '@arrrank/language';
 import { arithmeticRange } from '../range-plan.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { writeComputedSelection, denseScalarItems, storedScalarKinds } from './array-storage.js';
@@ -20,41 +21,52 @@ type Kernel = (dst: Cells, a: Cells[], o: number[], s: number[], c: number[], of
 
 /** A discarded numeric RHS can feed a unique linear write directly. Syntax is
  * supplied by language analysis; guards inspect only ready native values. */
-export function computedArrayUpdate(expression: NumericUpdateExpression, assignment: string) {
-    if (!['+=', '-=', '*=', '/=', '//='].includes(assignment)) return undefined;
+export function computedArrayUpdate(expression: NumericUpdateExpression, assignment: string, site?: Statement) {
+    const candidate = observeCompiler(site, 'computed-array-update', 'prepare', () => prepareComputedArrayUpdate(expression, assignment));
+    return candidate && ((...args: Parameters<typeof candidate>) => {
+        const bound = observeCompiler(site, 'computed-array-update-binding', 'prepare', () => candidate(...args));
+        return bound && { ...bound, write: (target: RankArray) => observeCompiler(site, 'computed-array-update', 'execute',
+            () => bound.write(target) || declineCompiler('destination-storage-guard')) ?? false };
+    });
+}
+
+function prepareComputedArrayUpdate(expression: NumericUpdateExpression, assignment: string) {
+    if (!['+=', '-=', '*=', '/=', '//='].includes(assignment)) return declineCompiler(`unsupported-assignment:${assignment}`);
     const operation = assignment.slice(0, -1);
     const cache = new Map<string, Kernel | undefined>();
     return (target: RankArray, selection: Selection, host: Host): {
         representative: bigint | number; write(destination: RankArray): boolean;
     } | undefined => {
-        if (inspectionEnabled() || !privateLoopPolling() || !selection.unique || !selection.linear || !denseScalarItems(target)
-            || target.columnNames || target.tableScopes) return undefined;
+        if (inspectionEnabled()) return declineCompiler('inspection-enabled');
+        if (!privateLoopPolling()) return declineCompiler('observable-polling');
+        if (!selection.unique || !selection.linear) return declineCompiler('unique-linear-selection-required');
+        if (!denseScalarItems(target) || target.columnNames || target.tableScopes) return declineCompiler('dense-plain-target-required');
         const count = selection.shape.reduce((a, b) => a * b, 1);
-        if (count < 64) return undefined;
+        if (count < 64) return declineCompiler('small-update-cost');
         const destination = storage(target);
-        if (!destination || destination.offset !== 0 || destination.stride !== 1) return undefined;
+        if (!destination || destination.offset !== 0 || destination.stride !== 1) return declineCompiler('contiguous-target-required');
         const targetKind: Kind = destination.cells instanceof Int32Array ? 'integer' : 'real';
         const inputs: Input[] = [], scalars: number[] = [], lines: string[] = [];
         let temporary = 0;
         const scalar = (value: RankValue): Bound | undefined => {
-            if (typeof value !== 'bigint' && typeof value !== 'number') return undefined;
-            if (typeof value === 'bigint' ? value < -2147483648n || value > 2147483647n : !Number.isFinite(value)) return undefined;
+            if (typeof value !== 'bigint' && typeof value !== 'number') return declineCompiler('numeric-scalar-required');
+            if (typeof value === 'bigint' ? value < -2147483648n || value > 2147483647n : !Number.isFinite(value)) return declineCompiler('finite-real-or-int32-scalar-required');
             const slot = scalars.push(Number(value)) - 1;
             return { kind: typeof value === 'bigint' ? 'integer' : 'real', code: `c[${slot}]`, scalar: value, exact: () => value };
         };
         const array = (value: RankValue, selectors?: RankValue[]): Bound | undefined => {
-            if (!isRankArray(value)) return undefined;
+            if (!isRankArray(value)) return declineCompiler('array-input-required');
             const input = storage(value);
-            if (!input || value.columnNames) return undefined;
+            if (!input || value.columnNames) return declineCompiler('stored-plain-array-required');
             const selected = selectors ? tensorSelection(value, selectors) : undefined;
             const shape = selected?.shape ?? value.shape;
             const linear = selected?.linear ?? (!selectors ? { offset: 0, stride: 1 } : undefined);
-            if (!linear) return undefined;
+            if (!linear) return declineCompiler('linear-input-required');
             const offset = input.offset + linear.offset * input.stride, stride = input.stride * linear.stride;
             if (shape.length === 0) return scalar(input.cells instanceof Int32Array ? BigInt(input.cells[offset]) : input.cells[offset]);
-            if (!sameShape(shape, selection.shape)) return undefined;
+            if (!sameShape(shape, selection.shape)) return declineCompiler('input-shape-guard');
             const span = { cells: input.cells, offset, stride };
-            if (!safeReads(span, destination.cells, selection.linear!, count)) return undefined;
+            if (!safeReads(span, destination.cells, selection.linear!, count)) return declineCompiler('overlapping-write-guard');
             const slot = inputs.push(span) - 1;
             return { kind: input.cells instanceof Int32Array ? 'integer' : 'real',
                 code: `a[${slot}][o[${slot}] + i * s[${slot}]]`,
@@ -70,14 +82,14 @@ export function computedArrayUpdate(expression: NumericUpdateExpression, assignm
             }
             if (node.kind === 'select') {
                 const selectors = node.selectors.map(ready);
-                if (!selectors.every((value): value is RankValue => trustedSelector(value))) return undefined;
+                if (!selectors.every((value): value is RankValue => trustedSelector(value))) return declineCompiler('trusted-selector-required');
                 return array(host.resolveVariable(node.name), selectors);
             }
             const left = bind(node.left), right = bind(node.right);
             if (!left || !right) return undefined;
             if (node.operator === '/' || node.operator === '//') {
-                if (right.scalar === undefined || right.scalar === 0 || right.scalar === 0n) return undefined;
-                if (node.operator === '//' && (left.kind !== 'integer' || right.kind !== 'integer')) return undefined;
+                if (right.scalar === undefined || right.scalar === 0 || right.scalar === 0n) return declineCompiler('nonzero-scalar-divisor-required');
+                if (node.operator === '//' && (left.kind !== 'integer' || right.kind !== 'integer')) return declineCompiler('integer-division-operands-required');
             }
             if (left.scalar !== undefined && right.scalar !== undefined) {
                 return scalar(host.operators.evaluateBinary(node.operator, left.scalar, right.scalar));
@@ -92,11 +104,12 @@ export function computedArrayUpdate(expression: NumericUpdateExpression, assignm
         };
         let rhs: Bound | undefined;
         try { rhs = bind(expression); }
-        catch (error) { if (error instanceof RankError) return undefined; throw error; }
-        if (!rhs || targetKind === 'integer' && rhs.kind !== 'integer') return undefined;
+        catch (error) { if (error instanceof RankError) return declineCompiler('rank-error-during-binding'); throw error; }
+        if (!rhs) return undefined;
+        if (targetKind === 'integer' && rhs.kind !== 'integer') return declineCompiler('integer-target-domain-guard');
         if (operation === '/' || operation === '//') {
             if (rhs.scalar === undefined || rhs.scalar === 0 || rhs.scalar === 0n
-                || operation === '//' && targetKind !== 'integer' || operation === '/' && targetKind !== 'real') return undefined;
+                || operation === '//' && targetKind !== 'integer' || operation === '/' && targetKind !== 'real') return declineCompiler('division-update-domain-guard');
         }
         const update = operation === '//' ? `Math.floor(dst[p] / (${rhs.code}))` : `dst[p] ${operation} (${rhs.code})`;
         const source = `for (let i = start; i < end; i++) {\n${lines.join('\n')}\nconst p = offset + i * stride;\nconst next = ${update};\n${targetKind === 'integer' ? 'if (next !== (next | 0)) return i;' : 'if (!Number.isFinite(next)) return i;'}\ndst[p] = next;\n}\nreturn end;`;
@@ -105,13 +118,17 @@ export function computedArrayUpdate(expression: NumericUpdateExpression, assignm
             catch { cache.set(source, undefined); }
         }
         const kernel = cache.get(source);
-        if (!kernel) return undefined;
+        if (!kernel) return declineCompiler('dynamic-code-unavailable');
         const cells = inputs.map(input => input.cells), offsets = inputs.map(input => input.offset), strides = inputs.map(input => input.stride);
         const { offset, stride } = selection.linear;
         const exact = rhs.exact;
         return { representative: targetKind === 'integer' ? 0n : 0,
             write: target => writeComputedSelection(target, count, offset, stride,
-                (dst, start, end) => kernel(dst, cells, offsets, strides, scalars, offset, stride, start, end),
+                (dst, start, end) => {
+                    const next = kernel(dst, cells, offsets, strides, scalars, offset, stride, start, end);
+                    if (next < end) declineCompiler(targetKind === 'integer' ? 'int32-result-guard' : 'finite-result-guard');
+                    return next;
+                },
                 (i, old) => host.operators.evaluateBinary(operation, old, exact(i)) as bigint | number) };
     };
 }

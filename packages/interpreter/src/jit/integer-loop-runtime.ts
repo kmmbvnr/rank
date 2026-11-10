@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, withCompilerMethods } from '../compiler-observation.js';
 import { checkValueMutable } from '../value-protection.js';
 import { integerSquareRoot } from '../integer-square-root.js';
 import { materializeValue } from '../materialize.js';
@@ -47,6 +48,12 @@ function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): str
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined): CompiledLoop | undefined {
+    const provenTypes = Object.fromEntries(plan.localTypes);
+    const candidate = observeCompiler(plan.statement, 'exact-loop', 'prepare', () => prepareIntegerLoopObservedImplementation(plan, host, reject, feedback, compileCountedPlan), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(plan.statement, 'exact-loop', candidate.run.bind(candidate), provenTypes, true) });
+}
+
+function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { statement, names, arrays, destinations, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, hasYield, needsAlgo, arrayDefinitions, writable, iteration } = plan;
     const integerIndexInputs = [...containers.values()].filter(info => info.kind === 'index' && info.integers);
     const nonintegerDestinations = integerIndexInputs.length

@@ -1,3 +1,4 @@
+import { declineCompiler, observeCompiler, observedRun, rejectCompilerGuard } from '../compiler-observation.js';
 import {
     flattenApplication, findCompiledOperator,
     isReturnStatement, isRecordExpression, isParenthesizedExpression, isNumberLiteral,
@@ -20,7 +21,14 @@ export function registerFlatCombine(
     operation: object, statement: FunctionStatement,
     available: (builtins: ReadonlySet<string>) => boolean,
 ): void {
-    factories.set(operation, storage => compile(statement, storage, available));
+    factories.set(operation, storage => {
+        const types = Object.fromEntries(storage.fields);
+        const candidate = observeCompiler(statement, 'flat-combine', 'prepare', () => compile(statement, storage, available), types);
+        return candidate && { ...candidate,
+            run: observedRun(statement, 'flat-combine', candidate.run, types, false, 'success'),
+            valid: () => candidate.valid() || rejectCompilerGuard(statement, 'flat-combine', 'builtin-or-call-depth-guard'),
+        };
+    });
 }
 
 export function flatCombine(operation: RankValue | undefined, storage: FlatRecords): FlatCombine | undefined {
@@ -33,14 +41,15 @@ function compile(
     statement: FunctionStatement, storage: FlatRecords,
     available: (builtins: ReadonlySet<string>) => boolean,
 ): FlatCombine | undefined {
-    if (statement.memo || statement.parameters.length !== 2
-        || new Set(statement.parameters).size !== 2 || statement.statements.length !== 1
-        || storage.fields.some(([, type]) => type !== 'integer')) return undefined;
+    if (statement.memo) return declineCompiler('memo-function');
+    if (statement.parameters.length !== 2 || new Set(statement.parameters).size !== 2) return declineCompiler('two-distinct-parameters-required');
+    if (statement.statements.length !== 1) return declineCompiler('single-return-required');
+    if (storage.fields.some(([, type]) => type !== 'integer')) return declineCompiler('integer-fields-required');
     const command = statement.statements[0];
-    if (!isReturnStatement(command) || !command.value || !isRecordExpression(command.value)) return undefined;
+    if (!isReturnStatement(command) || !command.value || !isRecordExpression(command.value)) return declineCompiler('record-return-required');
     const record = command.value;
     const fields = new Map(storage.fields.map(([name], index) => [name, index]));
-    if (record.fields.length !== fields.size || new Set(record.fields.map(f => f.name)).size !== fields.size) return undefined;
+    if (record.fields.length !== fields.size || new Set(record.fields.map(f => f.name)).size !== fields.size) return declineCompiler('record-schema-guard');
     const builtins = new Set<string>();
     const lines: string[] = [];
     let serial = 0, remaining = 256;
@@ -50,7 +59,7 @@ function compile(
         return name;
     };
     function emit(e: Expression): string | undefined {
-        if (--remaining < 0) return undefined;
+        if (--remaining < 0) return declineCompiler('expression-budget', e);
         if (isParenthesizedExpression(e)) return emit(e.value);
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return `${e.value}n`;
         if (isUnaryExpression(e) && ['+', '-'].includes(e.operator)) {
@@ -66,33 +75,33 @@ function compile(
         if (chain.length === 2 && isNameExpression(chain[0]) && isLabelLiteral(chain[1])) {
             const parameter = statement.parameters.indexOf(chain[0].name);
             const field = fields.get(chain[1].name);
-            if (parameter < 0 || field === undefined) return undefined;
+            if (parameter < 0 || field === undefined) return declineCompiler('parameter-field-required', e);
             return `${parameter === 0 ? 'left' : 'right'}[${field}]`;
         }
         if (chain.length === 3) {
             const op = chain[2];
             if (!isNameExpression(op) || !['min', 'max'].includes(op.name)
-                || statement.parameters.includes(op.name)) return undefined;
+                || statement.parameters.includes(op.name)) return declineCompiler('unshadowed-extrema-required', e);
             builtins.add(op.name);
             const left = emit(chain[0]), right = emit(chain[1]);
             if (left === undefined || right === undefined) return undefined;
             return variable(scalarExtremeSource(op.name as 'min' | 'max', left, right));
         }
-        return undefined;
+        return declineCompiler('unsupported-expression', e);
     }
     const writes: string[] = [];
     for (const field of record.fields) {
         const index = fields.get(field.name);
-        if (index === undefined) return undefined;
+        if (index === undefined) return declineCompiler('unknown-result-field', field.value);
         const value = emit(field.value);
         if (value === undefined) return undefined;
         // Snapshot even a direct field read before any output write: output may
         // alias either input during prefix/suffix accumulation.
         writes.push(`output[${index}] = ${variable(value)};`);
     }
-    if (!available(builtins)) return undefined;
+    if (!available(builtins)) return declineCompiler('builtin-or-call-depth-guard');
     try {
         const run = new Function('left', 'right', 'output', `"use strict"; ${lines.join('\n')}\n${writes.join('\n')}`) as FlatCombine['run'];
         return { run, order: record.fields.map(field => field.name), valid: () => available(builtins) };
-    } catch { return undefined; } // CSP retains ordinary Rank calls.
+    } catch { return declineCompiler('dynamic-code-unavailable'); } // CSP retains ordinary Rank calls.
 }

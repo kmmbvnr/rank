@@ -1,3 +1,4 @@
+import { declineCompiler, compilerSource, observeCompilerSource, observedSourceRun } from '../compiler-observation.js';
 import { checkedIntegerSumStep } from './tensor-reduction-codegen.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import type { CompiledAtomType } from '@arrrank/language';
@@ -9,14 +10,18 @@ import { privateLoopPolling, interruptsEnabled } from '../interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from '../value.js';
 import type { TensorCodeCache, TensorNode } from './tensor-kernel.js';
 
-const overflow = {};
+const overflow = {}, zeroDivisor = {}, negativeRoot = {}, indexGuard = {}, validationGuard = {};
+function rejectBinding(reason: string): false {
+    declineCompiler(reason);
+    return false;
+}
 const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 const safe = (value: number): number => {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
 };
 const divide = (a: number, b: number): number => {
-    if (!b) throw overflow;
+    if (!b) throw zeroDivisor;
     // The product stays exact inside this bound. One correction handles a
     // rounded quotient without paying for floating-point remainder.
     if (Math.abs(a) + Math.abs(b) <= Number.MAX_SAFE_INTEGER) {
@@ -45,9 +50,21 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, operation: 'sum' | 'positions' | 'copy' | 'indices',
     code: TensorCodeCache, valid: () => boolean, indices?: ArrayLike<number>, upper = 0, compiled?: (source: string) => void):
     (() => bigint | number[] | RankArray | undefined) | undefined {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'layout-number-tensor', 'prepare', () => prepareLayoutNumberTensorObservedImplementation(root, domains, operation, code, valid, indices, upper, compiled), provenTypes);
+    return candidate && observedSourceRun(sourceSite, 'layout-number-tensor', candidate, provenTypes);
+}
+
+function prepareLayoutNumberTensorObservedImplementation(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, operation: 'sum' | 'positions' | 'copy' | 'indices',
+    code: TensorCodeCache, valid: () => boolean, indices?: ArrayLike<number>, upper = 0, compiled?: (source: string) => void):
+    (() => bigint | number[] | RankArray | undefined) | undefined {
     const type = domains.get(root)?.join();
-    if (!privateLoopPolling() || interruptsEnabled() || (operation === 'positions' ? type !== 'boolean'
-        : operation === 'sum' || operation === 'indices' ? type !== 'integer' : type !== 'integer' && type !== 'boolean')) return undefined;
+    if (!privateLoopPolling()) return declineCompiler('observable-polling');
+    if (interruptsEnabled()) return declineCompiler('interrupts-enabled');
+    if (operation === 'positions' ? type !== 'boolean'
+        : operation === 'sum' || operation === 'indices' ? type !== 'integer' : type !== 'integer' && type !== 'boolean') return declineCompiler('result-domain-guard');
     const data: ArrayLike<RankValue>[] = [], scalars: (number | boolean)[] = [], limits: number[] = [];
     const routes: ((index: number) => number)[] = [], checks: ((cell: RankValue, index: number) => RankValue)[] = [];
     const shapes = new Map<TensorNode, readonly number[]>(), slots = new Map<TensorNode, number>();
@@ -60,7 +77,9 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     }
     function bind(node: TensorNode): boolean {
         if (shapes.has(node)) return true;
-        if (--remaining < 0 || visiting.has(node) || !['integer', 'boolean'].includes(domains.get(node)?.join() ?? '')) return false;
+        if (--remaining < 0) return rejectBinding('expression-budget');
+        if (visiting.has(node)) return rejectBinding('cyclic-ir');
+        if (!['integer', 'boolean'].includes(domains.get(node)?.join() ?? '')) return rejectBinding('operand-domain-guard');
         visiting.add(node);
         let shape: readonly number[] | undefined;
         if (node.kind === 'input') {
@@ -73,13 +92,13 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                 // overflow after paying for a full copy. Small inputs and
                 // compact Int32 sources retain the numeric path.
                 if (!cells && (!stored || stored.validate || stored.linear?.offset !== 0 || stored.linear.stride !== 1
-                    || stored.kinds?.join() !== domains.get(node)?.join())) return false;
+                    || stored.kinds?.join() !== domains.get(node)?.join())) return rejectBinding('linear-scalar-storage-required');
                 const items = cells ?? stored!.compact ?? stored!.items;
                 if (operation === 'sum' && !cells && !(items instanceof BigInt64Array && items.buffer instanceof ArrayBuffer) && items.length > 64
                     && domains.get(node)?.join() === 'integer') wideInputs.push(items.length);
                 shape = [...node.value.shape];
                 if (shape.some(n => !Number.isSafeInteger(n) || n < 0)
-                    || shape.reduce((a, b) => safe(a * b), 1) !== items.length) return false;
+                    || shape.reduce((a, b) => safe(a * b), 1) !== items.length) return rejectBinding('storage-size-guard');
                 slots.set(node, data.push(items) - 1);
             }
         } else if (node.kind === 'call' && (node.intrinsic === 'isqrt' || node.intrinsic === 'integer')
@@ -95,22 +114,25 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             const result: number[] = [];
             for (let axis = 0; axis < rank; axis++) {
                 const left = a[axis - rank + a.length] ?? 1, right = b[axis - rank + b.length] ?? 1;
-                if (left !== right && left !== 1 && right !== 1) return false;
+                if (left !== right && left !== 1 && right !== 1) return rejectBinding('broadcast-shape-guard');
                 result.push(left === 1 ? right : left);
             }
             shape = result;
         }
         else if (node.kind === 'select' && bind(node.source) && bind(node.selector)
             && shapes.get(node.source)!.length === 1 && domains.get(node.selector)?.join() === 'integer') shape = shapes.get(node.selector);
-        if (!shape) return false;
+        if (!shape) return rejectBinding(`unsupported-layout:${node.kind}`);
         shapes.set(node, shape); sizes.set(node, limits.push(size(node)) - 1); visiting.delete(node);
         return true;
     }
-    try { if (!bind(root) || !shapes.get(root)!.length) return undefined; }
-    catch (error) { if (error !== overflow) throw error; return undefined; }
+    try {
+        if (!bind(root)) return undefined;
+        if (!shapes.get(root)!.length) return declineCompiler('array-result-required');
+    }
+    catch (error) { if (error !== overflow) throw error; return declineCompiler('integer-exactness-guard'); }
     const count = indices?.length ?? size(root);
     // Repeated gathers amortize conversion; equal-size wide sums stay capped.
-    if (wideInputs.reduce((a, b) => a + b, 0) * 4 > count) return undefined;
+    if (wideInputs.reduce((a, b) => a + b, 0) * 4 > count) return declineCompiler('input-conversion-budget');
     const uniformLines = new Set<number>();
     const loads: { slot: number; at: string; name: string; line: number }[] = [];
     const lines: string[] = [], emitted = new Map<TensorNode, Map<string, string>>();
@@ -140,7 +162,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
         if (node.kind === 'input') {
             if (!shapes.get(node)!.length) value = `scalars[${slots.get(node)}]`;
             else {
-                lines.push(`if (${at} < 0 || ${at} >= limits[${sizes.get(node)}]) throw overflow;`);
+                lines.push(`if (${at} < 0 || ${at} >= limits[${sizes.get(node)}]) throw indexGuard;`);
                 const read = `data[${slots.get(node)}][${at}]`;
                 value = type === 'boolean' ? `Boolean(${read})` : `safe(Number(${read}))`;
             }
@@ -154,13 +176,13 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             const checked = `checked${serial++}`, raw = type === 'integer' ? `BigInt(${source})` : source;
             if (node.uniform) uniformLines.add(lines.length);
             lines.push(`${node.uniform ? `if (!validated[${slots.get(node)}]) {` : ''} const ${checked} = checks[${slots.get(node)}](${raw}, ${at});
-                if (${checked} !== ${raw}) throw overflow; ${node.uniform ? `validated[${slots.get(node)}] = true; }` : ''}`);
+                if (${checked} !== ${raw}) throw validationGuard; ${node.uniform ? `validated[${slots.get(node)}] = true; }` : ''}`);
             value = source;
         } else if (node.kind === 'select') {
             const key = emit(node.selector, at);
             if (!key) return undefined;
             const index = `index${serial++}`;
-            lines.push(`const ${index} = safe(${key}); if (${index} < 0 || ${index} >= limits[${sizes.get(node.source)}]) throw overflow;`);
+            lines.push(`const ${index} = safe(${key}); if (${index} < 0 || ${index} >= limits[${sizes.get(node.source)}]) throw indexGuard;`);
             value = emit(node.source, index);
         } else if (node.kind === 'call') {
             const a = emit(node.source, at);
@@ -183,7 +205,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
                 if (token) value = `${a} ${token} ${b}`;
             }
         }
-        if (!value) return undefined;
+        if (!value) return declineCompiler(`unsupported-lowering:${node.kind}`);
         if (node.kind === 'input' && shapes.get(node)!.length && type === 'integer') loads.push({ slot: slots.get(node)!, at, name, line: lines.length });
         lines.push(`const ${name} = ${value};`);
         if (!emitted.has(node)) emitted.set(node, new Map());
@@ -219,7 +241,7 @@ export function prepareLayoutNumberTensor(root: TensorNode,
         if (fast.has(load.slot)) lines[load.line] = `const ${load.name} = data[${load.slot}][${load.at}];`;
         else if (words.has(load.slot)) lines[load.line] = `const ${load.name} = safe(data[${load.slot}][(${load.at}) * 2 + ${1 - LOW}] * 4294967296 + (data[${load.slot}][(${load.at}) * 2 + ${LOW}] >>> 0));`;
     }
-    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw overflow;` : operation === 'sum' ? checkedIntegerSumStep(result) : operation === 'positions' ? `if (${result}) result.push(i);`
+    const action = `${operation === 'indices' ? `if (${result} < 0 || ${result} >= upper) throw indexGuard;` : operation === 'sum' ? checkedIntegerSumStep(result) : operation === 'positions' ? `if (${result}) result.push(i);`
                 : type === 'boolean' ? `if (${result}) result[at >>> 5] |= 1 << (at & 31);`
                 : `if (result instanceof Int32Array && ${result} !== (${result} | 0)) result = widen(result);
                     result[at] = result instanceof Int32Array ? ${result} : BigInt(${result});`}`;
@@ -241,15 +263,17 @@ export function prepareLayoutNumberTensor(root: TensorNode,
     if (!cache) caches.set(code, cache = new Map());
     let run = cache.get(source);
     if (!run) {
-        try { run = new Function('safe', 'divide', 'remainder', 'widen', 'overflow', 'isqrt', source)(safe, divide,
-            (a: number, b: number) => { if (!b) throw overflow; const r = a % b; return r && (r < 0) !== (b < 0) ? safe(r + b) : r; },
-            (cells: Int32Array) => { const wide = new BigInt64Array(cells.length); for (let i = 0; i < cells.length; i++) wide[i] = BigInt(cells[i]); return wide; }, overflow, (value: number) => { if (value < 0) throw overflow; return safeIntegerSquareRoot(value); }) as Run; } catch { return undefined; }
+        try { run = new Function('safe', 'divide', 'remainder', 'widen', 'indexGuard', 'validationGuard', 'isqrt', source)(safe, divide,
+            (a: number, b: number) => { if (!b) throw zeroDivisor; const r = a % b; return r && (r < 0) !== (b < 0) ? safe(r + b) : r; },
+            (cells: Int32Array) => { const wide = new BigInt64Array(cells.length); for (let i = 0; i < cells.length; i++) wide[i] = BigInt(cells[i]); return wide; }, indexGuard, validationGuard, (value: number) => { if (value < 0) throw negativeRoot; return safeIntegerSquareRoot(value); }) as Run; } catch { return declineCompiler('dynamic-code-unavailable'); }
         if (cache.size >= 128) cache.delete(cache.keys().next().value!);
         cache.set(source, run);
         compiled?.(source);
     }
     return () => {
-        if (!privateLoopPolling() || interruptsEnabled() || !valid()) return undefined;
+        if (!privateLoopPolling()) return declineCompiler('observable-polling');
+        if (interruptsEnabled()) return declineCompiler('interrupts-enabled');
+        if (!valid()) return declineCompiler('input-revision-guard');
         try {
             for (const { input, output } of conversions) {
                 for (let at = 0; at < input.length; at++) output[at] = safe(Number(input[at]));
@@ -265,7 +289,12 @@ export function prepareLayoutNumberTensor(root: TensorNode,
             if (type === 'integer') return typedArray(value as Int32Array | BigInt64Array, shape);
             const out = filledArray(false, shape); booleanCells(out)!.words.set(value as Uint32Array); return out;
         } catch (error) {
-            if (error === overflow || error instanceof RankError) return undefined;
+            if (error === overflow) return declineCompiler('integer-exactness-guard');
+            if (error === zeroDivisor) return declineCompiler('zero-divisor-guard');
+            if (error === negativeRoot) return declineCompiler('negative-root-guard');
+            if (error === indexGuard) return declineCompiler('index-bounds-guard');
+            if (error === validationGuard) return declineCompiler('validation-result-guard');
+            if (error instanceof RankError) return declineCompiler('rank-error-during-speculation');
             throw error;
         }
     };

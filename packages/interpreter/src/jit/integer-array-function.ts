@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
 import {
     isAssignmentStatement, isReturnStatement, isNameExpression, isNumberLiteral,
     isUnaryExpression, isBinaryExpression, isParenthesizedExpression,
@@ -22,6 +23,12 @@ const kernels = new WeakMap<FunctionStatement, Map<string, Run | null>>();
  * retains its scalar/shape error order and unselected-cell demand semantics.
  * Callers must recheck the function identity and decline observable polling. */
 export function compileIntegerArrayFunction(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
+    const provenTypes = Object.fromEntries(types.map((type, index) => [statement.parameters[index], typeof type === 'string' ? type : JSON.stringify(type)]));
+    const candidate = observeCompiler(statement, 'integer-array-function', 'prepare', () => compileIntegerArrayFunctionObservedImplementation(statement, types), provenTypes);
+    return candidate && observedRun(statement, 'integer-array-function', candidate, provenTypes);
+}
+
+function compileIntegerArrayFunctionObservedImplementation(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
     const key = types.map(type => typeof type === 'string' ? type : JSON.stringify(type)).join(',');
     let variants = kernels.get(statement);
     if (!variants) kernels.set(statement, variants = new Map());
@@ -30,13 +37,16 @@ export function compileIntegerArrayFunction(statement: FunctionStatement, types:
 }
 
 function lowerIntegerArrayFunction(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
-    if (statement.memo || statement.ranks.length || statement.parameters.length !== types.length
-        || [...statement.leftBindings, ...statement.rightBindings].some(binding => binding.deferred)) return undefined;
+    if (statement.memo) return declineCompiler('memo-signature', statement);
+    if (statement.ranks.length) return declineCompiler('ranked-signature', statement);
+    if (statement.parameters.length !== types.length) return declineCompiler('argument-count', statement);
+    if ([...statement.leftBindings, ...statement.rightBindings].some(binding => binding.deferred)) return declineCompiler('deferred-parameter', statement);
     const definitions = new Map<string, Node>();
     for (let i = 0; i < types.length; i++) {
         const type = types[i];
         const array = typeof type !== 'string' && type.kind === 'array' && type.rank === 1 && type.element === 'integer';
-        if (!array && type !== 'integer' || definitions.has(statement.parameters[i])) return undefined;
+        if (!array && type !== 'integer') return declineCompiler('integer-scalar-or-vector-required', statement);
+        if (definitions.has(statement.parameters[i])) return declineCompiler('duplicate-parameter', statement);
         definitions.set(statement.parameters[i], { kind: 'input', index: i, array });
     }
     function parse(expression: Expression): Node | undefined {
@@ -54,7 +64,7 @@ function lowerIntegerArrayFunction(statement: FunctionStatement, types: readonly
             const left = parse(expression.left), right = parse(expression.right);
             return left && right ? { kind: 'binary', op: expression.operator, left, right, array: left.array || right.array } : undefined;
         }
-        return undefined;
+        return declineCompiler('unsupported-expression', expression);
     }
     const bindings: Node[] = [];
     let root: Node | undefined;
@@ -65,11 +75,11 @@ function lowerIntegerArrayFunction(statement: FunctionStatement, types: readonly
             definitions.set(command.name, value);
             bindings.push(value);
         } else if (isReturnStatement(command) && command.value && index === statement.statements.length - 1) root = parse(command.value);
-        else return undefined;
+        else return declineCompiler('unsupported-statement', command);
     }
     // Returning a parameter/alias can retain protection or other reference
     // metadata. Only a fresh arithmetic result enters this ABI.
-    if (!root?.array || root.kind !== 'binary') return undefined;
+    if (!root?.array || root.kind !== 'binary') return declineCompiler('fresh-array-result-required', statement);
     const used = new Set<Node>();
     function visit(node: Node): void {
         if (used.has(node)) return;
@@ -80,7 +90,7 @@ function lowerIntegerArrayFunction(statement: FunctionStatement, types: readonly
     visit(root);
     // Unused scalar bindings can still throw at call time. Leave that body to
     // ordinary execution rather than dropping or eagerly consuming its plans.
-    if (bindings.some(node => !used.has(node))) return undefined;
+    if (bindings.some(node => !used.has(node))) return declineCompiler('unused-binding-may-throw', statement);
 
     let serial = 0;
     const setup: string[] = [];
@@ -175,5 +185,5 @@ function lowerIntegerArrayFunction(statement: FunctionStatement, types: readonly
     try {
         return new Function('PrivateNumericArray', 'safe', 'integer', 'divide', 'remainder', 'mulmod', 'overflow', source)(
             PrivateNumericArray, safe, integer, divide, remainder, checkedNumberModularMultiply, numberOverflow) as Run;
-    } catch { return undefined; }
+    } catch { return declineCompiler('dynamic-code-unavailable', statement); }
 }

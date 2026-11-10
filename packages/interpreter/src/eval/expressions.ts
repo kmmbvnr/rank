@@ -1,3 +1,4 @@
+import { observedRun } from '../compiler-observation.js';
 import { AstUtils } from 'langium';
 import { integer32Cells } from '../array-storage.js';
 import { modularProduct } from '../modular-fold.js';
@@ -170,6 +171,7 @@ export class ExpressionEvaluator {
                 const evaluate = execute;
                 execute = () => mapResult(evaluate(), value => this.checkDataOperand(expression, value));
             }
+            execute = observedRun(expression, direct ? 'direct-expression' : 'interpreted-expression', execute, undefined, true);
             this.prepared.set(expression, execute);
         }
         return execute;

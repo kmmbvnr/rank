@@ -11,7 +11,7 @@ export * from './value.js';
 export { createArraySnapshot } from './array-storage.js';
 export { standardModules } from './modules/index.js';
 
-export { RuntimeDiagnostics, type ExecutionCost, type FallbackCategory } from './diagnostics.js';
+export { RuntimeDiagnostics, type ExecutionCost, type FallbackCategory, type CompilerObservation } from './diagnostics.js';
 
 export { InterruptedError, DemandBudgetExhausted, withDemandBudget, DebugSession, withInterrupt, checkInterrupt, checkpoint, detachInspection, type PauseSnapshot, type InterruptSignal } from './interrupt.js';
 

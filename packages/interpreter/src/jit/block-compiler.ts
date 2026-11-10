@@ -1,3 +1,5 @@
+import type { Statement } from '@arrrank/language';
+import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
 import { completed, type Evaluation, type Execution } from '../execution.js';
 import type { RankValue } from '../value.js';
 
@@ -16,6 +18,7 @@ interface Step<C> {
 }
 export type CompiledBlock<C> = (context: C, index?: number, previous?: Value) => Evaluation<Value>;
 interface Host<C> {
+    readonly source?: Statement;
     prepare(index: number): Step<C>;
     region?(index: number): { length: number; run(session?: object): Value } | undefined;
     locate(error: unknown, index: number): unknown;
@@ -26,8 +29,16 @@ interface Host<C> {
 /** Straight-line dispatch with explicit re-entry points for suspended commands.
  * Preparation remains lazy; an unreachable statement is never prepared. */
 export function compileBlock<C extends Context>(length: number, host: Host<C>): CompiledBlock<C> | undefined {
-    if (length < 1 || length > 64) return undefined;
-    try { new Function(''); } catch { return undefined; }
+    if (host.source) {
+        const candidate = observeCompiler(host.source, 'block-dispatch', 'prepare', () => compileBlockBody(length, host));
+        return candidate && observedRun(host.source, 'block-dispatch', candidate, undefined, true);
+    }
+    return compileBlockBody(length, host);
+}
+
+function compileBlockBody<C extends Context>(length: number, host: Host<C>): CompiledBlock<C> | undefined {
+    if (length < 1 || length > 64) return declineCompiler('statement-budget');
+    try { new Function(''); } catch { return declineCompiler('dynamic-code-unavailable'); }
     const steps: (Step<C> | undefined)[] = new Array(length);
     host.compiled?.('direct-step-dispatch');
     return function run(context: C, index = 0, result?: Value): Evaluation<Value> {

@@ -549,25 +549,41 @@ A complete region may contain up to 128 statements across its outer body,
 nested branches and loops. Expression generation remains bounded. Exceeding
 the region limit reports `statement-budget` rather than an unsupported assignment;
 `rank --diagnostics program.ra` prints compiler diagnostics to stderr without
-changing program stdout or arguments. It includes execution counters, all
-recorded fallback reasons, and source-located rejection snapshots from function,
-loop, scalar-expression and tensor compilation. Each snapshot identifies the
-backend, file, line, column, enclosing function when available, and source text.
-Common reasons also have a plain-language explanation.
+changing program stdout or arguments. The report includes execution counters,
+compiler attempts, execution choices and source-located reasons. Entries identify
+the backend, operation, file, line, column, function when available, and types
+established by that backend. Missing type proofs are labelled explicitly; the
+report does not inspect or force runtime values to guess their types.
 
-These are candidate rejections and delegated operations, not a verdict that the
-whole program was interpreted. Another compiled or native path may succeed.
-Runtime-only reasons without source locations remain visible in the fallback
-counters. Silent probe misses and code not reached by this run are not covered;
-no rejection does not prove complete compilation. Counters are not a coverage
-percentage, and compiled regions may still delegate individual operations.
+Preparation and execution are separate: `prepared` means a candidate was built,
+`selected` means its entry was reached, `declined` means admission or a runtime
+guard refused it, and `threw` means the entry raised an exception. A selected
+entry may delegate work; read the more specific backend entries for that source
+alongside its dispatch entry. A Number candidate can fail its exactness guard
+while the exact integer candidate succeeds. Such a rejection does not mean the
+function was interpreted. Native and ordinary expression/loop paths are reported
+alongside generated kernels. The report covers generated flat-record combines
+and computed array updates as well as scalar, function, loop and tensor backends.
 
-The default retains 64 distinct snapshots and reports omitted occurrences.
-`rank --diagnostics=all program.ra` removes that site limit at the cost of memory
-proportional to the number of distinct rejection sites. Repeated sites are
-coalesced, imported files retain their own source identifiers, and individual
-source excerpts remain bounded to 160 characters. Reports are also printed when
-execution fails. Diagnostics use passive runtime observations, not compiler hooks.
+Runtime guards retain the source of their prepared candidate, including cached
+candidates and work resumed after generator suspension. Native IR backends inherit
+the source of the demand. Direct low-level API calls without syntax metadata use
+an explicit native-demand location instead of inventing a file or line. Reports
+cover attempts reached during this run, not untaken branches or complete static
+coverage. Counters are not a coverage percentage.
+
+The default retains 64 distinct observations and 64 rejection snapshots, and
+reports omitted occurrences separately. `rank --diagnostics=all program.ra`
+removes both limits; memory grows with distinct observations and rejection sites.
+Repeated entries are counted, imported files retain their own source identifiers,
+and source excerpts remain bounded to 160 characters. Reports are also printed
+when execution fails. Diagnostics use passive observations, not compiler hooks.
+
+Library consumers opt into this trace with `new RuntimeDiagnostics(limit, true)`.
+The default constructor retains inexpensive counters and existing rejection
+snapshots. Detailed tracing adds work at each observed call and can noticeably
+slow programs with many tiny function calls; use ordinary execution for timings
+and a separate diagnostic run to explain admission.
 
 Euler 103 uses scalar leaf checks and copies a successful set into its output
 array element by element, allowing the full depth-array search to compile. The

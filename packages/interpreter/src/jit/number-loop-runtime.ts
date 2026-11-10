@@ -1,3 +1,4 @@
+import { declineCompiler, observeCompiler, observedRun, withCompilerMethods } from '../compiler-observation.js';
 import { materializeValue } from '../materialize.js';
 import { primeRange } from '../prime-sequence.js';
 import { integerInput } from './integer-representation.js';
@@ -96,7 +97,7 @@ export class PrivateNumericArray {
         const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
         // Keep lengths outside the publishing backend's Array(length) range
         // on the exact path, before allocating speculative typed cells.
-        if (size > 0xffffffff) throw overflow;
+        if (size > 0xffffffff) { declineCompiler('array-length-guard'); throw overflow; }
         this.cells = owned ? owned.cells.subarray(0, size) : logical
             ? source ? Uint8Array.from(source, cell => Number(cell) !== 0 ? 1 : 0) : new Uint8Array(size).fill(fill ? 1 : 0)
             : (source ? !real && source instanceof Int32Array ? source.slice() : source instanceof Float64Array ? source.slice() : Float64Array.from(source, Number)
@@ -198,7 +199,7 @@ function copyPrimes(start: number | undefined, from: boolean, end: number, to: b
  * source kind and allocating a fresh buffer even for repeated operands. */
 function concatArrays(sources: NumberCells[], real: boolean): PrivateNumericArray {
     const size = sources.reduce((length, cells) => safe(length + cells.length), 0);
-    if (size > 0xffffffff) throw overflow;
+    if (size > 0xffffffff) { declineCompiler('array-length-guard'); throw overflow; }
     const compact = !real && sources.every(cells => cells instanceof Int32Array);
     const cells = compact ? new Int32Array(size) : new Float64Array(size);
     let offset = 0;
@@ -440,6 +441,13 @@ function emitNumberLoopSource(plan: IntegerLoopPlan, registers: readonly string[
  * original BigInt loop with its original inputs. Errors publish partial state.
  * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined,
+    compilePollingPlan?: (polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
+    const provenTypes = Object.fromEntries(plan.localTypes);
+    const candidate = observeCompiler(plan.statement, 'number-loop', 'prepare', () => prepareNumberLoopObservedImplementation(plan, host, feedback, compileCountedPlan, compilePollingPlan), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(plan.statement, 'number-loop', candidate.run.bind(candidate), provenTypes, true) });
+}
+
+function prepareNumberLoopObservedImplementation(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback, compileCountedPlan?: () => IntegerLoopPlan | undefined,
     compilePollingPlan?: (polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, locations, statement } = plan;
     const reboundInputs = [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name));

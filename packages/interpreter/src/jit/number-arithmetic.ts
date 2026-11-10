@@ -1,4 +1,5 @@
 import { multiply, multiplyWide } from '../runtime/modular-power.js';
+import { declineCompiler } from '../compiler-observation.js';
 
 // Internal replay signal, never a Rank error or a numeric value.
 export const numberOverflow = {};
@@ -6,7 +7,10 @@ export const numberOverflow = {};
 /** Safe integer operands. Up to 2^31, all residues fit signed Int32 cells;
  * larger moduli retain exact replay. The <=2^30 multiplier stays unchanged. */
 export function checkedNumberModularMultiply(a: number, b: number, modulus: number): number {
-    if (!(modulus > 0 && modulus <= 2 ** 31)) throw numberOverflow;
+    if (!(modulus > 0 && modulus <= 2 ** 31)) {
+        declineCompiler('modulus-range-guard');
+        throw numberOverflow;
+    }
     const x = a >= 0 && a < modulus ? a : ((a % modulus) + modulus) % modulus;
     const y = b >= 0 && b < modulus ? b : ((b % modulus) + modulus) % modulus;
     return modulus <= 2 ** 30 ? multiply(x, y, modulus) : multiplyWide(x, y, modulus);
@@ -16,7 +20,10 @@ export function checkedNumberModularMultiply(a: number, b: number, modulus: numb
  * mathematical integer to a different safe integer, so checking its result alone
  * would not establish exactness. Negative exponents replay with real semantics. */
 export function checkedNumberPower(base: number, exponent: number): number {
-    if (exponent < 0) throw numberOverflow;
+    if (exponent < 0) {
+        declineCompiler('nonnegative-exponent-required');
+        throw numberOverflow;
+    }
     let result = 1;
     while (exponent > 0) {
         if (exponent % 2 !== 0) result = checkedProduct(result, base);
@@ -27,6 +34,9 @@ export function checkedNumberPower(base: number, exponent: number): number {
 }
 function checkedProduct(a: number, b: number): number {
     const value = a * b;
-    if (!Number.isSafeInteger(value)) throw numberOverflow;
+    if (!Number.isSafeInteger(value)) {
+        declineCompiler('integer-exactness-guard');
+        throw numberOverflow;
+    }
     return value;
 }

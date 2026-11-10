@@ -9,6 +9,6 @@ export function registerNativeImplementation(fn: NativeFunction): NativeFunction
     return fn;
 }
 
-export function hasNativeImplementation(fn: NativeFunction): boolean {
-    return implementations.get(fn) === fn.call;
+export function hasNativeImplementation(fn: NativeFunction, call = fn.call): boolean {
+    return implementations.get(fn) === call;
 }

@@ -1,3 +1,4 @@
+import { rejectCompilerGuard, observeCompiler, observedRun, withCompilerMethods } from '../compiler-observation.js';
 import type { CapturedIntegerReader } from './scalar-selection.js';
 import { tensorCells } from '../rank-application.js';
 import { Operators, makeRange } from '../operators.js';
@@ -205,7 +206,7 @@ function compileScalarNumberKernel(
     };
     function index(source: string, value: string, lines: string[]): string {
         const at = `at${serial++}`;
-        lines.push(`const ${at} = ${value}; if (${at} < 0 || ${at} >= ${source}.length) throw overflow;`);
+        lines.push(`const ${at} = ${value}; if (${at} < 0 || ${at} >= ${source}.length) throw reject('index-bounds-guard', overflow);`);
         return at;
     }
 
@@ -295,7 +296,7 @@ function compileScalarNumberKernel(
                 const count = `size${serial++}`, result = `v${serial++}`;
                 // The private JS vector has the same length representation as
                 // the exact allocator. Other dimensions retain its errors.
-                lines.push(`const ${count} = safe(${size}); if (${count} < 0 || ${count} > 0xffffffff) throw overflow;`);
+                lines.push(`const ${count} = safe(${size}); if (${count} < 0 || ${count} > 0xffffffff) throw reject('array-length-guard', overflow);`);
                 const fill = lowerNum(input.indices![0], lines);
                 if (!fill) return undefined;
                 // Real cells keep fractional, nonfinite and signed-zero values.
@@ -418,7 +419,7 @@ function compileScalarNumberKernel(
             if (name === 'isqrt') {
                 // Replay negative inputs in the exact kernel for its located
                 // domain error. Safe inputs use the corrected integer root.
-                lines.push(`if (${value} < 0) throw overflow; const ${result} = isqrt(${value});`);
+                lines.push(`if (${value} < 0) throw reject('negative-root-guard', overflow); const ${result} = isqrt(${value});`);
                 return result;
             }
             const absolute = `Math.abs(${value})`;
@@ -615,7 +616,7 @@ function compileScalarNumberKernel(
                 const value = emitNum(cmd.value, lines);
                 if (!value) return false;
                 // This JS-vector capacity guard falls back to Rank's queue.
-                lines.push(`if (${slot(cmd.receiver.name)}.length >= 0xffffffff) throw overflow;
+                lines.push(`if (${slot(cmd.receiver.name)}.length >= 0xffffffff) throw reject('queue-capacity-guard', overflow);
                     ${slot(cmd.receiver.name)}[${slot(cmd.receiver.name)}.length] = safe(${value});`);
             } else if (isAssignmentStatement(cmd)) {
                 if (proof.planBindings.has(cmd)) continue;
@@ -717,7 +718,7 @@ function compileScalarNumberKernel(
                             // Include the terminal increment, also for descending
                             // and exclusive ranges. The iterator itself never wraps.
                             for (const value of [startVar, endVar, stepVar, `${endVar} + ${stepVar}`]) {
-                                lines.push(`if ((${value}) !== ((${value}) | 0)) throw overflow;`);
+                                lines.push(`if ((${value}) !== ((${value}) | 0)) throw reject('int32-storage-guard', overflow);`);
                             }
                         }
                         lines.push(`if (${stepVar} === 0) throw badStep();`);
@@ -756,19 +757,19 @@ function compileScalarNumberKernel(
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
     const narrowParameters = narrowMembership ? statement.parameters.flatMap((name, index) => parameterTypes[index] === 'integer'
-        ? [`if (${slot(name)} !== (${slot(name)} | 0)) throw overflow; ${slot(name)} |= 0;`] : []) : [];
+        ? [`if (${slot(name)} !== (${slot(name)} | 0)) throw reject('int32-argument-guard', overflow); ${slot(name)} |= 0;`] : []) : [];
     const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain, memberships, users, planConsumed, captures, scalars, readOnlyAllowed, enterRecursion, leaveRecursion, recursiveError) {
         return function numberBody(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;
-            try { ${!legacy ? 'if (!readOnlyAllowed()) throw overflow;' : ''} ${(captures.length || scalarCaptures.length) ? 'if (!vectorAllowed()) throw overflow;' : ''}
+            try { ${!legacy ? "if (!readOnlyAllowed()) throw reject('read-only-capture-guard', overflow);" : ''} ${(captures.length || scalarCaptures.length) ? "if (!vectorAllowed()) throw reject('observable-vector-demand', overflow);" : ''}
                 ${captures.map((_, i) => `const captured${i} = captures[${i}].borrowNumber();`).join('\n')}
-                ${vectorResult ? 'if (!vectorAllowed()) throw overflow;' : ''} ${narrowParameters.join('\n')} ${lines.join('\n')}
-            } catch (error) { ${recursive ? 'if (error instanceof RankError && !(error instanceof InterruptedError)) throw overflow;' : ''} throw locate(error, location); }
+                ${vectorResult ? "if (!vectorAllowed()) throw reject('observable-vector-demand', overflow);" : ''} ${narrowParameters.join('\n')} ${lines.join('\n')}
+            } catch (error) { ${recursive ? "if (error instanceof RankError && !(error instanceof InterruptedError)) throw reject('rank-error-during-recursion', overflow);" : ''} throw locate(error, location); }
         };
     };`;
     try {
-        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'InterruptedError', 'FunctionPlanDemandError', 'gcd', 'powmod', 'integerVector', 'vectorAllowed', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, InterruptedError, FunctionPlanDemandError,
+        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'InterruptedError', 'FunctionPlanDemandError', 'gcd', 'powmod', 'integerVector', 'vectorAllowed', 'reject', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, InterruptedError, FunctionPlanDemandError,
             (left: number, right: number) => {
                 if (!privateLoopPolling() || demandBudgetEnabled()) throw numberOverflow;
                 checkpoint('computing numbers');
@@ -780,7 +781,11 @@ function compileScalarNumberKernel(
                 if (!privateLoopPolling() || demandBudgetEnabled() || exponent < 0 || !(modulus > 0 && modulus <= 2 ** 31)) throw numberOverflow;
                 return safeIntegerModularPower(base, exponent, modulus);
             }, (items: number[]) => ownedArray(items.map(BigInt), [items.length], true),
-                () => privateLoopPolling() && !demandBudgetEnabled()) as Kernel['numberDirect'];
+                () => privateLoopPolling() && !demandBudgetEnabled(),
+                (reason: string, error: unknown) => {
+                    rejectCompilerGuard(statement, 'scalar-function-number', reason);
+                    return error;
+                }) as Kernel['numberDirect'];
     } catch {
         return undefined;
     }
@@ -789,6 +794,15 @@ function compileScalarNumberKernel(
 // Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
 export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): Kernel | undefined {
+    const provenTypes = Object.fromEntries(statement.parameters.map((name, index) => {
+        const type = parameterTypes?.[index] ?? 'integer';
+        return [name, typeof type === 'string' ? type : JSON.stringify(type)];
+    }));
+    const candidate = observeCompiler(statement, 'scalar-function', 'prepare', () => compileScalarFunctionObservedImplementation(statement, parameterTypes, loops, capturedTypes), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'scalar-function', candidate.run.bind(candidate), provenTypes), direct: candidate.direct && ((...args) => observedRun(statement, 'scalar-function-direct', candidate.direct!(...args), provenTypes)), numberDirect: candidate.numberDirect && ((...args) => observedRun(statement, 'scalar-function-number', candidate.numberDirect!(...args), provenTypes)) });
+}
+
+function compileScalarFunctionObservedImplementation(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): Kernel | undefined {
     const proof = scalarFunctionResult(statement, true, parameterTypes, loops, [], capturedTypes);
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');

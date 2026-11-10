@@ -1,3 +1,4 @@
+import { compilerSource, observeCompilerSource, observedSourceRun, declineCompiler } from '../compiler-observation.js';
 import { checkpoint, interruptsEnabled } from '../interrupt.js';
 import type { RankArray, RankValue } from '../value.js';
 
@@ -6,7 +7,13 @@ const kernels = new Map<string, Copy>();
 
 /** Specialize axis routing, never dimensions, storage or element values. */
 export function compileTensorCellCopy(rank: number, axes: readonly number[]): Copy | undefined {
-    if (rank > 16) return undefined;
+    const sourceSite = compilerSource();
+    const provenTypes = { rank: String(rank), axes: axes.join(', ') };
+    return observeCompilerSource(sourceSite, 'tensor-cell-copy', 'prepare', () => compileTensorCellCopyObservedImplementation(rank, axes), provenTypes);
+}
+
+function compileTensorCellCopyObservedImplementation(rank: number, axes: readonly number[]): Copy | undefined {
+    if (rank > 16) return declineCompiler('rank-budget');
     const interruptible = interruptsEnabled();
     const key = `${interruptible}:${rank}:${axes.join(',')}`;
     const cached = kernels.get(key);
@@ -17,7 +24,7 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
     let offset = '0';
     for (let axis = 0; axis < rank; axis++) offset = `(${offset} * dimensions[${axis}] + coordinates[${axis}])`;
     const source = `"use strict"; return function(source, coordinates, shape) {
-        if (coordinates.length !== ${rank}) return undefined;
+        if (coordinates.length !== ${rank}) return decline('coordinate-rank-guard');
         const size = shape.reduce((a, b) => a * b, 1);
         const items = [];
         for (let linear = 0; linear < size; linear++) {
@@ -41,14 +48,17 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
         return items;
     };`;
     try {
-        const kernel = new Function('checkpoint', source)(checkpoint) as Copy;
+        const kernel = new Function('checkpoint', 'decline', source)(checkpoint, declineCompiler) as Copy;
         // A stored generator can resume under a later preview or interrupt.
         // Keep its unchecked specialization behind a call-time scope guard.
         const routes = [...axes];
         const copy: Copy = interruptible ? kernel : (value, coordinates, shape) =>
             interruptsEnabled() ? compileTensorCellCopy(rank, routes)?.(value, coordinates, shape)
                 : kernel(value, coordinates, shape);
-        kernels.set(key, copy);
-        return copy;
-    } catch { return undefined; }
+        // Shared axis kernels keep their identity and inherit each caller's source.
+        const observed = observedSourceRun({ node: 'NativeDemand', operation: 'tensor cell copy' },
+            'tensor-cell-copy', copy, { rank: String(rank), axes: axes.join(', ') });
+        kernels.set(key, observed);
+        return observed;
+    } catch { return declineCompiler('dynamic-code-unavailable'); }
 }

@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, withCompilerMethods } from '../compiler-observation.js';
 import {
     applicationForm, flattenApplication, isAllAxisExpression, isArrayExpression, isApplicationExpression, isAssignmentStatement,
     isBinaryExpression, isNameExpression, isNumberLiteral, isParenthesizedExpression,
@@ -86,16 +87,24 @@ export function borrowNumericBuffer(value: RankValue | undefined): NumericBuffer
  * unpublished. Integer operations and reduction prefixes are exact or replay.
  * A declined shape, arithmetic or type guard replays the ordinary function. */
 export function compileNumericFunction(statement: FunctionStatement, host: Host) {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statement, 'numeric-function', 'prepare', () => compileNumericFunctionObservedImplementation(statement, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'numeric-function', candidate.run.bind(candidate), provenTypes), runBuffers: observedRun(statement, 'numeric-function', candidate.runBuffers.bind(candidate), provenTypes) });
+}
+
+function compileNumericFunctionObservedImplementation(statement: FunctionStatement, host: Host) {
     const commands = statement.statements, last = commands.at(-1);
-    if (!last || !isReturnStatement(last) || !last.value || commands.length > 64 || statement.ranks.length
-        || [...statement.leftBindings, ...statement.rightBindings].some(p => p.deferred || typeof p.name !== 'string')) return undefined;
+    if (!last || !isReturnStatement(last) || !last.value) return declineCompiler('terminal-return-required', statement);
+    if (commands.length > 64) return declineCompiler('statement-budget', statement);
+    if (statement.ranks.length) return declineCompiler('ranked-signature', statement);
+    if ([...statement.leftBindings, ...statement.rightBindings].some(p => p.deferred || typeof p.name !== 'string')) return declineCompiler('deferred-or-functional-parameter', statement);
     const parameters = new Set(statement.parameters);
-    if (parameters.size !== statement.parameters.length) return undefined;
+    if (parameters.size !== statement.parameters.length) return declineCompiler('duplicate-parameter', statement);
     const definitions = new Map<string, NumericNode>(), assignments: { name: string; node: NumericNode }[] = [];
     const builtins = new Set<string>();
     let structural = false, budget = 512;
     function parse(expression: Expression): NumericNode | undefined {
-        if (--budget < 0) return undefined;
+        if (--budget < 0) return declineCompiler('expression-budget', expression);
         const e = unwrap(expression);
         if (isNameExpression(e)) return definitions.get(e.name) ?? (parameters.has(e.name) ? { kind: 'input', name: e.name } : undefined);
         if (isNumberLiteral(e)) {
@@ -103,7 +112,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             return Number.isFinite(value) && (!integer || safe(value)) ? { kind: 'constant', value, integer } : undefined;
         }
         if (isUnaryExpression(e) && ['+', '-'].includes(e.operator)) {
-            if (inlineRange(e.operand)) return undefined;
+            if (inlineRange(e.operand)) return declineCompiler('unary-inline-range', e);
             const child = parse(e.operand);
             return child && { kind: 'unary', op: e.operator, child };
         }
@@ -161,7 +170,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 return { kind: 'gather', source, indices };
             }
         }
-        return undefined;
+        return declineCompiler('unsupported-expression', expression);
     }
     for (const command of commands.slice(0, -1)) {
         if (isAssignmentStatement(command) && command.operator === '=' && !command.deferred && !command.name.includes('.')) {
@@ -182,17 +191,18 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 const node: NumericNode = { kind: 'slice', source, axis, position, count: command.names.length };
                 definitions.set(name, node); assignments.push({ name, node });
             } else return undefined;
-        } else return undefined;
+        } else return declineCompiler('unsupported-statement', command);
     }
     const returned = unwrap(last.value), product = isTupleExpression(returned);
     const arrayResult = isArrayExpression(returned) && returned.items.length > 0
         && !returned.dimensions.length && !returned.fill && !returned.range && !returned.rows.length;
-    if ((product || arrayResult) && returned.items.some(item => item.sign)) return undefined;
+    if ((product || arrayResult) && returned.items.some(item => item.sign)) return declineCompiler('signed-result-items', returned);
     const expressions = product || arrayResult ? returned.items.map(item => item.value) : [returned];
-    if (!expressions.length || expressions.length > 8) return undefined;
+    if (!expressions.length || expressions.length > 8) return declineCompiler('result-count-budget', returned);
     const outputs = expressions.map(parse);
-    if (!structural || outputs.some(n => !n) || [...builtins].some(name => parameters.has(name)
-        || assignments.some(a => a.name === name))) return undefined;
+    if (!structural) return declineCompiler('structural-array-operation-required', returned);
+    if (outputs.some(n => !n)) return declineCompiler('unsupported-result-expression', returned);
+    if ([...builtins].some(name => parameters.has(name) || assignments.some(a => a.name === name))) return declineCompiler('shadowed-builtin', statement);
     const roots = outputs as NumericNode[];
     const reachable = new Set<NumericNode>();
     function visit(node: NumericNode): void {
@@ -207,7 +217,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
     }
     roots.forEach(visit);
     // Dead ordinary bindings can still raise while completing their arrays.
-    if (assignments.some(a => !reachable.has(a.node))) return undefined;
+    if (assignments.some(a => !reachable.has(a.node))) return declineCompiler('unused-binding-may-throw', statement);
     const demanded = new Set<NumericNode>();
     function demand(node: NumericNode): void {
         if (demanded.has(node)) return; demanded.add(node);
@@ -230,7 +240,8 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
     for (const { name } of assignments) if (parameters.has(name)) inputNames.add(name);
     let unavailable = false;
     function invoke(raw: boolean): RankValue | NumericBuffer[] | undefined {
-        if (unavailable || !privateLoopPolling() || interruptsEnabled()) return undefined;
+        if (unavailable) return declineCompiler('code-generation', statement);
+        if (!privateLoopPolling() || interruptsEnabled()) return declineCompiler('observable-polling', statement);
         for (const name of builtins) if (!host.builtin(name)) return recordFallback(`numeric-function:builtin:${name}`);
         const bound = new Map<NumericNode, NumericBound>(), inputs = new Map<string, NumericBound>();
         const data: ArrayLike<number>[] = [];
@@ -274,7 +285,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             // also lets the next numeric helper borrow it without a boxed conversion.
             const buffers = prepared.results.map(r => r.integer && r.low! >= -2147483648 && r.high! <= 2147483647
                 ? new Int32Array(r.size) : new Float64Array(r.size));
-            if (!prepared.run(data, prepared.scalars, buffers, prepared.sizes)) return undefined;
+            if (!prepared.run(data, prepared.scalars, buffers, prepared.sizes)) return declineCompiler('numeric-domain-guard', statement);
             if (raw && arrayResult) {
                 host.executed();
                 const cells = Float64Array.from(buffers, buffer => buffer[0]);
@@ -449,6 +460,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 const info = readInput(name);
                 if (rejected) return undefined;
                 inputs.set(name, info);
+                currentDiagnostics()?.compilerType(name, `${info.boolean ? 'boolean' : info.integer ? 'integer' : 'real'}${info.shape.length ? `[rank ${info.shape.length}]` : ''}`);
                 signature.push(info.shape.length ? `a:${info.integer ? `i:${info.low}:${info.high}` : 'r'}:${info.shape.join(',')}`
                     : `${info.integer ? 'i' : 'r'}:${Object.is(info.scalar, -0) ? '-0' : info.scalar}`);
             }
@@ -462,26 +474,29 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             const contracts = new Map<string, string>();
             for (const { name, node } of assignments) {
                 const info = bind(node), type = `${info.shape.length}:${info.integer}:${!!info.boolean}`;
-                if (info.shape.length && (info.size > MAX_HELD_CELLS || !demanded.has(node) && !viewOnly(node))) return undefined;
+                if (info.shape.length && info.size > MAX_HELD_CELLS) return declineCompiler('held-cell-budget', statement);
+                if (info.shape.length && !demanded.has(node) && !viewOnly(node)) return declineCompiler('unconsumed-array-binding', statement);
                 const previous = contracts.get(name) ?? (parameters.has(name) ? (() => { const p = bind({ kind: 'input', name }); return `${p.shape.length}:${p.integer}:${!!p.boolean}`; })() : undefined);
-                if (previous !== undefined && previous !== type) return undefined;
+                if (previous !== undefined && previous !== type) return declineCompiler('binding-type', statement);
                 contracts.set(name, type);
             }
             const results = roots.map(bind);
-            if (arrayResult && results.some(r => r.shape.length || !r.integer)) return undefined;
-            if (rejected || results.some(r => r.boolean || r.size <= 0 || r.size > MAX_HELD_CELLS || !r.shape.length && !r.integer)) return undefined;
+            if (arrayResult && results.some(r => r.shape.length || !r.integer)) return declineCompiler('scalar-integer-results-required', returned);
+            if (rejected) return declineCompiler('input-domain-guard', statement);
+            if (results.some(r => r.boolean || r.size <= 0 || r.size > MAX_HELD_CELLS || !r.shape.length && !r.integer)) return declineCompiler('result-domain-or-size-guard', returned);
             preflight = false;
             const scalars: number[] = [], scalarSlots = new Map<NumericNode, number>();
             for (const [node, info] of bound) if (!info.shape.length && info.scalar !== undefined) { scalarSlots.set(node, scalars.length); scalars.push(info.scalar!); }
             const emitted = emitNumericFunction(roots, bound, scalarSlots);
-            if (!emitted) return undefined;
+            if (!emitted) return declineCompiler('unsupported-numeric-emission', statement);
             let run = programs.get(emitted);
             if (!run) {
-                try { run = new Function('isqrt', emitted)(safeIntegerSquareRoot) as NumericRun; } catch { unavailable = true; return undefined; }
+                try { run = new Function('isqrt', emitted)(safeIntegerSquareRoot) as NumericRun; } catch { unavailable = true; return declineCompiler('dynamic-code-unavailable', statement); }
                 if (programs.size >= 32) programs.delete(programs.keys().next().value!);
                 programs.set(emitted, run);
                 host.compiled(emitted);
-                if ([...builtins].some(name => !host.builtin(name)) || !inputsStillMatch()) return undefined;
+                if ([...builtins].some(name => !host.builtin(name))) return declineCompiler('builtin-identity-guard', statement);
+                if (!inputsStillMatch()) return declineCompiler('input-revision-guard', statement);
             }
             const sizes = [...new Map([...bound.keys()].filter((node): node is NumericNode & { kind: 'sum' } => node.kind === 'sum' && !scalarSlots.has(node))
                 .map(node => [bound.get(node.source)!.shape.join(','), bound.get(node.source)!.size])).values()];
@@ -490,7 +505,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             variants.set(key, plan);
             return execute(plan);
         } catch (error) {
-            if (preflight && error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
+            if (preflight && error instanceof RankError && !(error instanceof InterruptedError)) return declineCompiler('preflight-domain-error', statement);
             throw error;
         }
     }

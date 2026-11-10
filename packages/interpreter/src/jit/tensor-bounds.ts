@@ -1,3 +1,4 @@
+import { declineCompiler, compilerSource, observeCompilerSource, observedSourceRun, withCompilerMethods } from '../compiler-observation.js';
 import { findCompiledOperator } from '@arrrank/language';
 import { binaryOperatorSource } from './operator-codegen.js';
 import { ownedStorage, noteMutation } from '../array-storage-state.js';
@@ -58,6 +59,13 @@ export function inputBounds(array: RankArray, cells: Cells): Bounds | undefined 
  * bounds, so iterative updates need no repeated scan of the destination.
  * Opaque readers, selections and non-pointwise shapes retain the general kernel. */
 export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, destinationName?: string, code?: TensorCodeCache) {
+    const sourceSite = compilerSource();
+    const provenTypes = undefined;
+    const candidate = observeCompilerSource(sourceSite, 'bounded-tensor', 'prepare', () => prepareBoundedTensorObservedImplementation(root, host, destinationName, code), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedSourceRun(sourceSite, 'bounded-tensor', candidate.run.bind(candidate), provenTypes) });
+}
+
+function prepareBoundedTensorObservedImplementation(root: TensorNode, host: TensorKernelHost, destinationName?: string, code?: TensorCodeCache) {
     const nodes: TensorNode[] = [];
     const slots = new Map<TensorNode, number>();
     function visit(node: TensorNode): boolean {
@@ -66,12 +74,16 @@ export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, d
             if (!visit(node.left) || !visit(node.right)) return false;
         } else if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
             if (!visit(node.operand)) return false;
-        } else if (node.kind !== 'input') return false;
+        } else if (node.kind !== 'input') {
+            declineCompiler(`unsupported-ir:${node.kind}`);
+            return false;
+        }
         slots.set(node, nodes.length);
         nodes.push(node);
         return true;
     }
-    if (!visit(root) || root.kind === 'input') return undefined;
+    if (!visit(root)) return undefined;
+    if (root.kind === 'input') return declineCompiler('arithmetic-required');
     let shared = code && codeCaches.get(code);
     if (code && !shared) codeCaches.set(code, shared = new Map());
     const variants = new Map<string, { run: Run; source: string }>();
@@ -79,7 +91,8 @@ export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, d
     return { get source() { return source; }, run(): RankArray | undefined {
         // No speculative visible writes when interruption or demand callbacks
         // can observe partial progress. The general kernel owns those contracts.
-        if (interruptsEnabled() || !privateLoopPolling()) return undefined;
+        if (interruptsEnabled()) return declineCompiler('interrupts-enabled');
+        if (!privateLoopPolling()) return declineCompiler('observable-polling');
         const ranges: Bounds[] = [], data: Cells[] = [], scalars: (number | bigint)[] = [];
         const inputs = new Map<TensorNode, { slot: number; value: RankValue; cells?: Cells; revision?: number }>();
         let shape: readonly number[] | undefined, size = 0;
@@ -92,23 +105,25 @@ export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, d
                 if (typeof value === 'number' || typeof value === 'bigint') {
                     bounds = typeof value === 'bigint' ? { low: value, high: value, integer: true }
                         : { low: value, high: value, integer: false };
-                    if (!finite(bounds)) return undefined;
+                    if (!finite(bounds)) return declineCompiler('finite-range-guard');
+                    currentDiagnostics()?.compilerType(node.name ?? `input${inputs.size}`, bounds.integer ? 'integer' : 'real');
                     inputs.set(node, { slot: scalars.push(value) - 1, value });
                 } else {
                     if (!value || !isRankArray(value) || value.itemAt !== undefined || value.columnNames
-                        || value.tableScopes || value.sortKeys) return undefined;
+                        || value.tableScopes || value.sortKeys) return declineCompiler('plain-array-required');
                     const state = ownedStorage.get(value);
                     const cells = state?.typed;
                     if (!state?.stable || state.validity || !cells
-                        || typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer) return undefined;
-                    if (shape && (shape.length !== value.shape.length || shape.some((n, i) => n !== value.shape[i]))) return undefined;
-                    if (!value.shape.every(n => Number.isSafeInteger(n) && n >= 0)) return undefined;
+                        || typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer) return declineCompiler('stable-private-storage-required');
+                    if (shape && (shape.length !== value.shape.length || shape.some((n, i) => n !== value.shape[i]))) return declineCompiler('input-shape-guard');
+                    if (!value.shape.every(n => Number.isSafeInteger(n) && n >= 0)) return declineCompiler('shape-domain-guard');
                     shape = value.shape;
                     size = shape.reduce((a, b) => a * b, 1);
-                    if (size === 0 || size !== cells.length) return undefined;
+                    if (size === 0 || size !== cells.length) return declineCompiler('nonempty-storage-size-guard');
                     const found = inputBounds(value, cells);
-                    if (!found) return undefined;
+                    if (!found) return declineCompiler('finite-input-range-guard');
                     bounds = found;
+                    currentDiagnostics()?.compilerType(node.name ?? `input${inputs.size}`, `${bounds.integer ? 'integer' : 'real'}[rank=${shape.length}]`);
                     inputs.set(node, { slot: data.push(cells) - 1, value, cells, revision: state.revision });
                     if (node.name === destinationName) destination = value;
                 }
@@ -133,25 +148,27 @@ export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, d
                     if (node.op === '+') bounds = { low: al + bl, high: ah + bh, integer: false };
                     else if (node.op === '-') bounds = { low: al - bh, high: ah - bl, integer: false };
                     else {
-                        if (node.op === '/' && bl <= 0 && bh >= 0) return undefined;
+                        if (node.op === '/' && bl <= 0 && bh >= 0) return declineCompiler('divisor-range-crosses-zero');
                         const endpoints = node.op === '*'
                             ? [al * bl, al * bh, ah * bl, ah * bh]
                             : [al / bl, al / bh, ah / bl, ah / bh];
                         bounds = { low: Math.min(...endpoints), high: Math.max(...endpoints), integer: false };
                     }
                 }
-            } else return undefined;
-            if (!finite(bounds)) return undefined;
+            } else return declineCompiler(`unsupported-ir:${node.kind}`);
+            if (!finite(bounds)) return declineCompiler('finite-range-guard');
             if (node.kind !== 'input') numberExact &&= safeInteger(bounds);
             ranges.push(bounds);
         }
-        if (!shape || host.valid?.() === false) return undefined;
+        if (!shape) return declineCompiler('array-input-required');
+        if (host.valid?.() === false) return declineCompiler('input-revision-guard');
         const result = ranges[slots.get(root)!];
+        currentDiagnostics()?.compilerType('result', `${result.integer ? 'integer' : 'real'}[rank=${shape.length}]`);
         const allSafe = ranges.every(safeInteger);
         // Mixed arithmetic needs exact Number registers for integer subtrees.
         // An all-integer tree can instead keep arbitrary precision registers.
-        if (!result.integer && !numberExact) return undefined;
-        if (result.integer && (result.low < INT64_MIN || result.high > INT64_MAX)) return undefined;
+        if (!result.integer && !numberExact) return declineCompiler('integer-exactness-guard');
+        if (result.integer && (result.low < INT64_MIN || result.high > INT64_MAX)) return declineCompiler('int64-result-range-guard');
         const state = destination && ownedStorage.get(destination);
         const int32 = result.integer && result.low >= INT32_MIN && result.high <= INT32_MAX;
         const reuse = destination && state?.owners === 1 && !state.readOnlyCells
@@ -160,7 +177,7 @@ export function prepareBoundedTensor(root: TensorNode, host: TensorKernelHost, d
                 : state.typed instanceof Float64Array);
         // Fresh small integer results stay boxed; an existing typed destination
         // may still be reused, matching IntegerCells in the general emitter.
-        if (result.integer && size < 4096 && !reuse) return undefined;
+        if (result.integer && size < 4096 && !reuse) return declineCompiler('small-integer-allocation-cost');
         const kind = reuse ? state!.typed instanceof Float64Array ? 'float64'
             : state!.typed instanceof Int32Array ? 'int32' : 'int64'
             : result.integer ? int32 ? 'int32' : 'int64' : 'float64';
@@ -205,7 +222,7 @@ ${lines.join('\n')}
             const compiled = !run;
             if (!run) {
                 try { run = new Function(source)() as Run; }
-                catch { return undefined; }
+                catch { return declineCompiler('dynamic-code-unavailable'); }
                 if (shared) {
                     if (shared.size >= 32) shared.delete(shared.keys().next().value!);
                     shared.set(source, run);
@@ -219,15 +236,15 @@ ${lines.join('\n')}
                 // Observers may expose/box storage or retain an alias. A proof
                 // obtained before the callback must not authorize later writes.
                 for (const [node, input] of inputs) {
-                    if (node.kind === 'input' && node.name !== undefined && !Object.is(host.lookup(node.name), input.value)) return undefined;
+                    if (node.kind === 'input' && node.name !== undefined && !Object.is(host.lookup(node.name), input.value)) return declineCompiler('input-identity-guard');
                     if (input.cells) {
                         const current = ownedStorage.get(input.value as RankArray);
-                        if (!current?.stable || current.typed !== input.cells || current.revision !== input.revision) return undefined;
+                        if (!current?.stable || current.typed !== input.cells || current.revision !== input.revision) return declineCompiler('input-revision-guard');
                     }
                 }
                 if (reuse && (state!.owners !== 1 || state!.readOnlyCells || isSharedArray(destination!)
-                    || hasPendingSelections(destination!))) return undefined;
-                if (host.valid?.() === false) return undefined;
+                    || hasPendingSelections(destination!))) return declineCompiler('destination-ownership-guard');
+                if (host.valid?.() === false) return declineCompiler('input-revision-guard');
             }
         }
         source = variant.source;

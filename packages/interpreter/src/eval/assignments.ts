@@ -132,7 +132,7 @@ export function prepareRegionArrayWrite(statement: ArrayAssignmentStatement, hos
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
     const recipe = !statement.modulus && statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
-    const fused = recipe && computedArrayUpdate(recipe, statement.operator);
+    const fused = recipe && computedArrayUpdate(recipe, statement.operator, statement);
     const extrema = !statement.modulus && statement.operator === '=' && statementResultDiscarded(statement)
         ? scalarExtremaUpdate(statement.value) : undefined;
     let ranks: readonly (number | '#')[] | undefined;

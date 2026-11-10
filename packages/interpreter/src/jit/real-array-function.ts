@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
 import {
     flattenApplication, isApplicationExpression, isAssignmentStatement, isReturnStatement,
     isNameExpression, isNumberLiteral, isUnaryExpression, isBinaryExpression, isParenthesizedExpression,
@@ -24,6 +25,12 @@ const kernels = new WeakMap<FunctionStatement, Map<string, Run | null>>();
  * binding. Any failed finite/shape/integer proof replays the original body,
  * including its eager bindings and their error order. No input is mutated. */
 export function compileRealArrayFunction(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
+    const provenTypes = Object.fromEntries(types.map((type, index) => [statement.parameters[index], typeof type === 'string' ? type : JSON.stringify(type)]));
+    const candidate = observeCompiler(statement, 'real-array-function', 'prepare', () => compileRealArrayFunctionObservedImplementation(statement, types), provenTypes);
+    return candidate && observedRun(statement, 'real-array-function', candidate, provenTypes);
+}
+
+function compileRealArrayFunctionObservedImplementation(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
     const key = JSON.stringify(types);
     let variants = kernels.get(statement);
     if (!variants) kernels.set(statement, variants = new Map());
@@ -31,17 +38,20 @@ export function compileRealArrayFunction(statement: FunctionStatement, types: re
     return variants.get(key) ?? undefined;
 }
 function lower(statement: FunctionStatement, types: readonly CompiledCalleeType[]): Run | undefined {
-    if (statement.memo || statement.ranks.length || statement.parameters.length !== types.length
-        || [...statement.leftBindings, ...statement.rightBindings].some(binding => binding.deferred)) return undefined;
+    if (statement.memo) return declineCompiler('memo-signature', statement);
+    if (statement.ranks.length) return declineCompiler('ranked-signature', statement);
+    if (statement.parameters.length !== types.length) return declineCompiler('argument-count', statement);
+    if ([...statement.leftBindings, ...statement.rightBindings].some(binding => binding.deferred)) return declineCompiler('deferred-parameter', statement);
     const definitions = new Map<string, Node>();
     for (let i = 0; i < types.length; i++) {
         const type = types[i];
         const array = typeof type !== 'string' && type.kind === 'array' && (type.rank === 1 || type.rank === 2) && type.element === 'real';
-        if (!array && type !== 'integer' && type !== 'real' || definitions.has(statement.parameters[i])) return undefined;
+        if (!array && type !== 'integer' && type !== 'real') return declineCompiler('real-scalar-or-array-rank-1-or-2-required', statement);
+        if (definitions.has(statement.parameters[i])) return declineCompiler('duplicate-parameter', statement);
         definitions.set(statement.parameters[i], { kind: 'input', index: i, array, real: array || type === 'real' });
     }
     function binary(op: string, left: Node, right: Node): Node | undefined {
-        if (['//', 'mod'].includes(op) && (left.real || right.real)) return undefined;
+        if (['//', 'mod'].includes(op) && (left.real || right.real)) return declineCompiler('integer-operands-required');
         return { kind: 'binary', op, left, right, array: left.array || right.array,
             real: op === '/' || left.real || right.real };
     }
@@ -63,14 +73,14 @@ function lower(statement: FunctionStatement, types: readonly CompiledCalleeType[
         }
         if (isApplicationExpression(source)) {
             const parts = flattenApplication(source);
-            if (parts.length !== 3) return undefined;
+            if (parts.length !== 3) return declineCompiler('binary-native-call-required', source);
             const infix = isNameExpression(parts[1]) && ['min', 'max'].includes(parts[1].name);
             const operation = infix ? parts[1] : parts[2];
-            if (!isNameExpression(operation) || !['min', 'max'].includes(operation.name)) return undefined;
+            if (!isNameExpression(operation) || !['min', 'max'].includes(operation.name)) return declineCompiler('unsupported-native-call', source);
             const left = parse(parts[0]), right = parse(parts[infix ? 2 : 1]);
             return left && right ? binary(operation.name, left, right) : undefined;
         }
-        return undefined;
+        return declineCompiler('unsupported-expression', source);
     }
     const bindings: Node[] = [];
     let root: Node | undefined;
@@ -80,9 +90,9 @@ function lower(statement: FunctionStatement, types: readonly CompiledCalleeType[
             if (!value) return undefined;
             definitions.set(command.name, value); bindings.push(value);
         } else if (isReturnStatement(command) && command.value && i === statement.statements.length - 1) root = parse(command.value);
-        else return undefined;
+        else return declineCompiler('unsupported-statement', command);
     }
-    if (!root?.array || !root.real || root.kind !== 'binary') return undefined;
+    if (!root?.array || !root.real || root.kind !== 'binary') return declineCompiler('fresh-real-array-result-required', statement);
     const used = new Set<Node>();
     function visit(node: Node): void {
         if (used.has(node)) return;
@@ -91,7 +101,7 @@ function lower(statement: FunctionStatement, types: readonly CompiledCalleeType[
         if (node.kind === 'unary') visit(node.operand);
     }
     visit(root);
-    if (bindings.some(binding => !used.has(binding))) return undefined;
+    if (bindings.some(binding => !used.has(binding))) return declineCompiler('unused-binding-may-throw', statement);
     let serial = 0;
     const setup: string[] = [], body: string[] = [];
     const sizes = new Map<Node, string>(), values = new Map<Node, string>();
@@ -166,5 +176,5 @@ function lower(statement: FunctionStatement, types: readonly CompiledCalleeType[
         try { return broadcastShape(left, right); } catch { throw numberOverflow; }
     };
     try { return new Function('PrivateNumericArray', 'safe', 'finite', 'divide', 'remainder', 'overflow', 'broadcast', source)(PrivateNumericArray, safe, finite, divide, remainder, numberOverflow, broadcast) as Run; }
-    catch { return undefined; }
+    catch { return declineCompiler('dynamic-code-unavailable', statement); }
 }

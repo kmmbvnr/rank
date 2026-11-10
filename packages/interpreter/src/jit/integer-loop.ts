@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, withCompilerMethods } from '../compiler-observation.js';
 import { demandBudgetEnabled } from '../interrupt.js';
 import { createLoopState } from './integer-loop-state.js';
 import { createLoopExpressions } from './integer-loop-expressions.js';
@@ -17,6 +18,12 @@ import { isRankArray } from '../value.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision } from '../array-storage.js';
 
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statement, 'loop-dispatch', 'prepare', () => compileIntegerLoopObservedImplementation(statement, host, iteration), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'loop-dispatch', candidate.run.bind(candidate), provenTypes, true) });
+}
+
+function compileIntegerLoopObservedImplementation(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const diagnostics = currentDiagnostics();
     return diagnostics
         ? diagnostics.measure('loop.prepare', () => prepareIntegerRegion(statement, host, iteration))
@@ -74,6 +81,12 @@ function prepareIntegerRegion(statement: ForStatement, host: LoopHost, iteration
  * Return dispatch remains in the ordinary function body. Failed guards/overflow
  * leave the frame untouched, so the original statements can execute instead. */
 export function compileIntegerFunctionPrefix(statement: FunctionStatement, host: LoopHost): CompiledLoop | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statement, 'function-prefix', 'prepare', () => compileIntegerFunctionPrefixObservedImplementation(statement, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'function-prefix', candidate.run.bind(candidate), provenTypes, true) });
+}
+
+function compileIntegerFunctionPrefixObservedImplementation(statement: FunctionStatement, host: LoopHost): CompiledLoop | undefined {
     const plan = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true);
     // Fresh-array writes and numeric vector reductions can share a private
     // region. External stores keep per-loop transactions and copy feedback.
@@ -180,8 +193,14 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
  * intermediate arithmetic or input admission declines a narrower tier; retain exact fallback. */
 function prepareMixedLoops(plan: IntegerLoopPlan, host: LoopHost, feedback: LoopWorkFeedback | undefined,
     lower: (wide: ReadonlySet<string>, counting: boolean, polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
+    const candidate = observeCompiler(plan.statement, 'mixed-loop', 'prepare', () => prepareMixedLoopsObservedImplementation(plan, host, feedback, lower));
+    return candidate && withCompilerMethods(candidate, { run: observedRun(plan.statement, 'mixed-loop', candidate.run.bind(candidate), undefined, true) });
+}
+
+function prepareMixedLoopsObservedImplementation(plan: IntegerLoopPlan, host: LoopHost, feedback: LoopWorkFeedback | undefined,
+    lower: (wide: ReadonlySet<string>, counting: boolean, polling: LoopPolling) => IntegerLoopPlan | undefined): CompiledLoop | undefined {
     const wide = wideLoopScalars(plan);
-    if (!wide.size) return undefined;
+    if (!wide.size) return declineCompiler('no-wide-scalar-candidate');
     const outputs = wideLoopOutputs(plan, wide);
     const boundary = wideLoopBoundary(plan, wide, outputs);
     const widths = [outputs, boundary, wide].filter((width, index, all) => width.size

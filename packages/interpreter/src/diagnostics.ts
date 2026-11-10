@@ -14,9 +14,23 @@ export interface ExecutionCost {
     discardedMilliseconds: number;
 }
 
+export interface CompilerObservation {
+    readonly source: Omit<CompilerRejection, 'reason'>;
+    readonly backend: string;
+    readonly phase: 'prepare' | 'execute';
+    readonly provenTypes?: Readonly<Record<string, string>>;
+    readonly reasons: readonly string[];
+    readonly outcome: 'declined' | 'prepared' | 'selected' | 'threw';
+    count?: number;
+}
+export interface CompilerAttempt extends Omit<CompilerObservation, 'outcome' | 'reasons' | 'count'> {
+    readonly reasons: Set<string>;
+    provenTypes?: Readonly<Record<string, string>>;
+}
+
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
-    constructor(readonly compilerRejectionLimit = 64) {
+    constructor(readonly compilerRejectionLimit = 64, readonly traceCompiler = false) {
         if (compilerRejectionLimit !== Infinity && (!Number.isSafeInteger(compilerRejectionLimit) || compilerRejectionLimit < 0)) {
             throw new RangeError('compilerRejectionLimit must be a nonnegative integer or Infinity');
         }
@@ -164,8 +178,14 @@ export class RuntimeDiagnostics {
     compilerRejectionsOmitted = 0;
     private readonly compilerRejectionKeys = new Set<string>();
     rememberCompilerRejection(failure: CompilerRejection): void {
+        const attempt = this.compilerAttempt;
+        if (attempt) {
+            attempt.reasons.add(failure.reason);
+            failure = { ...failure, region: { sourceId: attempt.source.sourceId, line: attempt.source.line,
+                column: attempt.source.column, backend: attempt.backend } };
+        }
         const key = JSON.stringify([failure.sourceId, failure.reason, failure.node, failure.function,
-            failure.expression, failure.line, failure.column]);
+            failure.expression, failure.line, failure.column, failure.region]);
         if (this.compilerRejectionKeys.has(key)) return;
         if (this.compilerRejections.length >= this.compilerRejectionLimit) {
             this.compilerRejectionsOmitted++;
@@ -173,6 +193,50 @@ export class RuntimeDiagnostics {
         }
         this.compilerRejectionKeys.add(key);
         this.compilerRejections.push(failure);
+    }
+
+    readonly compilerObservations: CompilerObservation[] = [];
+    compilerObservationsOmitted = 0;
+    private readonly compilerObservationKeys = new Map<string, CompilerObservation>();
+    private compilerAttempt?: CompilerAttempt;
+    get currentCompilerSource(): CompilerObservation['source'] | undefined { return this.compilerAttempt?.source; }
+    compilerScope<T>(attempt: CompilerAttempt, run: () => T): T {
+        const previous = this.compilerAttempt;
+        this.compilerAttempt = attempt;
+        try { return run(); }
+        finally {
+            if (previous) for (const reason of attempt.reasons) previous.reasons.add(reason);
+            this.compilerAttempt = previous;
+        }
+    }
+    observeCompiler(observation: CompilerObservation): void {
+        const key = JSON.stringify(observation);
+        const previous = this.compilerObservationKeys.get(key);
+        if (previous) { previous.count = (previous.count ?? 1) + 1; return; }
+        if (this.compilerObservations.length >= this.compilerRejectionLimit) {
+            this.compilerObservationsOmitted++;
+            return;
+        }
+        const entry = { ...observation, count: 1 };
+        this.compilerObservationKeys.set(key, entry);
+        this.compilerObservations.push(entry);
+    }
+    compilerType(name: string, type: string): void {
+        const attempt = this.compilerAttempt;
+        if (attempt) attempt.provenTypes = { ...attempt.provenTypes, [name]: type };
+    }
+    compilerDecline(detail: string, source?: CompilerRejection): void {
+        const attempt = this.compilerAttempt;
+        if (!attempt) return;
+        const reason = `${attempt.backend}:${detail}`;
+        attempt.reasons.add(reason);
+        this.rememberCompilerRejection({ ...source ?? attempt.source, reason });
+    }
+    compilerFallback(reason: string): void {
+        const attempt = this.compilerAttempt;
+        if (!attempt || attempt.reasons.has(reason)) return;
+        attempt.reasons.add(reason);
+        this.rememberCompilerRejection({ ...attempt.source, reason });
     }
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */
@@ -187,6 +251,7 @@ let active: RuntimeDiagnostics | undefined;
 export function currentDiagnostics(): RuntimeDiagnostics | undefined { return active; }
 export function recordFallback(reason: string, category?: FallbackCategory): undefined {
     if (active) {
+        active.compilerFallback(reason);
         active.fallbacks[reason] = (active.fallbacks[reason] ?? 0) + 1;
         const reasons = active.fallbackCategories[category ?? fallbackCategory(reason)];
         reasons[reason] = (reasons[reason] ?? 0) + 1;

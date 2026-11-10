@@ -1,3 +1,4 @@
+import { withCompilerSource, observeCompiler, declineCompiler } from './compiler-observation.js';
 import { prepareNativeIntegerSum } from './native-integer-sum.js';
 import { compileRealArrayFunction, type RealArrayArgument } from './jit/real-array-function.js';
 import { compileIntegerArrayFunction } from './jit/integer-array-function.js';
@@ -109,12 +110,17 @@ export class FastPaths {
 
     /** A block of 2 to 64 statements compiled to one closure that steps through them. */
     block(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
+        return observeCompiler(statements[0], 'block-routing', 'prepare', () => this.blockCandidate(statements, steps));
+    }
+
+    private blockCandidate(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
         if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
                 const regions = new Map<number, ReturnType<typeof compileTensorRegion>>();
                 const regionWriters = new Map<Statement, (value: RankValue) => void>();
                 block = compileBlock<ExecutionContext>(statements.length, {
+                    source: statements[0],
                     prepare: index => steps.preparedStatement(statements, index),
                     region: index => {
                         if (!this.compiler.tensors.fusion) return undefined;
@@ -145,21 +151,29 @@ export class FastPaths {
             }
             return block ?? undefined;
         }
-        return undefined;
+        return declineCompiler(this.compiler.blocks.blocks ? 'statement-budget' : 'disabled', statements[0]);
     }
 
     /** A function body ending in `return` compiled per argument signature, its return a terminal step. */
     functionBody(
         statement: FunctionStatement, arguments_: RankValue[], steps: BlockSteps,
     ): CompiledBlock<ExecutionContext> | undefined {
-        if (!this.compiler.functions.bodies) return undefined;
+        return observeCompiler(statement, 'function-body-routing', 'prepare', () => this.functionBodyCandidate(statement, arguments_, steps));
+    }
+
+    private functionBodyCandidate(
+        statement: FunctionStatement, arguments_: RankValue[], steps: BlockSteps,
+    ): CompiledBlock<ExecutionContext> | undefined {
+        if (!this.compiler.functions.bodies) return declineCompiler('disabled', statement);
         let instances = this.functionBodies.get(statement);
         if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations());
         let body = instances.get(arguments_);
         if (body === undefined) {
             const commands = statement.statements;
             const last = commands.at(-1);
+            if (!last || !isReturnStatement(last) || !last.value) declineCompiler('terminal-return-required', statement);
             body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
+                source: statement,
                 prepare: index => {
                     if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
                     const tensor = steps.preparedStatement(commands, index).tensor;
@@ -289,8 +303,9 @@ export class FastPaths {
     tensorPlanScope(expression: Expression): <T>(run: () => T) => T {
         let code = this.tensorPlanCode.get(expression);
         if (!code) this.tensorPlanCode.set(expression, code = new Map());
-        return tensorPlanScope(this.tensorHost(), () => this.compiler.tensors.fusion,
+        const scope = tensorPlanScope(this.tensorHost(), () => this.compiler.tensors.fusion,
             () => this.tensorExecuted(), code);
+        return run => withCompilerSource(expression, () => scope(run));
     }
 
     tensorStatement(statement: Statement): TensorStep | undefined {
@@ -313,9 +328,14 @@ export class FastPaths {
 
     /** A numeric loop compiled to straight-line code over local registers. */
     compileLoop(statement: ForStatement | FunctionStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
+        return observeCompiler(statement, 'loop-routing', 'prepare', () => this.compileLoopCandidate(statement, binding, continuation));
+    }
+
+    private compileLoopCandidate(statement: ForStatement | FunctionStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
         const compile = (host: LoopHost) => isFunctionStatement(statement)
             ? compileIntegerFunctionPrefix(statement, host) : compileIntegerLoop(statement, host, binding);
         const { loops, tensors, scalars, hooks } = this.compiler;
+        if (!loops.integer) declineCompiler('integer-loops-disabled', statement);
         const ordinary = loops.integer ? compile({
             continuation,
             observableEntry: hooks.onIntegerLoopExecuted !== undefined,
@@ -567,7 +587,12 @@ export class FastPaths {
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
     scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly loops: true } | undefined {
-        if (!this.compiler.scalars.entries || generator) return undefined;
+        return observeCompiler(statement, 'scalar-entry', 'prepare', () => this.scalarEntryCandidate(statement, generator, types, captures));
+    }
+
+    private scalarEntryCandidate(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly loops: true } | undefined {
+        if (!this.compiler.scalars.entries) return declineCompiler('disabled', statement);
+        if (generator) return declineCompiler('generator-function', statement);
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
         // Container storage is integer-only; checked reference returns keep
@@ -588,7 +613,7 @@ export class FastPaths {
             && !nativeCompletion && !proof.arrayWrites.size && proof.nativeReads.includes('sum')
             && [...proof.expressions.values()].some(expression => expression.kind === 'input'
                 && expression.input.operation === 'range-array');
-        if (rangeReduction) return undefined;
+        if (rangeReduction) return declineCompiler('prefer-numeric-function', statement);
         const boundLoopRange = proof && !nativeCompletion && [...proof.expressions].some(([source, expression]) => {
             if (expression.kind !== 'input' || expression.input.operation !== 'range-array') return false;
             for (let owner = source.$container; owner && owner !== statement; owner = owner.$container) {
@@ -600,12 +625,16 @@ export class FastPaths {
             && ([...proof.loopIterables.values()].some(loop => loop.kind === 'literal' && isNameExpression(loop.expression))
                 // Bound range loops also have an analytic Number consumer;
                 // do not replace it with completed arrays in the exact tier.
-                || boundLoopRange)) return undefined;
+                || boundLoopRange)) return declineCompiler('prefer-numeric-loop', statement);
         // A caller can hide fresh-array writes in a helper. Apply the same
         // backend preference transitively, so an exact scalar call graph does
         // not steal that helper from its private Number loop implementation.
-        return proof && proof.localArrayWrites && (!scalarFunctionEffects(proof).localWrites || proof.containers || proof.recursive || nativeCompletion) && (!proof.planReturn || typeof proof.type !== 'string')
-            ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
+        if (!proof) return declineCompiler('function-proof-unavailable', statement);
+        if (!proof.localArrayWrites) return declineCompiler('external-array-writes', statement);
+        if (scalarFunctionEffects(proof).localWrites && !proof.containers && !proof.recursive && !nativeCompletion)
+            return declineCompiler('prefer-numeric-loop', statement);
+        if (proof.planReturn && typeof proof.type === 'string') return declineCompiler('deferred-scalar-return', statement);
+        return { locals: proof.locals, nonnegative: proof.nonnegative, loops: true };
     }
 
     /** Lets flat combinators run a scalar user function without entering Rank. */

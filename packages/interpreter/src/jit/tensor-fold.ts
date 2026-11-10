@@ -1,3 +1,4 @@
+import { declineCompiler, observeCompiler, observedRun } from '../compiler-observation.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { reduceTensorMap } from './tensor-map.js';
@@ -39,7 +40,17 @@ export function compileFusedReduction(
     reducer: string,
     context: Context,
 ): (() => RankValue) | undefined {
-    if (!['+', '-', '*'].includes(reducer)) return undefined;
+    const provenTypes = undefined;
+    const candidate = observeCompiler(source, 'fused-reduction', 'prepare', () => compileFusedReductionObservedImplementation(source, reducer, context), provenTypes);
+    return candidate && observedRun(source, 'fused-reduction', candidate, provenTypes);
+}
+
+function compileFusedReductionObservedImplementation(
+    source: Expression,
+    reducer: string,
+    context: Context,
+): (() => RankValue) | undefined {
+    if (!['+', '-', '*'].includes(reducer)) return declineCompiler(`unsupported-reducer:${reducer}`);
     const reduce = numericKernel(reducer, (a, b) => context.binary(reducer, a, b));
     return compileArithmeticFold(source, context, (result, read, size) => {
         if (isRankArray(result)) {
@@ -57,6 +68,16 @@ export function compileFusedReduction(
 }
 
 export function compileFusedSum<T>(
+    source: Expression,
+    context: ArithmeticContext,
+    consume: (value: RankValue, sum: (() => RankValue) | undefined) => T,
+): (() => T) | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(source, 'fused-sum', 'prepare', () => compileFusedSumObservedImplementation(source, context, consume), provenTypes);
+    return candidate && observedRun(source, 'fused-sum', candidate, provenTypes);
+}
+
+function compileFusedSumObservedImplementation<T>(
     source: Expression,
     context: ArithmeticContext,
     consume: (value: RankValue, sum: (() => RankValue) | undefined) => T,
@@ -96,7 +117,7 @@ function compileArithmeticFold<T>(
             && !expression.step) {
             // These spellings are modifiers, not ordinary name operands.
             if (isNameExpression(expression.right)
-                && ['reduce', 'scan', 'outer'].includes(expression.right.name)) return undefined;
+                && ['reduce', 'scan', 'outer'].includes(expression.right.name)) return declineCompiler('modifier-boundary', expression);
             const left = visit(expression.left);
             const right = visit(expression.right);
             if (left === undefined || right === undefined) return undefined;
@@ -107,13 +128,14 @@ function compileArithmeticFold<T>(
             || (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)
                 && isNumberLiteral(expression.operand))) {
             const read = context.prepareLeaf(expression);
-            if (!read) return undefined;
+            if (!read) return declineCompiler('leaf-reader-unavailable', expression);
             instructions.push({ read });
-        } else return undefined;
+        } else return declineCompiler('unsupported-expression', expression);
         return instructions.length - 1;
     };
     const root = visit(source);
-    if (root === undefined || 'read' in instructions[root]) return undefined;
+    if (root === undefined) return undefined;
+    if ('read' in instructions[root]) return declineCompiler('inline-arithmetic-required', source);
 
     const operations = instructions.map(instruction => 'operation' in instruction ? instruction.operation : undefined) as Operation[];
     const readerCache = new Map<string, ((readers: Reader[], operations: Operation[]) => Reader) | null>();
@@ -131,7 +153,7 @@ function compileArithmeticFold<T>(
                     readers[slot] = () => value;
                 } else {
                     const storage = eagerArrayStorage(value);
-                    if (!storage) eligible = false;
+                    if (!storage) { declineCompiler('eager-storage-required'); eligible = false; }
                     if (eligible) readers[slot] = storage!.read;
                 }
                 continue;
@@ -155,12 +177,16 @@ function compileArithmeticFold<T>(
                     && (left.shape.length !== right.shape.length
                         || left.shape.some((dimension, axis) => dimension !== right.shape[axis]))) {
                     // Broadcasting can revisit an intermediate cached index.
+                    declineCompiler('broadcast-revisits-intermediate');
                     eligible = false;
                 }
             } else readers[slot] = () => value;
         }
         const result = values[root];
-        if (!eligible || !isRankArray(result) || context.compilation?.() === false) return finish(result, undefined, 0);
+        if (!eligible || !isRankArray(result) || context.compilation?.() === false) {
+            if (eligible) declineCompiler(!isRankArray(result) ? 'array-result-required' : 'tensor-compilation-disabled');
+            return observeCompiler(source, 'ordinary-fold', 'execute', () => finish(result, undefined, 0));
+        }
         const size = result.shape.reduce((product, dimension) => product * dimension, 1);
         const key = values.map((value, slot) => isRankArray(value) ? 'read' in instructions[slot] ? 'a' : 'b' : 's').join('');
         let factory = readerCache.get(key);
@@ -204,6 +230,10 @@ function compileArithmeticFold<T>(
             if (readerCache.size >= 16) readerCache.delete(readerCache.keys().next().value!);
             readerCache.set(key, factory);
         }
-        return finish(result, factory ? factory(readers, operations) : undefined, size);
+        if (!factory) {
+            declineCompiler('dynamic-code-unavailable');
+            return observeCompiler(source, 'ordinary-fold', 'execute', () => finish(result, undefined, size));
+        }
+        return observeCompiler(source, 'fused-arithmetic-reader', 'execute', () => finish(result, factory(readers, operations), size));
     };
 }

@@ -1,3 +1,4 @@
+import { declineCompiler, compilerSource, observeCompilerSource, observedSourceRun } from '../compiler-observation.js';
 import { checkedIntegerSumStep } from './tensor-reduction-codegen.js';
 import { arrayRange } from '../range-plan.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
@@ -9,14 +10,14 @@ import type { TensorCodeCache, TensorNode } from './tensor-kernel.js';
 import { isRankArray } from '../value.js';
 import type { RankValue } from '../value.js';
 
-const overflow = {};
+const overflow = {}, zeroDivisor = {}, negativeRoot = {};
 const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 function safe(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
 }
 function divide(a: number, b: number): number {
-    if (!b) throw overflow;
+    if (!b) throw zeroDivisor;
     const remainder = a % b;
     return safe(safe(safe(a - remainder) / b) - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 }
@@ -32,8 +33,18 @@ const caches = new WeakMap<TensorCodeCache, Map<string, Run>>();
 export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
     operation: 'sum' | 'positions', code: TensorCodeCache, valid: () => boolean,
     indices?: ArrayLike<number>, compiled?: (source: string) => void): (() => bigint | number[] | undefined) | undefined {
+    const sourceSite = compilerSource();
+    const provenTypes = { result: domains.get(root)?.join(' | ') ?? 'unknown' };
+    const candidate = observeCompilerSource(sourceSite, 'number-tensor', 'prepare', () => prepareNumberTensorObservedImplementation(root, domains, operation, code, valid, indices, compiled), provenTypes);
+    return candidate && observedSourceRun(sourceSite, 'number-tensor', candidate, provenTypes);
+}
+
+function prepareNumberTensorObservedImplementation(root: TensorNode, domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
+    operation: 'sum' | 'positions', code: TensorCodeCache, valid: () => boolean,
+    indices?: ArrayLike<number>, compiled?: (source: string) => void): (() => bigint | number[] | undefined) | undefined {
     const expected = operation === 'sum' ? 'integer' : 'boolean';
-    if (!privateLoopPolling() || domains.get(root)?.join() !== expected) return undefined;
+    if (!privateLoopPolling()) return declineCompiler('observable-polling');
+    if (domains.get(root)?.join() !== expected) return declineCompiler('result-domain-guard');
     const data: Cells[] = [], scalars: (number | boolean)[] = [], lines: string[] = [];
     const checks: Check[] = [];
     const emitted = new Map<TensorNode, { name: string; type: string }>();
@@ -45,7 +56,7 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
         const known = emitted.get(node);
         if (known) return known;
         const type = domains.get(node)?.join();
-        if (type !== 'integer' && type !== 'boolean') return undefined;
+        if (type !== 'integer' && type !== 'boolean') return declineCompiler('operand-domain-guard');
         const name = `v${emitted.size}`;
         // Reserve before walking children, preserving unique names and DAG sharing.
         const result = { name, type };
@@ -54,7 +65,7 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
         if (node.kind === 'input') {
             if (typeof node.value === 'bigint') {
                 const value = Number(node.value);
-                if (!Number.isSafeInteger(value)) return undefined;
+                if (!Number.isSafeInteger(value)) return declineCompiler('integer-exactness-guard');
                 lines.push(`const ${name} = scalars[${scalars.push(value) - 1}];`);
                 bounds.set(node, [node.value, node.value]);
                 return result;
@@ -63,14 +74,14 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
                 lines.push(`const ${name} = scalars[${scalars.push(node.value) - 1}];`);
                 return result;
             }
-            if (node.value === undefined || !isRankArray(node.value) || node.value.shape.length !== 1) return undefined;
+            if (node.value === undefined || !isRankArray(node.value) || node.value.shape.length !== 1) return declineCompiler('vector-input-required');
             const cells = integer32Cells(node.value);
             const stored = cells ? undefined : prepareStoredScalarView(node.value, true);
             if (!cells && (!stored || stored.validate || stored.kinds?.join() !== 'integer'
-                || stored.linear?.offset !== 0 || stored.linear.stride !== 1)) return undefined;
+                || stored.linear?.offset !== 0 || stored.linear.stride !== 1)) return declineCompiler('linear-integer-storage-required');
             const items = cells ?? stored!.items as Cells;
-            if (items.length !== node.value.shape[0]) return undefined;
-            if (size !== undefined && size !== items.length) return undefined;
+            if (items.length !== node.value.shape[0]) return declineCompiler('storage-size-guard');
+            if (size !== undefined && size !== items.length) return declineCompiler('input-shape-guard');
             size = items.length;
             if (items instanceof BigInt64Array && items.buffer instanceof ArrayBuffer) {
                 // A numeric register needs no allocated BigInt load or buffer copy.
@@ -94,7 +105,8 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
             value = a.name; range = bounds.get(node.source);
         } else if (node.kind === 'call' && (node.intrinsic === 'isqrt' || node.intrinsic === 'integer')) {
             const a = emit(node.source);
-            if (!a || node.intrinsic === 'isqrt' && a.type !== 'integer') return undefined;
+            if (!a) return undefined;
+            if (node.intrinsic === 'isqrt' && a.type !== 'integer') return declineCompiler('isqrt-integer-required');
             value = node.intrinsic === 'isqrt' ? `isqrt(${a.name})` : a.type === 'boolean' ? `(${a.name} ? 1 : 0)` : a.name;
             const input = bounds.get(node.source);
             if (node.intrinsic === 'integer') range = a.type === 'boolean' ? [0n, 1n] : input;
@@ -109,7 +121,7 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
                 const input = bounds.get(node.operand);
                 range = input && (node.op === '-' ? [-input[1], -input[0]] : input);
             }
-            else return undefined;
+            else return declineCompiler('operator-domain-guard');
         } else if (node.kind === 'binary' && (!node.native || node.native === 'min' || node.native === 'max') && !node.ranks) {
             const a = emit(node.left), b = emit(node.right);
             if (!a || !b) return undefined;
@@ -131,15 +143,15 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
                 else if (node.op === 'mod') value = `remainder(${a.name}, ${b.name})`;
                 else {
                     const op = { equal: '===', notequal: '!==', less: '<', greater: '>', atmost: '<=', atleast: '>=' }[node.op];
-                    if (!op) return undefined;
+                    if (!op) return declineCompiler(`unsupported-operator:${node.op}`);
                     value = `${a.name} ${op} ${b.name}`;
                 }
             } else if (a.type === 'boolean' && b.type === 'boolean') {
                 const op = { and: '&&', or: '||', xor: '!==', equal: '===', notequal: '!==' }[node.op];
-                if (!op) return undefined;
+                if (!op) return declineCompiler(`unsupported-operator:${node.op}`);
                 value = `${a.name} ${op} ${b.name}`;
-            } else return undefined;
-        } else return undefined;
+            } else return declineCompiler('operator-domain-guard');
+        } else return declineCompiler(`unsupported-ir:${node.kind}`);
         // Forget unsafe intervals: repeated squaring must not grow giant
         // BigInts during preparation of a path that will replay exactly.
         if (range && range[0] >= -9007199254740991n && range[1] <= 9007199254740991n) bounds.set(node, range);
@@ -147,7 +159,8 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
         return result;
     }
     const result = emit(root);
-    if (!result || size === undefined) return undefined;
+    if (!result) return undefined;
+    if (size === undefined) return declineCompiler('array-input-required');
     const interruptible = interruptsEnabled();
     const source = `return function(data, scalars, size, indices, checks) {
         const checked = [];
@@ -169,21 +182,25 @@ export function prepareNumberTensor(root: TensorNode, domains: ReadonlyMap<Tenso
         try {
             run = new Function('safe', 'divide', 'remainder', 'checkpoint', 'isqrt', source)(safe, divide,
                 (a: number, b: number) => {
-                    if (!b) throw overflow;
+                    if (!b) throw zeroDivisor;
                     const r = a % b;
                     return r !== 0 && (r < 0) !== (b < 0) ? safe(r + b) : r;
-                }, checkpoint, (value: number) => { if (value < 0) throw overflow; return safeIntegerSquareRoot(value); }) as Run;
-        } catch { return undefined; }
+                }, checkpoint, (value: number) => { if (value < 0) throw negativeRoot; return safeIntegerSquareRoot(value); }) as Run;
+        } catch { return declineCompiler('dynamic-code-unavailable'); }
         if (cache.size < 128) cache.set(source, run);
         compiled?.(source);
     }
     return () => {
-        if (!privateLoopPolling() || interruptsEnabled() !== interruptible || !valid()) return undefined;
+        if (!privateLoopPolling()) return declineCompiler('observable-polling');
+        if (interruptsEnabled() !== interruptible) return declineCompiler('interrupt-mode-changed');
+        if (!valid()) return declineCompiler('input-revision-guard');
         try {
             const value = run(data, scalars, size!, indices, checks);
             return typeof value === 'number' ? BigInt(value) : value;
         } catch (error) {
-            if (error === overflow) return undefined;
+            if (error === overflow) return declineCompiler('integer-exactness-guard');
+            if (error === zeroDivisor) return declineCompiler('zero-divisor-guard');
+            if (error === negativeRoot) return declineCompiler('negative-root-guard');
             throw error;
         }
     };

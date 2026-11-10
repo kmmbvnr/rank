@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Interpreter } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { FlatRecords } from '../src/flat.js';
 import { flatCombine } from '../src/flat-combine.js';
 import { RankSegment } from '../src/segment.js';
@@ -21,6 +21,21 @@ function fixture(source = sum, compiled = true) {
 }
 
 describe('compiled flat combine', () => {
+    it('reports successful void kernels with source and proven field types', () => {
+        const { runtime, operation, values } = fixture();
+        const diagnostics = new RuntimeDiagnostics(Infinity, true);
+        try {
+            const kernel = diagnostics.run(() => flatCombine(operation, values));
+            const output = [0n];
+            expect(diagnostics.run(() => kernel!.run([2n], [3n], output))).toBeUndefined();
+            expect(output).toEqual([5n]);
+            expect(diagnostics.compilerObservations).toEqual(expect.arrayContaining([
+                expect.objectContaining({ backend: 'flat-combine', phase: 'execute', outcome: 'selected',
+                    provenTypes: { n: 'integer' }, source: expect.objectContaining({ function: 'combine' }) }),
+            ]));
+        } finally { runtime.dispose(); }
+    });
+
     it('avoids materializing records at internal nodes', () => {
         const { tree, operation, values } = fixture();
         expect(flatCombine(operation, values)).toBeDefined();

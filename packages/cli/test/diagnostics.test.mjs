@@ -43,7 +43,7 @@ test('diagnostics reports successful compilation above 32 statements', t => {
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, '6\n');
     assert.match(result.stderr, /compiledLoops: 1/);
-    assert.doesNotMatch(result.stderr, /statement-budget/);
+    assert.doesNotMatch(result.stderr, /(?:^|\s)loop:statement-budget/);
 });
 
 test('diagnostics remains available after a runtime error', t => {
@@ -61,6 +61,23 @@ test('diagnostics requires a file and appears in help', () => {
     const help = run(['--help']);
     assert.equal(help.status, 0, help.stderr);
     assert.match(help.stdout, /--diagnostics <file>/);
+});
+
+test('diagnostics distinguishes a rejected Number candidate from exact execution', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-function-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, 'use io\nfun X square\n return X * X\nend\n100000000 square print');
+    const normal = run([file]);
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, normal.stdout);
+    assert.equal(result.stdout, '10000000000000000\n');
+    assert.match(result.stderr, /scalar-function-number execute: declined/);
+    assert.match(result.stderr, /scalar-function-number:integer-exactness-guard/);
+    assert.match(result.stderr, /scalar-function-direct execute: selected/);
+    assert.match(result.stderr, /proven types: .*"X":"integer"/);
+    assert.ok(result.stderr.includes(`${file}:2:1`), result.stderr);
 });
 
 
@@ -90,7 +107,7 @@ A sum print
 
 test('diagnostics locates the rejected statement and explains its budget', t => {
     const file = fixture(t, 129);
-    const result = run(['--diagnostics', file]);
+    const result = run(['--diagnostics=all', file]);
     assert.equal(result.status, 0, result.stderr);
     assert.ok(result.stderr.includes(`${file}:134:3`), result.stderr);
     assert.match(result.stderr, /The region exceeds the statement budget/);

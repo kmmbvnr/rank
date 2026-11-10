@@ -1,3 +1,4 @@
+import { observedRun } from '../compiler-observation.js';
 import {
     forAxes, forIteration,
     type Expression, type ForBinding, type ForStatement, type Statement,
@@ -86,6 +87,7 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         : [];
     const generator = binding && loop.options().compilation !== false && loop.options().generatorLoopCompilation !== false
         ? compileGeneratorLoop(statement.statements, {
+            source: statement,
             evaluate: expression => loop.evaluate(expression),
             compileDirect: expression => loop.compileDirect(expression),
             prepare: (statements, index) => loop.prepareStatement(statements, index),
@@ -208,8 +210,9 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         }
         return result;
     } };
+    const interpreted = { stream: observedRun(statement, 'interpreted-loop', reference.stream!, undefined, true) };
     const compiled = loop.compileLoop(statement, binding);
-    return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? reference.stream!(context) } : reference;}
+    return compiled ? { stream: context => compiled.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false) ?? interpreted.stream(context) } : interpreted;}
 
 function* forEntries(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue, tensorCells: boolean,

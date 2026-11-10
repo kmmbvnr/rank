@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun } from '../compiler-observation.js';
 import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import {
     findCompiledOperator, expressionOperatorSignatures, applicationForm,
@@ -28,12 +29,24 @@ const factoryLimit = 256;
 /** Compile expression control flow once. Each unsupported value delegates at
  * its own operation, with already-read operands: no speculative evaluation or replay. */
 export function compileScalarExpression(expression: Expression, host: Host): (() => RankValue) | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(expression, 'scalar-expression', 'prepare', () => compileScalarExpressionObservedImplementation(expression, host), provenTypes);
+    return candidate && observedRun(expression, 'scalar-expression', candidate, provenTypes);
+}
+
+function compileScalarExpressionObservedImplementation(expression: Expression, host: Host): (() => RankValue) | undefined {
     return compile(expression, host, false) as (() => RankValue) | undefined;
 }
 
 /** Unsupported children resume through the ordinary execution driver. Their
  * effects and result types are unrestricted; arithmetic retains its value guards. */
 export function compileResumableScalarExpression(expression: Expression, host: Host<Evaluation<RankValue>>): (() => Evaluation<RankValue>) | undefined {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(expression, 'resumable-scalar-expression', 'prepare', () => compileResumableScalarExpressionObservedImplementation(expression, host), provenTypes);
+    return candidate && observedRun(expression, 'resumable-scalar-expression', candidate, provenTypes, true);
+}
+
+function compileResumableScalarExpressionObservedImplementation(expression: Expression, host: Host<Evaluation<RankValue>>): (() => Evaluation<RankValue>) | undefined {
     return compile(expression, host, true) as (() => Evaluation<RankValue>) | undefined;
 }
 

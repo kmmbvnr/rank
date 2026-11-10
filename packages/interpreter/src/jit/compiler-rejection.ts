@@ -9,6 +9,8 @@ import { sourceIdOf } from '../source-location.js';
 /** A bounded syntax snapshot, with no AST, runtime values or invocation frames. */
 export interface CompilerRejection {
     readonly sourceId?: string;
+    readonly operation?: string;
+    readonly region?: { readonly sourceId?: string; readonly line?: number; readonly column?: number; readonly backend: string };
     readonly reason: string;
     readonly node: string;
     readonly name?: string;
@@ -19,11 +21,14 @@ export interface CompilerRejection {
 }
 
 export function describeCompilerRejection(backend: string, node: Expression | Statement, detail?: string): CompilerRejection {
-    let owner = node.$container;
+    let owner = isFunctionStatement(node) ? node : node.$container;
     while (owner && !isFunctionStatement(owner)) owner = owner.$container;
     const cst = node.$cstNode;
     return {
         reason: compilerRejection(backend, node, detail), node: node.$type,
+        operation: isBinaryExpression(node) || isUnaryExpression(node) ? node.operator
+            : isApplicationExpression(node) ? flattenApplication(node).filter(isNameExpression).at(-1)?.name
+            : isFunctionStatement(node) || isNameExpression(node) ? node.name : node.$type,
         name: isNameExpression(node) ? node.name : undefined,
         function: owner && isFunctionStatement(owner) ? owner.name : undefined,
         sourceId: cst && sourceIdOf(cst, '<input>'),

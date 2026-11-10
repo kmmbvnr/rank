@@ -1,3 +1,4 @@
+import { observedRun } from '../compiler-observation.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
     isAssignmentStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement, isTryStatement,
@@ -166,6 +167,9 @@ export class BlockExecution implements BlockSteps {
                 const tensor = this.host.fastPaths.tensorStatement(statement);
                 if (tensor) prepared = { ...prepared, tensor };
             }
+            prepared = 'run' in prepared
+                ? { ...prepared, run: observedRun(statement, 'statement-dispatch', prepared.run, undefined, false, 'success') }
+                : { ...prepared, stream: observedRun(statement, 'statement-dispatch', prepared.stream, undefined, true) };
             cache.set(statement, prepared);
         }
         return prepared;

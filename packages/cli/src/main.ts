@@ -80,7 +80,7 @@ async function runFile(file: string, args: readonly string[], diagnostic?: numbe
         loadModule,
     });
     if (diagnostic === undefined) { run(); return; }
-    const diagnostics = new RuntimeDiagnostics(diagnostic);
+    const diagnostics = new RuntimeDiagnostics(diagnostic, true);
     try { diagnostics.run(run); }
     finally {
         console.error(compilerDiagnostics(diagnostics));

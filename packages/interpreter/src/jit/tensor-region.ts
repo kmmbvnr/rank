@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, withCompilerMethods } from '../compiler-observation.js';
 import {
     isAssignmentStatement, isBinaryExpression, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, type AssignmentStatement, type Expression, type Statement,
@@ -29,10 +30,16 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
  * terminate the region. Inputs are never cached. Recycled output storage must
  * be private and no longer published by any of the region's assignments. */
 export function compileTensorRegion(statements: readonly Statement[], start: number, host: Host) {
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statements[start], 'tensor-region', 'prepare', () => compileTensorRegionObservedImplementation(statements, start, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statements[start], 'tensor-region', candidate.run.bind(candidate), provenTypes) });
+}
+
+function compileTensorRegionObservedImplementation(statements: readonly Statement[], start: number, host: Host) {
     const definitions = new Map<string, Node>();
     const commands: { statement: AssignmentStatement; root: Node }[] = [];
     function parse(expression: Expression, budget: { left: number }): Node | undefined {
-        if (--budget.left < 0) return undefined;
+        if (--budget.left < 0) return declineCompiler('expression-budget', expression);
         if (isParenthesizedExpression(expression)) return parse(expression.value, budget);
         if (isNumberLiteral(expression) && typeof expression.value === 'number' && Number.isFinite(expression.value))
             return { kind: 'constant', value: expression.value };
@@ -55,7 +62,7 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
         definitions.set(statement.name, root);
         commands.push({ statement, root });
     }
-    if (commands.length < 2) return undefined;
+    if (commands.length < 2) return declineCompiler('adjacent-pointwise-assignments-required', statements[start]);
     const inputNames = new Set<string>(), visited = new Set<Node>();
     function collect(node: Node): void {
         if (visited.has(node)) return;
@@ -71,18 +78,20 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
     const pools = new WeakMap<object, RankArray[][]>();
     let unavailable = false;
     return { length: commands.length, run(session?: object): RankValue | undefined {
-        if (unavailable || !privateLoopPolling() || interruptsEnabled()) return undefined;
+        if (unavailable) return declineCompiler('code-generation');
+        if (!privateLoopPolling() || interruptsEnabled()) return declineCompiler('observable-polling');
         // As with other dense kernels, preparation is not amortized on short arrays.
         let dense = false;
         for (const name of inputNames) {
             const value = host.lookup(name);
             if (typeof value === 'number') continue;
             const state = value && typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
-            if (!(state?.typed instanceof Float64Array) || state.typed.length < DENSE_MIN_CELLS) return undefined;
+            if (!(state?.typed instanceof Float64Array)) return declineCompiler('float64-storage-required');
+            if (state.typed.length < DENSE_MIN_CELLS) return declineCompiler('dense-size-threshold');
             dense = true;
             break;
         }
-        if (!dense) return undefined;
+        if (!dense) return declineCompiler('dense-array-required');
         const nodes = new Map<Node, readonly number[]>(), inputs = new Map<string, Input>();
         let rejected = false;
         function bind(node: Node): readonly number[] {
@@ -120,12 +129,14 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
             return shape;
         }
         const shapes = commands.map(command => bind(command.root)), shape = shapes[0];
-        if (rejected || shape.length === 0 || !shapes.every(next => same(shape, next))) return undefined;
+        if (rejected) return declineCompiler('input-domain-or-shape-guard');
+        if (shape.length === 0) return declineCompiler('array-result-required');
+        if (!shapes.every(next => same(shape, next))) return declineCompiler('region-shape-guard');
         const size = shape.reduce((a, b) => a * b, 1);
-        if (size < DENSE_MIN_CELLS) return undefined;
+        if (size < DENSE_MIN_CELLS) return declineCompiler('dense-size-threshold');
         // A trailing input broadcasts by modulo; other layouts retain normal dispatch.
         for (const input of inputs.values()) if (input.cells && input.cells.length !== 1 && (input.shape.length > shape.length
-            || input.shape.some((n, i) => n !== shape[shape.length - input.shape.length + i]))) return undefined;
+            || input.shape.some((n, i) => n !== shape[shape.length - input.shape.length + i]))) return declineCompiler('trailing-broadcast-required');
         const data: Float64Array[] = [], scalars: number[] = [];
         const slots = new Map<string, string>();
         for (const [name, input] of inputs) {
@@ -153,7 +164,7 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
             }
             const values = commands.map(command => emit(command.root));
             const source = `"use strict"; return function(data, scalars, size, output) { for (let i = 0; i < size; i++) { ${lines.join('\n')} ${values.map((value, i) => `output[${i}][i] = ${value};`).join('\n')} } return true; };`;
-            try { run = new Function(source)() as Run; } catch { unavailable = true; return undefined; }
+            try { run = new Function(source)() as Run; } catch { unavailable = true; return declineCompiler('dynamic-code-unavailable'); }
             if (variants.size >= 32) variants.delete(variants.keys().next().value!);
             variants.set(key, run); host.compiled(source);
         }
@@ -169,7 +180,7 @@ export function compileTensorRegion(statements: readonly Statement[], start: num
         const recycled = candidate < 0 ? undefined : banks.splice(candidate, 1)[0];
         const outputs = recycled ? recycled.map(value => ownedStorage.get(value)!.typed as Float64Array)
             : commands.map(() => new Float64Array(size));
-        if (!run(data, scalars, size, outputs)) return undefined;
+        if (!run(data, scalars, size, outputs)) return declineCompiler('numeric-domain-guard');
         let result: RankValue | undefined;
         const published: RankArray[] = [];
         for (let i = 0; i < commands.length; i++) {

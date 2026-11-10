@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
 import { isIfStatement, isYieldStatement, type Expression, type Statement } from '@arrrank/language';
 import { BreakSignal, ContinueSignal } from '../control-signals.js';
 import { currentDiagnostics } from '../diagnostics.js';
@@ -7,6 +8,7 @@ import type { ExecutionContext, PreparedStatement } from '../statement-control.j
 import { expectBoolean, type RankValue } from '../value.js';
 
 interface Host {
+    readonly source?: Statement;
     evaluate(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     prepare(statements: Statement[], index: number): PreparedStatement;
@@ -25,10 +27,17 @@ export type GeneratorLoop = (
  * ordinary prepared writes observe the current state on every resume.
  * Nested loops and protected blocks retain their own scopes and unwinding. */
 export function compileGeneratorLoop(statements: Statement[], host: Host): GeneratorLoop | undefined {
+    const site = host.source ?? statements[0];
+    if (!site) return undefined;
+    const candidate = observeCompiler(site, 'generator-loop', 'prepare', () => compileGeneratorBody(statements, host));
+    return candidate && observedRun(site, 'generator-loop', candidate, undefined, true);
+}
+
+function compileGeneratorBody(statements: Statement[], host: Host): GeneratorLoop | undefined {
     const suspends = (commands: Statement[], depth = 0): boolean => depth <= 16 && commands.some(command => isYieldStatement(command)
         || isIfStatement(command) && [command.thenStatements, command.elseStatements,
             ...command.elifClauses.map(branch => branch.statements)].some(branch => suspends(branch, depth + 1)));
-    if (!suspends(statements)) return undefined;
+    if (!suspends(statements)) return declineCompiler('no-direct-suspension');
     const sites: Statement[] = [];
     const readers: (() => Evaluation<RankValue>)[] = [];
     const steps: (() => PreparedStatement)[] = [];
@@ -43,10 +52,10 @@ export function compileGeneratorLoop(statements: Statement[], host: Host): Gener
         return `(pending = readers[${index}](), pending.done ? pending.value : (yield { task: pending }))`;
     }
     function body(commands: Statement[], depth: number): string | undefined {
-        if (depth > 16) return undefined;
+        if (depth > 16) return declineCompiler('nesting-budget');
         const lines: string[] = ['result = undefined;'];
         for (let index = 0; index < commands.length; index++) {
-            if (sites.length >= 128) return undefined;
+            if (sites.length >= 128) return declineCompiler('statement-budget');
             const command = commands[index], site = sites.length;
             sites.push(command);
             lines.push(`site = ${site}; checkpoint();`);
@@ -107,7 +116,7 @@ export function compileGeneratorLoop(statements: Statement[], host: Host): Gener
     try {
         factory = new Function('readers', 'steps', 'checkpoint', 'expectBoolean', 'locate', 'entered',
             'BreakSignal', 'ContinueSignal', source);
-    } catch { return undefined; }
+    } catch { return declineCompiler('dynamic-code-unavailable'); }
     host.compiled?.(source);
     return factory(readers, steps, checkpoint, expectBoolean,
         (error: unknown, site: number) => host.locate(error, sites[site]),

@@ -1,3 +1,4 @@
+import { rejectCompilerGuard, compilerSource, observeCompilerSource } from './compiler-observation.js';
 import { registerModularCallbackScan } from './jit/modular-callback-scan.js';
 import { summarizeIntegerBuffer } from './value-summary.js';
 import { isStoredValue } from './runtime/stored-value.js';
@@ -147,7 +148,16 @@ export class FunctionInvocation {
     invoke(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue> {
         const execution = functionExecutions.get(fn);
         if (!execution && !BuiltinRegistry.operationOf(fn)) arguments_.forEach(noteArrayBinding);
-        return execution ? execution(arguments_, this.host.inputs?.pending) : completed(fn.call(arguments_));
+        if (!currentDiagnostics()?.traceCompiler) return execution ? execution(arguments_, this.host.inputs?.pending) : completed(fn.call(arguments_));
+        const provenTypes = Object.fromEntries(arguments_.map((value, index) => [String(index),
+            typeof value === 'bigint' ? 'integer' : typeof value === 'number' ? 'real'
+                : typeof value === 'string' ? 'text' : typeof value === 'boolean' ? 'boolean' : 'not inspected']));
+        const source = compilerSource();
+        if (execution) return observeCompilerSource(source, 'user-call', 'execute',
+            () => execution(arguments_, this.host.inputs?.pending), provenTypes, true);
+        const call = fn.call;
+        return observeCompilerSource(source, hasNativeImplementation(fn, call) ? 'native-call' : 'host-call', 'execute',
+            () => completed(Reflect.apply(call, fn, [arguments_])), provenTypes);
     }
 
     /** Consume proven-dead locals only for ordinary, whole-array Rank calls. */
@@ -938,7 +948,13 @@ export class FunctionInvocation {
             && !inspectionEnabled() && privateLoopPolling() && !demandBudgetEnabled();
         const rawNumber = kernel.numberDirect ? kernel.numberDirect(
             locate,
-            val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
+            val => {
+                if (!Number.isSafeInteger(val)) {
+                    rejectCompilerGuard(statement, 'scalar-function-number', 'integer-exactness-guard');
+                    throw numberOverflow;
+                }
+                return val;
+            },
             () => new RankError('division by zero'),
             numberOverflow,
             poll,
@@ -962,6 +978,7 @@ export class FunctionInvocation {
             () => { this.depth--; },
             (error, args) => { this.frames.addCall(error, statement, args.map(BigInt)); },
         ) : undefined;
+        const rejectNumber = (reason: string) => rejectCompilerGuard(statement, 'scalar-function-number', reason);
         const observablePlan = kernel.plans && !!(this.compiler.hooks.onTensorKernelExecuted
             || this.compiler.hooks.onScalarFunctionExecuted);
         const hasTailCalls = kernel.userCalls.some(call => call.tail);
@@ -984,13 +1001,19 @@ export class FunctionInvocation {
                         numberDelay--;
                         const diagnostics = currentDiagnostics();
                         if (diagnostics) diagnostics.numberFunctionSkips++;
+                        rejectNumber('overflow-backoff');
                     }
-                    if (rawNumber && probeNumber && (!kernel.numberReadOnly || readOnlyAllowed()) && (!kernel.plans || !observablePlan && privateLoopPolling() && !demandBudgetEnabled())
-                        && (!kernel.memberships.length || privateLoopPolling() && !demandBudgetEnabled())
-                        && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
-                        && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
-                        && arguments_.every((a,index) => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean'
-                            || kernel.numberArrayArguments.includes(index) && isRankArray(a))) {
+                    if (rawNumber && probeNumber && (!kernel.numberReadOnly || readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
+                        && (!kernel.plans || (!observablePlan || rejectNumber('observable-plan'))
+                            && (privateLoopPolling() || rejectNumber('observable-polling'))
+                            && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled')))
+                        && (!kernel.memberships.length || (privateLoopPolling() || rejectNumber('observable-polling'))
+                            && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled')))
+                        && (!kernel.numberStorage || (this.compiler.loops.number || rejectNumber('number-storage-disabled'))
+                            && (privateLoopPolling() || rejectNumber('observable-polling'))
+                            && (kernel.numberStorage !== 'queues' || nativeDequeMethods() || rejectNumber('deque-method-guard')))
+                        && (arguments_.every((a,index) => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean'
+                            || kernel.numberArrayArguments.includes(index) && isRankArray(a)) || rejectNumber('argument-domain-guard'))) {
                         try {
                             const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a)
                                 : isRankArray(a) ? hasNativeArrayHeader(a) ? integer32Cells(a) ?? integer64Cells(a) : undefined : a);
@@ -1006,10 +1029,12 @@ export class FunctionInvocation {
                                 numberBackoff = 0;
                                 return typeof numResult === 'number' && kernel.returnType === 'integer' ? BigInt(numResult) : numResult;
                             }
+                            rejectNumber('number-argument-representation-guard');
                         } catch (error) {
                             if (error === numberOverflow) {
                                 const diagnostics = currentDiagnostics();
                                 if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                                rejectNumber('number-runtime-guard');
                                 numberBackoff = Math.min(255, numberBackoff * 2 + 1);
                                 numberDelay = numberBackoff;
                             } else {
@@ -1047,12 +1072,17 @@ export class FunctionInvocation {
                                     numberDelay--;
                                     const diagnostics = currentDiagnostics();
                                     if (diagnostics) diagnostics.numberFunctionSkips++;
+                                    rejectNumber('overflow-backoff');
                                 }
-                                if (probeNumber && rawNumber && !this.compiler.hooks.onScalarFunctionExecuted
-                                    && (kernel.returnType === 'integer' || kernel.numberReadOnly) && !kernel.plans && !kernel.numberStorage
-                                    && !kernel.memberships.length && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed())
-                                    && privateLoopPolling() && !demandBudgetEnabled()
-                                    && arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a)))) {
+                                if (probeNumber && rawNumber && (!this.compiler.hooks.onScalarFunctionExecuted || rejectNumber('observable-function-hook'))
+                                    && (kernel.returnType === 'integer' || kernel.numberReadOnly || rejectNumber('integer-result-or-readonly-specialization-required'))
+                                    && (!kernel.plans || rejectNumber('nested-plan-boundary'))
+                                    && (!kernel.numberStorage || rejectNumber('nested-storage-boundary'))
+                                    && (!kernel.memberships.length || rejectNumber('nested-membership-boundary'))
+                                    && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
+                                    && (privateLoopPolling() || rejectNumber('observable-polling'))
+                                    && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled'))
+                                    && (arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a))) || rejectNumber('safe-integer-arguments-required'))) {
                                     try {
                                         const diagnostics = currentDiagnostics();
                                         if (diagnostics) diagnostics.numberFunctions++;
@@ -1063,6 +1093,7 @@ export class FunctionInvocation {
                                         if (error !== numberOverflow) throw error;
                                         const diagnostics = currentDiagnostics();
                                         if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                                        rejectNumber('number-runtime-guard');
                                         numberBackoff = Math.min(255, numberBackoff * 2 + 1);
                                         numberDelay = numberBackoff;
                                     }
@@ -1188,12 +1219,19 @@ export class FunctionInvocation {
                 // A callback-free leaf cannot change these facts while its
                 // caller runs synchronously. Keep hooks, observable demand and
                 // membership readers on the fully checked boundary above.
-                if (hasUserCalls || observablePlan || hooks.onScalarFunctionExecuted || this.depth >= this.maxDepth
-                    || inspectionEnabled() || !privateLoopPolling() || demandBudgetEnabled()
-                    || kernel.memberships.length || kernel.numberStorage === 'queues'
-                    || kernel.numberStorage && !this.compiler.loops.number) return undefined;
+                const decline = (reason: string) => { rejectNumber(reason); return undefined; };
+                if (hasUserCalls) return decline('region-user-calls');
+                if (observablePlan || hooks.onScalarFunctionExecuted) return decline('region-observable-hooks');
+                if (this.depth >= this.maxDepth) return decline('call-depth-budget');
+                if (inspectionEnabled()) return decline('inspection-enabled');
+                if (!privateLoopPolling()) return decline('observable-polling');
+                if (demandBudgetEnabled()) return decline('demand-budget-enabled');
+                if (kernel.memberships.length) return decline('region-membership-boundary');
+                if (kernel.numberStorage === 'queues') return decline('region-queue-boundary');
+                if (kernel.numberStorage && !this.compiler.loops.number) return decline('number-storage-disabled');
                 const diagnostics = currentDiagnostics();
                 if (!diagnostics) return plainRegion;
+                if (!plainRegion) return decline('region-arity-budget');
                 const call = regionCall;
                 // Fixed arities avoid argument arrays in the hot caller. Error
                 // summaries allocate only after the actual failing invocation.
@@ -1219,34 +1257,36 @@ export class FunctionInvocation {
 
         const observableFold = kernel.privateFolds && Object.values(this.compiler.hooks).some(value => typeof value === 'function');
         if (kernel.privateFolds || kernel.rankedCalls.length || kernel.plans || kernel.deques || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
-            if (inspectionEnabled() || this.scalarFallbackDepth) return false;
-            if (kernel.privateFolds && (observableFold || !privateLoopPolling() || demandBudgetEnabled())) return false;
+            const reject = (reason: string) => rejectCompilerGuard(statement, 'scalar-function', reason);
+            if (inspectionEnabled()) return reject('inspection-enabled');
+            if (this.scalarFallbackDepth) return reject('recursive-fallback-active');
+            if (kernel.privateFolds && (observableFold || !privateLoopPolling() || demandBudgetEnabled())) return reject('observable-fold-boundary');
             // A native powmod helper keeps ordinary demand/error boundaries
             // under guards, including when this prepared function was cached.
-            if (kernel.guards.includes('powmod') && (!privateLoopPolling() || demandBudgetEnabled())) return false;
-            if (kernel.deques && (!privateLoopPolling() || !nativeDequeMethods())) return false;
-            if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
-            if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return false;
+            if (kernel.guards.includes('powmod') && (!privateLoopPolling() || demandBudgetEnabled())) return reject('observable-powmod-boundary');
+            if (kernel.deques && (!privateLoopPolling() || !nativeDequeMethods())) return reject('deque-method-or-polling-guard');
+            if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return reject('set-method-or-polling-guard');
+            if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return reject('tensor-plan-capability-guard');
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
-                || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
-            if (kernel.modules.some(module => !this.modules.has(module))) return false;
+                || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return reject('scalar-capture-type-or-polling-guard');
+            if (kernel.modules.some(module => !this.modules.has(module))) return reject('module-not-loaded');
             for (const call of kernel.rankedCalls) {
                 const value = resolve(call.name);
                 const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
                 if (!definition || definition.statement !== call.statement
-                    || call.proof.locals.some(name => definition.context?.find(name))) return false;
+                    || call.proof.locals.some(name => definition.context?.find(name))) return reject('ranked-callee-identity-guard');
                 const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures, work);
-                if (!compiled || compiled.available && !compiled.available()) return false;
+                if (!compiled || compiled.available && !compiled.available()) return reject('ranked-callee-unavailable');
             }
             for (let index = 0; index < userBinders.length; index++) {
                 const bound = userBinders[index]();
-                if (!bound) return false;
+                if (!bound) return reject('user-callee-unavailable');
                 users[index] = bound;
             }
             for (let index = 0; index < kernel.memberships.length; index++) {
                 const name = kernel.memberships[index], value = resolve(name);
                 const contains = compiledIntegerMembership(value);
-                if (!contains) return false;
+                if (!contains) return reject('integer-membership-unavailable');
                 // Captured array bindings may receive a COW replacement inside
                 // a linked caller. Resolve them at the actual expression, not entry.
                 memberships[index] = value && isRankArray(value)
@@ -1257,7 +1297,7 @@ export class FunctionInvocation {
                 if (iteration && (!privateLoopPolling() || demandBudgetEnabled())) return false;
                 const reader = captureReaders[index]?.current()
                     ? captureReaders[index] : capturedIntegerReader(() => resolve(name), rank);
-                if (!reader) return false;
+                if (!reader) return reject('captured-array-reader-unavailable');
                 captureReaders[index] = reader;
                 captures[index] = reader;
             }
@@ -1265,11 +1305,11 @@ export class FunctionInvocation {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
                 if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)
-                    || (kernel.plans || kernel.numberDirect || name === 'choose' || name === 'copy') && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
+                    || (kernel.plans || kernel.numberDirect || name === 'choose' || name === 'copy') && (!isNativeFunction(value) || !hasNativeImplementation(value))) return reject(`builtin-identity-guard:${name}`);
             }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();
-                if (!call) return false;
+                if (!call) return reject('native-callee-unavailable');
                 calls[index] = call;
             }
             return true;

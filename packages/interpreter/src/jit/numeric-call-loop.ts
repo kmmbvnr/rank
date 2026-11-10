@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, withCompilerMethods } from '../compiler-observation.js';
 import {
     applicationForm, flattenApplication, hasPlacedOperands, isApplicationExpression, isAssignmentStatement, isBinaryExpression, isDeclaredCallExpression, isNameExpression,
     isNumberLiteral, isParenthesizedExpression, isUnaryExpression, isUnpackStatement,
@@ -40,12 +41,19 @@ function calculate(op: string, a: bigint, b: bigint): bigint | undefined {
  * until success; any declined guard replays the unchanged ordinary loop.
  * Entry arrays are borrowed read-only. No private buffer escapes on failure. */
 export function compileNumericCallLoop(statement: ForStatement, host: Host): CompiledLoop | undefined {
-    if (!statement.condition || statement.statements.length > 16) return undefined;
+    const provenTypes = undefined;
+    const candidate = observeCompiler(statement, 'numeric-call-loop', 'prepare', () => compileNumericCallLoopObservedImplementation(statement, host), provenTypes);
+    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'numeric-call-loop', candidate.run.bind(candidate), provenTypes, true) });
+}
+
+function compileNumericCallLoopObservedImplementation(statement: ForStatement, host: Host): CompiledLoop | undefined {
+    if (!statement.condition) return declineCompiler('condition-required', statement);
+    if (statement.statements.length > 16) return declineCompiler('statement-budget', statement);
     const scalarReads = new Set<string>(), reads = new Set<string>();
     const arrayWrites = new Set<string>(), scalarWrites = new Set<string>();
     let budget = 256;
     function scalar(expression: Expression): Scalar | undefined {
-        if (--budget < 0) return undefined;
+        if (--budget < 0) return declineCompiler('expression-budget', expression);
         const e = unwrap(expression);
         if (isNumberLiteral(e) && integer(e.value)) return () => e.value as bigint;
         if (isNameExpression(e) && !e.name.includes('.')) {
@@ -66,7 +74,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
         return undefined;
     }
     const condition = unwrap(statement.condition);
-    if (!isBinaryExpression(condition) || condition.step || !comparisons.has(condition.operator)) return undefined;
+    if (!isBinaryExpression(condition) || condition.step || !comparisons.has(condition.operator)) return declineCompiler('comparison-loop-condition-required', condition);
     const left = scalar(condition.left), right = scalar(condition.right);
     if (!left || !right) return undefined;
     const test = (values: Variables): boolean | undefined => {
@@ -103,7 +111,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
     }
     for (const command of statement.statements) {
         const assignment = isAssignmentStatement(command), unpack = isUnpackStatement(command);
-        if (!assignment && !unpack || assignment && (command.deferred || command.name.includes('.'))) return undefined;
+        if (!assignment && !unpack || assignment && (command.deferred || command.name.includes('.'))) return declineCompiler('unsupported-statement', command);
         const expression = unwrap(command.value);
         const helper = helperCall(expression);
         if (helper && (!assignment || command.operator === '=')) {
@@ -112,7 +120,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
                 || callee.statement.parameters.some(name => !/^[A-Z]/.test(name))
                 || callee.statement.parameters.length !== arguments_.length) return undefined;
             const targets = unpack ? command.names : [command.name];
-            if (new Set(targets).size !== targets.length || targets.some(n => n === '#' || n.includes('.'))) return undefined;
+            if (new Set(targets).size !== targets.length || targets.some(n => n === '#' || n.includes('.'))) return declineCompiler('unsupported-unpack-targets', command);
             const args: ((values: Variables) => Value | undefined)[] = [];
             for (const argument of arguments_) {
                 const e = unwrap(argument);
@@ -131,7 +139,8 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
                 buffer: name => { const value = active?.get(name); return value instanceof NumericBuffer ? value : undefined; },
                 builtin: host.builtin, compiled: () => {}, executed: () => {},
             });
-            if (!plan || plan.tupleResult !== unpack || plan.resultCount !== targets.length) return undefined;
+            if (!plan) return declineCompiler('callee-plan-unavailable', command);
+            if (plan.tupleResult !== unpack || plan.resultCount !== targets.length) return declineCompiler('callee-result-shape', command);
             const call: Call = { statement: command, targets, tuple: unpack, name, identity: callee.identity,
                 available: callee.available, check: callee.check,
                 run: values => {
@@ -159,40 +168,43 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
             } });
         } else return undefined;
     }
-    if (!calls.length || [...arrayWrites].some(n => scalarReads.has(n) || scalarWrites.has(n))) return undefined;
+    if (!calls.length) return declineCompiler('numeric-callee-required', statement);
+    if ([...arrayWrites].some(n => scalarReads.has(n) || scalarWrites.has(n))) return declineCompiler('array-scalar-binding-conflict', statement);
     arrayWrites.forEach(n => reads.add(n));
     return { run(insideFinally = false, insideGenerator = false) {
-        if (insideFinally || insideGenerator || !host.enabled() || !privateLoopPolling() || interruptsEnabled()) return undefined;
+        if (insideFinally || insideGenerator) return declineCompiler('protected-or-generator-context', statement);
+        if (!host.enabled()) return declineCompiler('disabled', statement);
+        if (!privateLoopPolling() || interruptsEnabled()) return declineCompiler('observable-polling', statement);
         let publishing = false;
         try {
             const control: Variables = new Map();
-            for (const name of scalarReads) { const value = host.read(name); if (!integer(value)) return undefined; control.set(name, value); }
+            for (const name of scalarReads) { const value = host.read(name); if (!integer(value)) return declineCompiler('unsafe-integer-input', statement); control.set(name, value); }
             // Scalar control has no dependency on array results. Prove a bounded
             // schedule before performing any speculative numerical work.
             let iterations = 0;
             for (;;) {
                 const more = test(control); if (more === undefined) return undefined; if (!more) break;
-                if (++iterations > 1024) return undefined;
+                if (++iterations > 1024) return declineCompiler('iteration-budget', statement);
                 for (const step of steps) if ('evaluate' in step) {
                     const value = step.evaluate(control); if (value === undefined) return undefined;
                     control.set(step.name, value);
                 }
             }
             if (!iterations) return completed(undefined);
-            for (const call of calls) if (host.read(call.name) !== call.identity || !call.available()) return undefined;
+            for (const call of calls) if (host.read(call.name) !== call.identity || !call.available()) return declineCompiler('callee-identity-guard', statement);
             const values: Variables = new Map(), ranks = new Map<string, number>();
             const materialized = new Map<NumericBuffer, RankArray>();
             for (const name of reads) {
                 const value = host.read(name);
                 if (integer(value) || typeof value === 'number' && Number.isFinite(value)) values.set(name, value);
                 else {
-                    const buffer = borrowNumericBuffer(value); if (!buffer || buffer.integer) return undefined;
+                    const buffer = borrowNumericBuffer(value); if (!buffer || buffer.integer) return declineCompiler('real-buffer-required', statement);
                     materialized.set(buffer, value as RankArray);
                     values.set(name, buffer);
                 }
             }
             for (const name of arrayWrites) {
-                const value = values.get(name); if (!(value instanceof NumericBuffer)) return undefined;
+                const value = values.get(name); if (!(value instanceof NumericBuffer)) return declineCompiler('numeric-buffer-required', statement);
                 ranks.set(name, value.shape.length);
             }
             if (!host.canDeferWrites([...arrayWrites].map(name => [name, 'array', ranks.get(name)]))
@@ -207,8 +219,8 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
                 } else {
                     const call = step.run(values); if (!call) return undefined;
                     const { output } = call;
-                    if (output.some(value => value.integer || !value.shape.length)) return undefined;
-                    for (let j = 0; j < output.length; j++) if (output[j].shape.length !== ranks.get(step.targets[j])) return undefined;
+                    if (output.some(value => value.integer || !value.shape.length)) return declineCompiler('real-array-result-required', statement);
+                    for (let j = 0; j < output.length; j++) if (output[j].shape.length !== ranks.get(step.targets[j])) return declineCompiler('result-rank-guard', statement);
                     if (i < 2) observations.push([step, call]);
                     output.forEach((value, j) => { values.set(step.targets[j], value); dirty.set(step.targets[j], step.statement); });
                     result = step.tuple ? output : output[0]; tupleResult = step.tuple;
@@ -240,7 +252,7 @@ export function compileNumericCallLoop(statement: ForStatement, host: Host): Com
             if (diagnostics) { diagnostics.compiledNumericCallLoops++; diagnostics.numericLoopCalls += iterations * calls.length; diagnostics.compiledArrayFunctions += iterations * calls.length; }
             return completed(returned);
         } catch (error) {
-            if (!publishing && error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
+            if (!publishing && error instanceof RankError && !(error instanceof InterruptedError)) return declineCompiler('preflight-domain-error', statement);
             throw error;
         }
     } };

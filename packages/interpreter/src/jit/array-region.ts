@@ -1,3 +1,4 @@
+import { observeCompiler, observedRun, declineCompiler, withCompilerMethods } from '../compiler-observation.js';
 import { AstUtils } from 'langium';
 import {
     flattenApplication, isAssignmentStatement, isArrayAssignmentStatement, isNameExpression,
@@ -11,9 +12,10 @@ import { checkpoint, privateLoopPolling, inspectionEnabled } from '../interrupt.
 type Node = { id: number; kind: 'input' | 'literal' | 'binary' | 'range' | 'select' | 'choose';
     name?: string; value?: bigint; op?: string; children: Node[] };
 const decline = {};
+function rejectRegion(reason: string): never { declineCompiler(reason); throw decline; }
 const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 const highWord = 1 - lowWord;
-const checked = (x: number) => { if (!Number.isSafeInteger(x)) throw decline; return x; };
+const checked = (x: number) => { if (!Number.isSafeInteger(x)) rejectRegion('unsafe-integer'); return x; };
 function calculate(op: string, a: number, b: number): number | boolean {
     if (op === '+') return checked(a + b);
     if (op === '-') return checked(a - b);
@@ -26,7 +28,7 @@ function calculate(op: string, a: number, b: number): number | boolean {
     if (op === 'atleast') return a >= b;
     if (op === 'equal') return a === b;
     if (op === 'notequal') return a !== b;
-    if (!b) throw decline;
+    if (!b) rejectRegion('zero-divisor-guard');
     const r = a % b;
     if (op === 'mod') return r && (r < 0) !== (b < 0) ? r + b : r;
     return checked((a - r) / b) - ((a < 0) !== (b < 0) && r !== 0 ? 1 : 0);
@@ -36,7 +38,7 @@ const merged = (a: number, b: number) => {
     if (b < 0 || a === b) return a;
     if (a === 1) return b;
     if (b === 1) return a;
-    throw decline;
+    rejectRegion('broadcast-shape-guard');
 };
 const operators = ['+', '-', '*', '//', 'mod', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal'];
 
@@ -52,6 +54,11 @@ export interface ArrayRegion {
 /** A pure chain may disappear only when its names cannot be observed outside
  * the consumer. Guard failures replay the original statements before any write. */
 export function compileArrayRegion(commands: readonly Statement[], start: number): ArrayRegion | undefined {
+    const candidate = observeCompiler(commands[start], 'array-region', 'prepare', () => compileArrayRegionObservedImplementation(commands, start));
+    return candidate && withCompilerMethods(candidate, { run: observedRun(commands[start], 'array-region', candidate.run.bind(candidate)) });
+}
+
+function compileArrayRegionObservedImplementation(commands: readonly Statement[], start: number): ArrayRegion | undefined {
     const nodes: Node[] = [], inputs = new Map<string, Node>(), definitions = new Map<string, Node>();
     const builtins = new Set<string>();
     const make = (kind: Node['kind'], children: Node[] = [], extra: Partial<Node> = {}): Node => {
@@ -63,7 +70,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
         return node;
     };
     function parse(e: Expression, depth = 0): Node | undefined {
-        if (depth > 64 || nodes.length > 128) return undefined;
+        if (depth > 64 || nodes.length > 128) return declineCompiler('expression-budget', e);
         while (isParenthesizedExpression(e)) e = e.value;
         if (isNumberLiteral(e) && typeof e.value === 'bigint') return make('literal', [], { value: e.value });
         if (isNameExpression(e) && !e.name.includes('.')) return definitions.get(e.name) ?? input(e.name);
@@ -94,33 +101,37 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
                 return selector && make('select', [input(parts[0].name), selector]);
             }
         }
-        return undefined;
+        return declineCompiler('unsupported-expression', e);
     }
     let consumer: ArrayAssignmentStatement | undefined, end = start;
     for (; end < Math.min(commands.length, start + 16); end++) {
         const statement = commands[end];
         if (isArrayAssignmentStatement(statement)) { consumer = statement; break; }
         if (!isAssignmentStatement(statement) || statement.operator !== '=' || statement.deferred
-            || statement.name.includes('.') || definitions.has(statement.name)) return undefined;
+            || statement.name.includes('.') || definitions.has(statement.name)) return declineCompiler('private-assignment-chain-required', statement);
         const node = parse(statement.value);
         if (!node) return undefined;
         definitions.set(statement.name, node);
     }
-    if (!consumer || definitions.size < 2 || consumer.accumulate || consumer.modulus || consumer.name.includes('.')
-        || definitions.has(consumer.name) || !['=', '+=', '-=', '*='].includes(consumer.operator)
-        || consumer.indices.length !== 1 || consumer.indices[0].sign || consumer.indices[0].all
-        || !consumer.indices[0].value || !statementResultDiscarded(consumer)) return undefined;
+    if (!consumer) return declineCompiler('array-write-consumer-required', commands[start]);
+    if (definitions.size < 2) return declineCompiler('too-small', consumer);
+    if (consumer.accumulate || consumer.modulus) return declineCompiler('unsupported-write-modifier', consumer);
+    if (consumer.name.includes('.') || definitions.has(consumer.name)) return declineCompiler('unstable-target-binding', consumer);
+    if (!['=', '+=', '-=', '*='].includes(consumer.operator)) return declineCompiler('unsupported-write-operator', consumer);
+    if (consumer.indices.length !== 1 || consumer.indices[0].sign || consumer.indices[0].all
+        || !consumer.indices[0].value) return declineCompiler('single-vector-index-required', consumer);
+    if (!statementResultDiscarded(consumer)) return declineCompiler('escaping-write-result', consumer);
     const selector = parse(consumer.indices[0].value), rhs = parse(consumer.value), target = input(consumer.name);
     if (!selector || !rhs) return undefined;
     const reachable = new Set<Node>();
     const visit = (node: Node) => { if (!reachable.has(node)) { reachable.add(node); node.children.forEach(visit); } };
     visit(selector); visit(rhs);
-    if ([...definitions.values()].some(node => !reachable.has(node))) return undefined;
+    if ([...definitions.values()].some(node => !reachable.has(node))) return declineCompiler('unused-binding-may-throw', consumer);
     const locals = [...definitions.keys()];
     // Before/after reads include captures in nested functions and branches.
     for (const statement of [...commands.slice(0, start), ...commands.slice(end + 1)]) {
         if ([statement, ...AstUtils.streamAllContents(statement)].some(node => (isNameExpression(node) || isAssignmentStatement(node) || isArrayAssignmentStatement(node)) && definitions.has(node.name)
-            || isUnpackStatement(node) && node.names.some(name => definitions.has(name)))) return undefined;
+            || isUnpackStatement(node) && node.names.some(name => definitions.has(name)))) return declineCompiler('escaping-local-binding', statement);
     }
     const variants = new Map<string, Kernel | undefined>();
     let compact = new Int32Array(0), wide = new Float64Array(0);
@@ -128,12 +139,12 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
     const copies = new WeakMap<RankArray, { revision: number; cells: Int32Array | BigInt64Array }>();
     return { length: end - start + 1, locals, inputs: [...inputs.keys()], builtins: [...builtins],
         target: consumer.name, consumer, run(values) {
-        if (!privateLoopPolling() || inspectionEnabled()) return undefined;
+        if (!privateLoopPolling() || inspectionEnabled()) return declineCompiler('observable-polling');
         const a: Int32Array[] = [], s: (number | boolean)[] = [], z: number[] = [], steps: number[] = [];
         const kinds = new Map<number, 'i' | 'l'>(), types = new Map<number, 'integer' | 'boolean'>();
         const bound = new Set<number>();
         const read = (id: number, at: number): number => {
-            if (!Number.isSafeInteger(at) || at < 0 || at >= z[id]) throw decline;
+            if (!Number.isSafeInteger(at) || at < 0 || at >= z[id]) rejectRegion('index-guard');
             return kinds.get(id) === 'i' ? a[id][at] : checked(a[id][at * 2 + highWord] * 4294967296 + (a[id][at * 2 + lowWord] >>> 0));
         };
         try {
@@ -141,7 +152,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
                 const value = values[i];
                 if (typeof value === 'bigint') { s[node.id] = checked(Number(value)); z[node.id] = -1; }
                 else {
-                    if (!isRankArray(value) || value.shape.length !== 1 || value.columnNames) throw decline;
+                    if (!isRankArray(value) || value.shape.length !== 1 || value.columnNames) rejectRegion('unnamed-vector-required');
                     let cells = integer32Cells(value) ?? integer64Cells(value);
                     if (!cells) {
                         const revision = arrayRevision(value), items = denseScalarItems(value);
@@ -177,7 +188,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
                 else if (node.kind === 'range') {
                     if (sizes.some(size => size >= 0) || ids.some(id => types.get(id) !== 'integer')) throw decline;
                     const [first, last, step] = ids.map(id => s[id] as number);
-                    if (!step) throw decline;
+                    if (!step) rejectRegion('zero-range-step');
                     const distance = checked(step > 0 ? last - first : first - last);
                     const count = distance < (node.op === 'to' ? 0 : 1) ? 0
                         : checked((calculate('//', distance - (node.op === 'to' ? 0 : 1), Math.abs(step)) as number) + 1);
@@ -242,25 +253,25 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
             for (const node of reachable) {
                 if (node.kind === 'select') {
                     const [lo, hi] = interval(node.children[1]);
-                    if (lo < 0 || hi >= z[node.children[0].id]) throw decline;
+                    if (lo < 0 || hi >= z[node.children[0].id]) rejectRegion('index-guard');
                 }
                 if (node.kind === 'binary' && ['//', 'mod'].includes(node.op!)) {
                     const [lo, hi] = interval(node.children[1]);
-                    if (lo <= 0 && hi >= 0) throw decline;
+                    if (lo <= 0 && hi >= 0) rejectRegion('divisor-may-be-zero');
                 }
             }
             const selection = affine(selector), { first, stride, count } = selection;
             if (!count || !stride || z[target.id] < 0 || types.get(rhs.id) !== 'integer'
                 || z[rhs.id] >= 0 && z[rhs.id] !== count) throw decline;
             const last = checked(first + checked((count - 1) * stride));
-            if (Math.min(first, last) < 0 || Math.max(first, last) >= z[target.id]) throw decline;
+            if (Math.min(first, last) < 0 || Math.max(first, last) >= z[target.id]) rejectRegion('write-index-guard');
             const key = inputNodes.map(node => kinds.get(node.id) ?? 's').join('');
             if (!variants.has(key)) {
-                if (variants.size >= 8) return undefined;
+                if (variants.size >= 8) return declineCompiler('specialization-budget');
                 variants.set(key, generate(kinds, z, rhs, target, consumer.operator));
             }
             const kernel = variants.get(key);
-            if (!kernel) return undefined;
+            if (!kernel) return declineCompiler('code-generation');
             const held = new Set(a.filter(Boolean).map(cells => cells.buffer));
             if (compact.length < count || held.has(compact.buffer)) compact = new Int32Array(count);
             let output: Int32Array | Float64Array = compact.subarray(0, count);
@@ -270,7 +281,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
                 output = wide.subarray(0, count);
                 status = kernel(a, s, z, steps, output, first, stride, count, false);
             }
-            if (status !== 0) return undefined;
+            if (status !== 0) return declineCompiler(({ 2: 'index-guard', 3: 'integer-storage-guard', 4: 'zero-divisor-guard', 5: 'arithmetic-overflow' } as Record<number, string>)[status]);
             let cells: Int32Array | BigInt64Array;
             if (output instanceof Int32Array) cells = output;
             else {
@@ -282,7 +293,7 @@ export function compileArrayRegion(commands: readonly Statement[], start: number
                 }
             }
             return { value: typedArray(cells, [count]), first: BigInt(first), step: BigInt(stride), count };
-        } catch (error) { if (error !== decline) throw error; return undefined; }
+        } catch (error) { if (error !== decline) throw error; return declineCompiler('input-domain-or-layout-guard'); }
     } };
 }
 
@@ -292,7 +303,7 @@ function generate(kinds: Map<number, 'i' | 'l'>, sizes: number[], rhs: Node, tar
         const key = `k${serial++}`, value = `v${serial++}`;
         lines.push(`const ${key} = ${index}; if (!Number.isSafeInteger(${key}) || ${key} < 0 || ${key} >= z[${id}]) return 2;`);
         lines.push(`const ${value} = ${kinds.get(id) === 'i' ? `a[${id}][${key}]` : `a[${id}][${key} * 2 + ${highWord}] * 4294967296 + (a[${id}][${key} * 2 + ${lowWord}] >>> 0)`};`);
-        if (kinds.get(id) === 'l') lines.push(`if (!Number.isSafeInteger(${value})) return 2;`);
+        if (kinds.get(id) === 'l') lines.push(`if (!Number.isSafeInteger(${value})) return 3;`);
         return value;
     };
     const emit = (node: Node, position: string, lines: string[], cache: Map<string, string>): string => {
@@ -313,21 +324,21 @@ function generate(kinds: Map<number, 'i' | 'l'>, sizes: number[], rhs: Node, tar
             let expression: string;
             if (op === 'min' || op === 'max') expression = `${b} ${op === 'min' ? '<' : '>'} ${a} ? ${b} : ${a}`;
             else if (op === '//' || op === 'mod') {
-                lines.push(`if (${b} === 0) return 2;`);
+                lines.push(`if (${b} === 0) return 4;`);
                 const r = `r${serial++}`; lines.push(`const ${r} = ${a} % ${b};`);
                 expression = op === 'mod' ? `${r} !== 0 && (${r} < 0) !== (${b} < 0) ? ${r} + ${b} : ${r}`
                     : `(${a} - ${r}) / ${b} - (((${a} < 0) !== (${b} < 0) && ${r} !== 0) ? 1 : 0)`;
             } else expression = `${a} ${({ less: '<', greater: '>', atmost: '<=', atleast: '>=', equal: '===', notequal: '!==' } as Record<string, string>)[op] ?? op} ${b}`;
             lines.push(`const ${name} = ${expression};`); code = name;
         }
-        if (node.kind === 'binary' && ['+', '-', '*'].includes(node.op!)) lines.push(`if (!Number.isSafeInteger(${code})) return 2;`);
+        if (node.kind === 'binary' && ['+', '-', '*'].includes(node.op!)) lines.push(`if (!Number.isSafeInteger(${code})) return 5;`);
         cache.set(key, code); return code;
     };
     const lines: string[] = [], value = emit(rhs, 'i', lines, new Map());
     let result = value;
     if (assignment !== '=') {
         const old = reading(target.id, 'first + i * stride', lines), name = `v${serial++}`;
-        lines.push(`const ${name} = ${old} ${assignment.slice(0, -1)} ${value}; if (!Number.isSafeInteger(${name})) return 2;`); result = name;
+        lines.push(`const ${name} = ${old} ${assignment.slice(0, -1)} ${value}; if (!Number.isSafeInteger(${name})) return 5;`); result = name;
     }
     const source = `return function(a,s,z,steps,out,first,stride,n,narrow) {
         for (let block=0; block<n; block+=4096) {
@@ -337,5 +348,5 @@ function generate(kinds: Map<number, 'i' | 'l'>, sizes: number[], rhs: Node, tar
             }
         } return 0;
     }`;
-    try { return new Function('checkpoint', source)(checkpoint); } catch { return undefined; }
+    try { return new Function('checkpoint', source)(checkpoint); } catch { return declineCompiler('dynamic-code-unavailable'); }
 }

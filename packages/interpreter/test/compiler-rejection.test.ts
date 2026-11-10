@@ -33,7 +33,7 @@ describe('attributable compiler rejections', () => {
         expect(diagnostics.fallbacks).toEqual({ 'scalar-function:unbound-name:NameExpression': 2 });
         expect(diagnostics.compilerRejections).toEqual([{
             reason: 'scalar-function:unbound-name:NameExpression', node: 'NameExpression',
-            sourceId: '<input>', name: 'K', function: 'helper', expression: 'K', line: 2, column: 12,
+            sourceId: '<input>', operation: 'K', name: 'K', function: 'helper', expression: 'K', line: 2, column: 12,
         }]);
     });
 
