@@ -1,7 +1,7 @@
 rem Super Pandigital Numbers
 rem https://projecteuler.net/problem=571
-
 use numbers
+use algo
 use sequences
 use bits
 use io
@@ -10,107 +10,108 @@ use cli
 arg B integer = 12
 arg T integer = 10
 
-rem The least B-super-pandigital numbers
-rem have B digits in base B, all
-rem different. Walk them in order in
-rem blocks of (B-3)! permutations, one
-rem per prefix of 3 digits, as sums of
-rem place values. Keep those pandigital
-rem in each lower base, read from digit
-rem mask tables of base-b chunks.
-Ls = B - 3
-Bm = B - 1
-Pm = array shape 1 1 fill 0
-for N in 2 to Ls
-  Nr = (Pm shape) 0
-  Ac = array shape 0 N fill 0
-  Nm = N - 1
-  for A in 0 to Nm
-    Fs = array shape Nr 1 fill A
-    Mp = Pm + (Pm at least A integer)
-    Ac = concat Ac (concat Fs Mp axis 1)
+rem Visit base-B pandigitals in order.
+Length = B min 3
+Width = B - Length
+Maximum = B ** B
+Limit = Maximum binary len
+Digits = 0 till B copy
+Bases = B - 1 to 2 by -1 copy
+
+rem Place weights for each permutation.
+fun Permutations places
+  Shape = Permutations shape
+  Count = Shape 0
+  Rows = 0 till Count copy
+  Size = Count * Width
+  Cells = array shape Size fill 0
+  Columns = Permutations transpose
+  for Position in 0 till Width
+    Indices = Rows * Width
+    Indices += Columns Position
+    Power = B ** (Width - 1 - Position)
+    Cells Indices = Power
   end
-  Pm = Ac
+  return Cells reshape Count Width
 end
-Rc = (Pm shape) 0
-Rw = 0 till Rc array
-Pf = array shape (Rc * Ls) fill 0
-Tr = Pm transpose
-for J in 0 till Ls
-  Ix = Rw * Ls + (Tr J)
-  Pf Ix = B ** (Ls - 1 - J)
+Order = 0 till Width copy
+Weights = Order permutations copy places
+
+rem Ignore padding in the leading chunk.
+fun Base table
+  Powers = Base ** (0 to Limit copy)
+  Small = Powers at most 200000
+  Size = Powers Small max
+  Count = Powers lowerindex Size
+  Values = 0 till Size copy
+  Full = Values * 0
+  Partial = Values * 0
+  for Position in 0 till Count
+    Power = Base ** Position
+    Digit = Values // Power mod Base
+    Bits = 1 shl Digit
+    Full = Full bor Bits
+    Seen = Power at most Values integer
+    Useful = Bits * Seen
+    Partial = Partial bor Useful
+  end
+  Bound = Size ** (0 to Limit copy)
+  Chunks = Bound upperindex Maximum
+  return record
+    .size = Size
+    .chunks = Chunks
+    .masks = concat Full Partial
+  end
 end
-Pw = Pf reshape Rc Ls
-Xm = B ** B
-Ta = array shape 0 fill 0
-Of = array shape (B + 1) fill 0
-Sz = array shape (B + 1) fill 0
-Nc = array shape (B + 1) fill 0
-for Bs in 2 to Bm
-  K = 1
-  for Bs ** (K + 1) at most 200000
-    K += 1
+Tables = Bases table rank 0
+
+fun Values check Base
+  Entry = Tables (B - 1 - Base)
+  Size = Entry .size
+  Chunks = Entry .chunks
+  Masks = Entry .masks
+  Current = Values
+  Mask = Values * 0
+  for Chunk in 1 to Chunks
+    Rest = Current mod Size
+    Next = Current // Size
+    Leading = Next equal 0 integer
+    Indices = Rest + Size * Leading
+    Mask = Mask bor (Masks Indices)
+    Current = Next
   end
-  Zs = Bs ** K
-  Zm = Zs - 1
-  V = 0 to Zm array
-  Tf = V * 0
-  Tt = V * 0
-  for J in 0 till K
-    Dg = V // Bs ** J mod Bs
-    Bt = 1 shl Dg
-    Tf = Tf bor Bt
-    Pz = V at least Bs ** J integer
-    Tt = Tt bor (Bt * Pz)
-  end
-  Of Bs = Ta len
-  Sz Bs = Zs
-  C = 1
-  for Zs ** C at most Xm
-    C += 1
-  end
-  Nc Bs = C
-  Ta = concat Ta (concat Tf Tt)
+  Full = 2 ** Base - 1
+  return Values (Mask equal Full)
 end
-Al = 0 to Bm array
+
+rem Reject repeated prefix digits early.
+fun Row distinct
+  return Row unique len equal Length
+end
+Places = 0 till Length copy
+Places = B ** (Length - 1 - Places)
+Start = B ** (Length - 1)
+End = B ** Length
+Numbers = Start till End copy
+Rows = Numbers reshape (Numbers len) 1
+Prefixes = Rows // Places mod B
+Valid = Prefixes distinct rank 1
+Selected = Valid indices
+Prefixes = Prefixes Selected
 Hits = array shape 0 fill 0
-for D1 in 1 to Bm
-  for D2 in 0 to Bm
-    for D3 in 0 to Bm
-      Ok = D2 not equal D1
-      Ok = Ok and (D3 not equal D1)
-      Ok = Ok and (D3 not equal D2)
-      if Ok and (Hits len less T)
-        Ds = Al not equal D1
-        Ds = Ds and (Al not equal D2)
-        Ds = Ds and (Al not equal D3)
-        Dl = Al (Ds indices)
-        Hv = (D1 * B + D2) * B + D3
-        Hv *= B ** Ls
-        Wd = Pw * Dl
-        Sm = Wd reduce + axis 1
-        X = Hv + Sm
-        for Bs in Bm to 2 by -1
-          Cur = X
-          Mk = X * 0
-          Zs = Sz Bs
-          Ob = Of Bs
-          Nb = Nc Bs
-          for I in 1 to Nb
-            R = Cur mod Zs
-            Q = Cur // Zs
-            Lead = Q equal 0 integer
-            Ix = Ob + R + Zs * Lead
-            Mk = Mk bor (Ta Ix)
-            Cur = Q
-          end
-          Fl = 2 ** Bs - 1
-          X = X (Mk equal Fl indices)
-        end
-        Hits = concat Hits X
-      end
-    end
+for Prefix in Prefixes
+  if Hits len at least T
+    break
   end
+  Free = Digits not in Prefix
+  Remaining = Digits Free
+  Head = Prefix * Places sum
+  Head *= B ** Width
+  Sums = Weights * Remaining sum axis 1
+  Values = Head + Sums
+  Found = Bases reduce check with Values
+  Hits = concat Hits Found
 end
-Answer = (Hits (0 till T array)) sum
+Positions = 0 till T copy
+Answer = Hits Positions sum
 Answer print

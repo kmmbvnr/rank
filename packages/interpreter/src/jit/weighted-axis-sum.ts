@@ -1,8 +1,10 @@
 import { currentDiagnostics } from '../diagnostics.js';
+import { ownedStorage } from '../array-storage-state.js';
+import { inputBounds } from './tensor-bounds.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { integer32Cells, integer64Cells, typedArray, IntegerCells } from '../array-storage.js';
 import { permutedArraySource } from '../array-permutation.js';
-import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled, interruptsEnabled } from '../interrupt.js';
 import { isRankArray, type RankValue } from '../value.js';
 
 const WORD = 4294967296;
@@ -14,29 +16,38 @@ const LOW = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
 export function weightedAxisSum(left: RankValue, right: RankValue, axis: number): RankValue | undefined {
     if (axis === -1 || axis === -2) axis += 2;
     if (!Number.isInteger(axis) || !privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()
-        || !isRankArray(left) || !isRankArray(right) || left.shape.length !== 2 || right.shape.length !== 2
+        || !isRankArray(left) || !isRankArray(right)
+        || ![1, 2].includes(left.shape.length) || ![1, 2].includes(right.shape.length)
         || axis < 0 || axis > 1) return undefined;
     for (const [matrix, weights] of [[left, right], [right, left]]) {
+        if (matrix.shape.length !== 2) continue;
         const inner = matrix.shape[axis], size = matrix.shape[1 - axis];
-        if (weights.shape[axis] !== inner || weights.shape[1 - axis] !== 1 || size * inner < 1024) continue;
+        const weightShape = weights.shape.length === 1 ? [1, weights.shape[0]] : weights.shape;
+        if (weightShape[axis] !== inner || weightShape[1 - axis] !== 1 || size * inner < 1024) continue;
         const plan = permutedArraySource(matrix);
         const source = plan?.source ?? matrix;
-        if (matrix.columnNames || source.columnNames || weights.columnNames) continue;
+        if (matrix.columnNames || source.columnNames || weights.columnNames
+            || source.itemAt || matrix.itemAt && !plan) continue;
         const compact = integer32Cells(source), wide = integer64Cells(source);
         const coefficients = prepareStoredScalarView(weights);
         if ((!compact && !wide) || !coefficients) continue;
         const counts = compact ?? new Int32Array(wide!.buffer, wide!.byteOffset, wide!.length * 2);
         const step = compact ? 1 : 2, first = compact ? 0 : LOW;
         const length = compact?.length ?? wide!.length;
-        let maximum = 0;
-        for (let index = 0; index < length; index++) {
+        // Reuse revision-checked bounds for an unchanged compact matrix.
+        // Observable polling retains the original checkpointed scan.
+        const storage = ownedStorage.get(source);
+        const bounds = compact && !interruptsEnabled() && compact.buffer instanceof ArrayBuffer
+            && storage?.stable && !storage.validity && storage.typed === compact
+            ? inputBounds(source, compact) : undefined;
+        let maximum = bounds?.integer ? Number((-bounds.low) > bounds.high ? -bounds.low : bounds.high) : 0;
+        if (!bounds) for (let index = 0; index < length; index++) {
             if ((index & 4095) === 0) checkpoint('checking weighted sum bounds', Math.min(4096, length - index));
             const value = counts[index * step + first];
             if (wide && counts[index * 2 + 1 - LOW] !== (value < 0 ? -1 : 0)) { maximum = Infinity; break; }
             maximum = Math.max(maximum, Math.abs(value));
         }
-        // A low-word product must itself remain an exact Number.
-        if (maximum > 1048576) continue;
+        if (!Number.isFinite(maximum)) continue;
         const lows: number[] = [], highs: number[] = [];
         let bound = 0n;
         for (let index = 0; index < inner; index++) {
@@ -47,7 +58,9 @@ export function weightedAxisSum(left: RankValue, right: RankValue, axis: number)
             lows.push(Number(BigInt.asUintN(32, value)));
             highs.push(Number(value >> 32n));
         }
-        if (bound > 9223372036854775807n) continue;
+        // Safe total bounds also prove every Number product and partial sum.
+        // Only the wider word path needs its separate low-word product bound.
+        if (bound > 9223372036854775807n || maximum > 1048576 && bound > 9007199254740991n) continue;
         const diagnostics = currentDiagnostics();
         if (diagnostics) { diagnostics.weightedAxisSums++; diagnostics.weightedAxisSumCells += size; }
         if (maximum === 0) return typedArray(new Int32Array(size), [size]);
@@ -86,7 +99,8 @@ export function weightedAxisSum(left: RankValue, right: RankValue, axis: number)
     }
     // Completed arbitrary-precision matrices cannot use the word-bound proof.
     // Contract their products directly instead of retaining a wide cell matrix.
-    if (left.shape.every((size, axis) => size === right.shape[axis])
+    if (left.shape.length === 2 && right.shape.length === 2
+        && left.shape.every((size, axis) => size === right.shape[axis])
         && left.shape[0] * left.shape[1] >= 1024
         && !left.columnNames && !right.columnNames) {
         const a = prepareStoredScalarView(left, true), b = prepareStoredScalarView(right, true);

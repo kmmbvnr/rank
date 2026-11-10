@@ -3502,3 +3502,17 @@ omits a redundant reduction before gcd. The one-power ratio prototype was
 correct but slower and was not adopted. The
 [benchmark](../../benchmarks/euler570.md) distinguishes compiler gains,
 reference throughput and peak memory on Mac and Intel.
+
+### Euler 571: safe weighted sums with ordinary vectors
+
+Weighted integer axis contraction accepts trailing rank-1 coefficient vectors
+and large Int32 matrix counts when the absolute total bound proves safe Number
+products and partial sums. Wider word arithmetic retains its separate product
+restriction. Unchanged compact matrices reuse existing revision-checked tensor
+bounds; tracked writes invalidate the proof. Host interruption retains the
+checkpointed scan, opaque readers decline, and shared storage is not cached.
+
+Euler 571 uses library permutations, array-generated distinct prefixes, one
+weighted axis sum per batch and a fold over lower bases. CPU helpers each have
+one loop, with no syntactic nesting. The [benchmark](../../benchmarks/euler571.md)
+records architecture, correctness, time and memory verification.

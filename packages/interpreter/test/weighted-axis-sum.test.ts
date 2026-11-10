@@ -1,7 +1,7 @@
 import { native } from '../src/modules/shared.js';
 import { describe, it, expect } from 'vitest';
-import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
-import { typedArray, derivedArray, ownedArray, integer32Cells, readArrayItem } from '../src/array-storage.js';
+import { Interpreter, RuntimeDiagnostics, isRankArray, type RankValue } from '../src/index.js';
+import { typedArray, derivedArray, ownedArray, integer32Cells, readArrayItem, writeArrayCell } from '../src/array-storage.js';
 import { permutedArray } from '../src/array-permutation.js';
 import { weightedAxisSum } from '../src/jit/weighted-axis-sum.js';
 import { withInterrupt, withDemandBudget, InterruptedError } from '../src/interrupt.js';
@@ -47,7 +47,7 @@ describe('weighted integer axis sums', () => {
         for (const weights of [typedArray(new BigInt64Array(4).fill(2n ** 62n), [1, 4]),
             typedArray(new Float64Array(4).fill(1), [1, 4]), derivedArray([1, 4], [], i => coefficients[i]),
             typedArray(new Int32Array(8), [2, 4])]) expect(weightedAxisSum(matrix, weights, 1)).toBeUndefined();
-        expect(weightedAxisSum(typedArray(new Int32Array(4096).fill(1048577), [1024, 4]), typedArray(new Int32Array(4), [1, 4]), 1)).toBeUndefined();
+        expect(weightedAxisSum(typedArray(new Int32Array(4096).fill(1048577), [1024, 4]), typedArray(new BigInt64Array(4).fill(1n << 40n), [1, 4]), 1)).toBeUndefined();
     });
     it('retains cancellation and declines budgeted execution', () => {
         const matrix = typedArray(values, [1024, 4]), weights = typedArray(BigInt64Array.from(coefficients), [1, 4]);
@@ -132,4 +132,44 @@ describe('exact wide elementwise axis products',()=>{
         expect(()=>withInterrupt(new Int32Array([1]),()=>weightedAxisSum(a,b,1))).toThrow(InterruptedError);
         expect(withDemandBudget(1,()=>weightedAxisSum(a,b,1))).toBeUndefined();
     });
+});
+
+    it.each([0, 1])('contracts large Int32 counts when the full sum bound is safe, axis %s', axis => {
+        const data = Int32Array.from({ length: 4096 }, (_, i) => (i % 2 ? -1 : 1) * (536870912 + i));
+        const source = typedArray(data, [1024, 4]);
+        const matrix = axis === 0 ? permutedArray(source, [1, 0]) : source;
+        const weights = typedArray(Int32Array.of(10, -11, 12, -13), axis === 0 ? [4, 1] : [4]);
+        const result = weightedAxisSum(matrix, weights, axis);
+        expect(result).toBeDefined();
+        const expected = Array.from({ length: 1024 }, (_, row) => [10n, -11n, 12n, -13n].reduce((sum, value, k) => sum + value * BigInt(data[row * 4 + k]), 0n));
+        expect(cells(result)).toEqual(expected);
+    });
+    it('contracts the ordinary vector spelling on either operand side', () => {
+        const matrix = typedArray(values, [1024, 4]);
+        const weights = typedArray(Int32Array.of(1, -1, 1, -1));
+        for (const [left, right] of [[matrix, weights], [weights, matrix]]) {
+            expect(cells(weightedAxisSum(left, right, -1))).toEqual(oracle([1n, -1n, 1n, -1n]));
+        }
+        expect(weightedAxisSum(matrix, typedArray(Int32Array.of(1, 2, 3)), 1)).toBeUndefined();
+        expect(weightedAxisSum(weights, weights, 0)).toBeUndefined();
+    });
+
+it('reuses matrix bounds and invalidates them after a tracked cell write', () => {
+    const matrix = typedArray(new Int32Array(4096).fill(1), [1024, 4]);
+    const weights = typedArray(Int32Array.of(1, 2, 3, 4));
+    const d = new RuntimeDiagnostics();
+    expect(cells(d.run(() => weightedAxisSum(matrix, weights, 1)))[0]).toBe(10n);
+    expect(cells(d.run(() => weightedAxisSum(matrix, weights, 1)))[0]).toBe(10n);
+    expect(d.tensorRangeScans).toBe(1);
+    writeArrayCell(matrix, 0, 1073741824n);
+    expect(cells(d.run(() => weightedAxisSum(matrix, weights, 1)))[0]).toBe(1073741833n);
+    expect(d.tensorRangeScans).toBe(2);
+});
+
+it('declines opaque typed matrix readers without reading them', () => {
+    const matrix = typedArray(new Int32Array(4096).fill(536870912), [1024, 4]);
+    let reads = 0;
+    Object.defineProperty(matrix, 'itemAt', { value: () => { reads++; return 1n; } });
+    expect(weightedAxisSum(matrix, typedArray(Int32Array.of(1, 2, 3, 4)), 1)).toBeUndefined();
+    expect(reads).toBe(0);
 });
