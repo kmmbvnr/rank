@@ -1,8 +1,32 @@
 import type { Expression, Statement } from '@arrrank/language';
-import { currentDiagnostics, type CompilerObservation, type CompilerAttempt } from './diagnostics.js';
+import { currentDiagnostics, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';
 import { describeCompilerRejection } from './compiler-rejection.js';
 
 type Site = Expression | Statement;
+
+const compiledBackends = new Set([
+    'scalar-expression', 'resumable-scalar-expression', 'scalar-function', 'scalar-function-direct',
+    'scalar-function-number', 'exact-loop', 'number-loop', 'mixed-loop', 'numeric-call-loop',
+    'numeric-function', 'integer-array-function', 'real-array-function', 'generator-loop',
+    'tensor', 'tensor-reduction', 'tensor-region', 'array-region', 'number-tensor',
+    'layout-number-tensor', 'bounded-tensor', 'tensor-cell-copy', 'fused-arithmetic-reader',
+    'computed-array-update', 'flat-combine', 'native-tensor-reduction', 'native-tensor-axis',
+    'native-tensor-copy', 'native-tensor-visit', 'native-integer-scan',
+]);
+function finishExecution(attempt: CompilerAttempt): CompilerObservation['execution'] {
+    let own: CompilerExecutionKind | undefined;
+    if (compiledBackends.has(attempt.backend)) own = 'compiled';
+    else if (attempt.backend.startsWith('native-') || attempt.backend === 'host-call') own = 'native';
+    else if (attempt.backend === 'interpreted-loop' || attempt.backend === 'ordinary-fold') own = 'interpreted';
+    // Expression/statement dispatch alone proves ordinary execution, not JIT work.
+    else if (!attempt.executionKinds?.size && ['direct-expression', 'interpreted-expression', 'statement-dispatch'].includes(attempt.backend)) own = 'interpreted';
+    if (own) {
+        (attempt.executionKinds ??= new Set()).add(own);
+        (attempt.executionPaths ??= new Set()).add(attempt.backend);
+    }
+    attempt.completed = true;
+    return { kinds: [...attempt.executionKinds ?? []].sort(), paths: [...attempt.executionPaths ?? []].sort() };
+}
 
 /** An observation never evaluates a value or installs a compiler hook. */
 export function observeCompiler<T>(
@@ -26,11 +50,12 @@ export function observeCompilerSource<T>(
         try {
             const result = run();
             const outcome = emptyResult === 'decline' && (result === undefined || result === null) ? 'declined' : phase === 'prepare' ? 'prepared' : 'selected';
-            diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome });
             if (suspending && phase === 'execute' && result && typeof result === 'object'
                 && 'next' in result && typeof result.next === 'function'
                 && Symbol.iterator in result) {
-                const wrap = (iterator: Generator<unknown, unknown, unknown>): Generator<unknown, unknown, unknown> => {
+                diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome });
+                const wrap = (iterator: Generator<unknown, unknown, unknown>, root = false): Generator<unknown, unknown, unknown> => {
+                    let started = false, finished = false;
                     const resume = (step: () => IteratorResult<unknown>) => diagnostics.run(() =>
                         diagnostics.compilerScope(attempt, () => {
                             try {
@@ -41,6 +66,11 @@ export function observeCompilerSource<T>(
                                     const request = next.value as { task: Generator<unknown, unknown, unknown> };
                                     return { done: false, value: { task: wrap(request.task) } };
                                 }
+                                if (next.done && root && started && !finished) {
+                                    finished = true;
+                                    diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons],
+                                        outcome: 'completed', execution: finishExecution(attempt) });
+                                }
                                 return next;
                             } catch (error) {
                                 diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: 'threw' });
@@ -48,14 +78,16 @@ export function observeCompilerSource<T>(
                             }
                         }));
                     return {
-                        next: (value?: unknown) => resume(() => iterator.next(value)),
+                        next: (value?: unknown) => { started = true; return resume(() => iterator.next(value)); },
                         throw: (error?: unknown) => resume(() => iterator.throw(error)),
                         return: (value?: unknown) => resume(() => iterator.return(value)),
                         [Symbol.iterator]() { return this; },
                     } as Generator<unknown, unknown, unknown>;
                 };
-                return wrap(result as unknown as Generator<unknown, unknown, unknown>) as unknown as T;
+                return wrap(result as unknown as Generator<unknown, unknown, unknown>, true) as unknown as T;
             }
+            diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome,
+                execution: phase === 'execute' && outcome === 'selected' ? finishExecution(attempt) : undefined });
             return result;
         } catch (error) {
             diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: 'threw' });

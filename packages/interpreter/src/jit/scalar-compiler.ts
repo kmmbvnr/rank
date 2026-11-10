@@ -19,7 +19,7 @@ interface Host<T = RankValue> {
     compiled?(source: string): void;
     executed?(): void;
 }
-type Factory = (readers: (() => unknown)[], binary: Host['binary'], unary: Host['unary'], mulmod: Host['binary']) => () => RankValue | Evaluation<RankValue>;
+type Factory = (readers: (() => unknown)[], binary: (op: string, left: RankValue, right: RankValue, site?: number) => RankValue, unary: (op: string, value: RankValue, site?: number) => RankValue, mulmod: (a: RankValue, b: RankValue, modulus: RankValue, site?: number) => RankValue) => () => RankValue | Evaluation<RankValue>;
 // Readers belong to each invocation; only generated code is shared. Bound the
 // cache because source strings cannot be released like weak AST keys.
 const factories = new Map<string, Factory>();
@@ -53,6 +53,8 @@ function compileResumableScalarExpressionObservedImplementation(expression: Expr
 function compile(expression: Expression, host: Host<RankValue | Evaluation<RankValue>>, resumable: boolean) {
     const lines: string[] = [], readers: (() => unknown)[] = [];
     let serial = 0, count = 0;
+    const sites: { node: Expression; expected: string }[] = [];
+    const guardSite = (node: Expression, expected: string) => sites.push({ node, expected }) - 1;
     function emit(e: Expression): string | undefined {
         const before = resumable ? { lines: lines.length, readers: readers.length, serial, count } : undefined;
         let result = emitNode(e);
@@ -99,7 +101,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             const guard = boolean ? `typeof ${value} === 'boolean'`
                 : `(typeof ${value} === 'bigint' || typeof ${value} === 'number')`;
             const result = `${token}${value}`;
-            lines.push(`const ${name} = ${guard} ? ${result} : unary(${JSON.stringify(e.operator)}, ${value});`);
+            lines.push(`const ${name} = ${guard} ? ${result} : unary(${JSON.stringify(e.operator)}, ${value}, ${guardSite(e, boolean ? 'a boolean scalar' : 'an integer or real scalar')});`);
             return name;
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
@@ -121,7 +123,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             const name = `v${serial++}`;
             const ints = `typeof ${a} === 'bigint' && typeof ${b} === 'bigint' && typeof ${m} === 'bigint' && !${zeroTestSource(m, 'integer')}`;
             const times = `(${binaryOperatorSource(findCompiledOperator('*')!, a, b)})`;
-            lines.push(`const ${name} = ${ints} ? (${binaryOperatorSource(findCompiledOperator('mod')!, times, m)}) : mulmod(${a}, ${b}, ${m});`);
+            lines.push(`const ${name} = ${ints} ? (${binaryOperatorSource(findCompiledOperator('mod')!, times, m)}) : mulmod(${a}, ${b}, ${m}, ${guardSite(e, 'three integer scalars and a nonzero modulus')});`);
             return name;
         }
         const left = emit(e.left), right = emit(e.right);
@@ -137,7 +139,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             if (!signatures.every(signature => signature.result === 'boolean')) guard = `(${ints} || (typeof ${left} === 'number' && typeof ${right} === 'number'))`;
             result = binaryOperatorSource(findCompiledOperator(op)!, left, right);
         }
-        lines.push(`const ${name} = ${guard} ? ${result} : binary(${JSON.stringify(op)}, ${left}, ${right});`);
+        lines.push(`const ${name} = ${guard} ? ${result} : binary(${JSON.stringify(op)}, ${left}, ${right}, ${guardSite(e, op === '//' || op === 'mod' ? 'two integer scalars and a nonzero right operand' : guard.includes("'number'") ? 'two integer scalars or two real scalars' : 'two integer scalars')});`);
         return name;
     }
     const result = emit(expression);
@@ -155,8 +157,32 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         if (factories.size > factoryLimit) factories.delete(factories.keys().next().value!);
         host.compiled?.(source);
     }
-    const mulmod = (a: RankValue, b: RankValue, m: RankValue) => (isRankArray(a) && isRankArray(b) && typeof m === 'bigint'
-        ? modularProduct(a, b, m) : undefined) ?? host.binary('mod', host.binary('*', a, b), m);
-    const run = factory(readers, host.binary, host.unary, mulmod);
+
+    const actualType = (value: RankValue) => typeof value === 'bigint' ? value === 0n ? 'integer scalar (zero)' : 'integer scalar'
+        : typeof value === 'number' ? 'real scalar' : typeof value === 'boolean' ? 'boolean scalar'
+            : typeof value === 'string' ? 'text scalar' : 'non-scalar object (not inspected)';
+    const delegated = (site: number | undefined, values: Record<string, RankValue>, call: () => RankValue) => {
+        const diagnostics = currentDiagnostics();
+        if (!diagnostics?.traceCompiler || site === undefined) return call();
+        const guard = sites[site];
+        return observeCompiler(guard.node, 'scalar-operation-fallback', 'execute', () => {
+            diagnostics.compilerGuard(guard.expected, Object.fromEntries(Object.entries(values).map(([name, value]) => [name, actualType(value)])));
+            return call();
+        });
+    };
+    const mulmod = (a: RankValue, b: RankValue, m: RankValue, site?: number) => {
+        const run = () => {
+            const native = isRankArray(a) && isRankArray(b) && typeof m === 'bigint'
+                ? observeCompiler(site === undefined ? expression : sites[site].node, 'native-modular-product', 'execute',
+                    () => modularProduct(a, b, m)) : undefined;
+            return native ?? host.binary('mod', host.binary('*', a, b), m);
+        };
+        return currentDiagnostics()?.traceCompiler ? delegated(site, { left: a, right: b, modulus: m }, run) : run();
+    };
+    const run = factory(readers,
+        (op, left, right, site) => currentDiagnostics()?.traceCompiler
+            ? delegated(site, { left, right }, () => host.binary(op, left, right)) : host.binary(op, left, right),
+        (op, value, site) => currentDiagnostics()?.traceCompiler
+            ? delegated(site, { operand: value }, () => host.unary(op, value)) : host.unary(op, value), mulmod);
     return host.executed ? () => { host.executed!(); return run(); } : run;
 }

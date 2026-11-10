@@ -555,9 +555,27 @@ the backend, operation, file, line, column, function when available, and types
 established by that backend. Missing type proofs are labelled explicitly; the
 report does not inspect or force runtime values to guess their types.
 
+The report starts with completed execution by source region: compiled, native,
+interpreted, or mixed. Each row lists the completed paths separately from rejected
+candidates. Mixed can mean delegation within a region or different paths on
+successive calls. Source ranges associate nested operator guard details with the
+right statement. The full attempt log follows the summary. If its bounded
+observations were truncated, the summary is explicitly marked incomplete.
+
+For example, Euler 001 constructs its range through the native operator runtime.
+Its scalar-generated mask expressions delegate array `mod` and comparison to
+native array mapping, so those statements are mixed. The final selection and sum
+use a compiled tensor kernel. Operator guard details state the expected scalar
+condition and the types tested by that condition; objects are not inspected for
+diagnostics. Native means runtime/library code, not necessarily machine code.
+A completed call can produce a lazy value: the report does not force it or claim
+that all of its cells have already been computed.
+
 Preparation and execution are separate: `prepared` means a candidate was built,
 `selected` means its entry was reached, `declined` means admission or a runtime
-guard refused it, and `threw` means the entry raised an exception. A selected
+guard refused it, and `threw` means the entry raised an exception. Suspended entries gain a completed
+execution record only when their iterator finishes; merely creating an iterator
+does not enter it in the completion summary. A selected
 entry may delegate work; read the more specific backend entries for that source
 alongside its dispatch entry. A Number candidate can fail its exactness guard
 while the exact integer candidate succeeds. Such a rejection does not mean the

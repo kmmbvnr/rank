@@ -14,17 +14,29 @@ export interface ExecutionCost {
     discardedMilliseconds: number;
 }
 
+export type CompilerExecutionKind = 'compiled' | 'native' | 'interpreted';
+export interface CompilerExecution {
+    readonly kinds: readonly CompilerExecutionKind[];
+    readonly paths: readonly string[];
+}
+
 export interface CompilerObservation {
     readonly source: Omit<CompilerRejection, 'reason'>;
     readonly backend: string;
     readonly phase: 'prepare' | 'execute';
     readonly provenTypes?: Readonly<Record<string, string>>;
     readonly reasons: readonly string[];
-    readonly outcome: 'declined' | 'prepared' | 'selected' | 'threw';
+    readonly outcome: 'declined' | 'prepared' | 'selected' | 'completed' | 'threw';
+    readonly execution?: CompilerExecution;
+    readonly guard?: { expected: string; actual: Readonly<Record<string, string>> };
     count?: number;
 }
 export interface CompilerAttempt extends Omit<CompilerObservation, 'outcome' | 'reasons' | 'count'> {
     readonly reasons: Set<string>;
+    executionKinds?: Set<CompilerExecutionKind>;
+    executionPaths?: Set<string>;
+    completed?: boolean;
+    guard?: { expected: string; actual: Readonly<Record<string, string>> };
     provenTypes?: Readonly<Record<string, string>>;
 }
 
@@ -205,11 +217,19 @@ export class RuntimeDiagnostics {
         this.compilerAttempt = attempt;
         try { return run(); }
         finally {
-            if (previous) for (const reason of attempt.reasons) previous.reasons.add(reason);
+            if (previous) {
+                for (const reason of attempt.reasons) previous.reasons.add(reason);
+                if (attempt.completed && attempt.phase === 'execute') {
+                    for (const kind of attempt.executionKinds ?? []) (previous.executionKinds ??= new Set()).add(kind);
+                    for (const path of attempt.executionPaths ?? []) (previous.executionPaths ??= new Set()).add(path);
+                }
+            }
             this.compilerAttempt = previous;
         }
     }
     observeCompiler(observation: CompilerObservation): void {
+        const { source, backend, phase, provenTypes, reasons, outcome, execution, guard } = observation;
+        observation = { source, backend, phase, provenTypes, reasons, outcome, execution, guard };
         const key = JSON.stringify(observation);
         const previous = this.compilerObservationKeys.get(key);
         if (previous) { previous.count = (previous.count ?? 1) + 1; return; }
@@ -220,6 +240,15 @@ export class RuntimeDiagnostics {
         const entry = { ...observation, count: 1 };
         this.compilerObservationKeys.set(key, entry);
         this.compilerObservations.push(entry);
+    }
+    compilerPath(path: string, kind: CompilerExecutionKind): void {
+        if (this.compilerAttempt) {
+            (this.compilerAttempt.executionKinds ??= new Set()).add(kind);
+            (this.compilerAttempt.executionPaths ??= new Set()).add(path);
+        }
+    }
+    compilerGuard(expected: string, actual: Readonly<Record<string, string>>): void {
+        if (this.compilerAttempt) this.compilerAttempt.guard = { expected, actual };
     }
     compilerType(name: string, type: string): void {
         const attempt = this.compilerAttempt;

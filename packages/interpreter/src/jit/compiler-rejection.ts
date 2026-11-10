@@ -18,6 +18,8 @@ export interface CompilerRejection {
     readonly expression?: string;
     readonly line?: number;
     readonly column?: number;
+    readonly endLine?: number;
+    readonly endColumn?: number;
 }
 
 export function describeCompilerRejection(backend: string, node: Expression | Statement, detail?: string): CompilerRejection {
@@ -34,6 +36,7 @@ export function describeCompilerRejection(backend: string, node: Expression | St
         sourceId: cst && sourceIdOf(cst, '<input>'),
         expression: cst?.text.slice(0, 160),
         line: cst && cst.range.start.line + 1, column: cst && cst.range.start.character + 1,
+        endLine: cst && cst.range.end.line + 1, endColumn: cst && cst.range.end.character + 1,
     };
 }
 

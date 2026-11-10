@@ -90,6 +90,51 @@ describe('compiler admission and execution observations', () => {
         expect(closed).toBe(3);
     });
 
+    it('distinguishes an entered generator from a completed execution path', () => {
+        const site = parse('A = 1').statements[0];
+        const stats = new RuntimeDiagnostics(Infinity, true);
+        const run = observedRun(site, 'generator-loop', function* () { yield 1n; return 2n; }, undefined, true);
+        const task = stats.run(run);
+        expect(stats.compilerObservations[0]).toMatchObject({ outcome: 'selected' });
+        expect(stats.compilerObservations[0].execution).toBeUndefined();
+        expect(task.next().done).toBe(false);
+        expect(stats.compilerObservations.some(entry => entry.execution)).toBe(false);
+        expect(task.next()).toEqual({ done: true, value: 2n });
+        expect(stats.compilerObservations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ outcome: 'completed', execution: { kinds: ['compiled'], paths: ['generator-loop'] } }),
+        ]));
+        task.next();
+        expect(stats.compilerObservations.find(entry => entry.outcome === 'completed')?.count).toBe(1);
+        const unopened = stats.run(run);
+        unopened.return(0n);
+        expect(stats.compilerObservations.find(entry => entry.outcome === 'completed')?.count).toBe(1);
+    });
+
+    it('records the actual delegated operator and the failed scalar condition', () => {
+        const stats = new RuntimeDiagnostics(Infinity, true);
+        expect(execute('N = 1 till 4\nMask = N mod 3 equal 0\nN Mask sum', stats)).toBe(3n);
+        expect(stats.compilerObservations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ backend: 'scalar-operation-fallback', source: expect.objectContaining({ operation: 'mod', line: 2 }),
+                guard: { expected: 'two integer scalars and a nonzero right operand',
+                    actual: { left: 'non-scalar object (not inspected)', right: 'integer scalar' } },
+                execution: { kinds: ['native'], paths: ['native-array-map', 'native-operator'] } }),
+            expect.objectContaining({ backend: 'statement-dispatch', source: expect.objectContaining({ line: 2 }),
+                execution: expect.objectContaining({ kinds: ['compiled', 'native'] }) }),
+        ]));
+    });
+
+    it('retains the zero-divisor guard evidence when delegated execution throws', () => {
+        const stats = new RuntimeDiagnostics(Infinity, true);
+        expect(() => execute('(1 + 2) // 0', stats)).toThrow('division by zero');
+        expect(stats.compilerObservations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ backend: 'scalar-operation-fallback', outcome: 'threw',
+                guard: { expected: 'two integer scalars and a nonzero right operand',
+                    actual: { left: 'integer scalar', right: 'integer scalar (zero)' } } }),
+        ]));
+        expect(stats.compilerObservations.filter(entry => entry.backend === 'scalar-operation-fallback')
+            .every(entry => !entry.execution)).toBe(true);
+    });
+
     it('carries the source into driver-scheduled children without leaking into unrelated work', () => {
         const site = parse('A = 1').statements[0];
         function* child(): Execution<bigint> { recordFallback('child:guard'); return 7n; }

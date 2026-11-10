@@ -25,6 +25,23 @@ T print
 }
 const run = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });
 
+test('Euler 001 explains completed paths before listing rejected candidates', () => {
+    const file = fileURLToPath(new URL('../../../demos/euler/001_multiples.ra', import.meta.url));
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '233168\n');
+    const summary = result.stderr.split('Execution counters')[0];
+    assert.ok(summary.includes(`${file}:12:1 native`), summary);
+    assert.ok(summary.includes(`${file}:14:1 mixed (compiled + native)`), summary);
+    assert.ok(summary.includes(`${file}:15:1 mixed (compiled + native)`), summary);
+    assert.ok(summary.includes(`${file}:17:1 compiled`), summary);
+    assert.ok(summary.includes(`${file}:18:1 native`), summary);
+    assert.match(summary, /mod: expected two integer scalars and a nonzero right operand/);
+    assert.match(summary, /non-scalar object \(not inspected\)/);
+    assert.match(summary, /delegated to native-array-map, native-operator/);
+    assert.match(summary, /rejected candidates: scalar-expression, tensor/);
+});
+
 test('diagnostics explains the region budget and preserves program arguments and stdout', t => {
     const file = fixture(t, 129);
     const normal = run([file, '--count', '4']);

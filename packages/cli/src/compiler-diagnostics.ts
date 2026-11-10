@@ -1,4 +1,4 @@
-import type { RuntimeDiagnostics } from '@arrrank/interpreter';
+import type { CompilerObservation, RuntimeDiagnostics } from '@arrrank/interpreter';
 
 /** Passive observations: a rejected candidate can have a successful alternative. */
 const explanations: Record<string, string> = {
@@ -43,8 +43,51 @@ const explanations: Record<string, string> = {
     'destination-ownership-guard': 'The destination became shared, read-only or retained by a pending selection.',
 };
 
+
+function executionSummary(diagnostics: RuntimeDiagnostics): string[] {
+    const rows = new Map<string, { site: CompilerObservation['source']; kinds: Set<string>; paths: Set<string> }>();
+    for (const entry of diagnostics.compilerObservations) {
+        if (!entry.execution || !entry.source.node.endsWith('Statement')) continue;
+        const statement = entry.backend === 'statement-dispatch'
+            && !['UseStatement', 'ArgStatement', 'FunctionStatement'].includes(entry.source.node);
+        const kernel = entry.execution.kinds.includes('compiled') && entry.execution.paths.includes(entry.backend);
+        if (!statement && !kernel) continue;
+        const key = JSON.stringify([entry.source.sourceId, entry.source.line, entry.source.column]);
+        let row = rows.get(key);
+        if (!row) rows.set(key, row = { site: entry.source, kinds: new Set(), paths: new Set() });
+        for (const kind of entry.execution.kinds) row.kinds.add(kind);
+        for (const path of entry.execution.paths) row.paths.add(path);
+    }
+    const contains = (outer: CompilerObservation['source'], inner: CompilerObservation['source']) =>
+        outer.sourceId === inner.sourceId && outer.line !== undefined && inner.line !== undefined
+        && (inner.line > outer.line || inner.line === outer.line && (inner.column ?? 1) >= (outer.column ?? 1))
+        && (inner.line < (outer.endLine ?? outer.line) || inner.line === (outer.endLine ?? outer.line)
+            && (inner.column ?? 1) < (outer.endColumn ?? Infinity));
+    const lines = ['Completed execution by source region:',
+        '  Mixed means multiple execution paths, through delegation or different calls; this is not a coverage percentage.',
+        '  Native means runtime/library code. Lazy results are not forced; later consumers may execute their work.',
+        '  Import, argument and function declarations are omitted; executed function kernels are included.'];
+    for (const row of [...rows.values()].sort((a, b) => (a.site.sourceId ?? '').localeCompare(b.site.sourceId ?? '')
+        || (a.site.line ?? 0) - (b.site.line ?? 0) || (a.site.column ?? 0) - (b.site.column ?? 0))) {
+        const { site } = row;
+        const mode = row.kinds.size > 1 ? `mixed (${[...row.kinds].sort().join(' + ')})` : [...row.kinds][0] ?? 'unresolved';
+        lines.push(`  ${site.sourceId ?? '<input>'}:${site.line ?? '?'}:${site.column ?? '?'} ${mode}`);
+        if (site.expression) lines.push(`    source: ${JSON.stringify(site.expression)}`);
+        lines.push(`    completed paths: ${[...row.paths].sort().join(', ') || 'not recorded'}`);
+        const related = diagnostics.compilerObservations.filter(entry => contains(site, entry.source));
+        const rejected = new Set(related.filter(entry => entry.outcome === 'declined').map(entry => entry.backend));
+        if (rejected.size) lines.push(`    rejected candidates: ${[...rejected].sort().join(', ')}; completed paths are listed above.`);
+        const guards = new Set(related.filter(entry => entry.guard).map(entry =>
+            `${entry.source.operation ?? entry.source.node}: expected ${entry.guard!.expected}; received ${JSON.stringify(entry.guard!.actual)}; delegated to ${entry.execution?.paths.join(', ') || 'an unfinished or unrecorded path'}`));
+        for (const guard of guards) lines.push(`    ${guard}`);
+    }
+    if (!rows.size) lines.push('  No completed source regions retained.');
+    if (diagnostics.compilerObservationsOmitted) lines.push('  INCOMPLETE: observations were omitted; use --diagnostics=all.');
+    return lines;
+}
+
 export function compilerDiagnostics(diagnostics: RuntimeDiagnostics): string {
-    const lines = ['Compiler diagnostics:', '  Execution counters (not whole-program coverage):'];
+    const lines = ['Compiler diagnostics:', ...executionSummary(diagnostics), '  Execution counters (not whole-program coverage):'];
     const counters = ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions',
         'compiledNumericCallLoops', 'compiledGeneratorLoops', 'compiledTensors', 'numberTensors',
         'fusedArrayRegions', 'fusedArrayRegionCells', 'nativeIntegerSums', 'nativeIntegerJoins'] as const;
@@ -57,6 +100,8 @@ export function compilerDiagnostics(diagnostics: RuntimeDiagnostics): string {
         const location = `${site.sourceId ?? '<input>'}:${site.line ?? '?'}:${site.column ?? '?'}`;
         lines.push(`  ${location} ${observation.backend} ${observation.phase}: ${observation.outcome} (${observation.count})`);
         lines.push(`    operation: ${site.operation ?? site.node}`);
+        if (observation.execution) lines.push(`    completed paths: ${observation.execution.paths.join(', ') || 'not recorded'}`);
+        if (observation.guard) lines.push(`    guard: expected ${observation.guard.expected}; received ${JSON.stringify(observation.guard.actual)}`);
         lines.push(`    proven types: ${observation.provenTypes ? JSON.stringify(observation.provenTypes) : 'not established by this backend'}`);
         for (const reason of observation.reasons) {
             lines.push(`    ${reason}`);

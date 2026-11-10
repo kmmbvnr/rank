@@ -1,3 +1,5 @@
+import { compilerSource, observeCompilerSource } from './compiler-observation.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { compiledNumberSequenceMembership } from './sequence-membership.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { BooleanCells } from './boolean-cells.js';
@@ -175,6 +177,12 @@ export class Operators {
     }
 
     evaluateUnary(operator: string, value: RankValue): RankValue {
+        if (!currentDiagnostics()?.traceCompiler) return this.evaluateUnaryValue(operator, value);
+        return observeCompilerSource({ ...compilerSource(), operation: operator }, 'native-operator', 'execute',
+            () => this.evaluateUnaryValue(operator, value));
+    }
+
+    private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
         if (operator === 'not' && isPositionalMask(value)) {
             return positionalMask(mapSequence(value, 'not', item => item !== true, true).plan);
         }
@@ -232,6 +240,12 @@ export class Operators {
         right: RankValue,
         rangeStep?: RankValue,
     ): RankValue {
+        if (!currentDiagnostics()?.traceCompiler) return this.evaluateBinaryResult(operator, left, right, rangeStep);
+        return observeCompilerSource({ ...compilerSource(), operation: operator }, 'native-operator', 'execute',
+            () => this.evaluateBinaryResult(operator, left, right, rangeStep));
+    }
+
+    private evaluateBinaryResult(operator: string, left: RankValue, right: RankValue, rangeStep?: RankValue): RankValue {
         const result = this.evaluateBinaryValue(operator, left, right, rangeStep);
         if (!isRankArray(result)) return result;
         const type = binaryArrayType(operator, left, right);
@@ -298,13 +312,18 @@ export class Operators {
         }
         if (operator === 'until') throw new RankError('until is not a Rank word: write `till` for a bound it excludes');
         if (operator === 'to' || operator === 'till') {
-            if (right === ALL_AXIS) return makeRange(expectInteger(left), undefined, operator === 'to',
-                rangeStep === undefined ? undefined : expectInteger(rangeStep));
+            if (right === ALL_AXIS) {
+                currentDiagnostics()?.compilerPath('native-range', 'native');
+                return makeRange(expectInteger(left), undefined, operator === 'to',
+                    rangeStep === undefined ? undefined : expectInteger(rangeStep));
+            }
             // After a number the words build a range; after values they bound them.
             if (typeof left !== 'bigint' && typeof left !== 'number') {
                 if (rangeStep !== undefined) throw new RankError('by applies only to numeric ranges');
+                currentDiagnostics()?.compilerPath('native-bound', 'native');
                 return applyBound(left, valueBound(right, operator, (op, a, b) => this.evaluateBinary(op, a, b)), operator);
             }
+            currentDiagnostics()?.compilerPath('native-range', 'native');
             return makeRange(
                 expectInteger(left),
                 expectInteger(right),
@@ -315,6 +334,7 @@ export class Operators {
         if (operator !== 'in') [left, right] = arraySequenceOperands(left, right);
         if ((isRankSequenceMask(left) || isRankSequenceMask(right) || isPositionalMask(left) || isPositionalMask(right))
             && ['and', 'or', 'xor'].includes(operator)) {
+            currentDiagnostics()?.compilerPath('native-sequence-mask', 'native');
             return this.combineSequenceMasks(operator, left, right);
         }
         if (operator === 'in') {
@@ -326,12 +346,14 @@ export class Operators {
             return contains(left);
         }
         if (isRankSequence(left) || isRankSequence(right)) {
+            currentDiagnostics()?.compilerPath('native-sequence-map', 'native');
             if (isPredicateOperator(operator)) {
                 return this.sequenceComparison(operator, left, right);
             }
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (isRankArray(left) || isRankArray(right) || isRankQueue(left) || isRankQueue(right)) {
+            currentDiagnostics()?.compilerPath('native-array-map', 'native');
             return mapBinary(left, right, operator, (a, b) => this.evaluateBinary(operator, a, b));
         }
         if (left === MISSING || right === MISSING) {
