@@ -1,0 +1,12 @@
+use sequences
+use io
+use cli
+arg N integer = 1000
+fun Start subtotal
+  Values = Start + 2 * (0 till 4 copy)
+  return Values sum
+end
+Starts = 1 to N
+Totals = Starts subtotal rank 0
+Answer = Totals sum
+Answer print

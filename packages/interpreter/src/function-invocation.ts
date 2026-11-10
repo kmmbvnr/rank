@@ -1040,8 +1040,8 @@ export class FunctionInvocation {
                         for (;;) {
                             try {
                                 this.compiler.hooks.onScalarFunctionExecuted?.();
-                                // Private integer callees can replay their local
-                                // work exactly after an unsafe Number result.
+                                // Private callees can replay their local work
+                                // exactly after a failed numeric guard.
                                 const probeNumber = numberDelay === 0;
                                 if (numberDelay > 0) {
                                     numberDelay--;
@@ -1049,16 +1049,16 @@ export class FunctionInvocation {
                                     if (diagnostics) diagnostics.numberFunctionSkips++;
                                 }
                                 if (probeNumber && rawNumber && !this.compiler.hooks.onScalarFunctionExecuted
-                                    && kernel.returnType === 'integer' && !kernel.plans && !kernel.numberStorage
+                                    && (kernel.returnType === 'integer' || kernel.numberReadOnly) && !kernel.plans && !kernel.numberStorage
                                     && !kernel.memberships.length && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed())
                                     && privateLoopPolling() && !demandBudgetEnabled()
                                     && arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a)))) {
                                     try {
                                         const diagnostics = currentDiagnostics();
                                         if (diagnostics) diagnostics.numberFunctions++;
-                                        const value = BigInt(rawNumber(...arguments_.map(Number) as never[]) as number);
+                                        const value = rawNumber(...arguments_.map(Number) as never[]);
                                         numberBackoff = 0;
-                                        return value;
+                                        return kernel.returnType === 'integer' ? BigInt(value as number) : value;
                                     } catch (error) {
                                         if (error !== numberOverflow) throw error;
                                         const diagnostics = currentDiagnostics();
@@ -1253,7 +1253,8 @@ export class FunctionInvocation {
                     ? integer => membershipLookup(resolve(name) as RankArray)(integer) : contains;
             }
             for (let index = 0; index < kernel.captures.length; index++) {
-                const { name, rank } = kernel.captures[index];
+                const { name, rank, iteration } = kernel.captures[index];
+                if (iteration && (!privateLoopPolling() || demandBudgetEnabled())) return false;
                 const reader = captureReaders[index]?.current()
                     ? captureReaders[index] : capturedIntegerReader(() => resolve(name), rank);
                 if (!reader) return false;

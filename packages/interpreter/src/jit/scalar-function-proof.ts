@@ -85,7 +85,7 @@ export function scalarFunctionEffects(proof: ScalarFunctionProof): ScalarFunctio
         unknown ||= effects.unknown || !!effects.parameters.size || effects.returnsReference;
     }
     function iterableSafe(iterable: ScalarLoopIterable): boolean {
-        if (iterable.kind === 'group') return false;
+        if (iterable.kind === 'group' || iterable.kind === 'capture') return false;
         if (iterable.kind === 'literal') return true;
         return !iterable.operation.effects?.length
             && (!('kind' in iterable.source) || iterableSafe(iterable.source));
@@ -180,7 +180,8 @@ export interface ScalarFunctionInput {
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
 /** A finite native stage is consumed only by its loop, never as an array value. */
-export type ScalarLoopIterable = { readonly kind: 'literal'; readonly expression: Expression; readonly element: CompiledScalarType }
+export type ScalarLoopIterable = { readonly kind: 'capture'; readonly name: string; readonly element: 'integer' }
+    | { readonly kind: 'literal'; readonly expression: Expression; readonly element: CompiledScalarType }
     | {readonly kind:'group'; readonly receiver:string; readonly key:CompiledExpression<CompiledCalleeType,ScalarFunctionInput>; readonly element:'integer'}
     | { readonly kind: 'native'; readonly element: CompiledScalarType; readonly operation: Operation; readonly source: ScalarLoopIterable | Expression;
         readonly origin: Expression; readonly argument?: FunctionPlan; readonly deferred?: boolean };
@@ -448,19 +449,18 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (loops && isBinaryExpression(source) && ['to', 'till'].includes(source.operator)) {
                     let owner = source.$container;
                     while (owner && isParenthesizedExpression(owner)) owner = owner.$container;
-                    // Explicit native copy has the same eager binding boundary.
-                    // Its own lowering and guard still own the copy operation.
+                    // A native copy completes its operand even when nested in
+                    // arithmetic or another consumer. Its lowering still owns
+                    // the copy and its guards; unused recipes stay deferred.
+                    let copied = false;
                     if (owner && isApplicationExpression(owner)) {
                         const parts = flattenApplication(owner), last = parts.at(-1);
-                        if (parts.length === 2 && unwrap(parts[0]) === source && isNameExpression(last)
-                            && last.name === 'copy' && !env.has('copy') && !lexicalBinding(scope, 'copy')) {
-                            owner = owner.$container;
-                            while (owner && isParenthesizedExpression(owner)) owner = owner.$container;
-                        }
+                        copied = parts.length === 2 && unwrap(parts[0]) === source && isNameExpression(last)
+                            && last.name === 'copy' && !env.has('copy') && !lexicalBinding(scope, 'copy');
                     }
-                    // An ordinary binding completes the range before anything
-                    // else observes it. Broader metadata consumers stay lazy.
-                    if (owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '='
+                    // A bare range needs the existing ordinary binding boundary.
+                    // Broader metadata consumers must not complete it implicitly.
+                    if ((copied || owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '=')
                         && type(source.left, env) === 'integer' && type(source.right, env) === 'integer'
                         && (!source.step || type(source.step, env) === 'integer')) {
                         return { type: { kind: 'array', element: 'integer', rank: 1 }, input: {
@@ -834,6 +834,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (--budget.remaining < 0) return undefined;
         source = unwrap(source);
         if (isNameExpression(source) && iterableStages.has(source.name)) return iterableStages.get(source.name);
+        if (isNameExpression(source) && !env.has(source.name) && !captures.has(source.name) && !source.name.includes('.')) {
+            const binding = lexical?.reads.get(source) ?? lexicalBinding(scope, source.name);
+            if (binding && binding.scope.owner !== statement && !binding.function) {
+                dependencies.add(source.name);
+                observableCaptures = true;
+                return { kind: 'capture', name: source.name, element: 'integer' };
+            }
+        }
         if (isApplicationExpression(source)) {
             const parts = flattenApplication(source), [receiver,key] = parts;
             const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;

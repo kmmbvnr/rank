@@ -1,0 +1,17 @@
+use sequences
+use io
+use cli
+arg N integer = 1000
+Data = 1 to 1024 copy
+fun Start subtotal
+  Total = 0
+  for Value in Data
+    Total = Total * 33 + Value + Start
+    Total = Total mod 1000000007
+  end
+  return Total
+end
+Starts = 1 to N
+Totals = Starts subtotal rank 0
+Answer = Totals sum
+Answer print

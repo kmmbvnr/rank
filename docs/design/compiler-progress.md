@@ -3599,3 +3599,26 @@ both engines; no new compiler special case or numeric limit is needed.
 The full main returns to ordinary corpus audits. The
 [benchmark](../../benchmarks/euler579.md) records the orbit proof, independent
 geometry checks and separate timing/memory comparisons on Mac and Intel.
+
+
+### Euler 580: nested native range copies and captured integer-vector traversal
+
+A copied range may be an eager arithmetic operand without requiring its own
+ordinary binding. Native copy guards remain in place; bare lazy metadata,
+shadowing, unused branches and recipe demand preserve their previous behavior.
+Completed captured integer vectors can be traversed by the function compiler,
+with refreshed entry guards and ordinary exact iteration. Existing captured
+scalar/text traversal keeps its previous compilation route. Private typed inputs
+also use checked Number traversal; unsafe cells and results replay exactly.
+Inspection, budgets and arbitrary polling retain ordinary execution.
+
+Read-only integer-input graphs can preserve real/boolean results through
+recursive self calls and their bridge, without forcing them into BigInt.
+Cancellation, depth guards and existing tail recursion remain intact.
+
+Euler 580 tracks Mobius and its prime derivative directly, removes the inner
+power loop and uses a smaller first-multiple expression. Its vector writes
+still use existing native update paths; no whole-helper scalar compilation is
+claimed. The full main returns to ordinary audits. The
+[benchmark](../../benchmarks/euler580.md) separates program speed and memory
+from compiler coverage controls on Mac and Intel.

@@ -1,0 +1,16 @@
+use sequences
+use io
+use cli
+arg N integer = 100000
+fun Count half
+  if Count equal 0
+    return 0.5
+  end
+  Previous = (Count - 1) half
+  return Previous + 0.5
+end
+Indices = 1 to N copy
+Steps = Indices mod 20
+Values = Steps half rank 0
+Answer = Values sum
+Answer print

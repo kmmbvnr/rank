@@ -58,7 +58,7 @@ interface Kernel {
     readonly rankedCalls: ScalarFunctionProof['planCalls'];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
-    readonly captures: readonly { name: string; rank: number }[];
+    readonly captures: readonly { name: string; rank: number; iteration?: boolean }[];
     readonly calls: readonly { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
@@ -95,10 +95,11 @@ interface Kernel {
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
-/** Read-only integer graphs may replay after a numeric guard fails. Captured
+/** Read-only integer-input graphs may replay after a numeric guard fails. Captured
  * storage is separately borrowed at entry; opaque readers never enter it. */
-function readOnlyIntegerFunction(proof: ScalarFunctionProof): boolean {
-    return proof.type === 'integer' && proof.parameterTypes.every(type => type === 'integer')
+function readOnlyIntegerInputs(proof: ScalarFunctionProof): boolean {
+    return typeof proof.type === 'string' && proof.type !== 'text'
+        && proof.parameterTypes.every(type => type === 'integer')
         && !proof.arrayWrites.size && !proof.containerWrites.size && !proof.planReturn;
 }
 function legacyNumberFunction(proof: ScalarFunctionProof, memberships: readonly string[]): boolean {
@@ -118,7 +119,7 @@ function compileScalarNumberKernel(
 ): Kernel['numberDirect'] | undefined {
     if (proof.planReturn && typeof proof.type !== 'string') return undefined;
     const legacy = legacyNumberFunction(proof, memberships);
-    const readOnly = readOnlyIntegerFunction(proof);
+    const readOnly = readOnlyIntegerInputs(proof);
     const recursive = proof.recursive;
     if (!proof.localArrayWrites || proof.planCalls.length || proof.iterableBindings.size
         || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd', 'band', 'bor', 'bxor'].includes(name))
@@ -258,11 +259,11 @@ function compileScalarNumberKernel(
                 lines.push(`let ${result}; enterRecursion(); try { ${result} = numberBody(${args.join(',')}); }
                     catch (error) { if (error instanceof InterruptedError) recursiveError(error, [${args.join(',')}]); throw error; }
                     finally { leaveRecursion(); }`);
-                return `safe(${result})`;
+                return compiled.type === 'integer' ? `safe(${result})` : result;
             }
             if (input.operation === 'user-call' && input.callee) {
                 const callee = input.callee;
-                if ((!privateScalarFunction(callee.proof, true) && !readOnlyIntegerFunction(callee.proof))
+                if ((!privateScalarFunction(callee.proof, true) && !readOnlyIntegerInputs(callee.proof))
                     || !compileScalarFunction(callee.statement, callee.types, true, callee.captures)?.numberDirect) return undefined;
                 const index = users.findIndex(call => call.name === input.name && call.statement === callee.statement
                     && call.types.every((type, index) => sameCompiledCalleeType(type, callee.types[index])));
@@ -667,6 +668,18 @@ function compileScalarNumberKernel(
                 if (binding && binding.names.length <= 2 && binding.names.every(name => !name.includes('.'))) {
                     let receiver = binding.iterable;
                     while (isParenthesizedExpression(receiver)) receiver = receiver.value;
+                    const captured = proof.loopIterables.get(cmd);
+                    if (captured?.kind === 'capture') {
+                        const index = captures.findIndex(value => value.name === captured.name && value.rank === 1 && value.iteration);
+                        if (index < 0) return false;
+                        const source = `captured${index}`, cursor = `cursor${serial++}`;
+                        lines.push(`{ for (let ${cursor} = 0; ${cursor} < ${source}.length; ${cursor}++) { location = ${loc}; checkpoint();`);
+                        if (binding.names[0] !== '#') lines.push(`let ${slot(binding.names[0])} = ${source}.read1(${cursor});`);
+                        if (binding.names[1] && binding.names[1] !== '#') lines.push(`let ${slot(binding.names[1])} = ${cursor};`);
+                        if (!lowerCommands(cmd.statements, lines)) return false;
+                        lines.push('}}');
+                        continue;
+                    }
                     if (isNameExpression(receiver) && (queues.has(receiver.name) || arrays.has(receiver.name))) {
                         const source = `source${serial++}`, cursor = `cursor${serial++}`;
                         // Capture the receiver once. Both its cell updates and
@@ -810,7 +823,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
-    const captures: { name: string; rank: number }[] = [];
+    const captures: { name: string; rank: number; iteration?: boolean }[] = [];
     const writtenSlots = new Set([...proof.arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
     let serial = 0, deques = false, setMembership = false;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
@@ -866,6 +879,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         });
     }
     function iterable(source: ScalarLoopIterable, lines: string[]): string {
+        if (source.kind === 'capture') {
+            const index = captures.push({ name: source.name, rank: 1, iteration: true }) - 1;
+            const result = `v${serial++}`;
+            // Resolve the receiver once at traversal, preserving its ordinary
+            // iterator and alias behavior rather than copying its cells.
+            lines.push(`const ${result} = captures[${index}].value();`);
+            return result;
+        }
         if (source.kind === 'group') {
             const key = lower(source.key,lines), result = `v${serial++}`;
             lines.push(`const ${result} = ${slot(source.receiver)}.valuesAt(${key});`);

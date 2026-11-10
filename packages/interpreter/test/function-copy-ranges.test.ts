@@ -35,3 +35,57 @@ it('does not treat a shadowed copy as the native completion operation', () => {
     const text = `use numbers\nuse sequences\n${definition.replace(' Span =', ' copy = 7\n Span =')}\n(array 1 2 3 4) subtotal 3`;
     expect({ ...run(text, true), calls: 0 }).toEqual(run(text, false));
 });
+
+const nested = `fun Size offset Start
+ Values = Start + 2 * (0 till Size copy)
+ return Values sum
+end`;
+it('proves a copied range nested in an eager arithmetic operand', () => {
+    const fn = parse(nested).statements[0];
+    if (!isFunctionStatement(fn)) throw Error('expected function');
+    expect(compileScalarFunction(fn, ['integer', 'integer'], true)).toBeDefined();
+});
+it.each([[5, '10'], [0, '10'], [5, '9007199254740993'], [5, '0.5']] as const)('retains nested range arithmetic at size %s and start %s', (size, start) => {
+    const text = `use sequences\n${nested}\n${size} offset ${start}`;
+    const compiled = run(text, true);
+    expect({ ...compiled, calls: 0 }).toEqual(run(text, false));
+    expect(compiled.calls).toBeGreaterThan(0);
+});
+it.each([false, true])('preserves conditional range-copy errors with demand=%s', demanded => {
+    const text = `use sequences
+fun Used probe
+ if Used
+  Values = 2 * (1 to 5 by 0 copy)
+  return Values sum
+ end
+ return 7
+end
+${demanded} probe`;
+    expect({ ...run(text, true), calls: 0 }).toEqual(run(text, false));
+    expect(run(text, true).error !== undefined).toBe(demanded);
+});
+it.each([false, true])('keeps deferred range-copy demand timing with demand=%s', demanded => {
+    const text = `use sequences
+fun Used probe
+ Values' = 2 * (1 to 5 by 0 copy)
+ if Used
+  return Values sum
+ end
+ return 7
+end
+${demanded} probe`;
+    expect({ ...run(text, true), calls: 0 }).toEqual(run(text, false));
+    expect(run(text, true).error !== undefined).toBe(demanded);
+});
+it('does not complete a bare lazy range for a metadata consumer', () => {
+    const text = `use sequences
+fun Size count_range
+ return (1 to Size) len
+end
+5 count_range`;
+    expect({ ...run(text, true), calls: 0 }).toEqual(run(text, false));
+});
+it('retains a shadowed nested copy and its ordinary error', () => {
+    const text = `use sequences\n${nested.replace(' Values =', ' copy = 7\n Values =')}\n3 offset 10`;
+    expect({ ...run(text, true), calls: 0 }).toEqual(run(text, false));
+});

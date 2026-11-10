@@ -31,10 +31,11 @@ export function scalarSelection(source: RankArray | RankIndex | RankDeque, indic
 }
 
 export interface CapturedIntegerReader {
+    value(): RankArray;
     read(indices: readonly bigint[]): bigint;
     read1(index: bigint): bigint;
     read2(row: bigint, column: bigint): bigint;
-    borrowNumber(): { read1(index: number): number; read2(row: number, column: number): number };
+    borrowNumber(): { readonly length: number; read1(index: number): number; read2(row: number, column: number): number };
     current(): boolean;
 }
 
@@ -92,6 +93,7 @@ export function capturedIntegerReader(resolve: () => RankValue | undefined, rank
         return numericRead;
     };
     return {
+        value: refresh,
         current: () => {
             const value = resolve();
             return value === source && view !== undefined && arrayRevision(value as RankArray) === revision;
@@ -102,6 +104,7 @@ export function capturedIntegerReader(resolve: () => RankValue | undefined, rank
             const current = refresh(), shape = view!.shape, read = numberReader(current);
             if (borrowed) return borrowed;
             return borrowed = {
+                length: shape[0],
                 read1: index => {
                     if (!Number.isSafeInteger(index)) throw numberOverflow;
                     if (index < 0 || index >= shape[0]) return Number(scalarSelection(current, [BigInt(index)]));
