@@ -44,6 +44,7 @@ test('recorded timeouts stay excluded while corrected compiler cases remain elig
         'euler/562_maximalperimeter.ra', 'euler/562_maximalperimeter_test.ra',
         'euler/563_robotwelders.ra', 'euler/563_robotwelders_test.ra',
         'euler/564_maximalpolygons.ra', 'euler/564_maximalpolygons_test.ra',
+        'euler/565_divisibilityofsigma.ra', 'euler/565_divisibilityofsigma_test.ra',
         'euler/477_numbersequencegame.ra', 'euler/477_numbersequencegame_test.ra']) {
         assert.ok(!files.has(file), file);
     }

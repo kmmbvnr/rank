@@ -623,7 +623,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // Re-entered regions often read the same factorial/search tables. These
     // buffers are private snapshots, never destinations. Tracked revisions
     // invalidate them after a store; weak keys do not retain earlier inputs.
-    const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Int32Array | Float64Array }>();
+    const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: PrivateCells }>();
     const traversal = plan.iteration && loopTraversal(plan.iteration);
     // Range facts depend only on the guarded scalar input slots below. A
     // repeatedly rejected short loop must not reanalyse unchanged bounds.
@@ -891,13 +891,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
                     continue;
                 }
                 // Mutating/vector regions use an invocation-private numeric copy.
-                let cells: Int32Array | Float64Array = type === 'integer'
+                const packed = type === 'boolean' && !demandBudgetEnabled() ? booleanCells(value) : undefined;
+                const bits = packed?.words.buffer instanceof ArrayBuffer ? packed.words : undefined;
+                // Boolean input already has a total physical-kind proof. Unpack
+                // its bitmap directly into private bytes, avoiding proxy reads
+                // and an eight-byte numeric snapshot for each logical cell.
+                let cells: PrivateCells = bits ? new Uint8Array(items.length) : type === 'integer'
                     ? new Int32Array(items.length) : new Float64Array(items.length);
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.cost('number-loop.snapshot').allocatedBytes += cells.byteLength;
                 for (let index = 0; index < items.length; index++) {
                     if ((index & 4095) === 0) checkpoint('preparing numeric loop storage');
-                    const item = items[index];
+                    const item = bits ? (bits[index >>> 5] >>> (index & 31) & 1) !== 0 : items[index];
                     if (info.type === 'real' ? typeof item !== 'number'
                         : info.type === 'boolean' ? typeof item !== 'boolean'
                             : typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell', 'representation');
@@ -929,7 +934,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // Writable buffers above are already invocation-private. Keep the
             // wrapper in sync when stores widen it or concat replaces it.
             input[info.slot] = rebound ? new PrivateNumericArray([...value.shape], 0, undefined,
-                { cells: buffers[info.slot] as Int32Array | Float64Array }, info.type === 'real', info.type === 'boolean') : value;
+                { cells: buffers[info.slot] as PrivateCells }, info.type === 'real', info.type === 'boolean') : value;
             // Rebound handles publish their final buffer through the binding;
             // only stable entry stores use a per-cell dirty mask.
             if (plan.destinations.has(name) && !rebound) {

@@ -1,0 +1,120 @@
+rem Divisibility of Sum of Divisors
+rem https://projecteuler.net/problem=565
+use numbers
+use sequences
+use bits
+use algo
+use io
+use cli
+arg N integer = 100000000000
+rem Sigma factors trigger independently.
+rem Three triggers exceed the bound;
+rem subtract only distinct-prime pairs.
+Mod = 2017
+Step = 2 * Mod
+Root = N isqrt
+End = Root + 1
+Primes = primes from 3 till End copy
+Eligible = Primes not equal Mod
+Primes = Primes Eligible
+Reduced = Primes - 2
+Inverse = Step Reduced Primes powmod
+Minimum = Primes * Primes + Step
+Minimum = Minimum // Step
+Skip = Minimum - Inverse + Primes - 1
+Skip = Skip // Primes max 0
+Starts = Inverse + Primes * Skip
+Size = (N + 1) // Step + 1
+rem Even k gives the odd 2017 k - 1.
+Mask = array shape Size fill true
+Mask 0 = false
+for I in 0 till (Primes len)
+  Prime = Primes I
+  Start = Starts I
+  Keys = Start till Size by Prime
+  Mask Keys = false
+end
+Keys = Mask indices
+OrderTwo = Step * Keys - 1
+Residues = Primes mod Mod
+Eligible = Residues greater 1
+Below = Residues less 2016
+Eligible = Eligible and Below
+Bases = Primes Eligible
+Residues = Bases mod Mod
+fun Orders lower Factor
+  Exponents = Orders // Factor
+  Test = Residues Exponents Mod powmod
+  Same = Test equal 1
+  return Same choose Exponents Orders
+end
+Factors = array 2 2 2 2 2 3 3 7
+Seed = Bases * 0 + 2016
+Orders = Factors reduce lower with Seed
+Maximum = N binary len
+Counts = (Maximum + 1) // Orders
+Ends = Counts scan +
+Begins = Ends - Counts
+Length = Counts sum
+Positions = 0 till Length copy
+Owners = Ends upperindex Positions
+Multiples = Positions - Begins Owners
+Multiples += 1
+Exponents = Orders Owners * Multiples
+Exponents -= 1
+Prime = Bases Owners
+Powers = Prime ** Exponents
+Keep = Powers at most N
+Prime = Prime Keep
+Powers = Powers Keep
+AllPowers = concat OrderTwo Powers
+AllBases = concat OrderTwo Prime
+Sorted = AllPowers sort .indexed
+unpack Powers Order = Sorted
+Bases = AllBases Order
+fun Values triangular
+  return Values * (Values + 1) // 2
+end
+Counts = N // Powers
+Removed = Counts // Bases
+Terms = Counts triangular
+Terms -= Bases * (Removed triangular)
+Singles = Powers * Terms sum
+rem Only bounded pairs need expansion.
+Small = Powers at most Root indices
+Lower = Small + 1
+Bounds = N // Powers Small
+Upper = Powers upperindex Bounds
+Counts = Upper - Lower
+Ends = Counts scan +
+Begins = Ends - Counts
+Length = Counts sum
+Places = 0 till Length copy
+Owners = Ends upperindex Places
+Left = Small Owners
+Right = Lower Owners + Places
+Right -= Begins Owners
+First = Powers Left
+Second = Powers Right
+Prime = Bases Left
+Other = Bases Right
+Distinct = Prime not equal Other
+First = First Distinct
+Second = Second Distinct
+Prime = Prime Distinct
+Other = Other Distinct
+Products = First * Second
+Counts = N // Products
+Both = Counts // (Prime * Other)
+Terms = Counts triangular
+RemovedFirst = Counts // Prime
+RemovedSecond = Counts // Other
+PartFirst = RemovedFirst triangular
+PartSecond = RemovedSecond triangular
+PartBoth = Both triangular
+Terms -= Prime * PartFirst
+Terms -= Other * PartSecond
+Terms += Prime * Other * PartBoth
+Pairs = Products * Terms sum
+Answer = Singles - Pairs
+Answer print

@@ -3434,3 +3434,16 @@ No Number-admission thresholds or language syntax changed.
 The demo batches excess partitions, combines equal sides and uses safeguarded
 Newton geometry. The [benchmark](../../benchmarks/euler564.md) separates source
 and runtime gains and records the remaining peak-memory tradeoff.
+
+### Euler 565: compact boolean entry snapshots
+
+Number loop preparation now unpacks trusted private boolean bitmaps directly
+into byte snapshots, avoiding per-cell Proxy reads and Float64 storage. Replay,
+dirty tracking, alias isolation and publication remain unchanged. Shared/opaque
+inputs and demand budgets retain ordinary preparation; checkpoints still allow
+cooperative cancellation. Number-admission thresholds are unchanged.
+
+The demo uses an odd-only progression bitmap, bounded ragged trigger pairs and
+one prime loop. Local sieve allocation already avoids the entry snapshot;
+the [benchmark](../../benchmarks/euler565.md) separates that source improvement
+from an external-mask control demonstrating the shared runtime gain.

@@ -1,141 +1,124 @@
 rem Divisibility of Sum of Divisors
 rem https://projecteuler.net/problem=565
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg N integer = 100000000000
-
-rem sigma is multiplicative, so 2017
-rem divides s(n) when some q^e exactly
-rem dividing n has 2017 | s(q^e), i.e.
-rem the order of q mod 2017 divides
-rem e + 1. Sum n over
-rem these events by inclusion-exclusion:
-rem singles minus pairs (triples need
-rem three such prime powers, too big).
-rem Primes q = -1 mod 2017 (order 2,
-rem e = 1) come from a sieve over
-rem q = 2017 k - 1; the others only
-rem occur for q up to sqrt N. With
-rem tri(x) = x (x + 1) / 2, the n < N
-rem with v_q(n) = e sum to q^e (tri(M)
-rem - q tri(M // q)), M = N // q^e.
-Pd = 2017
-Sq = N isqrt
-Sp = primes till Sq + 1 array
-Km = (N + 1) // Pd
-Cp = array shape (Km + 1) fill 0
-for R in Sp
-  if R not equal Pd
-    Iv = (Pd mod R) (R - 2) R powmod
-    Kn = (R * R + Pd) // Pd
-    Kd = (Kn - Iv + R - 1) // R
-    Kz = Iv + R * (Kd max 0)
-    Ix = Kz to Km by R array
-    Cp Ix = 1
+rem Sigma factors trigger independently.
+rem Three triggers exceed the bound;
+rem subtract only distinct-prime pairs.
+Mod = 2017
+Step = 2 * Mod
+Root = N isqrt
+End = Root + 1
+Primes = primes from 3 till End copy
+Eligible = Primes not equal Mod
+Primes = Primes Eligible
+Reduced = Primes - 2
+Inverse = Step Reduced Primes powmod
+Minimum = Primes * Primes + Step
+Minimum = Minimum // Step
+Skip = Minimum - Inverse + Primes - 1
+Skip = Skip // Primes max 0
+Starts = Inverse + Primes * Skip
+Size = (N + 1) // Step + 1
+rem Even k gives the odd 2017 k - 1.
+fun Starts sieve
+  Mask = array shape Size fill true
+  Mask 0 = false
+  for I in 0 till (Primes len)
+    Prime = Primes I
+    Start = Starts I
+    Keys = Start till Size by Prime
+    Mask Keys = false
   end
+  return Mask
 end
-Ks = Cp equal 0 indices
-Ks = Ks (Ks greater 0 indices)
-Q2 = Pd * Ks - 1
-Ao = Sp mod Pd
-Ok = Ao greater 1 and (Ao less 2016)
-Qo = Sp (Ok indices)
-Ao = Qo mod Pd
-Od = Ao * 0 + (Pd - 1)
-for F in array 2 2 2 2 2 3 3 7
-  Ex = Od // F
-  Ts = Ao Ex Pd powmod equal 1
-  Od = Ts choose Ex Od
+Mask = Starts sieve
+Keys = Mask indices
+OrderTwo = Step * Keys - 1
+Residues = Primes mod Mod
+Eligible = Residues greater 1
+Below = Residues less 2016
+Eligible = Eligible and Below
+Bases = Primes Eligible
+Residues = Bases mod Mod
+fun Orders lower Factor
+  Exponents = Orders // Factor
+  Test = Residues Exponents Mod powmod
+  Same = Test equal 1
+  return Same choose Exponents Orders
 end
-Pw = Qo
-Em = Qo * 0
-Lv = Pw at most N integer
-for Lv sum greater 0
-  Em += Lv
-  Pw = Pw * Qo
-  Lv = Pw at most N integer
+Factors = array 2 2 2 2 2 3 3 7
+Seed = Bases * 0 + 2016
+Orders = Factors reduce lower with Seed
+Maximum = N binary len
+Counts = (Maximum + 1) // Orders
+Ends = Counts scan +
+Begins = Ends - Counts
+Length = Counts sum
+Positions = 0 till Length copy
+Owners = Ends upperindex Positions
+Multiples = Positions - Begins Owners
+Multiples += 1
+Exponents = Orders Owners * Multiples
+Exponents -= 1
+Prime = Bases Owners
+Powers = Prime ** Exponents
+Keep = Powers at most N
+Prime = Prime Keep
+Powers = Powers Keep
+AllPowers = concat OrderTwo Powers
+AllBases = concat OrderTwo Prime
+Sorted = AllPowers sort .indexed
+unpack Powers Order = Sorted
+Bases = AllBases Order
+fun Values triangular
+  return Values * (Values + 1) // 2
 end
-Tq = array shape 0 fill 0
-Te = Tq
-for Mu in 1 to 40
-  Ee = Od * Mu - 1
-  Ix = Ee at most Em indices
-  Tq = concat Tq (Qo Ix)
-  Te = concat Te (Ee Ix)
-end
-Tp = Tq ** Te
-M2 = N // Q2
-Mq = M2 // Q2
-T1 = M2 * (M2 + 1) // 2
-T2 = Mq * (Mq + 1) // 2
-Singles = (Q2 * (T1 - Q2 * T2)) sum
-Mo = N // Tp
-Mq = Mo // Tq
-T1 = Mo * (Mo + 1) // 2
-T2 = Mq * (Mq + 1) // 2
-Singles += (Tp * (T1 - Tq * T2)) sum
-Pairs = 0
-for Q in Q2
-  if Q * Q at most N
-    Lm = N // Q
-    Up = Q2 greater Q
-    Gt = Up and (Q2 at most Lm)
-    Rr = Q2 (Gt indices)
-    Pr = Q * Rr
-    X = N // Pr
-    Xa = X // Q
-    Xb = X // Rr
-    Xc = X // (Q * Rr)
-    Tx = X * (X + 1) // 2
-    Ta = Xa * (Xa + 1) // 2
-    Tb = Xb * (Xb + 1) // 2
-    Tc = Xc * (Xc + 1) // 2
-    In = Tx - Q * Ta - Rr * Tb
-    In = In + Q * Rr * Tc
-    Pairs += Pr * In sum
-  end
-end
-Nt = Tp len
-for J in 0 till Nt
-  Pe = Tp J
-  Bq = Tq J
-  Lm = N // Pe
-  Rr = Q2 (Q2 at most Lm indices)
-  Pr = Rr * Pe
-  X = N // Pr
-  Xa = X // Rr
-  Xb = X // Bq
-  Xc = X // (Rr * Bq)
-  Tx = X * (X + 1) // 2
-  Ta = Xa * (Xa + 1) // 2
-  Tb = Xb * (Xb + 1) // 2
-  Tc = Xc * (Xc + 1) // 2
-  In = Tx - Rr * Ta - Bq * Tb
-  In = In + Rr * Bq * Tc
-  Pairs += Pr * In sum
-  for L in J + 1 till Nt
-    Pl = Tp L
-    Ql = Tq L
-    Pp = Pe * Pl
-    Dq = Ql not equal Bq
-    if Dq and (Pp at most N)
-      X = N // Pp
-      Xa = X // Bq
-      Xb = X // Ql
-      Xc = X // (Bq * Ql)
-      Tx = X * (X + 1) // 2
-      Ta = Xa * (Xa + 1) // 2
-      Tb = Xb * (Xb + 1) // 2
-      Tc = Xc * (Xc + 1) // 2
-      In = Tx - Bq * Ta - Ql * Tb
-      In = In + Bq * Ql * Tc
-      Pairs += Pp * In
-    end
-  end
-end
+Counts = N // Powers
+Removed = Counts // Bases
+Terms = Counts triangular
+Terms -= Bases * (Removed triangular)
+Singles = Powers * Terms sum
+rem Only bounded pairs need expansion.
+Small = Powers at most Root indices
+Lower = Small + 1
+Bounds = N // Powers Small
+Upper = Powers upperindex Bounds
+Counts = Upper - Lower
+Ends = Counts scan +
+Begins = Ends - Counts
+Length = Counts sum
+Places = 0 till Length copy
+Owners = Ends upperindex Places
+Left = Small Owners
+Right = Lower Owners + Places
+Right -= Begins Owners
+First = Powers Left
+Second = Powers Right
+Prime = Bases Left
+Other = Bases Right
+Distinct = Prime not equal Other
+First = First Distinct
+Second = Second Distinct
+Prime = Prime Distinct
+Other = Other Distinct
+Products = First * Second
+Counts = N // Products
+Both = Counts // (Prime * Other)
+Terms = Counts triangular
+RemovedFirst = Counts // Prime
+RemovedSecond = Counts // Other
+PartFirst = RemovedFirst triangular
+PartSecond = RemovedSecond triangular
+PartBoth = Both triangular
+Terms -= Prime * PartFirst
+Terms -= Other * PartSecond
+Terms += Prime * Other * PartBoth
+Pairs = Products * Terms sum
 Answer = Singles - Pairs
 Answer print
