@@ -82,6 +82,7 @@ export interface ApplicationReference {
 
 /** How a compiled block reaches statement preparation and resumes after a suspension. */
 export interface BlockSteps {
+    executeIn(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;
     preparedStatement(statements: Statement[], index: number): PreparedStatement;
     continueCompiledBlock(
         statements: Statement[], index: number, task: Execution<RankValue | undefined>,
@@ -183,10 +184,16 @@ export class FastPaths {
             // private; the numeric-function backend below keeps first choice.
             const scalarReduction = arguments_.every(value => typeof value === 'bigint')
                 && AstUtils.streamAllContents(statement).some(node => isNameExpression(node) && node.name === 'sum');
-            if (body && (scalarReduction || commands.slice(0, -1).some(command => isForStatement(command) || isArrayAssignmentStatement(command)))) {
+            if (last && isReturnStatement(last) && last.value
+                && (scalarReduction || commands.slice(0, -1).some(command => isForStatement(command) || isArrayAssignmentStatement(command)))) {
                 const prefix = this.compileLoop(statement, undefined);
                 if (prefix) {
-                    const ordinary = body;
+                    // Numeric-region eligibility has its own bounded proof.
+                    // A large helper need not fit the generic block dispatcher;
+                    // failed numeric guards still execute its ordinary body.
+                    const terminal = commands.slice(-1);
+                    const ordinary = body ?? ((context: ExecutionContext, index = 0) =>
+                        steps.executeIn(index === 0 ? commands : index === commands.length - 1 ? terminal : commands.slice(index), context));
                     body = (context, index = 0, previous) => {
                         if (index === 0 && !context.insideFinally && !context.insideGenerator) {
                             const result = prefix.run();

@@ -1,77 +1,197 @@
-rem Idempotent Matrices
+rem Idempotent matrices
 rem https://projecteuler.net/problem=572
-
 use numbers
+use sequences
+use algo
 use io
 use cli
-
 arg N integer = 200
 
-rem An idempotent 3x3 integer matrix is
-rem 0, I, a rank-1 matrix p w^T or
-rem I - p w^T with p . w = 1, and
-rem (p, w), (-p, -w) give one matrix.
-rem Rank 1 needs max|p| max|w| <= n;
-rem rank 2 needs |p_i w_j| <= n for
-rem i != j and |1 - p_i w_i| <= n. The
-rem count of w for p is unchanged by
-rem permuting p and flipping signs, so
-rem take p = (a, b, c), a >= b >= c >= 0
-rem and weigh by its orbit; w1 follows
-rem from w2, w3 in range.
-Tot = 0
-for A in 1 to N
-  Wr = N // A
-  for B in 0 to A
-    for C in 0 to B
-      C1 = 0
-      C2 = 0
-      for W2 in 0 - Wr to Wr
-        for W3 in 0 - Wr to Wr
-          Nu = 1 - B * W2 - C * W3
-          if Nu mod A equal 0
-            W1 = Nu // A
-            Aw1 = W1 abs
-            Aw2 = W2 abs
-            Aw3 = W3 abs
-            Wm = Aw1 max Aw2
-            Wm = Wm max Aw3
-            if A * Wm at most N
-              C1 += 1
-            end
-            Mx = 1 - A * W1 abs
-            Dg2 = 1 - B * W2 abs
-            Dg3 = 1 - C * W3 abs
-            Mx = Mx max Dg2
-            Mx = Mx max Dg3
-            Mx = Mx max (A * Aw2)
-            Mx = Mx max (A * Aw3)
-            Mx = Mx max (B * Aw1)
-            Mx = Mx max (B * Aw3)
-            Mx = Mx max (C * Aw1)
-            Mx = Mx max (C * Aw2)
-            if Mx at most N
-              C2 += 1
-            end
-          end
-        end
-      end
-      Pm = 6
-      if A equal B and (B equal C)
-        Pm = 1
-      elif A equal B or (B equal C)
-        Pm = 3
-      end
-      Nz = 1
-      if B greater 0
-        Nz += 1
-      end
-      if C greater 0
-        Nz += 1
-      end
-      Tot += Pm * (2 ** Nz) * (C1 + C2)
+fun Largest from_vectors Limit
+  Negative = 0 - Limit
+  Reach = Limit // Largest
+  Span = 2 * Reach + 1
+  Foot = Span * Span
+  Range = 0 to Largest copy
+  Lengths = Range + 1
+  Ends = Lengths scan +
+  Starts = Ends - Lengths
+  Count = Lengths sum
+  Positions = 0 till Count copy
+  Middle = Ends upperindex Positions
+  Smallest = Positions - Starts Middle
+  Divisors = Largest gcd Middle
+  Divisors = Divisors gcd Smallest
+  Primitive = Divisors equal 1 indices
+  Middle = Middle Primitive copy
+  Smallest = Smallest Primitive copy
+  Count = Primitive len
+  Same = Largest equal Middle
+  Equal = Middle equal Smallest
+  Repeated = Same or Equal
+  Orbit = Repeated choose 3 6
+  Both = Same and Equal
+  Orbit = Both choose 1 Orbit
+  Signs = Middle greater 0 integer
+  Signs += Smallest greater 0 integer
+  Signs += 1
+  Orbit *= 2 ** Signs
+  Weights = 0 - Reach to Reach copy
+  Rows = Weights reshape 1 Span 1
+  Columns = Weights reshape 1 1 Span
+  Larger = Middle reshape Count 1 1
+  Smaller = Smallest reshape Count 1 1
+  Numerators = 1 - Larger * Rows
+  Numerators -= Smaller * Columns
+  Size = Count * Foot
+  Flat = Numerators reshape Size
+  Valid = Flat mod Largest equal 0
+  Selected = Valid indices
+  Owners = Selected // Foot
+  First = Flat Selected // Largest
+  Magnitude = First abs
+  RankOne = Magnitude at most Reach
+  Counts = RankOne integer
+  Counts *= 2
+  if Limit mod Largest equal 0
+    Lower = 0 - Reach
+    Good = First greater Lower
+    RankTwo = RankOne and Good
+    Middle = Middle Owners
+    Smallest = Smallest Owners
+    Second = Selected // Span mod Span
+    Second -= Reach
+    Third = Selected mod Span - Reach
+    Product = Middle * Second
+    Good = Product greater Negative
+    RankTwo = RankTwo and Good
+    Product = Smallest * Third
+    Good = Product greater Negative
+    RankTwo = RankTwo and Good
+    Counts = RankOne integer
+    Counts += RankTwo integer
+  elif (Limit + 1) mod Largest equal 0
+    Extra = First equal Reach + 1
+    Middle = Middle Owners
+    Allowed = Middle less Largest
+    Extra = Extra and Allowed
+    Counts += Extra integer
+  end
+  Shares = Orbit Owners
+  Total = Shares * Counts sum
+  Answer = Total // 2
+  return Answer
+end
+
+rem Solve for C when cheaper than w1.
+fun Largest from_weights Limit
+  Reach = Limit // Largest
+  Extra = (Limit + 1) mod Largest
+  Extra = Extra equal 0 integer
+  Upper = Reach + Extra
+  Lower = 0 - Reach
+  Firsts = Lower to Upper copy
+  Seconds = Lower to Reach copy
+  Low = Lower till 0 copy
+  High = 1 to Reach copy
+  Thirds = concat Low High copy
+  Middles = 0 to Largest copy
+  Count = Largest + 1
+  Height = Firsts len
+  Width = Seconds len
+  Depth = Thirds len
+  TopGrid = Firsts reshape 1 Height 1 1
+  SideGrid = Seconds reshape 1 1 Width 1
+  ThirdGrid = Thirds reshape 1 1 1 Depth
+  Grid = Middles reshape Count 1 1 1
+  Numerators = 1 - Largest * TopGrid
+  Numerators -= Grid * SideGrid
+  Remainders = Numerators mod ThirdGrid
+  Size = Count * Height * Width * Depth
+  Flat = Remainders reshape Size
+  Selected = Flat equal 0 indices
+  Cells = Count * Height * Width
+  FlatNumbers = Numerators reshape Cells
+  Keys = Selected mod Depth
+  Third = Thirds Keys
+  Keys = Selected // Depth
+  Smallest = FlatNumbers Keys // Third
+  Foot = Height * Width * Depth
+  Keys = Selected // Foot
+  Middle = Middles Keys
+  Valid = Smallest at least 0
+  Less = Smallest at most Middle
+  Valid = Valid and Less
+  Matches = Valid indices
+  Selected = Selected Matches
+  Smallest = Smallest Matches
+  Middle = Middle Matches
+  Third = Third Matches
+  Step = Width * Depth
+  Keys = Selected // Step mod Height
+  First = Firsts Keys
+  Keys = Selected // Depth mod Width
+  Second = Seconds Keys
+  Same = Largest equal Middle
+  Equal = Middle equal Smallest
+  Zero = Smallest equal 0
+  Repeated = Same or Equal or Zero
+  Shares = Repeated choose 12 24
+  Counts = First * 0 + 2
+  if Limit mod Largest equal 0
+    Lower = 0 - Reach
+    RankTwo = First greater Lower
+    Product = Middle * Second
+    Good = Product greater (0 - Limit)
+    RankTwo = RankTwo and Good
+    Product = Smallest * Third
+    Good = Product greater (0 - Limit)
+    RankTwo = RankTwo and Good
+    Counts = RankTwo integer
+    Counts += 1
+  elif Extra equal 1
+    ExtraMask = First greater Reach
+    RankOne = not ExtraMask
+    Allowed = Middle less Largest
+    ExtraMask = ExtraMask and Allowed
+    RankTwo = RankOne or ExtraMask
+    Counts = RankOne integer
+    Counts += RankTwo integer
+  end
+  Answer = Shares * Counts sum
+
+  rem The third weight is zero.
+  FirstColumn = Firsts reshape Height 1
+  SecondRow = Thirds reshape 1 Depth
+  ZeroTop = 1 - Largest * FirstColumn
+  Rest = ZeroTop mod SecondRow
+  Cells = Height * Depth
+  FlatZero = Rest reshape Cells
+  Chosen = FlatZero equal 0 indices
+  Keys = Chosen // Depth
+  Top = Firsts Keys
+  Top = 1 - Largest * Top
+  Keys = Chosen mod Depth
+  Bottom = Thirds Keys
+  MiddleZero = Top // Bottom
+  Inside = MiddleZero greater 0
+  Below = MiddleZero less Largest
+  Inside = Inside and Below
+  Values = MiddleZero Inside
+  Answer += 48 * Values sum
+  return Answer
+end
+
+Answer = 1
+if N greater 0
+  Answer = 96 * N * N + 60 * N + 8
+  for Largest in 2 to N
+    Reach = N // Largest
+    if Largest greater 4 * Reach
+      Answer += Largest from_weights N
+    else
+      Answer += Largest from_vectors N
     end
   end
 end
-Answer = Tot // 2 + 2
 Answer print

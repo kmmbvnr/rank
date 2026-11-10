@@ -176,9 +176,22 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const location = locations.length;
             // Bound the complete region, including nested branches and loops.
             // Search loops exceed 32 statements even with a small outer body.
-            if (isAssignmentStatement(assignment) && assignment.deferred) return reject(assignment, 'deferred-binding');
             if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
+            if (isAssignmentStatement(assignment) && assignment.deferred) {
+                const stage = numberMode && state.privateStages.get(assignment);
+                if (!stage) return reject(assignment, 'deferred-binding');
+                for (const name of stage.reads) {
+                    if (assigned.has(name) && (arrays.has(name) || localTypes.has(name))) continue;
+                    const parameter = isFunctionStatement(state.statement) && state.statement.parameters.includes(name);
+                    const type = parameter && knownType({ $type: 'NameExpression', name } as Expression);
+                    if (!type || !['integer', 'real', 'boolean'].includes(type)) return reject(assignment, 'deferred-capture');
+                    localTypes.set(name, type); required.add(slot(name));
+                }
+                for (const name of stage.operators) state.syntax.add(name);
+                state.deferredExpressions.set(assignment.name, stage.expression);
+                continue;
+            }
             if (isUnpackStatement(assignment)) {
                 const transfer = numberMode && host.arrayLocals ? arrayPermutation(assignment) : undefined;
                 if (transfer) {

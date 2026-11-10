@@ -1,0 +1,86 @@
+rem Idempotent Matrices
+rem https://projecteuler.net/problem=572
+use numbers
+use algo
+use sequences
+use io
+use cli
+
+arg N integer = 200
+
+fun Limit idempotents
+  Answer = 1
+  if Limit greater 0
+    rem The three patterns with max p = 1.
+    Answer = 96 * Limit * Limit + 60 * Limit + 8
+    for Largest in 2 to Limit
+      Reach = Limit // Largest
+      Span = 2 * Reach + 1
+      Foot = Span * Span
+      Range = 0 to Largest copy
+      Lengths = Range + 1
+      Ends = Lengths scan +
+      Starts = Ends - Lengths
+      Count = (Largest + 1) * (Largest + 2)
+      Count //= 2
+      Positions = 0 till Count copy
+      Middle = Ends upperindex Positions
+      Smallest = Positions - Starts Middle
+      Divisors = Largest gcd Middle
+      Divisors = Divisors gcd Smallest
+      Primitive = Divisors equal 1 indices
+      Middle = Middle Primitive copy
+      Smallest = Smallest Primitive copy
+      Count = Primitive len
+      Same = Largest equal Middle
+      Equal = Middle equal Smallest
+      Repeated = Same or Equal
+      Orbit = Repeated choose 3 6
+      Orbit = (Same and Equal) choose 1 Orbit
+      Nonzero = Middle greater 0 integer
+      Nonzero += Smallest greater 0 integer
+      Nonzero += 1
+      Orbit *= 2 ** Nonzero
+      Weights = 0 - Reach to Reach copy
+      SecondAxis = Weights reshape 1 Span 1
+      ThirdAxis = Weights reshape 1 1 Span
+      MiddleAxis = Middle reshape Count 1 1
+      SmallAxis = Smallest reshape Count 1 1
+      Numerators = 1 - MiddleAxis * SecondAxis
+      Numerators -= SmallAxis * ThirdAxis
+      Size = Count * Foot
+      Flat = Numerators reshape Size
+      Valid' = Flat mod Largest equal 0
+      Selected = Valid indices
+      Owners = Selected // Foot
+      Second = Selected // Span mod Span
+      Second -= Reach
+      Third = Selected mod Span - Reach
+      First = Flat Selected // Largest
+      Magnitude = First abs
+      RankOne = Magnitude at most Reach
+      Lower = 0 - (Limit - 1) // Largest
+      Upper = (Limit + 1) // Largest
+      RankTwo = First at least Lower
+      RankTwo = RankTwo and (First at most Upper)
+      Middle = Middle Owners
+      Smallest = Smallest Owners
+      Cross = Middle * Magnitude
+      RankTwo = RankTwo and (Cross at most Limit)
+      Diagonal = Middle * Second
+      Good = Diagonal at least 1 - Limit
+      RankTwo = RankTwo and Good
+      Diagonal = Smallest * Third
+      Good = Diagonal at least 1 - Limit
+      RankTwo = RankTwo and Good
+      Counts = RankOne integer
+      Counts += RankTwo integer
+      Shares = Orbit Owners
+      Total = Shares * Counts sum
+      Answer += Total // 2
+    end
+  end
+  return Answer
+end
+Answer = N idempotents
+Answer print

@@ -301,6 +301,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function knownType(expression: Expression): LoopTerm['type'] | undefined {
         while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isNameExpression(expression) && state.deferredExpressions.has(expression.name))
+            return arrayType(state.deferredExpressions.get(expression.name)!) ? undefined : knownType(state.deferredExpressions.get(expression.name)!);
         const input = scalarInputs.get(expression);
         if (input) return input.type;
         const fact = expressionFacts(expression, name => {
@@ -362,6 +364,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
             atom: type => types.find(candidate => candidate === type),
             substitute: source => {
+                if (isNameExpression(source) && state.deferredExpressions.has(source.name)) {
+                    const setup: string[] = [];
+                    const term = emit(state.deferredExpressions.get(source.name)!, setup);
+                    if (term) return { type: term.type, input: { term, lines: setup } };
+                }
                 const supplied = scalarInputs.get(source);
                 if (supplied) return { type: supplied.type, input: { term: supplied, lines: [] } };
                 // A completed rank-one array has a scalar endpoint. Keep
@@ -917,6 +924,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     // kernel. Private stages and numeric predicates benefit from this region.
     function privateIndicesMask(expression: Expression, seen = new Set<string>()): boolean {
         while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isNameExpression(expression) && state.deferredExpressions.has(expression.name))
+            return privateIndicesMask(state.deferredExpressions.get(expression.name)!, seen);
         if (isNameExpression(expression)) {
             const type = arrays.get(expression.name)?.type
                 ?? (seen.size === 0 ? arrayType(expression)?.element : undefined);
@@ -1017,6 +1026,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     }
     function arrayType(e: Expression): CompiledArrayType | undefined {
         while (isParenthesizedExpression(e)) e = e.value;
+        if (isNameExpression(e) && state.deferredExpressions.has(e.name)) return arrayType(state.deferredExpressions.get(e.name)!);
         if (scalarInputs.has(e) || isNameExpression(e) && state.ranges.has(e.name)) return undefined;
         const literal = numericLiteral(e);
         if (literal) return { kind: 'array', element: literal.type, rank: 1 };
@@ -1280,6 +1290,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function numberVector(source: Expression, lines: string[], inlineRanges = false): NumberVector | undefined {
         let e = source;
         while (isParenthesizedExpression(e)) e = e.value;
+        if (isNameExpression(e) && state.deferredExpressions.has(e.name)) return numberVector(state.deferredExpressions.get(e.name)!, lines, inlineRanges);
         if (inlineRanges && isRange(e)) {
             const zeroOrigin = isBinaryExpression(e) && isNumberLiteral(e.left) && e.left.value === 0n
                 && (!e.step || isNumberLiteral(e.step) && e.step.value === 1n);
@@ -1582,6 +1593,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitNumberArray(source: Expression, lines: string[]): LoopValue | undefined {
         let countSource = source;
         while (isParenthesizedExpression(countSource)) countSource = countSource.value;
+        if (isNameExpression(countSource) && state.deferredExpressions.has(countSource.name)) return emitNumberArray(state.deferredExpressions.get(countSource.name)!, lines);
         const sorted = numericArgsort(countSource);
         if (sorted) {
             state.numberVectors = true;
@@ -1716,6 +1728,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
             let range = copied.head;
             while (isParenthesizedExpression(range)) range = range.value;
+            if (isNameExpression(range) && state.deferredExpressions.has(range.name)) range = state.deferredExpressions.get(range.name)!;
             const selected = isApplicationExpression(range) ? flattenApplication(range) : [];
             // Native real gathers preserve uniform kind evidence through copy.
             // Private real publication would rescan every cell for infinities.
@@ -2070,6 +2083,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const exactScalars = new Map<Expression, LoopTerm>();
         function vector(e: Expression, numeric = false, setup = lines): Vector | undefined {
             while (isParenthesizedExpression(e)) e = e.value;
+            if (isNameExpression(e) && state.deferredExpressions.has(e.name)) return vector(state.deferredExpressions.get(e.name)!, numeric, setup);
             const type = arrayType(e);
             if (!type) {
                 if (!scalarSyntax(e)) return undefined;
@@ -2175,6 +2189,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source) && state.deferredExpressions.has(source.name)) return emitValue(state.deferredExpressions.get(source.name)!, lines, hint, tail);
         const concat = numericConcatCopy(source);
         if (concat) {
             const operands: string[] = [];
@@ -2192,7 +2207,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (numberMode && host.arrayLocals && host.arrayReads && host.nativeCalls
             && isApplicationExpression(source) && source.arguments.length === 1
             && isNameExpression(source.head) && isNameExpression(source.arguments[0])
-            && source.arguments[0].name === 'copy' && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
+            && source.arguments[0].name === 'copy' && !state.deferredExpressions.has(source.head.name) && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
             const name = source.head.name, type = arrayType(source.head);
             if (type?.element === 'integer') {
                 const info = arrays.get(name) ?? { slot: slot(name), rank: type.rank, type: 'integer' as const };

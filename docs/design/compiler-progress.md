@@ -3516,3 +3516,23 @@ Euler 571 uses library permutations, array-generated distinct prefixes, one
 weighted axis sum per batch and a fold over lower bases. CPU helpers each have
 one loop, with no syntactic nesting. The [benchmark](../../benchmarks/euler571.md)
 records architecture, correctness, time and memory verification.
+
+### Euler 572: private deferred arithmetic stages within function loops
+
+Closed private arithmetic/comparison recipes can be lowered at their eager
+indices, copy or sum consumers inside a function loop. The proof excludes
+escaping/public plans, dependencies rebound before consumption and unknown
+calls. Ordinary eager bindings keep their boundaries, unused recipes remain
+unevaluated and demand errors retain ordinary replay. Completed private captures
+and scalar parameters are checked independently on each entry; no runtime
+values or frames are cached in the syntax proof.
+
+Numeric helpers can reach their independent region proof even beyond the
+generic dispatcher's 64-command limit. The numeric 128-command proof budget
+is unchanged; failed guards retain ordinary execution and exact replay.
+
+Euler 572 uses one bounded array loop, a smaller of two inverse searches,
+primitive projection vectors and boundary
+counts for complementary idempotents. The zero-bound answer is corrected to one.
+The [benchmark](../../benchmarks/euler572.md) separates program improvements
+from the private-helper compiler measurement and records both engines' memory.
