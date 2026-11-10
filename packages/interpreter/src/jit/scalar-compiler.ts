@@ -51,14 +51,16 @@ function compileResumableScalarExpressionObservedImplementation(expression: Expr
 }
 
 function compile(expression: Expression, host: Host<RankValue | Evaluation<RankValue>>, resumable: boolean) {
+    let root = expression;
+    while (isParenthesizedExpression(root)) root = root.value;
     const lines: string[] = [], readers: (() => unknown)[] = [];
     let serial = 0, count = 0;
     const sites: { node: Expression; expected: string }[] = [];
     const guardSite = (node: Expression, expected: string) => sites.push({ node, expected }) - 1;
     function emit(e: Expression): string | undefined {
-        const before = resumable ? { lines: lines.length, readers: readers.length, serial, count } : undefined;
+        const before = { lines: lines.length, readers: readers.length, serial, count };
         let result = emitNode(e);
-        if (result === undefined && before && e !== expression) {
+        if (result === undefined && e !== expression) {
             // A failed subtree may have emitted earlier children. Discard the
             // entire attempt before handing that subtree to ordinary evaluation.
             lines.length = before.lines;
@@ -96,6 +98,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             if (!value) return undefined;
             count++;
             const name = `v${serial++}`;
+            if (e === root && count < 2) return name;
             const token = findCompiledOperator(e.operator)!.unary;
             const boolean = expressionOperatorSignatures(e.operator, 1).every(signature => signature.inputs[0] === 'boolean');
             const guard = boolean ? `typeof ${value} === 'boolean'`
@@ -105,6 +108,12 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             return name;
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
+        // Power binds before a bare sign; parentheses deliberately block this.
+        if (e.operator === '**' && isUnaryExpression(e.left) && ['+', '-'].includes(e.left.operator)) {
+            const power: typeof e = { ...e, left: e.left.operand };
+            const signed: typeof e.left = { ...e.left, operand: power };
+            return emitNode(signed);
+        }
         const signatures = expressionOperatorSignatures(e.operator, 2);
         if (!signatures.length) return undefined;
         // Modifier operands belong to the complete application, including
@@ -126,20 +135,41 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             lines.push(`const ${name} = ${ints} ? (${binaryOperatorSource(findCompiledOperator('mod')!, times, m)}) : mulmod(${a}, ${b}, ${m}, ${guardSite(e, 'three integer scalars and a nonzero modulus')});`);
             return name;
         }
-        const left = emit(e.left), right = emit(e.right);
-        if (!left || !right) return undefined;
+        const left = emit(e.left);
+        if (!left) return undefined;
+        const op = e.operator, name = `v${serial++}`;
+        const shortCircuit = op === 'and' || op === 'or';
+        if (shortCircuit) lines.push(`let ${name}; if (typeof ${left} === 'boolean' && ${left} === ${op === 'or'}) { ${name} = ${left}; } else {`);
+        const right = emit(e.right);
+        if (!right) return undefined;
         count++;
-        const name = `v${serial++}`, op = e.operator;
-        const ints = `(typeof ${left} === 'bigint' && typeof ${right} === 'bigint')`;
-        let guard = ints, result: string;
-        if (op === '//' || op === 'mod') {
-            guard += ` && !${zeroTestSource(right, 'integer')}`;
-            result = `(${binaryOperatorSource(findCompiledOperator(op)!, left, right)})`;
-        } else {
-            if (!signatures.every(signature => signature.result === 'boolean')) guard = `(${ints} || (typeof ${left} === 'number' && typeof ${right} === 'number'))`;
-            result = binaryOperatorSource(findCompiledOperator(op)!, left, right);
-        }
-        lines.push(`const ${name} = ${guard} ? ${result} : binary(${JSON.stringify(op)}, ${left}, ${right}, ${guardSite(e, op === '//' || op === 'mod' ? 'two integer scalars and a nonzero right operand' : guard.includes("'number'") ? 'two integer scalars or two real scalars' : 'two integer scalars')});`);
+        // A single-operation expression will use direct evaluation. Avoid
+        // constructing its overload dispatch only to discard it below.
+        if (e === root && count < 2) return name;
+        const operation = findCompiledOperator(op)!;
+        const primitive = { integer: 'bigint', real: 'number', boolean: 'boolean', text: 'string' };
+        const choices = signatures.map(signature => {
+            const [a, b] = signature.inputs;
+            let guard = `typeof ${left} === '${primitive[a]}' && typeof ${right} === '${primitive[b]}'`;
+            if (op === '//' || op === 'mod' || op === '/') guard += ` && !${zeroTestSource(right, b === 'integer' ? 'integer' : 'real')}`;
+            if (op === '**') {
+                // Integer powers stay exact; negative integer exponents change
+                // the result domain and use the ordinary checked operation.
+                guard += a === 'integer' && b === 'integer' ? ` && ${right} >= 0n`
+                    : ` && Number.isFinite(Number(${right})) && !Number.isNaN(Number(${left})) && !(${zeroTestSource(left, a === 'integer' ? 'integer' : 'real')} && ${right} < 0) && (${left} >= 0 || Number.isInteger(Number(${right})))`;
+            }
+            const convert = signature.result === 'real';
+            const result = binaryOperatorSource(operation, convert ? `Number(${left})` : left,
+                convert ? `Number(${right})` : right, { mixed: a !== b });
+            return { guard, result };
+        });
+        const expected = op === '//' || op === 'mod' ? 'two integer scalars and a nonzero right operand'
+            : signatures.map(signature => signature.inputs.join(' + ')).join(' or ')
+                + (op === '/' ? '; nonzero divisor' : op === '**' ? '; nonnegative integer exponent, or finite real exponent with non-NaN base, nonnegative base or integral exponent, and no zero to a negative power' : '');
+        let result = `binary(${JSON.stringify(op)}, ${left}, ${right}, ${guardSite(e, expected)})`;
+        for (const choice of choices.reverse()) result = `(${choice.guard} ? (${choice.result}) : ${result})`;
+        lines.push(`${shortCircuit ? '' : 'const '}${name} = ${result};`);
+        if (shortCircuit) lines.push('}');
         return name;
     }
     const result = emit(expression);

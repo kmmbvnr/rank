@@ -493,7 +493,9 @@ export class FastPaths {
             leaf,
             binary: (op, left, right) => {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
-                return this.context.operators.evaluateBinary(op, left, right);
+                return op === 'and' || op === 'or'
+                    ? this.context.operators.evaluateGuard(op, left, right)
+                    : this.context.operators.evaluateBinary(op, left, right);
             },
             unary: (op, value) => {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
@@ -512,7 +514,9 @@ export class FastPaths {
             leaf,
             binary: (op, left, right) => {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
-                return this.context.operators.evaluateBinary(op, left, right);
+                return op === 'and' || op === 'or'
+                    ? this.context.operators.evaluateGuard(op, left, right)
+                    : this.context.operators.evaluateBinary(op, left, right);
             },
             unary: (op, value) => {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);

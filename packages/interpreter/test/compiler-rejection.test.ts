@@ -77,10 +77,10 @@ describe('attributable compiler rejections', () => {
     it('attributes per-operation fallback in a cached scalar expression', () => {
         const runtime = new Interpreter(undefined, { scalarFunctionCompilation: false });
         try {
-            runtime.execute('fun A same B\nreturn (A + B) equal A\nend\n"a" same "b"');
+            runtime.execute('fun A same B\nreturn (A + B) equal A\nend\nLeft = array 1 2\nRight = array 3 4\nLeft same Right');
             const diagnostics = new RuntimeDiagnostics();
-            const result = diagnostics.run(() => runtime.execute('"a" same "b"'));
-            expect(formatValue(result!)).toBe('false');
+            const result = diagnostics.run(() => runtime.execute('Left same Right'));
+            expect(formatValue(result!)).toBe('false false');
             expect(diagnostics.fallbacks['scalar-expression:operator-guard:+']).toBeGreaterThan(0);
             expect(diagnostics.fallbacks['scalar-expression:operator-guard:equal']).toBeGreaterThan(0);
         } finally { runtime.dispose(); }
@@ -119,10 +119,11 @@ fun A same B
   return (A equal B) count
 end
 A = array true false
-B = array true false
+B = array 1 0
 A same B`;
         const diagnostics = new RuntimeDiagnostics();
-        expect(execute(source, diagnostics, false)).toBe(execute(source, undefined, false));
+        expect(() => execute(source, diagnostics, false)).toThrow(/cannot compare boolean and numeric/);
+        expect(() => execute(source, undefined, false)).toThrow(/cannot compare boolean and numeric/);
         expect(diagnostics.fallbacks['tensor:operator-guard:equal']).toBeGreaterThan(0);
         expect(diagnostics.fallbacks).not.toHaveProperty('tensor:unsupported');
         expect(diagnostics.fallbacks).not.toHaveProperty('tensor:entry-guard');
@@ -179,9 +180,9 @@ A powers B`;
     it('reports the generated guard when a cached tensor kernel declines', () => {
         const statement = parse('fun A probe B\nreturn (A equal B) count\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
-        const values = ownedArray([true, false]);
+        const values = ownedArray([true, false]), integers = ownedArray([1n, 0n]);
         const kernel = compileTensorKernel(statement.statements[0], {
-            lookup: name => name === 'A' || name === 'B' ? values : undefined,
+            lookup: name => name === 'A' ? values : name === 'B' ? integers : undefined,
             builtin: () => true,
         });
         expect(kernel).toBeDefined();

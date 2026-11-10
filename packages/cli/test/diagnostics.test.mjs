@@ -32,7 +32,7 @@ test('Euler 001 explains completed paths before listing rejected candidates', ()
     assert.equal(result.stdout, '233168\n');
     const summary = result.stderr.split('Execution counters')[0];
     assert.ok(summary.includes(`${file}:12:1 native`), summary);
-    assert.ok(summary.includes(`${file}:14:1 mixed (compiled + native)`), summary);
+    assert.ok(summary.includes(`${file}:14:1 compiled`), summary);
     assert.ok(summary.includes(`${file}:15:1 mixed (compiled + native)`), summary);
     assert.ok(summary.includes(`${file}:17:1 compiled`), summary);
     assert.ok(summary.includes(`${file}:18:1 native`), summary);

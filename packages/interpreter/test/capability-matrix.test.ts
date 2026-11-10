@@ -48,7 +48,7 @@ function summarize(row: CapabilityCase, diagnostics: RuntimeDiagnostics, outcome
             category: /budget|cost|limit/.test(reason) ? 'cost-limit'
                 : /guard/.test(reason) ? 'runtime-guard'
                 : /unsupported-|generator-function|deferred-binding/.test(reason) ? 'missing-lowering'
-                : /proof|callee-binding|required|output-shape|no-wide|no-direct/.test(reason) ? 'failed-proof'
+                : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct/.test(reason) ? 'failed-proof'
                 : /too-small|no-fusible-operation/.test(reason) ? 'cost-limit'
                 : 'unclassified' })),
         languageError: row.error === true,
@@ -58,6 +58,7 @@ const report: Record<string, ReturnType<typeof summarize>> = {};
 const demos = [
     ['001_multiples', '233168'], ['002_evenfib', '4613732'],
     ['003_primefactor', '6857'], ['006_sumsquarediff', '25164150'],
+    ['004_palproduct', '906609'], ['009_pythagorean', '31875000'],
 ] as const;
 for (const [name] of demos) cases.push({ id: `euler/${name}`,
     source: readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8'),

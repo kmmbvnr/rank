@@ -1259,10 +1259,11 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') ${decline}`);
                         lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
                     } else {
-                        numericGuard([a, b], decline);
+                        if (signatures.some(signature => signature.inputs.every(type => type === 'boolean'))) {
+                            lines.push(`if (!((typeof ${a} === 'boolean' && typeof ${b} === 'boolean') || (${num(a)} && ${num(b)}))) ${decline}`);
+                        } else numericGuard([a, b], decline);
                         if (signatures.every(signature => signature.result === 'boolean')) {
-                            lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
-                            lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
+                            lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { mixed: true })};`);
                         } else {
                             if (node.op === '/') lines.push(`if (${zeroTestSource(b, 'numeric')}) ${decline}`);
                             if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) ${decline}`);

@@ -87,7 +87,7 @@ array A B
 
 
 describe('scalar-expression catalogue profiles', () => {
-    const values = { integer: [7n, 3n], real: [1.25, 0.5], boolean: [true, false] } as const;
+    const values = { integer: [7n, 3n], real: [1.25, 0.5], boolean: [true, false], text: ['a', 'b'] } as const;
     const spelling: Record<string, string> = { atmost: 'at most', atleast: 'at least', notequal: 'not equal' };
     for (const operation of compiledOperators) {
         for (const signature of operation.scalarExpression ?? []) {
@@ -95,7 +95,8 @@ describe('scalar-expression catalogue profiles', () => {
                 const name = spelling[operation.name] ?? operation.name;
                 const inner = signature.inputs.length === 1 ? `${name} A` : `A ${name} B`;
                 // This compiler deliberately requires at least two operations.
-                const expression = `${signature.result === 'boolean' ? 'not' : '+'} (${inner})`;
+                const expression = signature.result === 'text' ? `(${inner}) equal A`
+                    : `${signature.result === 'boolean' ? 'not' : '+'} (${inner})`;
                 const a = values[signature.inputs[0]][0], b = values[signature.inputs[1] ?? signature.inputs[0]][1];
                 const statement = parse(`fun A calc B\nreturn ${expression}\nend`).statements[0];
                 if (!isFunctionStatement(statement)) throw new Error('expected function');
@@ -114,13 +115,13 @@ describe('scalar-expression catalogue profiles', () => {
         }
     }
     it.each(['+(A / B)', '+(A ** B)', 'not (A and B)', 'not (A or B)', 'not (A xor B)'])(
-        'retains the unsupported operator boundary for %s', expression => {
+        'compiles the shared operator profile for %s', expression => {
             const boolean = expression.startsWith('not');
             const a = boolean ? true : 7n, b = boolean ? false : 3n;
             const reference = evaluate(expression, a, b, false);
             const compiled = evaluate(expression, a, b, true);
-            expect(compiled).toEqual(reference);
-            expect(compiled.entries).toBe(0);
+            expect({ ...compiled, entries: 0 }).toEqual(reference);
+            expect(compiled.entries).toBeGreaterThan(0);
         });
 });
 

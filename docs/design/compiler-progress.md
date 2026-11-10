@@ -563,8 +563,9 @@ right statement. The full attempt log follows the summary. If its bounded
 observations were truncated, the summary is explicitly marked incomplete.
 
 For example, Euler 001 constructs its range through the native operator runtime.
-Its scalar-generated mask expressions delegate array `mod` and comparison to
-native array mapping, so those statements are mixed. The final selection and sum
+Its first mask assignment uses a tensor kernel. The compound mask update
+delegates array `mod` and comparison to native array mapping from a compiled
+scalar expression, so that statement is mixed. The final selection and sum
 use a compiled tensor kernel. Operator guard details state the expected scalar
 condition and the types tested by that condition; objects are not inspected for
 diagnostics. Native means runtime/library code, not necessarily machine code.
@@ -651,6 +652,74 @@ assignment errors, zero division, exact-integer fallback, statement budgets,
 copy-on-write, empty arrays, rank changes, effects and exception order.
 This suite measures correctness and execution choices; it makes no runtime or
 memory improvement claim.
+
+### Shared operator admission and lowering
+
+Scalar expressions now use the same scalar signature families as functions:
+mixed integer/real arithmetic and comparisons, text addition/equality, boolean
+operators, division and guarded powers. Guards are emitted from the declared
+signatures and use the shared operator source generator. Numeric equality keeps
+BigInt/Number precision instead of converting a wide integer to Number.
+`and`/`or` evaluate the right side only when required; a scalar boolean followed
+by an array still raises the ordinary guard error. Power retains Rank's sign
+precedence, exact nonnegative integer results and ordinary errors for invalid
+real powers. Negative integer exponents and exceptional real operands delegate
+with already-read operands.
+
+Both synchronous and resumable expression compilation can retain arithmetic
+around a native builtin call. Unsupported child expressions use the existing
+host reader once, in evaluation order. This does not pretend that the builtin
+itself has a generated implementation or bypass builtin identity/effect checks.
+Function and loop builtin admission already shares `compiledCall` signatures;
+this change removes the unnecessary surrounding-expression boundary.
+
+Tensor comparisons now accept mixed numeric operands and boolean equality.
+Their guards keep boolean/numeric equality on the ordinary error path and retain
+finite-number, shape, storage and demand checks. Text tensor representation,
+arbitrary function result proofs and array ownership remain separate workstreams.
+A single-operation scalar expression still uses direct evaluation; its discarded
+overload source is no longer constructed. Function/loop integer powers still
+require their existing exponent proofs. Tensor powers retain their existing
+specialization limits. These are recorded boundaries, not promises of identical
+backend admission for every value.
+
+`operator-parity.test.ts` asserts execution without operator delegation, exact
+wide comparisons, boolean tensor execution, native builtin composition,
+short-circuit effect order and exceptional operands. The capability matrix also
+checks Euler 004 (`906609`) and 009 (`31875000`) alongside 001, 002, 003 and 006.
+The full exhaustive audits remain separate.
+
+Performance was compared with `66e8ed17` on Mac and the Intel benchmark host,
+both using Node v24.15.0. Reproduce a case with:
+
+```sh
+node benchmarks/operator-parity.mjs /path/to/built/checkout mixed 100000
+node benchmarks/operator-parity.mjs /path/to/built/checkout tensor
+```
+
+The scalar cases disable larger function/loop/tensor kernels to isolate the
+expression path; they do not estimate whole-program speedups. The tensor case
+compares 200,000 integer and real cells. Each process uses a fresh interpreter
+for every run: cold time includes initial preparation; warm-session time is the
+median of five subsequent runs and still includes per-session preparation.
+The [raw samples](../../benchmarks/operator-parity-results.json) include cold
+times and peak RSS. Three process pairs were used for short cases and seven for
+100,000-iteration scalar cases, alternating which revision runs first.
+
+| Case | Mac before → after, ms | Intel before → after, ms |
+| --- | ---: | ---: |
+| Integer control, 100,000 iterations | 22.33 → 22.35 | 54.02 → 54.90 |
+| Mixed arithmetic, 100,000 iterations | 27.78 → 23.84 | 68.20 → 57.99 |
+| Mixed tensor comparison | 26.96 → 3.98 | 73.36 → 9.43 |
+| Mixed arithmetic, 10,000 iterations | 4.21 → 4.42 | 10.32 → 11.92 |
+
+The short mixed case retains a preparation cost despite faster sustained
+execution. Do not describe this as a universal speedup. The integer control is
+roughly unchanged on the longer runs. Tensor peak process RSS fell from about
+204 to 185 MiB on Mac and 193 to 174 MiB on Intel. Euler 001/002/003/006 retained
+their answers and had small, mixed timing movements; their cold times and peak
+RSS show no material increase in these samples. No claim is made about all
+programs, other processors or a full performance audit.
 
 Euler 103 uses scalar leaf checks and copies a successful set into its output
 array element by element, allowing the full depth-array search to compile. The
