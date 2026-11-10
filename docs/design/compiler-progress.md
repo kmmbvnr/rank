@@ -3418,3 +3418,19 @@ The kernel benefits both compiled and reference execution. No Number-admission
 threshold or language syntax changes. The demo uses adaptive area bands, ragged
 smooth-side ranges and keyed minima without explicit loops; the benchmark
 [records time, memory, controls and verification](../../benchmarks/euler563.md).
+
+### Euler 564: real array math and reusable vector programs
+
+Numeric array functions fuse `sqrt`, `asin`, `log` and `exp` with surrounding
+elementwise work. Finite-result and builtin guards preserve ordinary fallback.
+Equal-shaped outputs use a dynamic frame length, avoiding separate generated
+programs for each extent while retaining distinct broadcast layouts and concat
+piece bounds. Real scalar return/reduction compilation is unchanged.
+
+Stored private Int64 keys can drive native real keyed folds using exact word
+validation. Shared/opaque inputs and bounded observation retain fallback.
+No Number-admission thresholds or language syntax changed.
+
+The demo batches excess partitions, combines equal sides and uses safeguarded
+Newton geometry. The [benchmark](../../benchmarks/euler564.md) separates source
+and runtime gains and records the remaining peak-memory tradeoff.

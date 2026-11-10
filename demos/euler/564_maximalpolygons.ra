@@ -1,136 +1,272 @@
 rem Maximal Polygons
 rem https://projecteuler.net/problem=564
-
 use numbers
 use sequences
+use algo
 use io
 use cli
-
 arg K integer = 50
-
-rem Sides 1 + e with e >= 0 summing to
-rem n - 3 form a partition of n - 3 plus
-rem n - m sides of 1. The best polygon
-rem is cyclic; with t = 1 / (2R) the
-rem angles asin(l t) sum to pi (centre
-rem inside) or the long side's angle
-rem equals the rest (centre outside).
-rem Bisect t, take the area sum of
-rem l sqrt(1 - l^2 t^2) / (4 t), weight
-rem by the multinomial chance, and
-rem step through partitions in order.
+rem Equal side lengths share an angle.
+rem Partitions encode excess above 1;
+rem multiplicities supply their chances.
 Pi = 3.141592653589793
-Lf = array shape 120 fill 0.0
-for I in 2 to 119
-  Lg = I * 1.0 log
-  Lf I = (Lf (I - 1)) + Lg
+Max = K - 3
+Steps = K - 2 max 0
+Batch = 4096
+Indices = 1 to (2 * K + 1) copy
+Logs = Indices * 1.0 log
+Facts = concat (array 0.0) (Logs scan +)
+Orders = 3 to K copy
+Choose = Facts (2 * Orders - 4)
+Choose -= Facts (Orders - 1)
+Choose -= Facts (Orders - 3)
+fun Lengths angles Time
+  Values = Lengths * Time
+  Values = Values min 1.0
+  return Values asin
 end
-Answer = 0.0
-Pa = array shape 60 fill 0
-for N in 3 to K
-  E = N - 3
-  Pa 0 = E
-  M = 1
-  if E equal 0
-    M = 0
+fun Lengths arcData Time
+  Values = Lengths * Time min 1.0
+  Angles = Values asin
+  Space = 1.0 - Values * Values
+  Space = Space max 1e-300
+  Root = Space sqrt
+  Rates = Lengths / Root
+  return tuple Angles Rates
+end
+fun Lengths slices Time
+  Values = Lengths * Time
+  Space = 1.0 - Values * Values max 0.0
+  Root = Space sqrt
+  return Lengths * Root
+end
+rem Nonzero multiplicities are ragged.
+fun State weightedArea
+  Matrix = State .parts
+  Flat = Matrix reshape #
+  Width = State .depth
+  Cells = Flat len
+  Positions = 0 till Cells copy
+  First = Positions mod Width equal 0
+  Previous = Flat shift 1
+  Different = Flat not equal Previous
+  Boundary = First or Different
+  Starts = Boundary indices
+  GroupCount = Starts len
+  Tail = Starts (1 till GroupCount)
+  Stops = concat Tail (array Cells)
+  Runs = Stops - Starts
+  Rows = Starts // Width
+  Sides = Flat Starts + 1
+  Lengths = Sides * 1.0
+  Weights = Runs * 1.0
+  Numbers = State .sums + 3
+  UnitCount = Numbers - State .depth
+  Units = UnitCount * 1.0
+  Longest = State .largest * 1.0
+  Top = 1.0 / Longest
+  Entry = Top Rows
+  Angles = Lengths angles Entry
+  Values = Angles * Weights
+  Sum = Values sum by Rows
+  Ends = Units * (Top asin) + Sum
+  Outside = Ends less Pi
+  rem Keep Newton inside the bracket.
+  rem dArea/dResidual = -1 / (4 t^2).
+  fun Bracket step
+    Low = Bracket .low
+    High = Bracket .high
+    Trial = Bracket .time
+    Mapped = Trial Rows
+    Pair = Lengths arcData Mapped
+    unpack Sample Rates = Pair
+    Pieces = Sample * Weights
+    AnglesSum = Pieces sum by Rows
+    Gradients = Rates * Weights
+    RateSum = Gradients sum by Rows
+    AllAngles = Units * (Trial asin)
+    AllAngles += AnglesSum
+    UnitSpace = 1.0 - Trial * Trial
+    UnitSpace = UnitSpace max 1e-300
+    UnitRoot = UnitSpace sqrt
+    BaseRate = Units / UnitRoot
+    Slope = BaseRate + RateSum
+    Edge = Longest * Trial min 1.0
+    LargestAngle = Edge asin
+    Twice = 2.0 * LargestAngle
+    Gap = AllAngles - Twice
+    Minor = AllAngles - Pi
+    Value = Outside choose Gap Minor
+    LongSpace = 1.0 - Edge * Edge
+    LongSpace = LongSpace max 1e-300
+    EdgeRoot = LongSpace sqrt
+    EdgeRate = Longest / EdgeRoot
+    Twice = 2.0 * EdgeRate
+    Signed = Slope - Twice
+    Slope = Outside choose Signed Slope
+    More = Value greater 0.0
+    Less = Value less 0.0
+    Move = Outside choose More Less
+    NextLow = Move choose Trial Low
+    NextHigh = Move choose High Trial
+    Nonzero = Slope not equal 0.0
+    SafeRate = Nonzero choose Slope 1.0
+    Proposal = Trial - Value / SafeRate
+    Above = Proposal greater NextLow
+    Below = Proposal less NextHigh
+    Valid = Above and Below
+    Valid = Valid and Nonzero
+    Middle = (NextLow + NextHigh) / 2.0
+    Next = Valid choose Proposal Middle
+    Residual = Value abs
+    Scale = 4.0 * Trial * Trial
+    Residual = Residual / Scale
+    Complete = Residual at most 1e-11
+    Next = Complete choose Trial Next
+    return record
+      .low = NextLow
+      .high = NextHigh
+      .time = Next
+      .root = Trial
+      .complete = Complete
+    end
   end
-  Lt = Lf (2 * N - 4) - Lf (N - 1)
-  Lt -= Lf (N - 3)
-  Go = 1
-  for Go equal 1
-    Lw = Lf N - Lf (N - M)
-    Run = 1
-    for I in 1 till M
-      if Pa I equal (Pa (I - 1))
-        Run += 1
-      else
-        Lw -= Lf Run
-        Run = 1
-      end
+  fun Before ready After
+    Complete = After .complete
+    return Complete all
+  end
+  Size = Numbers len
+  Zero = array shape Size fill 0.0
+  Endpoint = Ends - Pi abs
+  EndScale = 4.0 * Top * Top
+  Endpoint = Endpoint / EndScale
+  Fresh = Endpoint at most 1e-11
+  InitialTime = Top / 2.0
+  Start = Fresh choose Top InitialTime
+  Seed = record
+    .low = Zero
+    .high = Top
+    .time = Start
+    .root = Start
+    .complete = Fresh
+  end
+  Final = Seed step repeat 50 till ready
+  Time = Final .root
+  Entry = Time Rows
+  Areas = Lengths slices Entry
+  Values = Areas * Weights
+  Sum = Values sum by Rows
+  Space = 1.0 - Time * Time max 0.0 sqrt
+  Sum += Units * Space
+  Big = Longest slices Time
+  Major = Sum - 2.0 * Big
+  Numerator = Outside choose Major Sum
+  Numerator = Numerator abs
+  Areas = Numerator / (4.0 * Time)
+  Depth = State .depth
+  UnitCount = Numbers - Depth
+  LogWeight = Facts Numbers
+  LogWeight -= Facts UnitCount
+  LogWeight -= State .denominator
+  LogWeight -= Choose (Numbers - 3)
+  Chances = LogWeight exp
+  Terms = Chances * Areas
+  Groups = Numbers - 3
+  Values = Terms sum by Groups with 0.0
+  Frame = K - 2
+  Result = array shape Frame fill 0.0
+  Positions = 0 till (Values len)
+  Result Positions = Values
+  return Result
+end
+rem Every prefix is one partition.
+fun State grow
+  Sums = State .sums
+  Last = State .last
+  Prefixes = State .parts
+  Depth = State .depth
+  Total = State .total
+  CurrentSize = Sums len
+  LargestRows = State .largest
+  Denominators = State .denominator
+  fun Start portion rank 0
+    Stop = Start + Batch min CurrentSize
+    Range = Start till Stop
+    Part = record
+      .parts = Prefixes Range
+      .sums = Sums Range
+      .depth = Depth
+      .largest = LargestRows Range
+      .denominator = Denominators Range
     end
-    if M greater 0
-      Lw -= Lf Run
-    end
-    Lm = 1
-    if M greater 0
-      Lm = 1 + Pa 0
-    end
-    Tm = 1.0 / Lm
-    Fs = (N - M) * (Tm min 1.0 asin)
-    for I in 0 till M
-      Cq = ((1 + Pa I) * Tm) min 1.0
-      Fs += Cq asin
-    end
-    Lo = 0.0
-    Hi = Tm
-    Mj = Fs less Pi
-    Tt = 0.0
-    for Bi in 1 to 50
-      Tt = (Lo + Hi) / 2
-      Sm = (N - M) * (Tt asin)
-      for I in 0 till M
-        Cq = ((1 + Pa I) * Tt) min 1.0
-        Sm += Cq asin
-      end
-      if Mj
-        Cq = Lm * Tt min 1.0
-        Sm = Sm - 2 * (Cq asin)
-        if Sm greater 0
-          Lo = Tt
-        else
-          Hi = Tt
-        end
-      else
-        if Sm less Pi
-          Lo = Tt
-        else
-          Hi = Tt
-        end
-      end
-    end
-    Ar = (N - M) * (1 - Tt * Tt sqrt)
-    for I in 0 till M
-      Ll = 1 + Pa I
-      Lt2 = Ll * Tt
-      Rm = 1 - Lt2 * Lt2 max 0.0
-      Ar += Ll * (Rm sqrt)
-    end
-    if Mj
-      Lt2 = Lm * Tt
-      Rm = 1 - Lt2 * Lt2 max 0.0
-      Ar = Ar - 2 * Lm * (Rm sqrt)
-      Ar = Ar abs
-    end
-    Ar = Ar / (4 * Tt)
-    Pb = Lw - Lt exp
-    Answer += Pb * Ar
-    Ones = 0
-    Tr = 0 equal 1
-    if M greater 0
-      Tr = (Pa (M - 1)) equal 1
-    end
-    for Tr
-      M -= 1
-      Ones += 1
-      Tr = 0 equal 1
-      if M greater 0
-        Tr = (Pa (M - 1)) equal 1
-      end
-    end
-    if M equal 0
-      Go = 0
-    else
-      Pa (M - 1) -= 1
-      V = Pa (M - 1)
-      R = Ones + 1
-      for R greater 0
-        Q = V min R
-        Pa M = Q
-        M += 1
-        R -= Q
-      end
-    end
+    return Part weightedArea
+  end
+  if Depth greater 0
+    Starts = 0 till CurrentSize by Batch
+    Contributions = Starts portion
+    Added = Contributions sum axis 0
+    Total += Added
+  end
+  Lengths = Last min (Max - Sums)
+  Ends = Lengths scan +
+  Begins = Ends - Lengths
+  Size = Lengths sum
+  Places = 0 till Size copy
+  Owners = Ends upperindex Places
+  Parts = Places - Begins Owners + 1
+  NextSums = Sums Owners + Parts
+  Parents = Prefixes Owners
+  Column = Parts reshape Size 1
+  Joined = concat Parents Column axis 1
+  LastRuns = State .streak
+  Old = LastRuns Owners
+  Same = Parts equal (Last Owners)
+  Runs = Same choose (Old + 1) 1
+  LogAdded = Runs * 1.0 log
+  Denominator = State .denominator
+  Denominator = Denominator Owners
+  Denominator += LogAdded
+  Parent = State .largest
+  Largest = Parent Owners
+  if Depth equal 0
+    Largest = Parts + 1
+  end
+  return record
+    .sums = NextSums
+    .last = Parts
+    .parts = Joined
+    .streak = Runs
+    .largest = Largest
+    .denominator = Denominator
+    .depth = Depth + 1
+    .total = Total
   end
 end
-Answer = Answer round 6
+fun Before done After
+  Values = After .sums
+  return Values len equal 0
+end
+Root = 3.0 sqrt
+Root = Root / 4.0
+Included = K at least 3
+Root = Included choose Root 0.0
+Count = K - 2 max 0
+Means = array shape Count fill 0.0
+if Included
+  Means 0 = Root
+end
+Seed = record
+  .sums = array 0
+  .last = array (Max max 0)
+  .parts = array shape 1 0 fill 0
+  .streak = array 0
+  .largest = array 1
+  .denominator = array 0.0
+  .depth = 0
+  .total = Means
+end
+Final = Seed grow repeat Steps till done
+Means = Final .total
+Total = Means reduce + with 0.0
+Answer = Total round 6
 Answer print

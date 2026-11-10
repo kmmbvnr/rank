@@ -169,18 +169,20 @@ end`;
         expect(diagnostics.numericFunctionPreparations).toBe(41);
     });
     it('bounds generated layout code independently of scalar preparations', () => {
-        const statement = parse('use sequences\nfun X scaled Scale\n return (X reshape #) * Scale\nend').statements[1];
+        const statement = parse('use sequences\nfun X layouts Rows\n Row = X reshape 1 #\n return Row * Rows\nend').statements[1];
         if (!isFunctionStatement(statement)) throw new Error('fixture');
-        const variables = new Map<string, RankValue>([['Scale', 1.0]]);
+        const variables = new Map<string, RankValue>();
         let generated = 0;
         const plan = compileNumericFunction(statement, { lookup: name => variables.get(name),
             builtin: () => true, compiled: () => generated++, executed: () => {} })!;
         for (let n = 1; n <= 40; n++) {
             variables.set('X', typedArray(vector(n)));
+            variables.set('Rows', typedArray(vector(2 * n), [2, n]));
             expect(plan.run()).toBeDefined();
         }
         expect(generated).toBe(40);
         variables.set('X', typedArray(vector(1)));
+        variables.set('Rows', typedArray(vector(2), [2, 1]));
         expect(plan.run()).toBeDefined();
         expect(generated).toBe(41);
     });

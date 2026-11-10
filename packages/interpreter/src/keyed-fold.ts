@@ -1,7 +1,7 @@
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
-import { integer32Cells, ownedArray, readArrayItem, realCells, typedElementKind } from './array-storage.js';
+import { integer32Cells, integer64Cells, ownedArray, readArrayItem, realCells, typedElementKind } from './array-storage.js';
 import { RankError } from './errors.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { sameShape } from './tensor-index.js';
 import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js';
 
@@ -52,13 +52,22 @@ function executeKeyedFold(values: RankValue, keys: RankValue,
             integers ? index => integers[index] : options.valueAt!,
             indices ? index => indices[index] : options.keyAt!, options);
     }
+    const wideKeys = !indices && privateLoopPolling() ? integer64Cells(keys) : undefined;
+    const words = wideKeys?.buffer instanceof ArrayBuffer
+        ? new Uint32Array(wideKeys.buffer, wideKeys.byteOffset, wideKeys.length * 2) : undefined;
+    const lowWord = words ? new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1 : 0;
+    const realKey = indices ? (index: number) => indices[index] : words ? (index: number) => {
+        const high = words[index * 2 + 1 - lowWord] | 0;
+        // Invalid keys retain the generic error before the result-size check.
+        return high < 0 ? -1 : high > 0 ? 0xffffffff : words[index * 2 + lowWord];
+    } : undefined;
     const reals = typedElementKind(values) === 'real' ? realCells(values) : undefined;
-    if (reals && indices && ['+', '*', 'min', 'max'].includes(options.operator ?? '')
+    if (reals && realKey && ['+', '*', 'min', 'max'].includes(options.operator ?? '')
         && (seed === undefined || typeof seed === 'number'
             || typeof seed === 'bigint' && (options.operator === '+' || options.operator === '*'))) {
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.realKeyedFolds++;
-        return realKeyedFold(reals, indices, values.shape, options);
+        return realKeyedFold(reals, realKey, values.shape, options);
     }
     recordFallback('keyed-fold:generic',
         !indices || !integers && !reals ? 'representation' : 'effects');
@@ -197,7 +206,7 @@ function integerKeyedFold(shape: readonly number[],
 
 
 /** Ordered Float64 folds retain the first extreme on ties, NaN and signed zero. */
-function realKeyedFold(values: ArrayLike<number>, keys: Int32Array, shape: readonly number[],
+function realKeyedFold(values: ArrayLike<number>, keyAt: (index: number) => number, shape: readonly number[],
     options: KeyedFoldOptions): RankArray {
     const { seed, identity, size, scan, operator } = options;
     const states: (number | undefined)[] = [];
@@ -205,8 +214,8 @@ function realKeyedFold(values: ArrayLike<number>, keys: Int32Array, shape: reado
     let length = size ?? 0;
     for (let index = 0; index < values.length; index++) {
         checkpoint('real keyed fold');
-        const key = keys[index];
-        if (key < 0) throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
+        const key = keyAt(index);
+        if (key < 0 || key >= 0xffffffff) throw new RankError('by keys must be nonnegative integer array indices', 'TypeError');
         if (size !== undefined && key >= size) throw new RankError('by key is outside the result size', 'IndexError');
         length = Math.max(length, key + 1);
         const value = values[index];

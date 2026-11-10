@@ -21,6 +21,7 @@ export type NumericNode = { kind: 'input'; name: string } | { kind: 'constant'; 
     | { kind: 'unary'; op: string; child: NumericNode }
     | { kind: 'binary'; op: string; left: NumericNode; right: NumericNode }
     | { kind: 'length'; source: NumericNode } | { kind: 'sqrt'; source: NumericNode } | { kind: 'sum'; source: NumericNode }
+    | { kind: 'math'; op: 'sqrt' | 'asin' | 'log' | 'exp'; source: NumericNode }
     | { kind: 'choose'; condition: NumericNode; yes: NumericNode; no: NumericNode }
     | { kind: 'range'; start: NumericNode; end: NumericNode; inclusive: boolean }
     | { kind: 'reshape'; source: NumericNode; dimensions: (NumericNode | undefined)[] }
@@ -144,9 +145,13 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
                 return condition && yes && no ? { kind: 'choose', condition, yes, no } : undefined;
             }
             const tail = e.arguments.length === 1 ? e.arguments[0] : undefined;
-            if (tail && isNameExpression(tail) && ['sum', 'isqrt', 'copy', 'len'].includes(tail.name)) {
+            if (tail && isNameExpression(tail) && ['sum', 'isqrt', 'sqrt', 'asin', 'log', 'exp', 'copy', 'len'].includes(tail.name)) {
                 const source = parse(e.head), word = tail.name;
-                builtins.add(word); if (word === 'sum') structural = true;
+                builtins.add(word); if (['sqrt', 'asin', 'log', 'exp'].includes(word)) {
+                    structural = true;
+                    return source ? { kind: 'math', op: word as 'sqrt' | 'asin' | 'log' | 'exp', source } : undefined;
+                }
+                if (word === 'sum') structural = true;
                 return source && (word === 'copy' ? source : { kind: word === 'isqrt' ? 'sqrt' : word === 'len' ? 'length' : 'sum', source });
             }
             if (parts.length === 2) {
@@ -211,7 +216,7 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
         else if (node.kind === 'range') { demand(node.start); demand(node.end); }
         else if (node.kind === 'gather') { demand(node.source); demand(node.indices); }
         else if (node.kind === 'choose') { demand(node.condition); demand(node.yes); demand(node.no); }
-        else if (node.kind === 'sum' || node.kind === 'sqrt') demand(node.source);
+        else if (node.kind === 'sum' || node.kind === 'sqrt' || node.kind === 'math') demand(node.source);
         else if (node.kind === 'concat') node.sources.forEach(demand);
         else if (node.kind === 'reshape' || node.kind === 'slice') demand(node.source);
         // len and reshape dimensions demand metadata, not computed source cells.
@@ -322,6 +327,12 @@ export function compileNumericFunction(statement: FunctionStatement, host: Host)
             else if (node.kind === 'length') {
                 const source = bind(node.source); if (!source.shape.length) return bad();
                 info = { shape: [], size: 1, integer: true, scalar: source.shape[0], low: source.shape[0], high: source.shape[0] };
+            } else if (node.kind === 'math') {
+                const source = bind(node.source);
+                if (source.boolean) return bad();
+                const scalar = source.scalar === undefined ? undefined : Math[node.op](source.scalar);
+                if (scalar !== undefined && !Number.isFinite(scalar)) return bad();
+                info = { shape: source.shape, size: source.size, integer: false, scalar };
             } else if (node.kind === 'sqrt' || node.kind === 'sum') {
                 const source = bind(node.source);
                 if (!source.integer || source.boolean) return bad();

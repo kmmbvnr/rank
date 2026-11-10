@@ -32,8 +32,9 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
     const mapped = (index: string, block: number, width: number, offset: number) => block === width && offset === 0 ? index
         : indexVar(`Math.floor(${index} / ${block}) * ${width} + ${index} % ${block} + ${offset}`);
     function broadcast(index: string, parent: readonly number[], child: readonly number[]): string {
-        if (!child.length || sizeOf(child) === 1) return '0';
+        if (!child.length) return '0';
         if (same(parent, child)) return index;
+        if (sizeOf(child) === 1) return '0';
         const leading = parent.length - child.length;
         if (child.every((n, i) => n === parent[leading + i])) return indexVar(`${index} % ${sizeOf(child)}`);
         const terms = child.flatMap((n, i) => n === 1 ? [] : [`(Math.floor(${index} / ${sizeOf(parent.slice(leading + i + 1))}) % ${n}) * ${sizeOf(child.slice(i + 1))}`]);
@@ -59,6 +60,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
             lines.push(`if (${value} < 0) return false;`);
             expression = `isqrt(${value})`;
         }
+        else if (node.kind === 'math') expression = `Math.${node.op}(${emit(node.source, index)})`;
         else if (node.kind === 'binary') {
             const a = emit(node.left, broadcast(index, info.shape, bound.get(node.left)!.shape));
             const b = emit(node.right, broadcast(index, info.shape, bound.get(node.right)!.shape));
@@ -82,7 +84,11 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
             }
         }
     } else for (const [out, root] of roots.entries()) assignments.push(`output[${out}][i] = ${emit(root, 'i')};`);
-    return `"use strict"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < ${size}; i++) { ${lines.join('\n')} ${assignments.join('\n')} } return true; };`;
+    // Equal-shaped vector outputs already own the complete frame. Keeping
+    // its length dynamic lets one generated program serve different extents.
+    // Concat pieces still iterate only their individual source frame.
+    const limit = concat && common ? String(size) : 'output[0].length';
+    return `"use strict"; /* numeric-array-function */ return function(data, scalars, output) { for (let i = 0; i < ${limit}; i++) { ${lines.join('\n')} ${assignments.join('\n')} } return true; };`;
 }
 
 /** Independent exact integer reductions share one traversal per input shape.
