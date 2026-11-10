@@ -35,6 +35,8 @@ export class RuntimeDiagnostics {
     integerWordScalings = 0;
     nativeIntegerSums = 0;
     nativeIntegerJoins = 0;
+    nativeModularPowerTriples = 0;
+    compiledModularPowers = 0;
     nativeIntegerSumCells = 0;
     weightedAxisSums = 0;
     weightedAxisSumCells = 0;

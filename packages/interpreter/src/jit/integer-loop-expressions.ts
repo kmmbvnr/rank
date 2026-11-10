@@ -96,6 +96,7 @@ interface NumberVector {
     readonly sources: readonly string[];
     readonly compactGuards: readonly string[];
     cell(index: string, lines: string[], frame?: NumberVectorFrame): LoopTerm | undefined;
+    quad?(index: string, lines: string[], output: string): true | undefined;
 }
 interface NumberVectorFrame {
     readonly shape: string;
@@ -1208,7 +1209,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             || isBinaryExpression(source) && !source.step && ['+', '-', '*'].includes(source.operator)
                 && existingIntegerArrayArithmetic(source.left) && existingIntegerArrayArithmetic(source.right);
     }
-    function numberVectorLoop(size: string, index: string, body: readonly string[], exitLabel?: string, start = '0'): string {
+    function numberVectorLoop(size: string, index: string, body: readonly string[], exitLabel?: string, start = '0', quad?: readonly string[]): string {
         state.numberVectors = true;
         const block = `block${state.serial++}`, end = `end${state.serial++}`;
         // Keep the hot vector traversal separate from the surrounding binding
@@ -1218,7 +1219,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const ${end} = Math.min(${size}, ${block} + vectorStep);
             ${state.workCounting ? `work += ${end} - ${block};` : ''}
             checkpoint(undefined, ${end} - ${block});
-            for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }
+            ${quad ? `let ${index} = ${block}; for (; ${index} + 4 <= ${end}; ${index} += 4) { ${quad.join('\n')} }
+                for (; ${index} < ${end}; ${index}++) { ${body.join('\n')} }`
+                : `for (let ${index} = ${block}; ${index} < ${end}; ${index}++) { ${body.join('\n')} }`}
         } })();`;
     }
     function vectorOperation(e: Expression): { name: string; operands: Expression[]; module?: string; fusedProduct?: boolean; unary?: InlineBuiltin } | undefined {
@@ -1386,7 +1389,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 }
                 lines.push(`const ${size} = ${layout ? `${layout}.size` : inputs[0].size};`);
             }
-            return { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))],
+            const vector: NumberVector = { size, shape, rank: type.rank, type: type.element, sources: [...new Set(inputs.flatMap(input => input.sources))],
                 compactGuards: [...new Set(inputs.flatMap(input => input.compactGuards))], cell: (index, body, frame) => {
                 // Trailing broadcasting composes: address each original leaf
                 // directly in the final frame, rather than remapping indices
@@ -1438,6 +1441,45 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     point.operands.forEach((operand, i) => previous[i] ? scalarInputs.set(operand, previous[i]!) : scalarInputs.delete(operand));
                 }
             } };
+            if (point.name === 'powmod' && inputs.every(input => input.type === 'integer')) {
+                vector.quad = (index, body, output) => {
+                    const lanes: LoopTerm[][] = [];
+                    for (let lane = 0; lane < 4; lane++) {
+                        const position = `(${index} + ${lane})`;
+                        const frame = { shape, rank: type.rank, offsets: new Map<string, string>(), values: new Map<string, LoopTerm>() };
+                        const values = inputs.map(input => input.cell(position, body, frame));
+                        if (values.some(value => !value || value.type !== 'integer')) return undefined;
+                        lanes.push(values.map(value => {
+                            const name = `powInput${state.serial++}`;
+                            body.push(`const ${name} = ${value!.code};`);
+                            return { ...value!, code: name };
+                        }));
+                    }
+                    body.push(`if (${lanes.flatMap(values => [`${values[1].code} < 0`, `${values[2].code} <= 0`]).join(' || ')}) throw overflow;`);
+                    const compact = lanes.map(values => `${values[2].code} <= 1073741824`).join(' && ');
+                    const args = [0, 1, 2].flatMap(argument => lanes.map(values => values[argument].code));
+                    const fallback: string[] = [];
+                    const previous = point.operands.map(operand => scalarInputs.get(operand));
+                    for (let lane = 0; lane < 4; lane++) {
+                        point.operands.forEach((operand, i) => scalarInputs.set(operand, lanes[lane][i]));
+                        vectorCellDepth++;
+                        let value: LoopTerm | undefined;
+                        try {
+                            const operation = findOperation('powmod')!;
+                            const signature = matchCompiledCallSignature(operation, ['integer', 'integer', 'integer']);
+                            value = signature ? emitBuiltinCall(operation, signature, point.operands, fallback) : undefined;
+                        } finally {
+                            vectorCellDepth--;
+                            point.operands.forEach((operand, i) => previous[i] ? scalarInputs.set(operand, previous[i]!) : scalarInputs.delete(operand));
+                        }
+                        if (!value) return undefined;
+                        fallback.push(`${output}.store(${index} + ${lane}, ${value.code});`);
+                    }
+                    body.push(`if (${compact}) { powmodQuad(${args.join(',')}, ${output}.cells, ${index}); } else { ${fallback.join('\n')} }`);
+                    return true;
+                };
+            }
+            return vector;
         }
         if (isApplicationExpression(e)) {
             const parts = flattenApplication(e);
@@ -1912,6 +1954,14 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     loop = `if (${input.compactGuards.join(' && ')}) {
                         ${numberVectorLoop(input.size, index, [...fast, store])}
                     } else { ${loop} }`;
+                }
+            }
+            if (input.quad && type.element === 'integer') {
+                const quad: string[] = [];
+                if (input.quad(index, quad, result)) {
+                    const scalar = [...body, `${result}.store(${index}, ${value.code});`];
+                    const batched = numberVectorLoop(input.size, index, scalar, undefined, '0', quad);
+                    loop = `if (modularBatchAllowed()) { ${batched} } else { ${loop} }`;
                 }
             }
             lines.push(`const ${result} = vectorArray(${input.shape}, ${type.element === 'real'}, vectorPool, vectorLive, [result, iterationResult, ${input.sources.join(',')}], ${type.element === 'boolean'}); ${loop}`);

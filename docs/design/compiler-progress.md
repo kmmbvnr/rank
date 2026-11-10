@@ -3486,3 +3486,19 @@ separate CPU helpers with no nested loops. Ordinary scalar caches retain peak
 coordinates and the reference slope between candidate tests. The
 [benchmark](../../benchmarks/euler569.md) records correctness, architecture,
 speed and memory checks; full reference execution remains a manual workload.
+
+### Euler 570: batched modular powers inside Number loops
+
+Fully materialized integer `powmod` vectors now retain four-lane modular
+arithmetic inside compiled Number loops, with independent bases, exponents and
+moduli and existing trailing broadcasting. Compact positive moduli use the
+shared exact kernel; larger domains retain guarded scalar calls. Private
+storage, scalar tails and ordinary binding boundaries remain. Observable
+budget, interrupt and inspection modes retain their existing checkpoint path.
+The stored-array operation also handles three equally shaped integer arrays.
+
+Euler 570 retains its modular gcd formula, uses smaller bounded batches and
+omits a redundant reduction before gcd. The one-power ratio prototype was
+correct but slower and was not adopted. The
+[benchmark](../../benchmarks/euler570.md) distinguishes compiler gains,
+reference throughput and peak memory on Mac and Intel.

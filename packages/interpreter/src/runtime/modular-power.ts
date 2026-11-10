@@ -75,8 +75,16 @@ export function safeIntegerModularPower(base: number, exponent: number, modulus:
  * bits through a 32-bit shift. Entry owns cancellation and domain guards. */
 export function modularModuliQuad(base: number, e0: number, e1: number, e2: number, e3: number,
     m0: number, m1: number, m2: number, m3: number, out: Int32Array, at: number): void {
-    let f0 = ((base % m0) + m0) % m0, f1 = ((base % m1) + m1) % m1;
-    let f2 = ((base % m2) + m2) % m2, f3 = ((base % m3) + m3) % m3;
+    modularInputsQuad(base, base, base, base, e0, e1, e2, e3, m0, m1, m2, m3, out, at);
+}
+
+/** Four independent safe bases, exponents and positive moduli <= 2^30.
+ * Callers own domain checks, private storage and cooperative polling. */
+export function modularInputsQuad(b0: number, b1: number, b2: number, b3: number,
+    e0: number, e1: number, e2: number, e3: number,
+    m0: number, m1: number, m2: number, m3: number, out: Int32Array | Float64Array, at: number): void {
+    let f0 = ((b0 % m0) + m0) % m0, f1 = ((b1 % m1) + m1) % m1;
+    let f2 = ((b2 % m2) + m2) % m2, f3 = ((b3 % m3) + m3) % m3;
     let r0 = m0 === 1 ? 0 : 1, r1 = m1 === 1 ? 0 : 1;
     let r2 = m2 === 1 ? 0 : 1, r3 = m3 === 1 ? 0 : 1;
     while (Math.max(e0, e1, e2, e3) > 4294967295) {

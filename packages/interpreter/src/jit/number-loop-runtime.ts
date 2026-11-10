@@ -13,7 +13,8 @@ import { loopTraversal, primeLoopBounds } from '../loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
 import { completed } from '../execution.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
-import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, interruptsEnabled, inspectionEnabled } from '../interrupt.js';
+import { modularInputsQuad } from '../modular-power.js';
 import { numericOrder } from '../runtime/numeric-collections.js';
 import { arrayRevision, reshapeStoredArray, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, filledArray, booleanCells, typedArray, realCells, storedOperandItems } from '../array-storage.js';
 import { tuple, isRankArray, type RankArray, type RankValue } from '../value.js';
@@ -532,7 +533,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     let run: Run;
     let countedRun: Run | undefined;
     const pollingRuns = new Map<LoopPolling, Run>();
-    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'orderArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'promoteIntegerCells', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', readers + '\n' + code)(
+    const compile = (code: string): Run => new Function('mulmod', 'safe', 'sortedIndex', 'sortedIndexBatch', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'wideIsqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'orderArray', 'shapeMismatch', 'copyArray', 'concatArrays', 'textLength', 'key', 'sliceArray', 'sliceResult', 'disjointSlices', 'vectorArray', 'rangeArray', 'vectorBlockSize', 'vectorLayout', 'compactVector', 'integerCell', 'streamScatterEnabled', 'tupleResult', 'bindOwned', 'promoteIntegerCells', 'numberPrimes', 'primeArray', 'recordWideFold', 'createRange', 'inferShape', 'powmodQuad', 'modularBatchAllowed', readers + '\n' + code)(
             modularMultiply, safe, numberSortedIndex, numberSortedIndexBatch, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -617,6 +618,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }, (dimensions: (number | undefined)[], size: number) => {
                 try { return reshapeDimensions(dimensions.map(value => value === undefined ? undefined : BigInt(value)), () => BigInt(size)); }
                 catch { throw overflow; }
+            }, modularInputsQuad, () => {
+                if (!privateLoopPolling() || demandBudgetEnabled() || interruptsEnabled() || inspectionEnabled()) return false;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.compiledModularPowers++;
+                return true;
             });
     try { run = compile(source); } catch { return recordFallback('number-loop:code-generation', 'proof'); }
     host.compiled?.(source);
