@@ -1,152 +1,179 @@
-rem Decreasing Prime Powers
+rem Decreasing prime powers
 rem https://projecteuler.net/problem=578
-
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg N integer = 10000000000000
-
-rem g(L, i, e) counts the ways to extend
-rem with primes from index i on, with
-rem exponents up to e. With exponent 1
-rem only: 1, plus each prime p up to
-rem sqrt L followed by the same count
-rem for L / p, plus the primes above
-rem sqrt L, counted by pi(L) read at
-rem quotient points of N from a Lucy
-rem sieve. An exponent e >= 2 on p
-rem recurses on L / p^e with cap e. A
-rem stack walks the tree.
-Rt = N isqrt
-Sm = array shape (Rt + 2) fill 0
-Lg = array shape (Rt + 2) fill 0
-for V in 2 to Rt
-  Sm V = V - 1
+Root = N isqrt
+fun Limit mobius
+  Size = Limit + 1
+  Mu = array shape Size fill 1
+  Mu 0 = 0
+  Rest = 0 to Limit copy
+  Top = Limit isqrt
+  for Prime in primes to Top array
+    Slots = Prime to Limit by Prime
+    Mu Slots *= -1
+    Square = Prime * Prime
+    Mu (Square to Limit by Square) = 0
+    Rest Slots //= Prime
+  end
+  Mask = Rest greater 1
+  Result = Mask choose (0 - Mu) Mu
+  return Result copy
 end
-for K in 1 to Rt
-  Lg K = N // K - 1
+Mu = Root mobius
+fun Weights prefix
+  Squared = Weights * Weights
+  Scanned = Squared scan + with 0
+  return Scanned drop 1 copy
 end
-for P in 2 to Rt
-  if Sm P greater (Sm (P - 1))
-    Sp = Sm (P - 1)
-    P2 = P * P
-    Kt = Rt min (N // P2)
-    for K in 1 to Kt
-      Kp = K * P
-      if Kp at most Rt
-        Lg K -= (Lg Kp) - Sp
-      else
-        Lg K -= (Sm (N // Kp)) - Sp
-      end
-    end
-    for V in Rt to P2 by -1
-      Sm V -= (Sm (V // P)) - Sp
+Prefix = Mu prefix
+Primes = primes to Root array
+fun Bound prime_counts
+  Indices = 0 to Bound copy
+  return Primes upperindex Indices
+end
+Pi = Root prime_counts
+Sentinel = array (Root + 1)
+Primes = concat Primes Sentinel
+rem This table only bounds memory.
+rem Larger queries use exact recursion.
+Cut = Root min 10000
+Depth = Primes len - 1 min 6
+fun Previous sift Prime
+  Count = Previous len
+  Limit = Count - 1
+  Bits = Limit binary len
+  Steps = 0 to Bits copy
+  Powers = Prime ** Steps
+  Keep = Powers at most Limit
+  Powers = Powers Keep copy
+  Signs = 1 - 2 * (Steps Keep mod 2)
+  Width = Powers len
+  Indices = 0 to Limit copy
+  Column = Indices reshape Count 1
+  Places = Column // Powers
+  Terms = Previous Places
+  Weights = Signs reshape 1 Width
+  Result = Terms * Weights sum axis 1
+  return Result copy
+end
+Small = Primes take Depth copy
+Initial = Prefix take (Cut + 1) copy
+rem Store rows for tail queries.
+Scanned = Small scan sift with Initial
+Table = Scanned copy
+rem Mobius inversion counts squarefree
+rem tails without enumerating products.
+fun Limit squarefree
+  if Limit at most Root
+    return Prefix Limit
+  end
+  End = Limit isqrt
+  Total = 0
+  for Divisor in 1 to End
+    Square = Divisor * Divisor
+    Count = Limit // Square
+    Total += Mu Divisor * Count
+  end
+  return Total
+end
+fun Limit rough Start
+  if Limit less 2
+    return Limit
+  end
+  if Limit at most Cut
+    if Start at most Depth
+      return Table Start Limit
     end
   end
-end
-Dp = Sm * 0
-Ra = 1 till Rt + 1 array
-Rb = 0 till Rt array
-Dp Ra = (Sm Ra) - (Sm Rb)
-Pl = Dp equal 1 indices
-Np = Pl len
-Tot = 0
-Sl = array shape 200 fill 0
-Si = array shape 200 fill 0
-Se = array shape 200 fill 0
-Sf = array shape 200 fill 0
-Sj = array shape 200 fill 0
-Sk = array shape 200 fill 0
-Sp0 = 1
-Sl 0 = N
-Si 0 = 0
-Se 0 = 43
-Sf 0 = 1
-Sj 0 = 0
-Sk 0 = 0
-for Sp0 greater 0
-  T = Sp0 - 1
-  L = Sl T
-  I = Si T
-  Em = Se T
-  if Sk T equal 0
-    Sk T = 1
-    if Em equal 1
-      Sq = L isqrt
-      Hi = 0
-      if L at most Rt
-        Hi = Sm L
-      else
-        Hi = Lg (N // L)
-      end
-      Lo = Sm Sq max I
-      Gp = Hi - Lo max 0
-      Tot += 1 + Gp
-      Sj T = I
+  if Start equal 0
+    return Limit squarefree
+  end
+  if Limit at most Root
+    Prime = Primes Start
+    if Prime * Prime greater Limit
+      Count = 1 + Pi Limit - Start
+      return Count max 1
     end
   end
-  Done = 0
-  if Em equal 1
-    J = Sj T
-    Sq = L isqrt
-    Ok = J less Np
-    if Ok
-      Ok = Pl J at most Sq
+  Left = Limit rough (Start - 1)
+  Next = Limit // Primes (Start - 1)
+  Right = Next rough Start
+  return Left - Right
+end
+rem Only the powerful prefix branches.
+Cap = N binary len - 1
+fun Low bracket High Degree
+  if High - Low at most 1
+    return Low
+  end
+  Middle = (Low + High) // 2
+  Power = Middle ** Degree
+  if Power at most N
+    return Middle bracket High Degree
+  end
+  return Low bracket Middle Degree
+end
+fun Degree power_rows rank 0
+  Bound = 0 bracket (Root + 1) Degree
+  Count = Pi Bound
+  Indices = 0 till Count copy
+  Small = Primes Indices
+  Values = Small ** Degree
+  Degrees = Indices * 0 + Degree
+  return stack Values Indices Degrees
+end
+fun prime_powers
+  Exponents' = 2 to Cap
+  Parts' = Exponents power_rows
+  Seed = array shape 3 0 fill 0
+  Rows = concat Seed unpack Parts axis 1
+  Values = Rows 0
+  Owners = Rows 1
+  Degrees = Rows 2
+  Order = Values argsort
+  return record
+    .powers = Values Order copy
+    .owners = Owners Order copy
+    .degrees = Degrees Order copy
+  end
+end
+Rules = prime_powers
+Powers = Rules .powers
+Owners = Rules .owners
+Degrees = Rules .degrees
+RuleCount = Powers len
+fun Limit solve Start Cap
+  if Limit less 2
+    return Limit
+  end
+  Total = Limit rough Start
+  Prime = Primes Start
+  if Prime * Prime greater Limit
+    return Total
+  end
+  rem Power order bounds the scan.
+  for Index in 0 till RuleCount
+    Power = Powers Index
+    if Power greater Limit
+      break
     end
-    if Ok
-      Sj T = J + 1
-      Sl Sp0 = L // (Pl J)
-      Si Sp0 = J + 1
-      Se Sp0 = 1
-      Sk Sp0 = 0
-      Sp0 += 1
-    else
-      Sp0 -= 1
-    end
-  else
-    Ex = Sf T
-    if Ex equal 1
-      Sf T = 2
-      Sj T = I
-      Sl Sp0 = L
-      Si Sp0 = I
-      Se Sp0 = 1
-      Sk Sp0 = 0
-      Sp0 += 1
-    else
-      J = Sj T
-      Pw = 1
-      Ok = J less Np
-      if Ok
-        Pj = Pl J
-        Pw = Pj
-        for Q in 2 to Ex
-          Pw *= Pj
-          if Pw greater L
-            Pw = L + 1
-          end
-        end
-        Ok = Pw at most L
-      end
-      if Ok
-        Sj T = J + 1
-        Sl Sp0 = L // Pw
-        Si Sp0 = J + 1
-        Se Sp0 = Ex
-        Sf Sp0 = 1
-        Sk Sp0 = 0
-        Sp0 += 1
-      else
-        Sf T = Ex + 1
-        Sj T = I
-        if Ex + 1 greater Em
-          Sp0 -= 1
-        end
+    Owner = Owners Index
+    Degree = Degrees Index
+    if Owner at least Start
+      if Degree at most Cap
+        Next = Limit // Power
+        First = Owner + 1
+        Total += Next solve First Degree
       end
     end
   end
+  return Total
 end
-Answer = Tot
+Answer = N solve 0 Cap
 Answer print

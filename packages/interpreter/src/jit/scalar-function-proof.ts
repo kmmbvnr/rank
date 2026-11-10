@@ -448,6 +448,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (loops && isBinaryExpression(source) && ['to', 'till'].includes(source.operator)) {
                     let owner = source.$container;
                     while (owner && isParenthesizedExpression(owner)) owner = owner.$container;
+                    // Explicit native copy has the same eager binding boundary.
+                    // Its own lowering and guard still own the copy operation.
+                    if (owner && isApplicationExpression(owner)) {
+                        const parts = flattenApplication(owner), last = parts.at(-1);
+                        if (parts.length === 2 && unwrap(parts[0]) === source && isNameExpression(last)
+                            && last.name === 'copy' && !env.has('copy') && !lexicalBinding(scope, 'copy')) {
+                            owner = owner.$container;
+                            while (owner && isParenthesizedExpression(owner)) owner = owner.$container;
+                        }
+                    }
                     // An ordinary binding completes the range before anything
                     // else observes it. Broader metadata consumers stay lazy.
                     if (owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '='

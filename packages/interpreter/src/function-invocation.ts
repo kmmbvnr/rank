@@ -869,7 +869,7 @@ export class FunctionInvocation {
         });
         const users: LoopCallable[] = [];
         const memberships: ((value: bigint) => boolean)[] = [];
-        const captures: ((indices: bigint[]) => bigint)[] = [];
+        const captures: NonNullable<ReturnType<typeof capturedIntegerReader>>[] = [];
         const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
@@ -934,6 +934,8 @@ export class FunctionInvocation {
             checkpoint(activity, amount, details);
         } : checkpoint;
         const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls, poll);
+        const readOnlyAllowed = () => !this.compiler.hooks.onScalarFunctionExecuted
+            && !inspectionEnabled() && privateLoopPolling() && !demandBudgetEnabled();
         const rawNumber = kernel.numberDirect ? kernel.numberDirect(
             locate,
             val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
@@ -947,6 +949,18 @@ export class FunctionInvocation {
             memberships,
             numberUsers,
             planConsumed,
+            captures,
+            scalars,
+            readOnlyAllowed,
+            () => {
+                poll('calling recursive numeric function');
+                if (this.depth >= this.maxDepth) throw numberOverflow;
+                this.depth++;
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) diagnostics.numberFunctions++;
+            },
+            () => { this.depth--; },
+            (error, args) => { this.frames.addCall(error, statement, args.map(BigInt)); },
         ) : undefined;
         const observablePlan = kernel.plans && !!(this.compiler.hooks.onTensorKernelExecuted
             || this.compiler.hooks.onScalarFunctionExecuted);
@@ -971,7 +985,7 @@ export class FunctionInvocation {
                         const diagnostics = currentDiagnostics();
                         if (diagnostics) diagnostics.numberFunctionSkips++;
                     }
-                    if (rawNumber && probeNumber && (!kernel.plans || !observablePlan && privateLoopPolling() && !demandBudgetEnabled())
+                    if (rawNumber && probeNumber && (!kernel.numberReadOnly || readOnlyAllowed()) && (!kernel.plans || !observablePlan && privateLoopPolling() && !demandBudgetEnabled())
                         && (!kernel.memberships.length || privateLoopPolling() && !demandBudgetEnabled())
                         && (!kernel.numberStorage || this.compiler.loops.number && privateLoopPolling()
                         && (kernel.numberStorage !== 'queues' || nativeDequeMethods()))
@@ -1036,7 +1050,8 @@ export class FunctionInvocation {
                                 }
                                 if (probeNumber && rawNumber && !this.compiler.hooks.onScalarFunctionExecuted
                                     && kernel.returnType === 'integer' && !kernel.plans && !kernel.numberStorage
-                                    && !kernel.memberships.length && !kernel.scalarCaptures.length && privateLoopPolling() && !demandBudgetEnabled()
+                                    && !kernel.memberships.length && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed())
+                                    && privateLoopPolling() && !demandBudgetEnabled()
                                     && arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a)))) {
                                     try {
                                         const diagnostics = currentDiagnostics();
@@ -1134,6 +1149,7 @@ export class FunctionInvocation {
                 throw error;
             };
             run.numberDirect = (...arguments_: NumberCallArgument[]) => {
+                if (kernel.numberReadOnly && !readOnlyAllowed()) throw numberOverflow;
                 // An observable consumer may mutate a captured caller buffer.
                 // The exact ABI retains its binding; a raw read view cannot.
                 if (kernel.plans && (observablePlan || !privateLoopPolling() || demandBudgetEnabled())) throw numberOverflow;
@@ -1242,7 +1258,7 @@ export class FunctionInvocation {
                     ? captureReaders[index] : capturedIntegerReader(() => resolve(name), rank);
                 if (!reader) return false;
                 captureReaders[index] = reader;
-                captures[index] = reader.read;
+                captures[index] = reader;
             }
             for (const name of kernel.guards) {
                 const operation = findOperation(name);

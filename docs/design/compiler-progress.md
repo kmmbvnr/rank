@@ -3547,3 +3547,24 @@ search and tensor support cover this work; no new compiler special case is
 needed. The full demo returns to ordinary corpus audits. The
 [benchmark](../../benchmarks/euler574.md) records the proof, independent checks,
 architecture-specific timings and peak memory.
+
+
+### Euler 578: captured integer readers and read-only Number recursion
+
+Explicit native copies of eager function-local ranges can reach the existing
+range-array proof without relaxing deferred/public plan boundaries. Captured
+scalar addresses use one/two-index reader methods rather than allocating an
+index array on every access.
+
+Read-only integer function graphs can borrow completed private Int32/Int64
+captures and use checked Number recursion. Entry guards refresh bindings and
+storage revisions; unsafe cells, arithmetic and results replay exactly.
+Opaque/shared readers, inspection, budgets and observable function hooks keep
+the previous route. Recursive depth and atomic cancellation checkpoints remain
+observable, errors recover ordinary frames, and existing tail-call execution
+keeps constant depth. Numeric proof thresholds and language syntax are unchanged.
+
+Euler 578 separates powerful prefixes from squarefree tails, with a bounded
+array-built tail cache. The [benchmark](../../benchmarks/euler578.md) separates
+program/runtime controls, full compiled speed and memory, and the remaining
+manual full-reference lane.

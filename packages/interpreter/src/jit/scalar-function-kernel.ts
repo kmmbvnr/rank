@@ -1,3 +1,4 @@
+import type { CapturedIntegerReader } from './scalar-selection.js';
 import { tensorCells } from '../rank-application.js';
 import { Operators, makeRange } from '../operators.js';
 import { AstUtils } from 'langium';
@@ -23,7 +24,7 @@ import {
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { sequenceValues } from '../sequence.js';
-import { checkpoint, privateLoopPolling, demandBudgetEnabled } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, InterruptedError } from '../interrupt.js';
 import { argumentSelectionError, RankError } from '../errors.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { isRankArray, type RankArray, type RankSequence, type RankValue } from '../value.js';
@@ -65,15 +66,16 @@ interface Kernel {
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly LoopCallable[],
         userCalls?: readonly LoopCallable[],
         memberships?: readonly ((value: bigint) => boolean)[],
-        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void, rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[], poll?: typeof checkpoint): RankValue;
+        captures?: readonly CapturedIntegerReader[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void, rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[], poll?: typeof checkpoint): RankValue;
     readonly direct?: (locate: (error: unknown, index: number) => unknown,
         calls?: readonly LoopCallable[],
         userCalls?: readonly LoopCallable[],
         memberships?: readonly ((value: bigint) => boolean)[],
-        captures?: readonly ((indices: bigint[]) => bigint)[],
+        captures?: readonly CapturedIntegerReader[],
         scalars?: readonly (() => RankValue)[],
         planConsumed?: () => void,
         rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[], poll?: typeof checkpoint) => LoopCallable;
+    readonly numberReadOnly?: boolean;
     readonly numberStorage?: 'arrays' | 'queues';
     readonly numberArrayArguments: readonly number[];
     readonly numberDirect?: (locate: (error: unknown, index: number) => unknown,
@@ -86,9 +88,23 @@ interface Kernel {
         powerZero?: () => Error,
         powerDomain?: () => Error,
         memberships?: readonly ((value: bigint) => boolean)[],
-        users?: readonly LoopCallable[], planConsumed?: () => void) => LoopCallable;
+        users?: readonly LoopCallable[], planConsumed?: () => void,
+        captures?: readonly CapturedIntegerReader[], scalars?: readonly (() => RankValue)[],
+        readOnlyAllowed?: () => boolean, enterRecursion?: () => void, leaveRecursion?: () => void,
+        recursiveError?: (error: RankError, args: number[]) => void) => LoopCallable;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
+
+/** Read-only integer graphs may replay after a numeric guard fails. Captured
+ * storage is separately borrowed at entry; opaque readers never enter it. */
+function readOnlyIntegerFunction(proof: ScalarFunctionProof): boolean {
+    return proof.type === 'integer' && proof.parameterTypes.every(type => type === 'integer')
+        && !proof.arrayWrites.size && !proof.containerWrites.size && !proof.planReturn;
+}
+function legacyNumberFunction(proof: ScalarFunctionProof, memberships: readonly string[]): boolean {
+    return !proof.recursive && (proof.callCount ? privateScalarFunction(proof, true)
+        : proof.dependencies.every(name => memberships.includes(name)));
+}
 
 function compileScalarNumberKernel(
     statement: FunctionStatement,
@@ -97,12 +113,18 @@ function compileScalarNumberKernel(
     locations: readonly (Statement | Expression)[],
     memberships: readonly string[],
     users: Kernel['userCalls'],
+    captures: Kernel['captures'],
+    scalarCaptures: Kernel['scalarCaptures'],
 ): Kernel['numberDirect'] | undefined {
     if (proof.planReturn && typeof proof.type !== 'string') return undefined;
-    if (!proof.localArrayWrites || proof.planCalls.length
-        || proof.iterableBindings.size || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd', 'band', 'bor', 'bxor'].includes(name))
-        || proof.recursive || (proof.callCount ? !privateScalarFunction(proof, true)
-            : proof.dependencies.some(name => !memberships.includes(name)))) return undefined;
+    const legacy = legacyNumberFunction(proof, memberships);
+    const readOnly = readOnlyIntegerFunction(proof);
+    const recursive = proof.recursive;
+    if (!proof.localArrayWrites || proof.planCalls.length || proof.iterableBindings.size
+        || proof.nativeReads.some(name => !['len', 'floor', 'ceil', 'abs', 'choose', 'min', 'max', 'isqrt', 'sum', 'count', 'powmod', 'gcd', 'band', 'bor', 'bxor'].includes(name))
+        || !legacy && !readOnly
+        // Tail calls retain their existing constant-depth exact implementation.
+        || recursive && users.some(call => call.recursive && call.tail)) return undefined;
     // Newly admitted captured memberships retain the exact kernel's reader
     // guards. Keep small inputs/counters explicitly Int32 for hot remainders;
     // wider inputs replay exactly rather than silently truncate.
@@ -208,10 +230,39 @@ function compileScalarNumberKernel(
         }
         if (compiled.kind === 'input') {
             const input = compiled.input;
+            if (input.operation === 'captured-scalar') {
+                const index = scalarCaptures.findIndex(capture => capture.name === input.name);
+                if (index < 0) return undefined;
+                const value = `scalars[${index}]()`;
+                return compiled.type === 'integer' ? `safe(Number(${value}))` : value;
+            }
+            if (input.operation === 'captured-read') {
+                const index = captures.findIndex(capture => capture.name === input.name && capture.rank === input.indices!.length);
+                if (index < 0 || ![1, 2].includes(input.indices!.length)) return undefined;
+                const indices = input.indices!.map(operand => lowerNum(operand, lines));
+                if (indices.some(index => index === undefined)) return undefined;
+                return `captured${index}.read${indices.length}(${indices.join(',')})`;
+            }
             if (input.operation === 'plan') return numberPlan(input.plan!, lines);
+            if (input.operation === 'self-call') {
+                if (!recursive || !readOnly) return undefined;
+                const args: string[] = [];
+                for (const argument of input.indices ?? []) {
+                    const value = lowerNum(argument, lines);
+                    if (value === undefined) return undefined;
+                    const name = `v${serial++}`;
+                    lines.push(`const ${name} = ${value};`);
+                    args.push(name);
+                }
+                const result = `v${serial++}`;
+                lines.push(`let ${result}; enterRecursion(); try { ${result} = numberBody(${args.join(',')}); }
+                    catch (error) { if (error instanceof InterruptedError) recursiveError(error, [${args.join(',')}]); throw error; }
+                    finally { leaveRecursion(); }`);
+                return `safe(${result})`;
+            }
             if (input.operation === 'user-call' && input.callee) {
                 const callee = input.callee;
-                if (!privateScalarFunction(callee.proof, true)
+                if ((!privateScalarFunction(callee.proof, true) && !readOnlyIntegerFunction(callee.proof))
                     || !compileScalarFunction(callee.statement, callee.types, true, callee.captures)?.numberDirect) return undefined;
                 const index = users.findIndex(call => call.name === input.name && call.statement === callee.statement
                     && call.types.every((type, index) => sameCompiledCalleeType(type, callee.types[index])));
@@ -693,15 +744,18 @@ function compileScalarNumberKernel(
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
     const narrowParameters = narrowMembership ? statement.parameters.flatMap((name, index) => parameterTypes[index] === 'integer'
         ? [`if (${slot(name)} !== (${slot(name)} | 0)) throw overflow; ${slot(name)} |= 0;`] : []) : [];
-    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain, memberships, users, planConsumed) {
-        return function(${paramNames.join(',')}) {
+    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, power, badStep, powerZero, powerDomain, memberships, users, planConsumed, captures, scalars, readOnlyAllowed, enterRecursion, leaveRecursion, recursiveError) {
+        return function numberBody(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;
-            try { ${vectorResult ? 'if (!vectorAllowed()) throw overflow;' : ''} ${narrowParameters.join('\n')} ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+            try { ${!legacy ? 'if (!readOnlyAllowed()) throw overflow;' : ''} ${(captures.length || scalarCaptures.length) ? 'if (!vectorAllowed()) throw overflow;' : ''}
+                ${captures.map((_, i) => `const captured${i} = captures[${i}].borrowNumber();`).join('\n')}
+                ${vectorResult ? 'if (!vectorAllowed()) throw overflow;' : ''} ${narrowParameters.join('\n')} ${lines.join('\n')}
+            } catch (error) { ${recursive ? 'if (error instanceof RankError && !(error instanceof InterruptedError)) throw overflow;' : ''} throw locate(error, location); }
         };
     };`;
     try {
-        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'FunctionPlanDemandError', 'gcd', 'powmod', 'integerVector', 'vectorAllowed', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, FunctionPlanDemandError,
+        return new Function('isqrt', 'mulmod', 'PrivateNumericArray', 'broadcastShape', 'RankError', 'InterruptedError', 'FunctionPlanDemandError', 'gcd', 'powmod', 'integerVector', 'vectorAllowed', source)(safeIntegerSquareRoot, checkedNumberModularMultiply, PrivateNumericArray, broadcastShape, RankError, InterruptedError, FunctionPlanDemandError,
             (left: number, right: number) => {
                 if (!privateLoopPolling() || demandBudgetEnabled()) throw numberOverflow;
                 checkpoint('computing numbers');
@@ -975,9 +1029,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (operation === 'captured-read') {
                 const indices = expression.input.indices!.map(index => lower(index, lines));
                 const index = captures.push({ name: expression.input.name, rank: indices.length }) - 1, result = `v${serial++}`;
-                lines.push(selection ? `let ${result}; try { ${result} = captures[${index}]([${indices.join(',')}]); }
+                const read = indices.length === 1 ? `captures[${index}].read1(${indices[0]})`
+                    : indices.length === 2 ? `captures[${index}].read2(${indices.join(',')})`
+                    : `captures[${index}].read([${indices.join(',')}])`;
+                lines.push(selection ? `let ${result}; try { ${result} = ${read}; }
                     catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`
-                    : `const ${result} = captures[${index}]([${indices.join(',')}]);`);
+                    : `const ${result} = ${read};`);
                 return result;
             }
             if (operation === 'concat' || operation === 'concat-copy') {
@@ -1408,9 +1465,10 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         // Default proofs already use integer parameter domains. Build the same
         // Number variant whichever caller first populates the proof-keyed cache.
         const numberDirect = compileScalarNumberKernel(statement, proof,
-            parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships, userCalls);
+            parameterTypes ?? statement.parameters.map(() => 'integer' as const), locations, memberships, userCalls, captures, scalarCaptures);
         kernel = {
             source,
+            numberReadOnly: !!numberDirect && !legacyNumberFunction(proof, memberships),
             privateFolds: [...expressions.values()].some(expression => expression.kind === 'input'
                 && (expression.input.operation === 'fold' || expression.input.privateFold === true)),
             plans: proof.planReturn || proof.planBindings.size > 0 || proof.iterableBindings.size > 0

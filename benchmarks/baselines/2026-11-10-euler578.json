@@ -1,0 +1,702 @@
+{
+  "baseRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc",
+  "runtimeSourceSha256": {
+    "packages/interpreter/src/function-invocation.ts": "67c4a39a749b500f9e2cd025fd9e00366fc017fbd92daafe0cb0919edd2673c6",
+    "packages/interpreter/src/jit/scalar-function-kernel.ts": "efc967569e36839f66231f6c92f32791470e93a5f1ea561a9b4e74e93495a96b",
+    "packages/interpreter/src/jit/scalar-function-proof.ts": "4ba231469eafab2486eeef40aa4a41ead6b545e2a25a7b945628392c837476b6",
+    "packages/interpreter/src/jit/scalar-selection.ts": "b784b1b6ca1f9135cee40a7ead162ee1825144f6532d480515630206680ff74b"
+  },
+  "input": "N=10000000000000",
+  "expected": "9219696799346",
+  "primary": {
+    "mac": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 44722.930416,
+        "cpu": {
+          "user": 44415179,
+          "system": 299244
+        },
+        "rssMiB": 337.671875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 0,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 8790.374,
+        "cpu": {
+          "user": 8763220,
+          "system": 81185
+        },
+        "rssMiB": 335.875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 0,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 46992.781749999995,
+        "cpu": {
+          "user": 46315293,
+          "system": 397948
+        },
+        "rssMiB": 334.65625,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 1,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 7591.3618750000005,
+        "cpu": {
+          "user": 7956377,
+          "system": 33027
+        },
+        "rssMiB": 334.15625,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 1,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 46318.82525,
+        "cpu": {
+          "user": 45891861,
+          "system": 306335
+        },
+        "rssMiB": 341.796875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 2,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 7865.535416000001,
+        "cpu": {
+          "user": 8230493,
+          "system": 41132
+        },
+        "rssMiB": 335.296875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 2,
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      }
+    ],
+    "intel": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 102650.27603,
+        "cpu": {
+          "user": 103383906,
+          "system": 50964
+        },
+        "rssMiB": 352.85546875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 0,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 21007.322356,
+        "cpu": {
+          "user": 21704355,
+          "system": 91114
+        },
+        "rssMiB": 317.26171875,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 0,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 104952.637004,
+        "cpu": {
+          "user": 105598641,
+          "system": 84021
+        },
+        "rssMiB": 341.83203125,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 1,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 21682.958883,
+        "cpu": {
+          "user": 22481753,
+          "system": 84675
+        },
+        "rssMiB": 317.75390625,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 1,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 107686.463054,
+        "cpu": {
+          "user": 108352114,
+          "system": 97277
+        },
+        "rssMiB": 345.140625,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "before",
+        "sample": 2,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 21125.987916000002,
+        "cpu": {
+          "user": 21885670,
+          "system": 52891
+        },
+        "rssMiB": 316.09375,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "variant": "after",
+        "sample": 2,
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      }
+    ]
+  },
+  "controls": {
+    "mac": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 38685.600375,
+        "cpu": {
+          "user": 43227006,
+          "system": 460965
+        },
+        "rssMiB": 537.78125,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "label": "new-source-old-runtime",
+        "status": "completed",
+        "deadlineSeconds": 180,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000",
+        "limit": "1000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 16125.634625,
+        "cpu": {
+          "user": 16572985,
+          "system": 114396
+        },
+        "rssMiB": 439.890625,
+        "answer": "921966697",
+        "diagnosticMode": false,
+        "label": "before-reduced-reference",
+        "status": "completed",
+        "deadlineSeconds": 120,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000",
+        "limit": "1000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 3221.509333,
+        "cpu": {
+          "user": 4149349,
+          "system": 58265
+        },
+        "rssMiB": 470.4375,
+        "answer": "921966697",
+        "diagnosticMode": false,
+        "label": "after-reduced-reference",
+        "status": "completed",
+        "deadlineSeconds": 120,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      },
+      {
+        "label": "after-full-reference",
+        "mode": "reference",
+        "n": "10000000000000",
+        "status": "timed-out",
+        "deadlineSeconds": 300,
+        "elapsedSeconds": 300.025936417,
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      }
+    ],
+    "intel": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 101705.116119,
+        "cpu": {
+          "user": 121180414,
+          "system": 258597
+        },
+        "rssMiB": 567.01953125,
+        "answer": "9219696799346",
+        "diagnosticMode": false,
+        "label": "new-source-old-runtime",
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000",
+        "limit": "1000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f80ae27539482d72e87d00aee8f6252a312b6bec400278861e952ef45d6ca441",
+        "ms": 44104.482195000004,
+        "cpu": {
+          "user": 45501086,
+          "system": 186450
+        },
+        "rssMiB": 428.2421875,
+        "answer": "921966697",
+        "diagnosticMode": false,
+        "label": "before-reduced-reference",
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "b3b75fa628e115e7a252f305e29fdf2834b351fc"
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000",
+        "limit": "1000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e5d1ed3469badece9c80161d198db568582929b1b01c3739b76d64937e61dfc5",
+        "ms": 10208.452521,
+        "cpu": {
+          "user": 12490513,
+          "system": 258428
+        },
+        "rssMiB": 444.19921875,
+        "answer": "921966697",
+        "diagnosticMode": false,
+        "label": "after-reduced-reference",
+        "status": "completed",
+        "deadlineSeconds": 300,
+        "runtimeRevision": "base plus runtimeSourceSha256"
+      }
+    ]
+  },
+  "experimental": [
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "585859cfa09dcd9bc7c165bcd70031ac49212241a5d9dde9e9d135c95fb93401",
+      "ms": 24291.763584,
+      "cpu": {
+        "user": 27581092,
+        "system": 161038
+      },
+      "rssMiB": 726.75,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "core-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "9239e7b257f78eff9d477cf728c79ce341a1d71d0faac23abd196e5f7f83f700",
+      "ms": 25456.660708,
+      "cpu": {
+        "user": 28639480,
+        "system": 263572
+      },
+      "rssMiB": 638.46875,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "core-copy-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "9239e7b257f78eff9d477cf728c79ce341a1d71d0faac23abd196e5f7f83f700",
+      "ms": 24809.562250000003,
+      "cpu": {
+        "user": 27919026,
+        "system": 213558
+      },
+      "rssMiB": 619.71875,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "reader-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "9239e7b257f78eff9d477cf728c79ce341a1d71d0faac23abd196e5f7f83f700",
+      "ms": 26134.374832999998,
+      "cpu": {
+        "user": 29318594,
+        "system": 171190
+      },
+      "rssMiB": 643.265625,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "num-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "9239e7b257f78eff9d477cf728c79ce341a1d71d0faac23abd196e5f7f83f700",
+      "ms": 14745.023625,
+      "cpu": {
+        "user": 17958970,
+        "system": 261138
+      },
+      "rssMiB": 619.8125,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "hoist-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "2ff641fe2a187cd105f78489d86185deb06f3eb8eb64be685251a24c5f826793",
+      "ms": 5666.824333,
+      "cpu": {
+        "user": 5814379,
+        "system": 51365
+      },
+      "rssMiB": 314.4375,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "recursive-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "eae964908b2a780917d734f100059f3e1f03adb0845252900a08f6545efd00b7",
+      "ms": 4977.982792,
+      "cpu": {
+        "user": 5311880,
+        "system": 22462
+      },
+      "rssMiB": 335.40625,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "rules-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "78b92360717e6e0f378d55a052cddd6b175d673f7512cbfa96eecaa360efe689",
+      "ms": 34211.625582999994,
+      "cpu": {
+        "user": 38481547,
+        "system": 382162
+      },
+      "rssMiB": 1197.96875,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "frontier-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "2692f4ca2069a5b19ed04eaaa48848a7410167b33f6d5a31244f17a4ffd1603e",
+      "ms": 5746.521042,
+      "cpu": {
+        "user": 5845877,
+        "system": 55179
+      },
+      "rssMiB": 384,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "array-rows-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "e9e3a82aabaf468ae6a194e38ad690af533025746b8533020982aa8e4b9873c1",
+      "ms": 8397.683084,
+      "cpu": {
+        "user": 8707465,
+        "system": 130265
+      },
+      "rssMiB": 326.484375,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "scan-table-copy-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "71fbab6415bc1e22ed4155ddbdb4ebb63124379985b793c4a78e23396492ec25",
+      "ms": 7637.768666,
+      "cpu": {
+        "user": 7822723,
+        "system": 64354
+      },
+      "rssMiB": 327.609375,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "scan-six-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "5b2241a0d8d382dda5afa475b46dca650f8e5e66010cff2568d0d7e6608f0f7b",
+      "ms": 7864.544666000001,
+      "cpu": {
+        "user": 8932015,
+        "system": 99300
+      },
+      "rssMiB": 667.875,
+      "answer": "9219696799346",
+      "diagnosticMode": false,
+      "label": "wide-table-full",
+      "status": "completed",
+      "runtimeRevision": "experimental compiler stage; not a paired comparison",
+      "deadlineSeconds": null
+    },
+    {
+      "mode": "reference",
+      "n": "1000000000",
+      "limit": "1000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "cd50cabbc40bcab65c43b28cd647e3bb6d883defa2c6df153b577467fc874c1c",
+      "ms": 3911.8546659999997,
+      "cpu": {
+        "user": 5047887,
+        "system": 45588
+      },
+      "rssMiB": 475.71875,
+      "answer": "921966697",
+      "diagnosticMode": false
+    },
+    {
+      "mode": "compiled",
+      "n": "10000000000000",
+      "limit": "10000000000000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "cd50cabbc40bcab65c43b28cd647e3bb6d883defa2c6df153b577467fc874c1c",
+      "ms": 18330.232708000003,
+      "cpu": {
+        "user": 18598028,
+        "system": 57717
+      },
+      "rssMiB": 326.875,
+      "answer": "9219696799346",
+      "diagnosticMode": false
+    },
+    {
+      "label": "unmaterialized scan table",
+      "sourceSha256": "3e1a4121a797f8fad239e09e4526d7107fc7244f72c63483ab7f7d461c90be08",
+      "mode": "compiled",
+      "n": "10000000000000",
+      "arch": "arm64",
+      "status": "externally-stopped",
+      "exitCode": 130,
+      "signal": "SIGINT",
+      "deadlineSeconds": null,
+      "elapsedSeconds": null,
+      "rssMiB": null,
+      "answer": null,
+      "runtimeRevision": "experimental compiler stage"
+    }
+  ],
+  "verification": {
+    "macFocused": 658,
+    "intelFocused": 658,
+    "macFilteredFixtureAudits": 3,
+    "exclusionPolicy": 5,
+    "typescriptBuild": "passed",
+    "fullNpmTest": "not run"
+  }
+}
