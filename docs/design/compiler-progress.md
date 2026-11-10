@@ -548,7 +548,26 @@ including nonnegative shift positions and the nonnegative popcount domain.
 A complete region may contain up to 128 statements across its outer body,
 nested branches and loops. Expression generation remains bounded. Exceeding
 the region limit reports `statement-budget` rather than an unsupported assignment;
-`rank --diagnostics program.ra` prints loop fallback reasons to stderr.
+`rank --diagnostics program.ra` prints compiler diagnostics to stderr without
+changing program stdout or arguments. It includes execution counters, all
+recorded fallback reasons, and source-located rejection snapshots from function,
+loop, scalar-expression and tensor compilation. Each snapshot identifies the
+backend, file, line, column, enclosing function when available, and source text.
+Common reasons also have a plain-language explanation.
+
+These are candidate rejections and delegated operations, not a verdict that the
+whole program was interpreted. Another compiled or native path may succeed.
+Runtime-only reasons without source locations remain visible in the fallback
+counters. Silent probe misses and code not reached by this run are not covered;
+no rejection does not prove complete compilation. Counters are not a coverage
+percentage, and compiled regions may still delegate individual operations.
+
+The default retains 64 distinct snapshots and reports omitted occurrences.
+`rank --diagnostics=all program.ra` removes that site limit at the cost of memory
+proportional to the number of distinct rejection sites. Repeated sites are
+coalesced, imported files retain their own source identifiers, and individual
+source excerpts remain bounded to 160 characters. Reports are also printed when
+execution fails. Diagnostics use passive runtime observations, not compiler hooks.
 
 Euler 103 uses scalar leaf checks and copies a successful set into its output
 array element by element, allowing the full depth-array search to compile. The

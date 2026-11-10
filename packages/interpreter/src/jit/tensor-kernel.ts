@@ -14,7 +14,7 @@ import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { applicationForm, typeConversionForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling, InterruptedError } from '../interrupt.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
-import { compilerRejection } from './compiler-rejection.js';
+import { describeCompilerRejection, recordCompilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains, matchCompiledCallSignature,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
@@ -126,7 +126,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
     const domains = new Map<TensorNode, Domain>();
     const unknown: Domain = ['integer', 'real', 'boolean', 'text'];
     function reject(node: Expression | Statement, detail?: string): undefined {
-        if (!attempt.rejected && currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
+        if (!attempt.rejected && currentDiagnostics()) recordCompilerRejection(describeCompilerRejection('tensor', node, detail));
         attempt.rejected = true;
         return undefined;
     }

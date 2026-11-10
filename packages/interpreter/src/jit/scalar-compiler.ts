@@ -8,7 +8,7 @@ import {
 import { isRankArray, type RankValue } from '../value.js';
 import { modularProduct } from '../runtime/modular-fold.js';
 import type { Evaluation } from '../execution.js';
-import { compilerRejection } from './compiler-rejection.js';
+import { compilerRejection, describeCompilerRejection, recordCompilerRejection, rememberCompilerRejection } from './compiler-rejection.js';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 
 interface Host<T = RankValue> {
@@ -52,7 +52,7 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
             count = before.count;
             result = read(e, true);
         }
-        if (result === undefined && currentDiagnostics()) recordFallback(compilerRejection('scalar-expression', e));
+        if (result === undefined && currentDiagnostics()) recordCompilerRejection(describeCompilerRejection('scalar-expression', e));
         return result;
     }
     function read(e: Expression, fallback = false): string | undefined {
@@ -60,7 +60,11 @@ function compile(expression: Expression, host: Host<RankValue | Evaluation<RankV
         if (!reader) return undefined;
         const name = `v${serial++}`, index = readers.length;
         const reason = fallback ? compilerRejection('scalar-expression', e) : undefined;
-        readers.push(reason ? () => { recordFallback(reason); return reader(); } : reader);
+        readers.push(reason ? () => {
+            if (currentDiagnostics()) rememberCompilerRejection(describeCompilerRejection('scalar-expression', e));
+            recordFallback(reason);
+            return reader();
+        } : reader);
         lines.push(resumable
             ? `const p${index} = readers[${index}](); const ${name} = 'done' in p${index} ? p${index}.value : (yield { task: p${index} });`
             : `const ${name} = readers[${index}]();`);

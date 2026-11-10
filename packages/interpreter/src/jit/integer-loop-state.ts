@@ -3,7 +3,8 @@ import { integerRangeFacts } from './integer-range-facts.js';
 import { AstUtils, type AstNode } from 'langium';
 import { INTERRUPT_POLL_INTERVAL } from '../interrupt.js';
 import { type LoopHost, type IntegerLoopPlan, type LoopTerm, type LoopPolling } from './integer-loop-plan.js';
-import { compilerRejection } from './compiler-rejection.js';
+import { compilerRejection, describeCompilerRejection, rememberCompilerRejection } from './compiler-rejection.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import {
     isForStatement, isFunctionStatement, isReturnStatement, statementResultDiscarded, isArrayAssignmentStatement, isAssignmentStatement, isParenthesizedExpression, isUnpackStatement, isStringLiteral, isApplicationExpression, flattenApplication, isNameExpression, findOperation,
     type Expression, type Statement, type ForStatement, type FunctionStatement,
@@ -39,6 +40,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const checkpoint = workCounting ? 'work++; checkpoint();' : polling === 'none' ? ''
         : polling === 'batched' ? `if (++pollWork === ${INTERRUPT_POLL_INTERVAL}) { pollWork = 0; checkpoint(undefined, ${INTERRUPT_POLL_INTERVAL}); }` : 'checkpoint();';
     function reject(node: Expression | Statement, detail?: string): undefined {
+        if (currentDiagnostics()) rememberCompilerRejection(describeCompilerRejection(numberMode ? 'number-loop' : 'loop', node, detail));
         failed(compilerRejection('loop', node, detail));
         return undefined;
     }

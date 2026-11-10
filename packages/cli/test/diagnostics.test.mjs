@@ -64,7 +64,7 @@ test('diagnostics requires a file and appears in help', () => {
 });
 
 
-test('diagnostics identifies fused gather/update regions', t => {
+test('diagnostics identifies the selected loop path for gather/update work', t => {
     const directory = mkdtempSync(join(tmpdir(), 'rank-array-diagnostics-'));
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     const file = join(directory, 'program.ra');
@@ -82,6 +82,38 @@ A sum print
     const result = run(['--diagnostics', file]);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, '22\n');
-    assert.match(result.stderr, /fusedArrayRegions: 2/);
-    assert.match(result.stderr, /fusedArrayRegionCells: 8/);
+    // The Number loop now owns this work rather than the standalone fused region.
+    assert.match(result.stderr, /numberLoops: 1/);
+    assert.match(result.stderr, /fusedArrayRegions: 0/);
+    assert.match(result.stderr, /fusedArrayRegionCells: 0/);
+});
+
+test('diagnostics locates the rejected statement and explains its budget', t => {
+    const file = fixture(t, 129);
+    const result = run(['--diagnostics', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(result.stderr.includes(`${file}:134:3`), result.stderr);
+    assert.match(result.stderr, /The region exceeds the statement budget/);
+    assert.match(result.stderr, /source: "T \+= R"/);
+    assert.match(result.stderr, /another compiled or native path/);
+});
+
+test('diagnostics reports non-loop sites and makes truncation recoverable', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-all-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, 'use io\n' + Array.from({ length: 80 }, (_, i) => `Value${i} = array 1 2 3`).join('\n') + '\nValue79 sum print\n');
+    const normal = run([file]);
+    const limited = run(['--diagnostics', file]);
+    const complete = run(['--diagnostics=all', file]);
+    for (const result of [normal, limited, complete]) {
+        assert.equal(result.status, 0, result.stderr);
+        assert.equal(result.stdout, '6\n');
+    }
+    assert.equal(normal.stderr, '');
+    assert.match(limited.stderr, /rejection occurrences omitted/);
+    assert.match(limited.stderr, /--diagnostics=all/);
+    assert.doesNotMatch(complete.stderr, /rejection occurrences omitted/);
+    assert.ok(complete.stderr.includes(`${file}:81:`), complete.stderr);
+    assert.match(complete.stderr, /tensor:unsupported-type:array/);
 });

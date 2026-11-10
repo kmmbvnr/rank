@@ -16,6 +16,11 @@ export interface ExecutionCost {
 
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
+    constructor(readonly compilerRejectionLimit = 64) {
+        if (compilerRejectionLimit !== Infinity && (!Number.isSafeInteger(compilerRejectionLimit) || compilerRejectionLimit < 0)) {
+            throw new RangeError('compilerRejectionLimit must be a nonnegative integer or Infinity');
+        }
+    }
     memoHits = 0;
     memoMisses = 0;
     indexReads = 0;
@@ -155,6 +160,20 @@ export class RuntimeDiagnostics {
         finally { cost.milliseconds += performance.now() - start; }
     }
     readonly compilerRejections: CompilerRejection[] = [];
+    /** Omitted occurrences, not unique sites: keep bounded mode bounded. */
+    compilerRejectionsOmitted = 0;
+    private readonly compilerRejectionKeys = new Set<string>();
+    rememberCompilerRejection(failure: CompilerRejection): void {
+        const key = JSON.stringify([failure.sourceId, failure.reason, failure.node, failure.function,
+            failure.expression, failure.line, failure.column]);
+        if (this.compilerRejectionKeys.has(key)) return;
+        if (this.compilerRejections.length >= this.compilerRejectionLimit) {
+            this.compilerRejectionsOmitted++;
+            return;
+        }
+        this.compilerRejectionKeys.add(key);
+        this.compilerRejections.push(failure);
+    }
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */
     run<T>(operation: () => T): T {

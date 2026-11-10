@@ -13,6 +13,7 @@ import { NodeInput, nodeIo } from './node-io.js';
 import { nodeMd5 } from './node-crypto.js';
 import { nodeEnvironment } from './node-environment.js';
 import { startRepl } from './repl.js';
+import { compilerDiagnostics } from './compiler-diagnostics.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const packagePath = path.resolve(__dirname, '..', 'package.json');
@@ -54,9 +55,9 @@ async function dispatch(): Promise<void> {
         await explainFile(arguments_[1]);
         return;
     }
-    if (arguments_[0] === '--diagnostics') {
+    if (arguments_[0] === '--diagnostics' || arguments_[0] === '--diagnostics=all') {
         if (arguments_[1] === undefined) throw new RankError('--diagnostics needs a file');
-        await runFile(arguments_[1], arguments_.slice(2), true);
+        await runFile(arguments_[1], arguments_.slice(2), arguments_[0] === '--diagnostics=all' ? Infinity : 64);
         return;
     }
     if (arguments_.length === 0) {
@@ -66,7 +67,7 @@ async function dispatch(): Promise<void> {
     await runFile(arguments_[0], arguments_.slice(1));
 }
 
-async function runFile(file: string, args: readonly string[], diagnostic = false): Promise<void> {
+async function runFile(file: string, args: readonly string[], diagnostic?: number): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
     const run = () => runProgram(source, console.log, {
@@ -78,18 +79,11 @@ async function runFile(file: string, args: readonly string[], diagnostic = false
         sourceId,
         loadModule,
     });
-    if (!diagnostic) { run(); return; }
-    const diagnostics = new RuntimeDiagnostics();
+    if (diagnostic === undefined) { run(); return; }
+    const diagnostics = new RuntimeDiagnostics(diagnostic);
     try { diagnostics.run(run); }
     finally {
-        console.error('Loop diagnostics:');
-        console.error(`  compiledLoops: ${diagnostics.compiledLoops}`);
-        console.error(`  numberLoops: ${diagnostics.numberLoops}`);
-        console.error(`  fusedArrayRegions: ${diagnostics.fusedArrayRegions}`);
-        console.error(`  fusedArrayRegionCells: ${diagnostics.fusedArrayRegionCells}`);
-        for (const [reason, count] of Object.entries(diagnostics.fallbacks).sort(([a], [b]) => a.localeCompare(b))) {
-            if (reason.startsWith('loop:')) console.error(`  ${reason}: ${count}`);
-        }
+        console.error(compilerDiagnostics(diagnostics));
     }
 }
 
@@ -449,7 +443,8 @@ function printHelp(): void {
         'Usage:',
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
-        '  rank --diagnostics <file> [arguments...]   Run with loop compiler diagnostics',
+        '  rank --diagnostics <file> [arguments...]   Run with compiler diagnostics',
+        '  rank --diagnostics=all <file> [arguments...]   Retain all rejection sites',
         '  rank check [path]            Check every *.ra file',
         '  rank explain <file>          Where every name is bound and read',
         '  rank ops [--markdown]        The standard-library catalogue',

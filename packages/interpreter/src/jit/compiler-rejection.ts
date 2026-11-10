@@ -4,9 +4,11 @@ import {
     type Expression, type Statement,
 } from '@arrrank/language';
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
+import { sourceIdOf } from '../source-location.js';
 
 /** A bounded syntax snapshot, with no AST, runtime values or invocation frames. */
 export interface CompilerRejection {
+    readonly sourceId?: string;
     readonly reason: string;
     readonly node: string;
     readonly name?: string;
@@ -24,20 +26,20 @@ export function describeCompilerRejection(backend: string, node: Expression | St
         reason: compilerRejection(backend, node, detail), node: node.$type,
         name: isNameExpression(node) ? node.name : undefined,
         function: owner && isFunctionStatement(owner) ? owner.name : undefined,
+        sourceId: cst && sourceIdOf(cst, '<input>'),
         expression: cst?.text.slice(0, 160),
         line: cst && cst.range.start.line + 1, column: cst && cst.range.start.character + 1,
     };
 }
 
 export function recordCompilerRejection(failure: CompilerRejection): undefined {
-    const diagnostics = currentDiagnostics();
-    if (diagnostics && diagnostics.compilerRejections.length < 64
-        && !diagnostics.compilerRejections.some(previous => previous.reason === failure.reason
-            && previous.function === failure.function && previous.expression === failure.expression
-            && previous.line === failure.line && previous.column === failure.column)) {
-        diagnostics.compilerRejections.push(failure);
-    }
+    rememberCompilerRejection(failure);
     return recordFallback(failure.reason);
+}
+
+/** Capture candidate failures without changing existing fallback counters. */
+export function rememberCompilerRejection(failure: CompilerRejection): void {
+    currentDiagnostics()?.rememberCompilerRejection(failure);
 }
 
 /** Stable diagnostic categories, never source text, values, or AST references. */

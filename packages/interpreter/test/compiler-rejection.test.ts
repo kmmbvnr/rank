@@ -4,6 +4,7 @@ import { Interpreter, formatValue, parse } from '../src/index.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { ownedArray } from '../src/array-storage.js';
+import { registerSource } from '../src/source-location.js';
 import { scalarFunctionResult } from '../src/scalar-function-proof.js';
 
 function proof(expression: string) {
@@ -32,7 +33,7 @@ describe('attributable compiler rejections', () => {
         expect(diagnostics.fallbacks).toEqual({ 'scalar-function:unbound-name:NameExpression': 2 });
         expect(diagnostics.compilerRejections).toEqual([{
             reason: 'scalar-function:unbound-name:NameExpression', node: 'NameExpression',
-            name: 'K', function: 'helper', expression: 'K', line: 2, column: 12,
+            sourceId: '<input>', name: 'K', function: 'helper', expression: 'K', line: 2, column: 12,
         }]);
     });
 
@@ -42,6 +43,7 @@ describe('attributable compiler rejections', () => {
             for (let i = 0; i < 80; i++) scalarFunctionResult(proof(`X + Missing${i}`));
         });
         expect(diagnostics.compilerRejections).toHaveLength(64);
+        expect(diagnostics.compilerRejectionsOmitted).toBe(16);
         expect(diagnostics.fallbacks['scalar-function:unbound-name:NameExpression']).toBe(80);
         const long = new RuntimeDiagnostics();
         long.run(() => scalarFunctionResult(proof(`array ${'1 '.repeat(200)}`)));
@@ -136,8 +138,16 @@ B = array -1.0 -2.0
 A powers B`;
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));
+        // Whole-program routing can avoid this candidate. Exercise its guard directly.
+        const statement = parse(source).statements[0];
+        if (!isFunctionStatement(statement)) throw new Error('expected function');
+        const values = { A: ownedArray([2, 3]), B: ownedArray([-1, -2]) };
+        const kernel = compileTensorKernel(statement.statements[0], {
+            lookup: name => values[name as keyof typeof values], builtin: () => true,
+        });
+        expect(kernel).toBeDefined();
+        expect(diagnostics.run(() => kernel!.run())).toBeUndefined();
         expect(diagnostics.fallbacks['tensor:operator-guard:**']).toBeGreaterThan(0);
-        expect(diagnostics.compiledTensors).toBe(0);
     });
     it('reports only the first unsupported tensor node, not its parents', () => {
         const statement = parse('fun A probe B\nMapped = (A to B) + (A reverse)\nreturn Mapped sum\nend').statements[0];
@@ -192,4 +202,32 @@ it('attributes the complete nested loop statement budget before executing any co
     expect(execute(source, diagnostics)).toBe('2');
     expect(diagnostics.compiledLoops).toBe(0);
     expect(diagnostics.fallbacks['loop:statement-budget:AssignmentStatement']).toBe(1);
+});
+
+it('retains all sites on request and distinguishes identical code in different files', () => {
+    const diagnostics = new RuntimeDiagnostics(Infinity);
+    diagnostics.run(() => {
+        for (let i = 0; i < 80; i++) {
+            const statement = proof('X + Missing');
+            registerSource(statement, `/modules/${i}.ra`);
+            scalarFunctionResult(statement);
+            scalarFunctionResult(statement);
+        }
+    });
+    expect(diagnostics.compilerRejections).toHaveLength(80);
+    expect(diagnostics.compilerRejectionsOmitted).toBe(0);
+    expect(diagnostics.compilerRejections[79].sourceId).toBe('/modules/79.ra');
+    expect(diagnostics.fallbacks['scalar-function:unbound-name:NameExpression']).toBe(160);
+});
+
+it('does not count retained duplicates as omitted after reaching the site limit', () => {
+    const statement = proof('X + Missing');
+    const diagnostics = new RuntimeDiagnostics(1);
+    diagnostics.run(() => {
+        scalarFunctionResult(statement);
+        scalarFunctionResult(statement);
+        scalarFunctionResult(proof('X + Other'));
+    });
+    expect(diagnostics.compilerRejections).toHaveLength(1);
+    expect(diagnostics.compilerRejectionsOmitted).toBe(1);
 });
