@@ -551,6 +551,34 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!value || token === undefined) return undefined;
             return { code: token === '' ? value.code : node.type === 'integer' ? safe(`${token}(${value.code})`) : `${token}(${value.code})`, type: node.type };
         }
+        if (numberMode && node.kind === 'binary' && node.type === 'boolean'
+            && ['<', '<=', '>', '>=', '===', '!=='].includes(node.operation.binary ?? '')) {
+            let left = node.left, right = node.right;
+            while (left.kind === 'group') left = left.operand;
+            while (right.kind === 'group') right = right.operand;
+            if (left.kind === 'binary' && left.operation.name === '*' && left.type === 'integer'
+                && right.kind === 'binary' && right.operation.name === '*' && right.type === 'integer') {
+                const values: string[] = [];
+                for (const operand of [left.left, left.right, right.left, right.right]) {
+                    const term = lower(operand, lines);
+                    if (!term || term.type !== 'integer') return undefined;
+                    const value = `factor${state.serial++}`;
+                    lines.push(`const ${value} = ${term.code};`);
+                    values.push(value);
+                }
+                const [a, b, c, d] = values;
+                const x = `product${state.serial++}`, y = `product${state.serial++}`, result = `v${state.serial++}`;
+                // Correctly rounded multiplication is monotone: distinct rounded
+                // products establish exact order. Safe products are already exact;
+                // only rounded ties outside the safe range need wide arithmetic.
+                // All four factors are already checked safe integer operands.
+                lines.push(`const ${x} = ${a} * ${b}, ${y} = ${c} * ${d};`);
+                lines.push(`const ${result} = ${x} === ${y} && !Number.isSafeInteger(${x})
+                    ? (BigInt(${a}) * BigInt(${b}) ${node.operation.binary} BigInt(${c}) * BigInt(${d}))
+                    : (${x} ${node.operation.binary} ${y});`);
+                return { code: result, type: 'boolean' };
+            }
+        }
         if (numberMode && node.kind === 'binary' && node.operation.name === 'mod' && node.type === 'integer') {
             let product = node.left;
             while (product.kind === 'group') product = product.operand;

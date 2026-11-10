@@ -594,7 +594,10 @@ export class FastPaths {
                 // Bound range loops also have an analytic Number consumer;
                 // do not replace it with completed arrays in the exact tier.
                 || boundLoopRange)) return undefined;
-        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers || proof.recursive || nativeCompletion) && (!proof.planReturn || typeof proof.type !== 'string')
+        // A caller can hide fresh-array writes in a helper. Apply the same
+        // backend preference transitively, so an exact scalar call graph does
+        // not steal that helper from its private Number loop implementation.
+        return proof && proof.localArrayWrites && (!scalarFunctionEffects(proof).localWrites || proof.containers || proof.recursive || nativeCompletion) && (!proof.planReturn || typeof proof.type !== 'string')
             ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }
 

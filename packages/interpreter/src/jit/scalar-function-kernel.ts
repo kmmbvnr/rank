@@ -385,6 +385,32 @@ function compileScalarNumberKernel(
             lines.push(`let ${res} = ${left}; if (${op === 'and' ? '' : '!'}${res}) { ${guarded.join('\n')} ${res} = ${right}; }`);
             return res;
         }
+        if (compiled.type === 'boolean' && ['<', '<=', '>', '>=', '===', '!=='].includes(compiled.operation.binary ?? '')) {
+            let left = compiled.left, right = compiled.right;
+            while (left.kind === 'group') left = left.operand;
+            while (right.kind === 'group') right = right.operand;
+            if (left.kind === 'binary' && left.operation.name === '*' && left.type === 'integer'
+                && right.kind === 'binary' && right.operation.name === '*' && right.type === 'integer') {
+                const values: string[] = [];
+                for (const operand of [left.left, left.right, right.left, right.right]) {
+                    const term = lowerNum(operand, lines);
+                    if (!term || operand.type !== 'integer') return undefined;
+                    const value = `factor${serial++}`;
+                    lines.push(`const ${value} = safe(${term});`);
+                    values.push(value);
+                }
+                const [a, b, c, d] = values;
+                const x = `product${serial++}`, y = `product${serial++}`, result = `v${serial++}`;
+                // As in Number loops, rounded products establish order unless
+                // they tie. Safe ties are exact too; only wide rounded ties need
+                // BigInt, without replaying the helper.
+                lines.push(`const ${x} = ${a} * ${b}, ${y} = ${c} * ${d};`);
+                lines.push(`const ${result} = ${x} === ${y} && !Number.isSafeInteger(${x})
+                    ? (BigInt(${a}) * BigInt(${b}) ${compiled.operation.binary} BigInt(${c}) * BigInt(${d}))
+                    : (${x} ${compiled.operation.binary} ${y});`);
+                return result;
+            }
+        }
         // A residue can stay exact even when the full product cannot. Only
         // fuse the expression itself; stored ordinary bindings remain exact.
         let product = compiled.left;

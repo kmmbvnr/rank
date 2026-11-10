@@ -1,0 +1,1279 @@
+{
+  "date": "2026-11-10",
+  "task": 569,
+  "base": "57413f44b0d2fe99b6f13deb2ee894eae2685412",
+  "expected": "21025060",
+  "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+  "originalSourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+  "implementationSha256": {
+    "fast-paths.ts": "186f208e59f39bf974a21a67f67cbcee6865cd353ea9a513e70cdb4cec7f9c82",
+    "jit/integer-loop-expressions.ts": "5226fb42aba812d50f7182cdb5a1f5e1777c1d1a9b5f61541aefe9d272d3a043",
+    "jit/scalar-function-kernel.ts": "9535a3e61b0a338dd1dc9340d1691255490b21b330491575e27c29e2231aad51"
+  },
+  "hosts": {
+    "mac": {
+      "cpu": "Apple M5",
+      "arch": "arm64",
+      "node": "v24.15.0"
+    },
+    "intel": {
+      "cpu": "Intel i7-10750H",
+      "arch": "x64",
+      "node": "v24.15.0"
+    }
+  },
+  "method": "Fresh serial processes per host, diagnostics/profiling off. Old full compiled and fixture compiled/reference one sample each. New full compiled, fixture compiled/reference and new-program/old-runtime fixture compiled controls three each. Number-loops-disabled fixture one. Time excludes interpreter import; RSS process high-water; host load recorded. After the safe-tie Number-codegen refinement, seven compiled/exact samples per host were refreshed and nine unchanged reference/old-runtime paths reused from the same base series. Small-product controls have three alternating old/new pairs per host.",
+  "primarySamples": [
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 771.626583,
+      "cpu": {
+        "user": 1063545,
+        "system": 15086
+      },
+      "rssMiB": 216.578125,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "old",
+      "loadBefore": [
+        3.53759765625,
+        2.935546875,
+        2.65283203125
+      ],
+      "loadAfter": [
+        3.654296875,
+        2.9697265625,
+        2.66650390625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 78725.27575,
+      "cpu": {
+        "user": 77579043,
+        "system": 644630
+      },
+      "rssMiB": 203.421875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "old",
+      "loadBefore": [
+        3.654296875,
+        2.9697265625,
+        2.66650390625
+      ],
+      "loadAfter": [
+        3.39501953125,
+        3.0927734375,
+        2.740234375
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 47906.082666999995,
+      "cpu": {
+        "user": 47339003,
+        "system": 363257
+      },
+      "rssMiB": 827.4375,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "old",
+      "loadBefore": [
+        3.39501953125,
+        3.0927734375,
+        2.740234375
+      ],
+      "loadAfter": [
+        2.8974609375,
+        3.02392578125,
+        2.73486328125
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 328.40187499999996,
+      "cpu": {
+        "user": 494518,
+        "system": 11184
+      },
+      "rssMiB": 198.46875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.60400390625,
+        2.64599609375,
+        2.693359375
+      ],
+      "loadAfter": [
+        2.60400390625,
+        2.64599609375,
+        2.693359375
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 38894.318667,
+      "cpu": {
+        "user": 38536859,
+        "system": 227564
+      },
+      "rssMiB": 192.25,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.8974609375,
+        3.02392578125,
+        2.73486328125
+      ],
+      "loadAfter": [
+        3.3310546875,
+        3.1142578125,
+        2.77978515625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 10880.711833,
+      "cpu": {
+        "user": 11086065,
+        "system": 43625
+      },
+      "rssMiB": 471.078125,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.60400390625,
+        2.64599609375,
+        2.693359375
+      ],
+      "loadAfter": [
+        2.60400390625,
+        2.64599609375,
+        2.69189453125
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 737.2903329999999,
+      "cpu": {
+        "user": 877378,
+        "system": 11274
+      },
+      "rssMiB": 192.171875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        3.05224609375,
+        3.06103515625,
+        2.76416015625
+      ],
+      "loadAfter": [
+        2.9677734375,
+        3.04296875,
+        2.75927734375
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 333.29883400000006,
+      "cpu": {
+        "user": 500884,
+        "system": 10642
+      },
+      "rssMiB": 196.515625,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.60400390625,
+        2.64599609375,
+        2.69189453125
+      ],
+      "loadAfter": [
+        2.60400390625,
+        2.64599609375,
+        2.69189453125
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 38987.187208,
+      "cpu": {
+        "user": 38651941,
+        "system": 201824
+      },
+      "rssMiB": 192.0625,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.9677734375,
+        3.04296875,
+        2.75927734375
+      ],
+      "loadAfter": [
+        3.84912109375,
+        3.2685546875,
+        2.85400390625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 12220.556875,
+      "cpu": {
+        "user": 12331865,
+        "system": 64875
+      },
+      "rssMiB": 469.953125,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        2.60400390625,
+        2.64599609375,
+        2.69189453125
+      ],
+      "loadAfter": [
+        3.07763671875,
+        2.74072265625,
+        2.72412109375
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 732.578125,
+      "cpu": {
+        "user": 875137,
+        "system": 12317
+      },
+      "rssMiB": 192.234375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        4.14697265625,
+        3.3564453125,
+        2.89013671875
+      ],
+      "loadAfter": [
+        4.14697265625,
+        3.3564453125,
+        2.89013671875
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 354.47133400000007,
+      "cpu": {
+        "user": 527315,
+        "system": 14600
+      },
+      "rssMiB": 197.578125,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        3.07763671875,
+        2.74072265625,
+        2.72412109375
+      ],
+      "loadAfter": [
+        3.07763671875,
+        2.74072265625,
+        2.72412109375
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 39622.087917,
+      "cpu": {
+        "user": 39176480,
+        "system": 250393
+      },
+      "rssMiB": 190.78125,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        3.89453125,
+        3.31689453125,
+        2.87890625
+      ],
+      "loadAfter": [
+        3.82177734375,
+        3.39404296875,
+        2.92724609375
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 11019.432708,
+      "cpu": {
+        "user": 11243559,
+        "system": 57970
+      },
+      "rssMiB": 471.90625,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        3.07763671875,
+        2.74072265625,
+        2.72412109375
+      ],
+      "loadAfter": [
+        3.060546875,
+        2.7529296875,
+        2.728515625
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 743.787583,
+      "cpu": {
+        "user": 881176,
+        "system": 12362
+      },
+      "rssMiB": 191.5,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        3.4677734375,
+        3.3310546875,
+        2.91015625
+      ],
+      "loadAfter": [
+        3.4677734375,
+        3.3310546875,
+        2.91015625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "exact",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 1652.402625,
+      "cpu": {
+        "user": 1814368,
+        "system": 14514
+      },
+      "rssMiB": 192.03125,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "mac",
+      "variant": "new",
+      "loadBefore": [
+        3.060546875,
+        2.7529296875,
+        2.728515625
+      ],
+      "loadAfter": [
+        3.060546875,
+        2.7529296875,
+        2.728515625
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 1913.1844729999998,
+      "cpu": {
+        "user": 2459370,
+        "system": 40765
+      },
+      "rssMiB": 227.890625,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "old",
+      "loadBefore": [
+        0.080078125,
+        0.24951171875,
+        0.40673828125
+      ],
+      "loadAfter": [
+        0.15380859375,
+        0.26220703125,
+        0.41015625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 199500.26043099997,
+      "cpu": {
+        "user": 200222279,
+        "system": 196701
+      },
+      "rssMiB": 196.54296875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "old",
+      "loadBefore": [
+        0.15380859375,
+        0.26220703125,
+        0.41015625
+      ],
+      "loadAfter": [
+        0.98193359375,
+        0.640625,
+        0.5390625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "bfd8ff65a2b0b50dc13f0abcfef8b6dd7ad6649c1df798de2b6f5076988782ff",
+      "unrounded": "undefined",
+      "ms": 112384.36417,
+      "cpu": {
+        "user": 113408632,
+        "system": 187622
+      },
+      "rssMiB": 739.76953125,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "old",
+      "loadBefore": [
+        0.98193359375,
+        0.640625,
+        0.5390625
+      ],
+      "loadAfter": [
+        1.1689453125,
+        0.86767578125,
+        0.640625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 778.2312979999999,
+      "cpu": {
+        "user": 1082396,
+        "system": 38311
+      },
+      "rssMiB": 190.75390625,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "loadAfter": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 99331.833182,
+      "cpu": {
+        "user": 99770170,
+        "system": 59230
+      },
+      "rssMiB": 183.71875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        1.1552734375,
+        0.8701171875,
+        0.642578125
+      ],
+      "loadAfter": [
+        1.02734375,
+        0.912109375,
+        0.681640625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 24783.428453,
+      "cpu": {
+        "user": 25242170,
+        "system": 62214
+      },
+      "rssMiB": 442.7109375,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "loadAfter": [
+        0.86474609375,
+        0.53759765625,
+        0.61279296875
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 1753.078125,
+      "cpu": {
+        "user": 2035428,
+        "system": 38466
+      },
+      "rssMiB": 180.87109375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        1.0166015625,
+        0.91943359375,
+        0.69140625
+      ],
+      "loadAfter": [
+        1.0166015625,
+        0.91943359375,
+        0.69140625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 793.6317290000001,
+      "cpu": {
+        "user": 1115446,
+        "system": 34171
+      },
+      "rssMiB": 192.1171875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.86474609375,
+        0.53759765625,
+        0.61279296875
+      ],
+      "loadAfter": [
+        0.8759765625,
+        0.54541015625,
+        0.615234375
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 98026.846454,
+      "cpu": {
+        "user": 98445508,
+        "system": 44345
+      },
+      "rssMiB": 184.59375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        1.095703125,
+        0.9375,
+        0.69873046875
+      ],
+      "loadAfter": [
+        1.1064453125,
+        0.9873046875,
+        0.7431640625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 25077.589404,
+      "cpu": {
+        "user": 25529240,
+        "system": 76803
+      },
+      "rssMiB": 443.63671875,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.8759765625,
+        0.54541015625,
+        0.615234375
+      ],
+      "loadAfter": [
+        0.91943359375,
+        0.5830078125,
+        0.62744140625
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 1703.9306109999998,
+      "cpu": {
+        "user": 1968500,
+        "system": 40911
+      },
+      "rssMiB": 181.78515625,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        1.06884765625,
+        0.98974609375,
+        0.75048828125
+      ],
+      "loadAfter": [
+        1.06298828125,
+        0.990234375,
+        0.751953125
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 790.9132969999998,
+      "cpu": {
+        "user": 1100564,
+        "system": 36356
+      },
+      "rssMiB": 190.859375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.91943359375,
+        0.5830078125,
+        0.62744140625
+      ],
+      "loadAfter": [
+        0.91943359375,
+        0.5830078125,
+        0.62744140625
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "reference",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 100789.915797,
+      "cpu": {
+        "user": 101218328,
+        "system": 40279
+      },
+      "rssMiB": 183.3984375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        1.06298828125,
+        0.990234375,
+        0.751953125
+      ],
+      "loadAfter": [
+        1.04443359375,
+        1.0068359375,
+        0.78662109375
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "compiled",
+      "n": "2500000",
+      "limit": "2500000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 25291.319650999998,
+      "cpu": {
+        "user": 25775448,
+        "system": 45680
+      },
+      "rssMiB": 441.73828125,
+      "answer": "21025060",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.91943359375,
+        0.5830078125,
+        0.62744140625
+      ],
+      "loadAfter": [
+        0.94873046875,
+        0.61767578125,
+        0.63916015625
+      ],
+      "safeTieCodegen": true
+    },
+    {
+      "mode": "compiled",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 1662.0603840000003,
+      "cpu": {
+        "user": 1923110,
+        "system": 48279
+      },
+      "rssMiB": 181.18359375,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new-on-old-runtime",
+      "loadBefore": [
+        1.025390625,
+        1.00390625,
+        0.79541015625
+      ],
+      "loadAfter": [
+        1.025390625,
+        1.00390625,
+        0.79541015625
+      ],
+      "unchangedPathReused": true
+    },
+    {
+      "mode": "exact",
+      "n": "100000",
+      "limit": "100000",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "fc9c87039173a685731eb8904d46a0741279569e20c07f4a52e4b5e8973e8a6f",
+      "unrounded": "undefined",
+      "ms": 4111.753218,
+      "cpu": {
+        "user": 4444471,
+        "system": 31936
+      },
+      "rssMiB": 183.5546875,
+      "answer": "650364",
+      "diagnosticMode": false,
+      "host": "intel",
+      "variant": "new",
+      "loadBefore": [
+        0.94873046875,
+        0.61767578125,
+        0.63916015625
+      ],
+      "loadAfter": [
+        0.953125,
+        0.6240234375,
+        0.64111328125
+      ],
+      "safeTieCodegen": true
+    }
+  ],
+  "smallProductTieControls": [
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 102.65908400000001,
+      "cpu": {
+        "user": 176384,
+        "system": 5878
+      },
+      "rssMiB": 155.453125,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "old",
+      "repeat": 0
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 105.81604200000001,
+      "cpu": {
+        "user": 182195,
+        "system": 5791
+      },
+      "rssMiB": 141.828125,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "new",
+      "repeat": 0
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 105.2955,
+      "cpu": {
+        "user": 182252,
+        "system": 5560
+      },
+      "rssMiB": 141.96875,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "old",
+      "repeat": 1
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 104.316125,
+      "cpu": {
+        "user": 177126,
+        "system": 5930
+      },
+      "rssMiB": 164.96875,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "new",
+      "repeat": 1
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 103.56662500000002,
+      "cpu": {
+        "user": 181105,
+        "system": 5387
+      },
+      "rssMiB": 141.9375,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "old",
+      "repeat": 2
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 105.29350000000002,
+      "cpu": {
+        "user": 181249,
+        "system": 6017
+      },
+      "rssMiB": 142.203125,
+      "answer": "10000000",
+      "host": "mac",
+      "variant": "new",
+      "repeat": 2
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 243.984552,
+      "cpu": {
+        "user": 389681,
+        "system": 27841
+      },
+      "rssMiB": 133.3671875,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "old",
+      "repeat": 0,
+      "loadBefore": [
+        0.77490234375,
+        0.4873046875,
+        0.59814453125
+      ],
+      "loadAfter": [
+        0.77490234375,
+        0.4873046875,
+        0.59814453125
+      ]
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 248.94516100000004,
+      "cpu": {
+        "user": 394822,
+        "system": 26983
+      },
+      "rssMiB": 133.5078125,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "new",
+      "repeat": 0,
+      "loadBefore": [
+        0.77490234375,
+        0.4873046875,
+        0.59814453125
+      ],
+      "loadAfter": [
+        0.77490234375,
+        0.4873046875,
+        0.59814453125
+      ]
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 261.07108099999994,
+      "cpu": {
+        "user": 440423,
+        "system": 18576
+      },
+      "rssMiB": 133.26953125,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "old",
+      "repeat": 1,
+      "loadBefore": [
+        0.77490234375,
+        0.4873046875,
+        0.59814453125
+      ],
+      "loadAfter": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ]
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 249.31109800000002,
+      "cpu": {
+        "user": 401888,
+        "system": 18295
+      },
+      "rssMiB": 132.8203125,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "new",
+      "repeat": 1,
+      "loadBefore": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "loadAfter": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ]
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 252.40320199999996,
+      "cpu": {
+        "user": 404360,
+        "system": 22976
+      },
+      "rssMiB": 133.5390625,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "old",
+      "repeat": 2,
+      "loadBefore": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "loadAfter": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ]
+    },
+    {
+      "control": "small-product-ties",
+      "count": 10000000,
+      "node": "v24.15.0",
+      "arch": "x64",
+      "sourceSha256": "15377d393f3a5153ec223a14d25c0f6d845782caf060aebca25591d6a9c975cb",
+      "ms": 254.82966699999997,
+      "cpu": {
+        "user": 412618,
+        "system": 14515
+      },
+      "rssMiB": 133.140625,
+      "answer": "10000000",
+      "host": "intel",
+      "variant": "new",
+      "repeat": 2,
+      "loadBefore": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ],
+      "loadAfter": [
+        0.79296875,
+        0.49609375,
+        0.6005859375
+      ]
+    }
+  ],
+  "verification": {
+    "focusedChecksPerHost": 239,
+    "focusedFilesPerHost": 17,
+    "fixtureDifferentialPerHost": 1,
+    "fixtureTypeCheckMac": 1,
+    "fixtureNameFactCheckMac": 1,
+    "exclusionPolicyChecksMac": 5,
+    "typescriptBuild": true,
+    "independentAllPairsOracleBounds": [
+      0,
+      1,
+      2,
+      3,
+      8,
+      9,
+      20,
+      100,
+      500
+    ],
+    "fullCompiledNewGoldenChecksPerHost": 3,
+    "numberLoopsDisabledAt100000PerHost": 1,
+    "fullReferenceRun": false,
+    "fullDefaultManual": true,
+    "exhaustiveAuditsRun": false
+  }
+}

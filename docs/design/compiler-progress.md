@@ -3464,3 +3464,25 @@ The demo uses finite forward cut orbits, bounded array geometry and library
 parity-word matching. Its full default remains manual; the small fixture stays
 in the corpus. The [benchmark](../../benchmarks/euler566.md) records the runtime,
 memory, overwrite-cost tradeoff and verification scope.
+
+### Euler 569: exact product comparisons and private helper graphs
+
+The Number loop and scalar helper backends can compare integer products
+without requiring the full products to fit safe Number precision. Each factor
+still passes its integer guards. Distinct rounded products establish exact
+order because multiplication rounds monotonically; safe products are exact.
+Only wide rounded ties use BigInt products for the final comparison. Ordinary
+stored products retain their binding boundaries, and unsafe factors retain exact replay. Both backends
+cover all six relations, signs, zero and adjacent wide products.
+
+Scalar entry preference now uses the existing transitive effect proof for
+private array writes. A scalar caller must not select an exact call graph that
+bypasses an allocating helper's private Number loop path. Functions that directly
+track containers, recursive functions and explicit native-completion cases
+retain their prior entry rules.
+
+Euler 569 uses library prime sieving, direct exact slope comparisons and
+separate CPU helpers with no nested loops. Ordinary scalar caches retain peak
+coordinates and the reference slope between candidate tests. The
+[benchmark](../../benchmarks/euler569.md) records correctness, architecture,
+speed and memory checks; full reference execution remains a manual workload.

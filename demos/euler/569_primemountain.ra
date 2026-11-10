@@ -1,6 +1,5 @@
 rem Prime Mountain Range
 rem https://projecteuler.net/problem=569
-
 use numbers
 use sequences
 use io
@@ -8,132 +7,115 @@ use cli
 
 arg N integer = 2500000
 
-rem Peak k has x = p1 + .. + p(2k-1) and
-rem y = p1 - p2 + .. + p(2k-1). Peak j
-rem shows from k if its slope to k is
-rem below that of every peak between,
-rem so scan left for strict minima. A
-rem hull of each prefix says whether
-rem any is left, which ends the scan.
-rem Slopes compare by cross products
-rem kept exact with 25-bit limbs.
-Fx = N * 2.0 + 20
-Lg = Fx log
-Ll = Lg log
-Lm = (Fx * (Lg + Ll) * 1.1) floor
-Lm = (Lm integer) + 200
-Hf = Lm // 2
-Cp = array shape (Hf + 1) fill 0
-Rt = Lm isqrt
-for I in 1 to Rt // 2
-  if Cp I equal 0
-    P = 2 * I + 1
-    for J in P * P // 2 to Hf by P
-      Cp J = 1
+rem Upper hull links bound the search.
+fun X predecessors Y
+  Count = X len
+  Links = array shape Count fill 0
+  Stack = array shape Count fill 0
+  Top = 0
+  Peak = 1
+  for Peak less Count
+    Pop = false
+    if Top greater 1
+      A = Stack (Top - 2)
+      B = Stack (Top - 1)
+      Across = X B - X A
+      Above = Y B - Y A
+      Ahead = X Peak - X B
+      Rise = Y Peak - Y B
+      Pop = (Rise * Across at least
+        Above * Ahead)
     end
-  end
-end
-Ix = Cp equal 0 indices
-Ix = Ix (Ix greater 0 indices)
-Pr = concat (array 2) (2 * Ix + 1)
-Pr = Pr (0 till 2 * N array)
-Id = 0 till 2 * N array
-Sg = 1 - 2 * (Id mod 2)
-Xs = Pr scan + array
-Ys = (Pr * Sg scan +) array
-Ke = (0 till N array) * 2
-Xk = concat (array 0) (Xs Ke)
-Yk = concat (array 0) (Ys Ke)
-Hl = Xk * 0
-St = Xk * 0
-Sp = 0
-Bs = 33554432
-for I in 1 to N
-  Go = 1
-  for Sp greater 1 and (Go equal 1)
-    A = St (Sp - 2)
-    B = St (Sp - 1)
-    Abx = Xk B - Xk A
-    Aby = Yk B - Yk A
-    Bcx = Xk I - Xk B
-    Bcy = Yk I - Yk B
-    H1 = Abx // Bs
-    L1 = Abx mod Bs
-    H2 = Bcx // Bs
-    L2 = Bcx mod Bs
-    Dh = Bcy * H1 - Aby * H2
-    Dl = Bcy * L1 - Aby * L2
-    if Dh + Dl // Bs less 0
-      Go = 0
+    if Pop
+      Top -= 1
     else
-      Sp -= 1
-    end
-  end
-  if Sp greater 0
-    Hl I = St (Sp - 1)
-  end
-  St Sp = I
-  Sp += 1
-end
-Answer = 0
-for K in 2 to N
-  Cnt = 1
-  Bst = K - 1
-  T = Bst
-  Yc = Yk K
-  Xc = Xk K
-  Go = 1
-  for T greater 1 and (Go equal 1)
-    Ex = 0
-    V = T - 1
-    for V greater 0 and (Ex equal 0)
-      A1 = Yc - Yk V
-      B1 = Xc - Xk Bst
-      A2 = Yc - Yk Bst
-      B2 = Xc - Xk V
-      H1 = B1 // Bs
-      L1 = B1 mod Bs
-      H2 = B2 // Bs
-      L2 = B2 mod Bs
-      Dh = A1 * H1 - A2 * H2
-      Dl = A1 * L1 - A2 * L2
-      if Dh + Dl // Bs less 0
-        Ex = 1
-      else
-        V = Hl V
+      if Top greater 0
+        Links Peak = Stack (Top - 1)
       end
+      Stack Top = Peak
+      Top += 1
+      Peak += 1
     end
-    if Ex equal 0
-      Go = 0
+  end
+  return Links
+end
+
+rem Query the hull before a linear walk.
+fun X visible Y
+  Links = X predecessors Y
+  Count = X len
+  Peak = 2
+  Best = 1
+  Candidate = 0
+  Checking = true
+  Answer = 0
+  PeakX = 0
+  PeakY = 0
+  Across = 0
+  Height = 0
+  for Peak less Count
+    if Candidate equal 0
+      Answer += 1
+      Peak += 1
+      Best = Peak - 1
+      Candidate = Best - 1
+      Checking = true
+      if Peak less Count
+        PeakX = X Peak
+        PeakY = Y Peak
+        Across = PeakX - X Best
+        Height = PeakY - Y Best
+      end
     else
-      J = T - 1
-      Fd = 0
-      for J greater 0 and (Fd equal 0)
-        A1 = Yc - Yk J
-        B1 = Xc - Xk Bst
-        A2 = Yc - Yk Bst
-        B2 = Xc - Xk J
-        H1 = B1 // Bs
-        L1 = B1 mod Bs
-        H2 = B2 // Bs
-        L2 = B2 mod Bs
-        Dh = A1 * H1 - A2 * H2
-        Dl = A1 * L1 - A2 * L2
-        if Dh + Dl // Bs less 0
-          Fd = 1
+      Rise = PeakY - Y Candidate
+      Distance = PeakX - X Candidate
+      Below = (Rise * Across less
+        Height * Distance)
+      if Below
+        Previous = Best - 1
+        Far = Candidate less Previous
+        if Checking and Far
+          Candidate = Previous
+          Checking = false
         else
-          J -= 1
+          Answer += 1
+          Best = Candidate
+          Across = PeakX - X Best
+          Height = PeakY - Y Best
+          Candidate -= 1
+          Checking = true
         end
-      end
-      if Fd equal 0
-        Go = 0
+      elif Checking
+        Candidate = Links Candidate
       else
-        Cnt += 1
-        Bst = J
-        T = J
+        Candidate -= 1
       end
     end
   end
-  Answer += Cnt
+  return Answer
+end
+
+Answer = 0
+if N greater 1
+  Size = 2 * N
+  Bound = Size * 1.0 + 20
+  Log = Bound log
+  Extra = Log log
+  Estimate = Bound * (Log + Extra) * 1.1
+  Limit = Estimate floor integer
+  Limit += 200
+  Primes = Limit primesieve array
+  Range = 0 till Size
+  Primes = Primes Range
+  Signs = 1 - 2 * (Range mod 2)
+  X = Primes scan +
+  Signed = Primes * Signs
+  Y = Signed scan +
+  Peaks = (0 till N) * 2
+  X = X Peaks copy
+  Y = Y Peaks copy
+  X = concat (array 0) X
+  Y = concat (array 0) Y
+  Answer = X visible Y
 end
 Answer print
