@@ -1,15 +1,18 @@
 import { positionalValue } from '../positional-value.js';
-import { interruptibleCallback } from '../interrupt.js';
+import { interruptibleCallback, privateLoopPolling, interruptsEnabled, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { RankError } from '../errors.js';
 import { formatValue, isRankArray, isRankBytes, isRankDate, isRankLabel, isRankQueue, isRankSequence, isRankSqliteExpression, type RankArray, type RankBytes, type RankValue } from '../value.js';
 import { withTypedCalls } from '../typed-native.js';
 import { mapSequence } from '../sequence.js';
-import { derivedArray, readArrayItem } from '../array-storage.js';
+import { derivedArray, readArrayItem, integer32Cells, integer64Cells } from '../array-storage.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { roundValue } from './numbers.js';
 import { textFunctionSqlite } from './sqlite.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
+
+const joinIntegerCells = Int32Array.prototype.join;
 
 const hexadecimalBytes = Array.from({ length: 256 }, (_, byte) =>
     byte.toString(16).padStart(2, '0'));
@@ -40,7 +43,19 @@ export const textModule: RuntimeModule = {
     join: () => native('join', 2, ([value, separator]) => {
         if (typeof separator !== 'string') throw new RankError('join separator must be text', 'TypeError');
         let items: Iterable<RankValue>;
-        if (isRankArray(value) && value.shape.length === 1) items = value.items;
+        if (isRankArray(value) && value.shape.length === 1) {
+            // Native integer join avoids boxing and per-cell format dispatch.
+            // Keep observable preparation on its ordinary polling path.
+            if (privateLoopPolling() && !interruptsEnabled() && !demandBudgetEnabled() && !inspectionEnabled()) {
+                const cells = integer32Cells(value) ?? integer64Cells(value);
+                if (cells?.buffer instanceof ArrayBuffer) {
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.nativeIntegerJoins++;
+                    return joinIntegerCells.call(cells, separator);
+                }
+            }
+            items = value.items;
+        }
         else if (isRankQueue(value)) items = value.items;
         else if (isRankSequence(value)) {
             if (value.plan.size.kind === 'infinite') throw new RankError('join requires a finite sequence', 'TypeError');

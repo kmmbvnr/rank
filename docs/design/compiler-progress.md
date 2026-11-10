@@ -3447,3 +3447,20 @@ The demo uses an odd-only progression bitmap, bounded ragged trigger pairs and
 one prime loop. Local sieve allocation already avoids the entry snapshot;
 the [benchmark](../../benchmarks/euler565.md) separates that source improvement
 from an external-mask control demonstrating the shared runtime gain.
+
+### Euler 566: append transactions and stored integer joining
+
+Number index transactions can append directly to seeded native storage. The
+original insertion-order prefix stays intact; only original-key updates need
+an overlay. Overflow removes the appended tail before exact replay. Native
+Map iteration bypasses host hooks, accessor-backed entries retain fallback,
+and aliases still share one transaction. No admission threshold changed.
+
+Native `join` can format completed private Int32/Int64 vectors without boxing
+their cells. Decimal formatting remains exact; budgets, interrupts, inspection,
+shared buffers and opaque inputs retain ordinary execution.
+
+The demo uses finite forward cut orbits, bounded array geometry and library
+parity-word matching. Its full default remains manual; the small fixture stays
+in the corpus. The [benchmark](../../benchmarks/euler566.md) records the runtime,
+memory, overwrite-cost tradeoff and verification scope.

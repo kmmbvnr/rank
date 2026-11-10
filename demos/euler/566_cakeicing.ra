@@ -1,436 +1,321 @@
+rem Cake Icing Puzzle
+rem https://projecteuler.net/problem=566
 use numbers
 use sequences
 use io
 use cli
 use bits
+use algo
+use text
 
 arg N integer = 53
 
-Ep = 0.000000000001
-Wd = 1048576
-Of = 524288
-Hs = 4194304
-Hk = array shape Hs fill 0
-Wl = array shape 3000000 fill 0
-Sl = array shape 3000000 fill 0
-Hx = array shape Hs fill 0
-Nt = 0
-for A in 9 to N
-  for B in A + 1 to N
-    Nt += N - B
+Tolerance = 0.000000000001
+Width = 1048576
+Bias = 524288
+rem Cap temporary geometry storage.
+Batch = 65536
+rem Publish the dynamic work list once.
+fun Queue listed Size
+  Values = array shape Size fill 0
+  for I in 0 till Size
+    Values I = Queue I
   end
+  return Values
 end
-Ta = array shape Nt fill 0
-Tb = array shape Nt fill 0
-Tc = array shape Nt fill 0
-Ni = 0
-for A in 9 to N
-  for B in A + 1 to N
-    for C in B + 1 to N
-      Ta Ni = A
-      Tb Ni = B
-      Tc Ni = C
-      Ni += 1
+rem Forward orbits include every cut.
+fun Geometry boundaries
+  Scale = Geometry .scale
+  Root = Geometry .root
+  Rational = Geometry .rational
+  Irrational = Geometry .irrational
+  Seen = new index
+  Queue = new index
+  Seed = (Scale * Width + Bias) * 3 + 1
+  Seen Seed = 0
+  Seen (Seed + 1) = 0
+  Seen (Seed + 2) = 0
+  Queue 0 = Seed
+  Queue 1 = Seed + 1
+  Queue 2 = Seed + 2
+  Size = 3
+  Cursor = 0
+  for Cursor less Size
+    Key = (Queue Cursor) - 1
+    Phase = Key mod 3
+    Raw = Key // 3
+    P = Raw // Width
+    Q = Raw mod Width - Bias
+    StepP = Rational Phase
+    StepQ = Irrational Phase
+    Point = P / Scale + Q / Root
+    Cut = StepP / Scale + StepQ / Root
+    NextP = 0
+    NextQ = 0
+    if Point less Cut - Tolerance
+      NextP = Scale - P
+      NextQ = 0 - Q
+    else
+      NextP = P - StepP
+      NextQ = Q - StepQ
+    end
+    NextPhase = (Phase + 1) mod 3
+    Packed = NextP * Width + NextQ
+    Target = (Packed + Bias) * 3
+    Target += NextPhase + 1
+    if Target not in Seen
+      Seen Target = 0
+      Queue Size = Target
+      Size += 1
+    end
+    Cursor += 1
+  end
+  Seen = new index
+  Cuts = Queue listed Size
+  Queue = new index
+  Cuts = Cuts (Cuts not equal Seed)
+  Cuts = Cuts (Cuts not equal Seed + 1)
+  Cuts = Cuts (Cuts not equal Seed + 2)
+  return Cuts
+end
+fun Start orbit Next
+  Size = Next len
+  Nodes = array shape Size fill 0
+  Node = Start
+  Count = 0
+  Again = true
+  for Again
+    Nodes Count = Node
+    Count += 1
+    Node = Next Node
+    Again = Node not equal Start
+  end
+  Range = 0 till Count
+  return Nodes Range copy
+end
+fun Value inverse Mod
+  Remainder = Value mod Mod
+  Previous = Mod
+  Left = 0
+  Right = 1
+  for Remainder greater 0
+    Quotient = Previous // Remainder
+    Product = Quotient * Remainder
+    Next = Previous - Product
+    Previous = Remainder
+    Remainder = Next
+    Next = Left - Quotient * Right
+    Left = Right
+    Right = Next
+  end
+  return Left mod Mod
+end
+rem Agree exact cycle congruences.
+fun State reconcile Pair rank 1 1
+  Residue = State 0
+  Mod = State 1
+  Valid = State 2
+  Offset = Pair 0
+  Period = Pair 1
+  if Valid equal 0 or Offset less 0
+    return array 0 1 0
+  end
+  Common = Mod gcd Period
+  Difference = Offset - Residue
+  if Difference mod Common not equal 0
+    return array 0 1 0
+  end
+  Factor = Period // Common
+  Shift = 0
+  if Factor greater 1
+    Value = Mod // Common mod Factor
+    Inverse = Value inverse Factor
+    Reduced = Difference // Common
+    Shift = Reduced * Inverse mod Factor
+  end
+  Result = Residue + Mod * Shift
+  Multiple = Mod * Factor
+  Result = Result mod Multiple
+  return array Result Multiple 1
+end
+rem Parity words encode whole rotations.
+fun Phase matches Cycle rank 0 0
+  Prefix = Cycle .prefix
+  Length = Cycle .length
+  Parity = Cycle .parity
+  Size = Length // 3
+  Period = Size * (1 + Parity)
+  Count = Size + Period
+  Steps = 0 till Count copy
+  Offset = 3 * Steps + Phase
+  Places = Offset mod Length
+  Turns = Offset // Length mod 2
+  Flip = Parity * Turns
+  TextBits = (Prefix Places) bxor Flip
+  Text = TextBits join ""
+  Steps = 0 till Size copy
+  Offset = 3 * Steps
+  Places = Offset mod Length
+  Turns = Offset // Length mod 2
+  Flip = Parity * Turns
+  WordBits = (Prefix Places) bxor Flip
+  Pattern = WordBits join ""
+  Hits = Text findall Pattern
+  Hits = Hits (Hits less Period)
+  First = 0 - 1
+  if Hits len greater 0
+    First = Hits 0
+  end
+  if Hits len greater 1
+    Period = (Hits 1) - First
+  end
+  return array First Period
+end
+
+rem Bound temporary geometry storage.
+fun Keys permutation Geometry
+  Scale = Geometry .scale
+  Root = Geometry .root
+  Rational = Geometry .rational
+  Irrational = Geometry .irrational
+  Size = Keys len
+  Count = Size // 3
+  Last = Count - 1
+  Sorted = Keys sort .indexed
+  unpack Ordered Positions = Sorted
+  Next = array shape Size fill 0
+  Flips = array shape Size fill 0
+  for Start in 0 till Size by Batch
+    Stop = Start + Batch min Size
+    Range = Start till Stop copy
+    Encoded = (Keys Range - 1) // 3
+    LowP = Encoded // Width
+    LowQ = Encoded mod Width - Bias
+    Phases = Range // Count
+    End = Range mod Count equal Last
+    Ahead = (Range + 1) min (Size - 1)
+    Raw = (Keys Ahead - 1) // 3
+    HighP = Raw // Width
+    HighQ = Raw mod Width - Bias
+    HighP = End choose Scale HighP
+    HighQ = End choose 0 HighQ
+    CutsP = Rational Phases
+    CutsQ = Irrational Phases
+    High = HighP / Scale + HighQ / Root
+    Cuts = CutsP / Scale + CutsQ / Root
+    Flip = High less Cuts + Tolerance
+    LeftP = LowP - CutsP
+    LeftQ = LowQ - CutsQ
+    MirrorP = Scale - HighP
+    MirrorQ = 0 - HighQ
+    NextP = Flip choose MirrorP LeftP
+    NextQ = Flip choose MirrorQ LeftQ
+    Turns = NextP / Scale + NextQ / Root
+    Turns += Tolerance
+    Shift = Turns floor integer
+    NextP -= Shift * Scale
+    NextPhases = (Phases + 1) mod 3
+    Packed = NextP * Width + NextQ
+    Targets = (Packed + Bias) * 3
+    Targets += NextPhases + 1
+    Slots = Ordered lowerindex Targets
+    Next Range = Positions Slots
+    Flips Range = Flip integer
+  end
+  return tuple Next Flips
+end
+
+fun Triple icing rank 1
+  A = Triple 0
+  B = Triple 1
+  C = Triple 2
+  ExactRoot = C isqrt
+  Scale = A lcm B
+  Root = C sqrt
+  Square = ExactRoot * ExactRoot equal C
+  if Square
+    Scale = Scale lcm ExactRoot
+  end
+  First = Scale // A
+  Second = Scale // B
+  Rational = array First Second 0
+  Irrational = array 0 0 1
+  if Square
+    Rational 2 = Scale // ExactRoot
+    Irrational = array 0 0 0
+  end
+  Geometry = record
+    .scale = Scale
+    .root = Root
+    .rational = Rational
+    .irrational = Irrational
+  end
+  Cuts = Geometry boundaries
+  Size = Cuts len
+  Count = Size // 3
+  Encoded = Cuts - 1
+  Phases = Encoded mod 3
+  Raw = Encoded // 3
+  P = Raw // Width
+  Q = Raw mod Width - Bias
+  Angles = P / Scale + Q / Root
+  SortKeys = Phases + Angles
+  Order = SortKeys argsort
+  Keys = Cuts Order
+  Pair = Keys permutation Geometry
+  unpack Next Flips = Pair
+  Vis = array shape Size fill 0
+  Row = array 0 1 1
+  Current = Row reshape 1 3
+  Zeros = array shape 3 1 fill 0
+  Current += Zeros
+  Phases = 0 to 2 copy
+  Zero = array 0
+  for I in 0 till Count
+    if Vis I equal 0
+      Nodes = I orbit Next
+      Vis Nodes = 1
+      Length = Nodes len
+      Bits = Flips Nodes
+      Prefix = Bits scan +
+      Prefix = Prefix mod 2
+      Prefix = concat Zero Prefix copy
+      Parity = Prefix Length
+      Cycle = record
+        .prefix = Prefix
+        .length = Length
+        .parity = Parity
+      end
+      Found = Phases matches Cycle
+      Current = Current reconcile Found
     end
   end
+  Columns = Current transpose
+  Offsets = Columns 0
+  Moduli = Columns 1
+  Valid = Columns 2
+  ZeroResidue = Offsets equal 0
+  Initial = Phases equal 0
+  Positive = ZeroResidue and Initial
+  Times = Positive choose Moduli Offsets
+  Steps = 3 * Times + Phases
+  Good = Valid equal 1
+  Best = Steps Good min
+  return Best
 end
 Answer = 0
-for Tr in 0 till Nt
-  A = Ta Tr
-  B = Tb Tr
-  C = Tc Tr
-  Rt = C isqrt
-  Gx = A
-  Gy = B
-  for Gy greater 0
-    Tg = Gx mod Gy
-    Gx = Gy
-    Gy = Tg
-  end
-  Dn = A * B // Gx
-  Sc = C * 1.0 sqrt
-  Sp = array B A 0
-  Sq = array 0 0 1
-  Sqr = Rt * Rt equal C
-  if Sqr
-    Gx = Dn
-    Gy = Rt
-    for Gy greater 0
-      Tg = Gx mod Gy
-      Gx = Gy
-      Gy = Tg
-    end
-    Dn = Dn // Gx * Rt
-    Sp = array (Dn // A) (Dn // B) 0
-    Sp 2 = Dn // Rt
-    Sq = array 0 0 0
-  else
-    Dn = A * B
-  end
-  Nw = 0
-  Rp = array shape 8 fill 0
-  Rq = array shape 8 fill 0
-  Rh = array shape 8 fill 0
-  Rn = array shape 8 fill 0
-  Hd = 0 - 1
-  Go = 1
-  for Go equal 1
-    Nr = 0
-    if Hd less 0
-      for Ph in 0 to 2
-        Rp Nr = 0
-        Rq Nr = 0
-        Rh Nr = Ph
-        Rn Nr = 0
-        Nr += 1
-        Rp Nr = Sp Ph
-        Rq Nr = Sq Ph
-        Rh Nr = Ph
-        Rn Nr = 0
-        Nr += 1
-      end
-    else
-      Kk = (Wl Hd) - 1
-      Ph = Kk mod 3
-      R0 = Kk // 3
-      P = R0 // Wd
-      Q = R0 mod Wd - Of
-      S = Sp Ph
-      T = Sq Ph
-      Nx = (Ph + 1) mod 3
-      Zr = P equal 0 and (Q equal 0)
-      Ie = P equal S and (Q equal T)
-      if Zr or Ie
-        Rp Nr = Dn - S
-        Rq Nr = 0 - T
-        Rh Nr = Nx
-        Rn Nr = 1
-        Nr += 1
-        Rp Nr = 0
-        Rq Nr = 0
-        Rh Nr = Nx
-        Rn Nr = 0
-        Nr += 1
-      else
-        Vx = P / Dn + Q / Sc
-        Vs = S / Dn + T / Sc
-        if Vx less Vs
-          Rp Nr = Dn - P
-          Rq Nr = 0 - Q
-        else
-          Rp Nr = P - S
-          Rq Nr = Q - T
-        end
-        Rh Nr = Nx
-        Rn Nr = 1
-        Nr += 1
-      end
-      Pp = (Ph + 2) mod 3
-      S2 = Sp Pp
-      T2 = Sq Pp
-      Vr = (P + S2) / Dn + (Q + T2) / Sc
-      if Vr less 1 - 0.000000000001
-        Rp Nr = P + S2
-        Rq Nr = Q + T2
-        Rh Nr = Pp
-        Rn Nr = 0
-        Nr += 1
-      end
-      Vy = 1 - (P / Dn + Q / Sc)
-      Vt = S2 / Dn + T2 / Sc
-      Ok = Vy greater Ep
-      Ok = Ok and (Vy less Vt - Ep)
-      if Ok
-        Rp Nr = Dn - P
-        Rq Nr = 0 - Q
-        Rh Nr = Pp
-        Rn Nr = 0
-        Nr += 1
-      end
-    end
-    for I in 0 till Nr
-      Cp = Rp I
-      Cq = Rq I
-      if Rn I equal 1
-        if Cq equal 0
-          Cp = Cp mod Dn
-        else
-          Nv = Cp / Dn + Cq / Sc + Ep
-          Nf = Nv floor
-          Cp -= (Nf integer) * Dn
-        end
-      end
-      Ky = (Cp * Wd + Cq + Of) * 3
-      Ky += Rh I + 1
-      H = Ky * 40503 mod Hs
-      Pb = 1
-      for Pb equal 1
-        Hv = Hk H
-        if Hv equal 0
-          Hk H = Ky
-          Wl Nw = Ky
-          Sl Nw = H
-          Nw += 1
-          Pb = 0
-        elif Hv equal Ky
-          Pb = 0
-        else
-          H = (H + 1) mod Hs
-        end
-      end
-    end
-    Hd += 1
-    if Hd less Nw
-      Go = 1
-    else
-      Go = 0
-    end
-  end
-  Mm = Nw // 3
-  Ks = (Wl (0 till Nw array)) - 1
-  Pa = Ks mod 3
-  Rk = Ks // 3
-  Pv = Rk // Wd
-  Qv = Rk mod Wd - Of
-  Vl = Pv / Dn + Qv / Sc
-  Sk = array shape 3 Mm fill 0
-  for Ph in 0 to 2
-    Ix = Pa equal Ph indices
-    Vp = Vl Ix
-    Od = Vp argsort
-    Sk Ph = (Wl (Ix Od))
-  end
-  for Ph in 0 to 2
-    for I in 0 till Mm
-      Ky = Sk Ph I
-      H = Ky * 40503 mod Hs
-      for Hk H not equal Ky
-        H = (H + 1) mod Hs
-      end
-      Hx H = I
-    end
-  end
-  Nxt = array shape (3 * Mm) fill 0
-  Fb = array shape (3 * Mm) fill 0
-  for Ph in 0 to 2
-    S = Sp Ph
-    T = Sq Ph
-    Nx = (Ph + 1) mod 3
-    Vs = S / Dn + T / Sc
-    for I in 0 till Mm
-      Kk = (Sk Ph I) - 1
-      R1 = Kk // 3
-      Lp = R1 // Wd
-      Lq = R1 mod Wd - Of
-      Hp = Dn
-      Hq = 0
-      if I + 1 less Mm
-        Kh = (Sk Ph (I + 1)) - 1
-        R2 = Kh // 3
-        Hp = R2 // Wd
-        Hq = R2 mod Wd - Of
-      end
-      Vh = Hp / Dn + Hq / Sc
-      Cp = 0
-      Cq = 0
-      Fl = 0
-      if Vh less Vs + 0.000000000001
-        Cp = Dn - Hp
-        Cq = 0 - Hq
-        Fl = 1
-      else
-        Cp = Lp - S
-        Cq = Lq - T
-      end
-      if Cq equal 0
-        Cp = Cp mod Dn
-      else
-        Nv = Cp / Dn + Cq / Sc + Ep
-        Nf = Nv floor
-        Cp -= (Nf integer) * Dn
-      end
-      Ky = (Cp * Wd + Cq + Of) * 3
-      Ky += Nx + 1
-      H = Ky * 40503 mod Hs
-      for Hk H not equal Ky
-        H = (H + 1) mod Hs
-      end
-      Jx = Hx H
-      Ix2 = Ph * Mm + I
-      Nxt Ix2 = Nx * Mm + Jx
-      Fb (Ph * Mm + I) = Fl
-    end
-  end
-  Vis = array shape (3 * Mm) fill 0
-  Fa = array shape (3 * Mm + 1) fill 0
-  P0 = array shape (3 * Mm + 2) fill 0
-  Tx = array shape (6 * Mm + 8) fill 0
-  Fl2 = array shape (3 * Mm + 2) fill 0
-  Mn1 = 0 - 1
-  M3 = 3 * Mm
-  Cq0 = array shape (M3 + 3) fill Mn1
-  Cpd = array shape (3 * Mm + 3) fill 1
-  Nc = 0
-  for I0 in 0 till Mm
-    if Vis I0 equal 0
-      Ln = 0
-      St = I0
-      Gw = 1
-      for Gw equal 1
-        Vis St = 1
-        Fa Ln = Fb St
-        Ln += 1
-        St = Nxt St
-        if St equal I0
-          Gw = 0
-        end
-      end
-      for I in 0 till Ln
-        P0 (I + 1) = P0 I bxor (Fa I)
-      end
-      Wp = P0 Ln
-      El = Ln // 3
-      Mq = El * (1 + Wp)
-      for Rr in 0 to 2
-        Tl = El + Mq
-        for J in 0 till Tl
-          Tt = 3 * J + Rr
-          Tp = Tt mod Ln
-          Wq = Wp * (Tt // Ln mod 2)
-          Tx J = P0 Tp bxor Wq
-        end
-        for J in 0 till El
-          Tt = 3 * J
-          Tp = Tt mod Ln
-          Wq = Wp * (Tt // Ln mod 2)
-          Fl2 J = P0 Tp bxor Wq
-        end
-        Fl2 El = 0
-        Fi = array shape (El + 1) fill 0
-        Kf = 0
-        for J in 1 till El
-          Aj = Fl2 J
-          Cw = Kf greater 0
-          if Cw
-            Cw = Aj not equal (Fl2 Kf)
-          end
-          for Cw
-            Kf = Fi (Kf - 1)
-            Cw = Kf greater 0
-            if Cw
-              Cw = Aj not equal (Fl2 Kf)
-            end
-          end
-          if Fl2 J equal (Fl2 Kf)
-            Kf += 1
-          end
-          Fi J = Kf
-        end
-        Kf = 0
-        Q0 = 0 - 1
-        Q1 = 0 - 1
-        for J in 0 till Tl
-          Cm = 1
-          for Cm equal 1
-            Cm = 0
-            if Kf greater 0
-              Bad = Kf equal El
-              Bj = Tx J
-              Bk = Fl2 Kf
-              Bd2 = Bj not equal Bk
-              Bad = Bad or Bd2
-              if Bad
-                Kf = Fi (Kf - 1)
-                Cm = 1
-              end
-            end
-          end
-          if Tx J equal (Fl2 Kf)
-            Kf += 1
-          end
-          if Kf equal El
-            Qm = J + 1 - El
-            if Qm less Mq
-              if Q0 less 0
-                Q0 = Qm
-              elif Q1 less 0
-                Q1 = Qm
-              end
-            end
-          end
-        end
-        Cq0 (Nc * 3 + Rr) = Q0
-        Pd = Mq
-        if Q1 greater 0
-          Pd = Q1 - Q0
-        end
-        Cpd (Nc * 3 + Rr) = Pd
-      end
-      Nc += 1
-    end
-  end
-  Best = 0 - 1
-  for Rr in 0 to 2
-    Rs = 0
-    Md = 1
-    Okk = 1
-    for Cy in 0 till Nc
-      Q0 = Cq0 (Cy * 3 + Rr)
-      Pd = Cpd (Cy * 3 + Rr)
-      if Q0 less 0
-        Okk = 0
-      elif Okk equal 1
-        Gc = Md
-        Gd = Pd
-        for Gd greater 0
-          Tg = Gc mod Gd
-          Gc = Gd
-          Gd = Tg
-        end
-        Df = Q0 - Rs
-        if Df mod Gc not equal 0
-          Okk = 0
-        else
-          M2 = Pd // Gc
-          Ts = 0
-          if M2 greater 1
-            E0 = M2
-            E1 = Md // Gc mod M2
-            X0 = 0
-            X1 = 1
-            for E1 greater 0
-              Qe = E0 // E1
-              Te = E0 - Qe * E1
-              E0 = E1
-              E1 = Te
-              Te = X0 - Qe * X1
-              X0 = X1
-              X1 = Te
-            end
-            Iv = X0 mod M2
-            Df2 = Df // Gc mod M2
-            Ts = Df2 * Iv mod M2
-          end
-          Rs = Rs + Md * Ts
-          Md = Md // Gc * Pd
-          Rs = Rs mod Md
-        end
-      end
-    end
-    if Okk equal 1
-      Qs = Rs
-      if Qs equal 0 and (Rr equal 0)
-        Qs = Md
-      end
-      Nn = 3 * Qs + Rr
-      if Best less 0 or (Nn less Best)
-        Best = Nn
-      end
-    end
-  end
-  Answer += Best
-  for I in 0 till Nw
-    Hk (Sl I) = 0
-  end
+if N at least 11
+  Count = N - 8
+  Values = 0 till Count copy
+  First = Values reshape Count 1 1
+  Second = Values reshape 1 Count 1
+  Third = Values reshape 1 1 Count
+  Before = First less Second
+  After = Second less Third
+  Mask = Before and After
+  Rows = Mask indices
+  Triples = Rows + 9
+  Results = Triples icing
+  Answer = Results sum
 end
 Answer print
