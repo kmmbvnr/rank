@@ -1,3 +1,4 @@
+import { compileScalarFunction } from '../src/scalar-function-kernel.js';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, parse } from '../src/index.js';
 import { currentDiagnostics, recordFallback } from '../src/diagnostics.js';
@@ -112,7 +113,8 @@ describe('compiler admission and execution observations', () => {
 
     it('records the actual delegated operator and the failed scalar condition', () => {
         const stats = new RuntimeDiagnostics(Infinity, true);
-        expect(execute('N = 1 till 4\nMask = N mod 3 equal 0\nN Mask sum', stats)).toBe(3n);
+        // A logical tail keeps this case on the scalar delegation path.
+        expect(execute('N = 1 till 4\nMask = N mod 3 equal 0 and true\nN Mask sum', stats)).toBe(3n);
         expect(stats.compilerObservations).toEqual(expect.arrayContaining([
             expect.objectContaining({ backend: 'scalar-operation-fallback', source: expect.objectContaining({ operation: 'mod', line: 2 }),
                 guard: { expected: 'two integer scalars and a nonzero right operand',
@@ -120,6 +122,15 @@ describe('compiler admission and execution observations', () => {
                 execution: { kinds: ['native'], paths: ['native-array-map', 'native-operator'] } }),
             expect.objectContaining({ backend: 'statement-dispatch', source: expect.objectContaining({ line: 2 }),
                 execution: expect.objectContaining({ kinds: ['compiled', 'native'] }) }),
+        ]));
+    });
+
+    it('reports the compiled path for a newly admitted compound comparison', () => {
+        const stats = new RuntimeDiagnostics(Infinity, true);
+        expect(execute('N = 1 till 4\nMask = N mod 3 equal 0\nN Mask sum', stats)).toBe(3n);
+        expect(stats.compilerObservations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ backend: 'tensor', phase: 'execute', source: expect.objectContaining({ line: 2 }),
+                execution: expect.objectContaining({ kinds: ['compiled'] }) }),
         ]));
     });
 
@@ -252,4 +263,15 @@ describe('compiler admission and execution observations', () => {
                 source: expect.objectContaining({ sourceId: 'observation.ra', line: 6 }) }),
         ]));
     });
+});
+
+it('keeps kernel identity across ordinary and traced preparations', () => {
+    const fn = parse('fun X add Y\n return X + Y\nend').statements[0];
+    if (fn.$type !== 'FunctionStatement') throw Error('expected function');
+    const plain = compileScalarFunction(fn);
+    const stats = new RuntimeDiagnostics(Infinity, true);
+    const traced = stats.run(() => compileScalarFunction(fn, ['integer', 'integer']));
+    expect(plain === traced).toBe(true);
+    expect(stats.run(() => traced!.run([2n, 3n], error => error))).toBe(5n);
+    expect(stats.compilerObservations.some(item => item.backend === 'scalar-function' && item.phase === 'execute' && item.execution)).toBe(true);
 });

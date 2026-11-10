@@ -318,14 +318,16 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const arithmetic = (node: TensorNode): boolean => {
             if (node.kind === 'input') return true;
             if (node.kind === 'select') return arithmetic(node.source) && arithmetic(node.selector);
-            if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
+            if (node.kind === 'unary' && ['+', '-', 'not'].includes(node.op)) {
                 operations++;
                 return arithmetic(node.operand);
             }
-            // Native integer bitwise nodes already carry builtin identity and
-            // exact-domain guards; they may compose with ordinary arithmetic.
+            // Comparisons complete both operands, like arithmetic. Logical
+            // and/or retain their ordinary short-circuit boundary. Native
+            // bitwise nodes keep their builtin identity and domain guards.
             if (node.kind === 'binary' && (node.native && bitwise(node.native)
-                || !node.native && ['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op))) {
+                || !node.native && (['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op)
+                    || ['===', '!==', '<', '<=', '>', '>='].includes(findCompiledOperator(node.op)?.binary ?? '')))) {
                 operations++;
                 return arithmetic(node.left) && arithmetic(node.right);
             }

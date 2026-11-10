@@ -113,8 +113,13 @@ it('keeps large wide layout sums exact without an eager numeric copy', () => {
     const cells = new BigInt64Array(128).fill(9007199254740993n);
     const value = typedArray(cells, [64, 2]);
     const input: TensorNode = { kind: 'input', value };
-    expect(prepareLayoutNumberTensor(input, new Map([[input, ['integer']]]),
-        'sum', new Map(), () => true)).toBeUndefined();
+    // Native Int64 words need no eager numeric copy. A prepared runner can
+    // discover an unsafe cell at demand and leave the exact consumer in charge.
+    const numeric = prepareLayoutNumberTensor(input, new Map([[input, ['integer']]]),
+        'sum', new Map(), () => true);
+    const diagnostics = new RuntimeDiagnostics();
+    expect(diagnostics.run(() => numeric?.())).toBeUndefined();
+    expect(diagnostics.costs['number-tensor.read-buffer']?.allocatedBytes ?? 0).toBe(0);
     const runtime = new Interpreter();
     try {
         runtime.variables.set('Input', value);

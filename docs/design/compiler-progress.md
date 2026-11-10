@@ -3705,3 +3705,25 @@ still use existing native update paths; no whole-helper scalar compilation is
 claimed. The full main returns to ordinary audits. The
 [benchmark](../../benchmarks/euler580.md) separates program speed and memory
 from compiler coverage controls on Mac and Intel.
+
+### Euler 583: compound comparison masks and stable observed kernels
+
+Ordinary bindings and returns can compile compound arithmetic comparisons,
+including unary `not`, without requiring an explicit copy. Logical `and`/`or`
+retain their short-circuit boundary. The existing exact tensor kernel writes
+comparison results directly into a packed boolean bitmap. Wide integers,
+observable budgets and inspection retain their established contracts. A
+speculative Number boolean-copy prototype was measured and rejected because
+it slowed the hot comparison control. No Number threshold or syntax changes.
+
+Scalar kernels retain one observation wrapper per cached kernel. Ordinary and
+traced preparations therefore preserve kernel identity while execution still
+selects the current diagnostics context. The existing specialization identity
+checks and a traced/untraced regression verify this contract.
+
+Euler 583 generates bounded Pythagorean flap chunks, then joins two flaps with
+the same halfwidth and checks the rectangle diagonal. Its one explicit loop
+produces generator chunks; ragged array expansion and bounded search batches
+replace the double generation pass and separate rectangle table. The
+[benchmark](../../benchmarks/euler583.md) records the geometry argument,
+compiler controls, rejected experiments and Mac/Intel measurements.

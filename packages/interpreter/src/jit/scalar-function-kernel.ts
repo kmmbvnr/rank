@@ -95,6 +95,7 @@ interface Kernel {
         recursiveError?: (error: RankError, args: number[]) => void) => LoopCallable;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
+const observedKernels = new WeakMap<Kernel, Kernel>();
 
 /** Read-only integer-input graphs may replay after a numeric guard fails. Captured
  * storage is separately borrowed at entry; opaque readers never enter it. */
@@ -799,7 +800,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         return [name, typeof type === 'string' ? type : JSON.stringify(type)];
     }));
     const candidate = observeCompiler(statement, 'scalar-function', 'prepare', () => compileScalarFunctionObservedImplementation(statement, parameterTypes, loops, capturedTypes), provenTypes);
-    return candidate && withCompilerMethods(candidate, { run: observedRun(statement, 'scalar-function', candidate.run.bind(candidate), provenTypes), direct: candidate.direct && ((...args) => observedRun(statement, 'scalar-function-direct', candidate.direct!(...args), provenTypes)), numberDirect: candidate.numberDirect && ((...args) => observedRun(statement, 'scalar-function-number', candidate.numberDirect!(...args), provenTypes)) });
+    if (!candidate) return undefined;
+    const existing = observedKernels.get(candidate);
+    if (existing) return existing;
+    // Observations are selected at execution, so one stable wrapper works
+    // across ordinary and traced preparations without defeating kernel identity.
+    const observed = withCompilerMethods(candidate, { run: observedRun(statement, 'scalar-function', candidate.run.bind(candidate), provenTypes), direct: candidate.direct && ((...args) => observedRun(statement, 'scalar-function-direct', candidate.direct!(...args), provenTypes)), numberDirect: candidate.numberDirect && ((...args) => observedRun(statement, 'scalar-function-number', candidate.numberDirect!(...args), provenTypes)) });
+    observedKernels.set(candidate, observed);
+    return observed;
 }
 
 function compileScalarFunctionObservedImplementation(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): Kernel | undefined {

@@ -4726,6 +4726,10 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
 {
   "boundaries": [
     {
+      "category": "missing-lowering",
+      "reason": "bounded-tensor:unsupported-ir:binary",
+    },
+    {
       "category": "runtime-guard",
       "reason": "scalar-expression:operator-guard:equal",
     },
@@ -4740,10 +4744,6 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
     {
       "category": "failed-proof",
       "reason": "tensor:assignment-or-return-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
     },
     {
       "category": "failed-proof",
@@ -4767,11 +4767,7 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
     "10:21 direct-expression: direct-expression",
     "12:1 native-operator: native-operator, native-range",
     "12:1 statement-dispatch: native-operator, native-range",
-    "14:1 native-operator: native-operator",
-    "14:1 statement-dispatch: native-array-map, native-operator, scalar-expression",
-    "14:8 native-operator: native-array-map, native-operator",
-    "14:8 scalar-expression: native-array-map, native-operator, scalar-expression",
-    "14:8 scalar-operation-fallback: native-array-map, native-operator",
+    "14:1 tensor: tensor",
     "15:1 native-operator: native-array-map, native-operator",
     "15:1 native-operator: native-operator",
     "15:1 statement-dispatch: native-array-map, native-operator, scalar-expression",
@@ -5325,10 +5321,6 @@ exports[`executable compiler capability matrix > expression-operator/atleast/0 1
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
-    },
-    {
-      "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
@@ -5355,10 +5347,6 @@ exports[`executable compiler capability matrix > expression-operator/atmost/0 1`
     {
       "category": "cost-limit",
       "reason": "scalar-expression:too-small",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
     },
     {
       "category": "failed-proof",
@@ -5391,10 +5379,6 @@ exports[`executable compiler capability matrix > expression-operator/equal/0 1`]
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
-    },
-    {
-      "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
@@ -5424,10 +5408,6 @@ exports[`executable compiler capability matrix > expression-operator/greater/0 1
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
-    },
-    {
-      "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
@@ -5454,10 +5434,6 @@ exports[`executable compiler capability matrix > expression-operator/less/0 1`] 
     {
       "category": "cost-limit",
       "reason": "scalar-expression:too-small",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
     },
     {
       "category": "failed-proof",
@@ -5519,10 +5495,6 @@ exports[`executable compiler capability matrix > expression-operator/not/0 1`] =
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
-    },
-    {
-      "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
@@ -5549,10 +5521,6 @@ exports[`executable compiler capability matrix > expression-operator/notequal/0 
     {
       "category": "cost-limit",
       "reason": "scalar-expression:too-small",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
     },
     {
       "category": "failed-proof",
@@ -5755,20 +5723,12 @@ exports[`executable compiler capability matrix > guard/array 1`] = `
 {
   "boundaries": [
     {
-      "category": "runtime-guard",
-      "reason": "scalar-expression:operator-guard:equal",
-    },
-    {
-      "category": "runtime-guard",
-      "reason": "scalar-expression:operator-guard:mod",
+      "category": "missing-lowering",
+      "reason": "bounded-tensor:unsupported-ir:binary",
     },
     {
       "category": "missing-lowering",
       "reason": "scalar-expression:unsupported-op:to",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "tensor:pointwise-arithmetic-required",
     },
     {
       "category": "failed-proof",
@@ -5786,14 +5746,10 @@ exports[`executable compiler capability matrix > guard/array 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, native-array-map, native-call, native-operator, native-range, scalar-expression",
+    "1:1 block-dispatch: direct-expression, native-call, native-operator, native-range, tensor",
     "1:1 native-operator: native-operator, native-range",
     "1:1 statement-dispatch: native-operator, native-range",
-    "2:1 native-operator: native-operator",
-    "2:1 statement-dispatch: native-array-map, native-operator, scalar-expression",
-    "2:8 native-operator: native-array-map, native-operator",
-    "2:8 scalar-expression: native-array-map, native-operator, scalar-expression",
-    "2:8 scalar-operation-fallback: native-array-map, native-operator",
+    "2:1 tensor: tensor",
     "3:1 direct-expression: direct-expression",
     "3:1 interpreted-expression: direct-expression, native-call",
     "3:1 native-call: native-call",
