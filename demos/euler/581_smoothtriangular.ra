@@ -1,42 +1,77 @@
 rem 47-smooth Triangular Numbers
 rem https://projecteuler.net/problem=581
-
 use numbers
+use bits
 use sequences
 use io
 use cli
-
 arg B integer = 10000000000000
+Bound = B max 0
+Maximum = 4 * Bound + 1
+Digits = Maximum binary len
+Primes = primes till 48 copy
+Product = Primes reduce * with 1
+rem One gcd tests the smooth part.
+Allowed = Product ** Digits
 
-rem T(2x) = x (2x + 1) and T(2x - 1) =
-rem x (2x - 1) with coprime factors, so
-rem T(n) is smooth when both factors
-rem are. List the 47-smooth x up to B
-rem and match 2x + 1 and 2x - 1 with
-rem those up to 2B + 1 after a sort.
-Lm = 2 * B + 1
-Sm = array 1
-for P in primes till 48 array
-  Cu = Sm
-  for Cu len greater 0
-    Cu = Cu * P
-    Ix = Cu at most Lm indices
-    Cu = Cu Ix
-    Sm = concat Sm Cu
-  end
+rem Squarefree parts of smooth products.
+fun Values extend Prime
+  return concat Values (Values * Prime)
 end
-Xs = Sm (Sm at most B indices)
-Zu = concat Sm (2 * Xs + 1)
-Zu = Zu sort
-Nu = Zu len
-Hu = Zu (1 till Nu array)
-Lu = Zu (0 till Nu - 1 array)
-Mu = Hu (Hu equal Lu indices)
-Zd = concat Sm (2 * Xs - 1)
-Zd = Zd sort
-Nd = Zd len
-Hd = Zd (1 till Nd array)
-Ld = Zd (0 till Nd - 1 array)
-Md = Hd (Hd equal Ld indices)
-Answer = Mu - 1 sum + (Md sum)
+Seed = array 1
+Parts = Primes reduce extend with Seed
+Good = Parts greater 1
+Ceiling = Maximum * Maximum - 1
+Good = Good and (Parts at most Ceiling)
+Parts = Parts Good
+
+rem X^2 - D Y^2 = 1 gives index (X-1)/2.
+fun D subtotal
+  Root = D isqrt
+  Offset = 0
+  Scale = 1
+  Term = Root
+  X = Root
+  PreviousX = 1
+  Y = 1
+  PreviousY = 0
+  Found = false
+  BaseX = 0
+  BaseY = 0
+  Total = 0
+  for X at most Maximum
+    rem Stop convergents at the bound.
+    if not Found
+      if X * X - D * Y * Y equal 1
+        BaseX = X
+        BaseY = Y
+        Found = true
+      else
+        Offset = Scale * Term - Offset
+        Square = Offset * Offset
+        Scale = (D - Square) // Scale
+        Term = (Root + Offset) // Scale
+        Next = Term * X + PreviousX
+        PreviousX = X
+        X = Next
+        Next = Term * Y + PreviousY
+        PreviousY = Y
+        Y = Next
+        continue
+      end
+    end
+    if X mod 2 equal 1
+      if Y gcd Allowed equal Y
+        Total += (X - 1) // 2
+      end
+    end
+    rem Powers give all Pell solutions.
+    Next = BaseX * X + D * BaseY * Y
+    Y = BaseY * X + BaseX * Y
+    X = Next
+  end
+  return Total
+end
+Totals = Parts subtotal rank 0
+Answer = Totals sum
 Answer print

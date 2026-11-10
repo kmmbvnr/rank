@@ -1,0 +1,955 @@
+{
+  "baseRevision": "7ee2914c52a247e11e6e84b3d0713fa475db971c",
+  "runtimeChanges": false,
+  "primarySameRuntime": true,
+  "sourceSha256": {
+    "demos/euler/581_smoothtriangular.ra": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+    "benchmarks/fixtures/euler581-original.ra": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+    "benchmarks/euler581-pell-js.mjs": "96322505d6e2459e0d12d815656bfae54800db34cc6c98d072314bf1b6f78202"
+  },
+  "primary": {
+    "mac": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 9028.379084,
+        "cpu": {
+          "user": 9463571,
+          "system": 824137
+        },
+        "rssMiB": 4121.796875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 370.53212499999995,
+        "cpu": {
+          "user": 653162,
+          "system": 20756
+        },
+        "rssMiB": 183.015625,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 6624.303666,
+        "cpu": {
+          "user": 7934771,
+          "system": 275843
+        },
+        "rssMiB": 5228.15625,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 1280.75925,
+        "cpu": {
+          "user": 1605702,
+          "system": 20072
+        },
+        "rssMiB": 299.921875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 6032.655041,
+        "cpu": {
+          "user": 7109301,
+          "system": 207402
+        },
+        "rssMiB": 5117.421875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 220.16904200000002,
+        "cpu": {
+          "user": 419483,
+          "system": 8624
+        },
+        "rssMiB": 184.3125,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 6978.548417,
+        "cpu": {
+          "user": 8090883,
+          "system": 228748
+        },
+        "rssMiB": 5043.9375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 1414.1418749999998,
+        "cpu": {
+          "user": 1825454,
+          "system": 24390
+        },
+        "rssMiB": 299.421875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 6734.146417,
+        "cpu": {
+          "user": 8002852,
+          "system": 233685
+        },
+        "rssMiB": 5153.15625,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 225.238292,
+        "cpu": {
+          "user": 421367,
+          "system": 8671
+        },
+        "rssMiB": 183.8125,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 6046.208291,
+        "cpu": {
+          "user": 7047252,
+          "system": 212145
+        },
+        "rssMiB": 5151.484375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 1223.8305,
+        "cpu": {
+          "user": 1545633,
+          "system": 19140
+        },
+        "rssMiB": 300.609375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 2,
+        "status": "completed"
+      }
+    ],
+    "intel": [
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 15954.934913,
+        "cpu": {
+          "user": 17979764,
+          "system": 1397762
+        },
+        "rssMiB": 1595.671875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 594.146088,
+        "cpu": {
+          "user": 958158,
+          "system": 33198
+        },
+        "rssMiB": 176.234375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 16472.852372,
+        "cpu": {
+          "user": 18391569,
+          "system": 1493574
+        },
+        "rssMiB": 1449.26171875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 3533.860346,
+        "cpu": {
+          "user": 4248803,
+          "system": 77098
+        },
+        "rssMiB": 283.9296875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 16363.365826,
+        "cpu": {
+          "user": 18200543,
+          "system": 1607848
+        },
+        "rssMiB": 1600.83203125,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 591.54978,
+        "cpu": {
+          "user": 937760,
+          "system": 52311
+        },
+        "rssMiB": 175.828125,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 16443.547887,
+        "cpu": {
+          "user": 18357280,
+          "system": 1442602
+        },
+        "rssMiB": 1449,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 3627.4988510000003,
+        "cpu": {
+          "user": 4371040,
+          "system": 85659
+        },
+        "rssMiB": 284.34765625,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 16709.621422,
+        "cpu": {
+          "user": 18396026,
+          "system": 1699967
+        },
+        "rssMiB": 1596.9609375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 611.041259,
+        "cpu": {
+          "user": 998623,
+          "system": 33833
+        },
+        "rssMiB": 173.07421875,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 16680.819175,
+        "cpu": {
+          "user": 18756401,
+          "system": 1446654
+        },
+        "rssMiB": 1451.6484375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "before",
+        "sample": 2,
+        "status": "completed"
+      },
+      {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+        "ms": 3643.45801,
+        "cpu": {
+          "user": 4410892,
+          "system": 63230
+        },
+        "rssMiB": 283.8359375,
+        "answer": "2227616372734",
+        "diagnosticMode": false,
+        "label": "after",
+        "sample": 2,
+        "status": "completed"
+      }
+    ]
+  },
+  "handwrittenJavaScript": {
+    "mac": [
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 37.977917,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 57.453125,
+        "label": "handwritten-js",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 38.034959,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 57.421875,
+        "label": "handwritten-js",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 37.935917,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 57.421875,
+        "label": "handwritten-js",
+        "sample": 2,
+        "status": "completed"
+      }
+    ],
+    "intel": [
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 118.934954,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 60.15234375,
+        "label": "handwritten-js",
+        "sample": 0,
+        "status": "completed"
+      },
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 118.27047099999999,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 64.8984375,
+        "label": "handwritten-js",
+        "sample": 1,
+        "status": "completed"
+      },
+      {
+        "mode": "handwritten-js",
+        "n": "10000000000000",
+        "answer": "2227616372734",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 121.03230999999998,
+        "solved": 3640,
+        "candidates": 5550,
+        "iterations": 565321,
+        "rssMiB": 63.23828125,
+        "label": "handwritten-js",
+        "sample": 2,
+        "status": "completed"
+      }
+    ]
+  },
+  "experiments": [
+    {
+      "label": "old-current",
+      "sample": {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "fa70747d66a0b7f6446585866e2606710410bc5e364c945f3cfa4429de44d14a",
+        "ms": 5846.893083,
+        "cpu": {
+          "user": 6805520,
+          "system": 271992
+        },
+        "rssMiB": 5152.296875,
+        "answer": "2227616372734",
+        "diagnosticMode": false
+      }
+    },
+    {
+      "label": "adjacent",
+      "sample": {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "874426489715edf36595aa748835409fbcd169dd2243a8af8594b30208a212ba",
+        "ms": 5849.530041999999,
+        "cpu": {
+          "user": 6785979,
+          "system": 207690
+        },
+        "rssMiB": 4660.78125,
+        "answer": "2227616372734",
+        "diagnosticMode": false
+      },
+      "source": "rem 47-smooth Triangular Numbers\nrem https://projecteuler.net/problem=581\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\narg B integer = 10000000000000\n\nrem T(2x) = x (2x + 1) and T(2x - 1) =\nrem x (2x - 1) with coprime factors, so\nrem T(n) is smooth when both factors\nrem are. List the 47-smooth x up to B\nrem and match 2x + 1 and 2x - 1 with\nrem those up to 2B + 1 after a sort.\nLm = 2 * B + 1\nSm = array 1\nfor P in primes till 48 array\n  Cu = Sm\n  for Cu len greater 0\n    Cu = Cu * P\n    Ix = Cu at most Lm indices\n    Cu = Cu Ix\n    Sm = concat Sm Cu\n  end\nend\nSorted = Sm sort\nNext = Sorted shift -1\nGood = Next - Sorted equal 1\nAnswer = Sorted Good sum\nAnswer print\n"
+    },
+    {
+      "label": "fold",
+      "sample": {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "3b87f0357a12da44fde1c1cae2288517bbc420db69d4e71a6e89b4079a876a35",
+        "ms": 7884.437125,
+        "cpu": {
+          "user": 8743915,
+          "system": 360539
+        },
+        "rssMiB": 4860.046875,
+        "answer": "2227616372734",
+        "diagnosticMode": false
+      },
+      "source": "rem 47-smooth Triangular Numbers\nrem https://projecteuler.net/problem=581\nuse numbers\nuse sequences\nuse io\nuse cli\narg B integer = 10000000000000\nLimit = 2 * B + 1\n\nrem Add one prime's allowable powers.\nfun Values extend Prime\n  Bound = Limit // Prime\n  Front = Values\n  for Front len greater 0\n    Front = Front (Front at most Bound)\n    Front = Front * Prime\n    Values = concat Values Front\n  end\n  return Values\nend\nPrimes = primes till 48 copy\nSeed = array 1\nSmooth = Primes reduce extend with Seed\nSmooth = Smooth sort\nrem Neighbouring smooth integers give\nrem every smooth triangular index.\nNext' = Smooth shift -1\nGood = Next - Smooth equal 1\nAnswer = Smooth Good sum\nAnswer print\n"
+    },
+    {
+      "label": "pell-first",
+      "sample": {
+        "mode": "compiled",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e8030adcbd347c6bf5f6f1b6c0e71dd808bc95756a0db0de04128a1a0619dfc4",
+        "ms": 225.773625,
+        "cpu": {
+          "user": 415672,
+          "system": 10028
+        },
+        "rssMiB": 184.5,
+        "answer": "2227616372734",
+        "diagnosticMode": false
+      }
+    },
+    {
+      "label": "pell-reference-first",
+      "sample": {
+        "mode": "reference",
+        "n": "10000000000000",
+        "limit": "10000000000000",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e8030adcbd347c6bf5f6f1b6c0e71dd808bc95756a0db0de04128a1a0619dfc4",
+        "ms": 1152.053333,
+        "cpu": {
+          "user": 1466358,
+          "system": 24530
+        },
+        "rssMiB": 300.15625,
+        "answer": "2227616372734",
+        "diagnosticMode": false
+      }
+    }
+  ],
+  "verification": {
+    "focusedChecksPerHost": 302,
+    "filteredMacCorpusChecks": 6,
+    "exclusionPolicyChecks": 5,
+    "typescriptBuild": "passed on Mac",
+    "fullNpmTest": "not run",
+    "finalEuler581ChecksPerHost": 95,
+    "compiledSubtotalBounds": [
+      1000,
+      10000000000000
+    ]
+  },
+  "diagnosticRun": {
+    "mode": "compiled",
+    "n": "10000000000000",
+    "limit": "10000000000000",
+    "node": "v24.15.0",
+    "arch": "arm64",
+    "sourceSha256": "f23044bc7b94b2a5834e70863a39add5f6577d70dd3c17da03bc30b21d9aa688",
+    "ms": 219.59579200000002,
+    "cpu": {
+      "user": 410250,
+      "system": 11315
+    },
+    "rssMiB": 184.328125,
+    "answer": "2227616372734",
+    "diagnosticMode": true,
+    "diagnostics": {
+      "compilerRejectionLimit": 64,
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "primeRunSieves": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "nativeFirstSearches": 0,
+      "nativeFirstSearchCells": 0,
+      "compiledLoops": 0,
+      "compiledFunctionFolds": 0,
+      "integerWordScalings": 0,
+      "nativeIntegerSums": 0,
+      "nativeIntegerJoins": 0,
+      "nativeModularPowerTriples": 0,
+      "compiledModularPowers": 0,
+      "nativeIntegerSumCells": 0,
+      "weightedAxisSums": 0,
+      "weightedAxisSumCells": 0,
+      "fusedArrayRegions": 0,
+      "fusedArrayRegionCells": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "integerKeyedFolds": 0,
+      "realKeyedFolds": 0,
+      "keyedNativeReaders": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "numericSortedCounts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "sortedIndexBatches": 0,
+      "sortedIndexCoarseBatches": 0,
+      "sortedIndexRangeBatches": 0,
+      "storedSeededScans": 0,
+      "sortedIndexBatchQueries": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "numberLoopUnpolled": 0,
+      "numberLoopBatched": 0,
+      "numberFunctions": 134,
+      "numberFunctionFallbacks": 134,
+      "numberFunctionSkips": 32632,
+      "numberFunctionArrayBorrows": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopSliceCopies": 0,
+      "numberLoopSliceCopyCells": 0,
+      "numberLoopSliceDirectCells": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "numberLoopBorrowedIntegerBuffers": 0,
+      "numberLoopBorrowedIntegerCells": 0,
+      "numberLoopBorrowedRealBuffers": 0,
+      "numberLoopBorrowedRealCells": 0,
+      "modularMatrixPowers": 0,
+      "nativeModularMatrixPowers": 0,
+      "nativeModularMatrixBatches": 0,
+      "modularCallbackScans": 0,
+      "modularCallbackReductions": 0,
+      "compiledTensors": 15,
+      "packedBooleanGathers": 0,
+      "packedBooleanGatherCells": 0,
+      "tensorRangeScans": 0,
+      "tensorRangeScannedCells": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "numericFunctionPreparations": 0,
+      "numericFunctionPlanHits": 0,
+      "compiledNumericCallLoops": 0,
+      "numericLoopCalls": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 1,
+      "maskMaterializations": 1,
+      "maskMaterializedCells": 32767,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "reusedTensorBuffers": 0,
+      "reusedTensorBufferCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedArrayPublications": 5,
+      "typedArrayPublishedCells": 94207,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:application-form:ApplicationExpression": 1,
+        "tensor:dyadic-terminal:AssignmentStatement": 1,
+        "tensor:output-shape": 2,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:*": 2,
+        "tensor:application-form:BinaryExpression": 1,
+        "scalar-expression:unsupported-op:**": 1,
+        "tensor:unsupported-type:array": 1,
+        "scalar-expression:too-small": 2,
+        "scalar-expression:unsupported-op:and": 1
+      },
+      "fallbackCategories": {
+        "effects": {
+          "tensor:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:unsupported-op:and": 1
+        },
+        "representation": {
+          "tensor:unsupported-type:array": 1
+        },
+        "aliasing": {},
+        "proof": {},
+        "cost": {},
+        "unclassified": {
+          "scalar-function:application-form:ApplicationExpression": 1,
+          "tensor:dyadic-terminal:AssignmentStatement": 1,
+          "tensor:output-shape": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "scalar-expression:too-small": 2
+        }
+      },
+      "costs": {
+        "program.parse": {
+          "calls": 1,
+          "milliseconds": 97.79924999999997,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "program.execute": {
+          "calls": 1,
+          "milliseconds": 121.45241599999997,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        },
+        "input.prepare": {
+          "calls": 1,
+          "milliseconds": 0.113708000000031,
+          "allocatedBytes": 0,
+          "copiedBytes": 0,
+          "boxedCells": 0,
+          "unboxedCells": 0,
+          "discardedAttempts": 0,
+          "discardedMilliseconds": 0
+        }
+      },
+      "compilerRejections": [
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "extend",
+          "sourceId": "<input>",
+          "expression": "concat Values (Values * Prime)",
+          "line": 19,
+          "column": 10
+        },
+        {
+          "reason": "tensor:dyadic-terminal:AssignmentStatement",
+          "node": "AssignmentStatement",
+          "sourceId": "<input>",
+          "expression": "Bound = B max 0",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "reason": "tensor:unsupported-op:till",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "primes till 48 copy",
+          "line": 12,
+          "column": 10
+        },
+        {
+          "reason": "scalar-expression:unsupported-op:till",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "primes till 48 copy",
+          "line": 12,
+          "column": 10
+        },
+        {
+          "reason": "scalar-expression:unsupported-op:*",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "Primes reduce * with 1",
+          "line": 13,
+          "column": 11
+        },
+        {
+          "reason": "tensor:application-form:BinaryExpression",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "Primes reduce * with 1",
+          "line": 13,
+          "column": 11
+        },
+        {
+          "reason": "scalar-expression:unsupported-op:**",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "Product ** Digits",
+          "line": 15,
+          "column": 11
+        },
+        {
+          "reason": "tensor:unsupported-type:array",
+          "node": "ArrayExpression",
+          "sourceId": "<input>",
+          "expression": "array 1",
+          "line": 21,
+          "column": 8
+        },
+        {
+          "reason": "scalar-expression:unsupported-op:and",
+          "node": "BinaryExpression",
+          "sourceId": "<input>",
+          "expression": "Good and (Parts at most Ceiling)",
+          "line": 25,
+          "column": 8
+        }
+      ],
+      "compilerRejectionsOmitted": 0,
+      "compilerRejectionKeys": {}
+    }
+  }
+}
