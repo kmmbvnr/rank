@@ -3536,3 +3536,14 @@ primitive projection vectors and boundary
 counts for complementary idempotents. The zero-bound answer is corrected to one.
 The [benchmark](../../benchmarks/euler572.md) separates program improvements
 from the private-helper compiler measurement and records both engines' memory.
+
+### Euler 574: avoid full-subset materialization before optimizing dispatch
+
+The original CRT search already spends most of its time in stored BigInt
+kernels and allocation, not interpreted statement dispatch. The replacement
+constructs two half-sized subset lists, then uses exact batched sorted searches
+and a short array correction for inadmissible candidates. Existing boxed-wide
+search and tensor support cover this work; no new compiler special case is
+needed. The full demo returns to ordinary corpus audits. The
+[benchmark](../../benchmarks/euler574.md) records the proof, independent checks,
+architecture-specific timings and peak memory.
