@@ -3568,3 +3568,15 @@ Euler 578 separates powerful prefixes from squarefree tails, with a bounded
 array-built tail cache. The [benchmark](../../benchmarks/euler578.md) separates
 program/runtime controls, full compiled speed and memory, and the remaining
 manual full-reference lane.
+
+
+### Euler 579: reduce enumeration before extending whole-function compilation
+
+Odd-norm primitive quaternion representatives and signed-rotation orbits replace
+the billion-candidate scalar walk. Bounded ragged array expansion, library gcd
+and rank-0 batches remove explicit loops while preserving the distinct
+transpose orbit. Existing integer array kernels execute the new program in
+both engines; no new compiler special case or numeric limit is needed.
+The full main returns to ordinary corpus audits. The
+[benchmark](../../benchmarks/euler579.md) records the orbit proof, independent
+geometry checks and separate timing/memory comparisons on Mac and Intel.
