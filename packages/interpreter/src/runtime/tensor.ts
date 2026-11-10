@@ -310,6 +310,8 @@ export function chooseDenseArrays(
     const operands = [condition, whenTrue, whenFalse];
     const cells: ArrayLike<RankValue>[] = [];
     try {
+        // Prove every operand before expanding any broadcast. A lazy branch
+        // can decline this kernel after an otherwise huge mask allocation.
         for (const operand of operands) {
             if (!isArrayValue(operand)) {
                 if (typeof operand === 'object' && operand !== null) return undefined;
@@ -318,14 +320,19 @@ export function chooseDenseArrays(
             }
             const items = storedOperandItems(operand);
             if (!items) return undefined;
+            cells.push(items);
+        }
+        for (let index = 0; index < operands.length; index++) {
+            const operand = operands[index];
+            if (!isArrayValue(operand)) continue;
             const direct = trailingCells(operand.shape, shape) === 0;
-            if (cells.length === 0 && direct && ownedStorage.has(operand)
+            if (index === 0 && direct && ownedStorage.has(operand)
                 && Object.getPrototypeOf(operand) === Object.prototype
                 && !Object.getOwnPropertyDescriptor(operand, 'itemAt')) {
                 const bitmap = booleanCells(operand);
                 if (bitmap?.length === size) packedTest = bitmap;
             }
-            cells.push(direct ? items : expandOperand<RankValue>(items, operand.shape, shape, Array as never));
+            if (!direct) cells[index] = expandOperand<RankValue>(cells[index], operand.shape, shape, Array as never);
         }
     } catch (error) {
         if (error instanceof InterruptedError) throw error;

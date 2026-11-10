@@ -1,0 +1,3243 @@
+{
+  "nightlyBefore": {
+    "id": "2026-11-08T22-00-58.475Z",
+    "commit": "563c31e308242a4f8d2df6c8fdfe034689585fc1",
+    "subject": "Fix Euler 526 maxima and compile private array helpers",
+    "started": "2026-11-08T22:00:58.476Z",
+    "finished": "2026-11-09T01:24:30.191Z",
+    "host": "jack",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "node": "v24.15.0",
+    "method": "One fresh CLI process per demo; measured time includes parsing and execution after CLI imports. Startup is recorded separately as wallMs. Libraries run their companion tests. Sequential execution.",
+    "timeoutMs": 600000,
+    "total": 1427
+  },
+  "nightlyAfter": {
+    "id": "2026-11-09T22-00-53.987Z",
+    "commit": "afc824b024a0fd7f0b7d3c5b4d3e3ea3f50483f5",
+    "subject": "Keep numeric array helpers compact and batch Euler 560 Walsh stages",
+    "started": "2026-11-09T22:00:53.987Z",
+    "finished": "2026-11-10T01:11:21.603Z",
+    "host": "jack",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "node": "v24.15.0",
+    "method": "One fresh CLI process per demo; measured time includes parsing and execution after CLI imports. Startup is recorded separately as wallMs. Libraries run their companion tests. Sequential execution.",
+    "timeoutMs": 600000,
+    "total": 1427
+  },
+  "repairBase": "def74ea3",
+  "statusCounts": {
+    "ok": 1416,
+    "timeout": 1,
+    "no-workload": 9,
+    "no-data": 1
+  },
+  "matchingSuccessful": 1393,
+  "matchingTimeRatioGeomean": 0.985108979315762,
+  "candidates": [
+    {
+      "before": {
+        "path": "demos/euler/060_primepairs.ra",
+        "status": "ok",
+        "ms": 10326.848845,
+        "cpuMs": 10294.396,
+        "peakRssMiB": 416.08203125,
+        "sourceHash": "654faec96293b95925bf6e72b4bb5e484cab7968e534b145cdcc9af684a1c689",
+        "workloadHash": "7362f83cf4cf4155e618928d4fb7c75a898438c808fea6189e08c0445b3a2702"
+      },
+      "after": {
+        "path": "demos/euler/060_primepairs.ra",
+        "status": "ok",
+        "ms": 10235.895408,
+        "cpuMs": 10202.947,
+        "peakRssMiB": 481.015625,
+        "sourceHash": "654faec96293b95925bf6e72b4bb5e484cab7968e534b145cdcc9af684a1c689",
+        "workloadHash": "7362f83cf4cf4155e618928d4fb7c75a898438c808fea6189e08c0445b3a2702"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/200_primeproofsqube.ra",
+        "status": "ok",
+        "ms": 1747.070268,
+        "cpuMs": 1746.605,
+        "peakRssMiB": 271.296875,
+        "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+        "workloadHash": "d25fa17596bee7e7a48b0779128b6092cacd59d3f42bf4e8be73cd9d69827b66"
+      },
+      "after": {
+        "path": "demos/euler/200_primeproofsqube.ra",
+        "status": "ok",
+        "ms": 1758.191367,
+        "cpuMs": 1757.406,
+        "peakRssMiB": 339.51953125,
+        "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+        "workloadHash": "d25fa17596bee7e7a48b0779128b6092cacd59d3f42bf4e8be73cd9d69827b66"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/248_eulertotient.ra",
+        "status": "ok",
+        "ms": 9805.572906000001,
+        "cpuMs": 9796.224,
+        "peakRssMiB": 347.6640625,
+        "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+        "workloadHash": "6f5bfe94dd97de5ea44dd7f113c661482ee0c9493eb0ef746fee1183ebea32ec"
+      },
+      "after": {
+        "path": "demos/euler/248_eulertotient.ra",
+        "status": "ok",
+        "ms": 9547.065011,
+        "cpuMs": 9542.55,
+        "peakRssMiB": 410.76171875,
+        "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+        "workloadHash": "6f5bfe94dd97de5ea44dd7f113c661482ee0c9493eb0ef746fee1183ebea32ec"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/353_riskymoon.ra",
+        "status": "ok",
+        "ms": 17815.756562000002,
+        "cpuMs": 17777.93,
+        "peakRssMiB": 211.26953125,
+        "sourceHash": "1aa24cfee33ad52239d448e359ba70f8c4224d1b0b722b5c6217931a9fecd271",
+        "workloadHash": "6b24b6433865731d8966f04b66d81accc56166e3fad2e259f4026537214f8cfe"
+      },
+      "after": {
+        "path": "demos/euler/353_riskymoon.ra",
+        "status": "ok",
+        "ms": 17371.862168,
+        "cpuMs": 17338.281,
+        "peakRssMiB": 272.546875,
+        "sourceHash": "1aa24cfee33ad52239d448e359ba70f8c4224d1b0b722b5c6217931a9fecd271",
+        "workloadHash": "6b24b6433865731d8966f04b66d81accc56166e3fad2e259f4026537214f8cfe"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/438_integerpart.ra",
+        "status": "ok",
+        "ms": 7535.114429,
+        "cpuMs": 7530.163,
+        "peakRssMiB": 325.01171875,
+        "sourceHash": "adebd9188bf035ec9d44b39c86d2f4de6f910f8de6763f747157fd295cd49048",
+        "workloadHash": "48b05e6b70d01c2523a85ecb30aeea2d4b05ffe088322fd4d033eba30389684e"
+      },
+      "after": {
+        "path": "demos/euler/438_integerpart.ra",
+        "status": "ok",
+        "ms": 6632.543857,
+        "cpuMs": 6629.383,
+        "peakRssMiB": 384.8203125,
+        "sourceHash": "adebd9188bf035ec9d44b39c86d2f4de6f910f8de6763f747157fd295cd49048",
+        "workloadHash": "48b05e6b70d01c2523a85ecb30aeea2d4b05ffe088322fd4d033eba30389684e"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/507_shortestlattice.ra",
+        "status": "ok",
+        "ms": 16050.785921000002,
+        "cpuMs": 16045.647,
+        "peakRssMiB": 184.01953125,
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "workloadHash": "70f720866d2e83adacb36caff6a9c990551fc23e91656c9c1d40758f63a49510"
+      },
+      "after": {
+        "path": "demos/euler/507_shortestlattice.ra",
+        "status": "ok",
+        "ms": 18383.161407,
+        "cpuMs": 18344.394,
+        "peakRssMiB": 184.6953125,
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "workloadHash": "70f720866d2e83adacb36caff6a9c990551fc23e91656c9c1d40758f63a49510"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/522_hiddenchains.ra",
+        "status": "ok",
+        "ms": 5070.739402,
+        "cpuMs": 5068.313,
+        "peakRssMiB": 174.48828125,
+        "sourceHash": "01b0f58215f75a8568c1f54ff51e303f44aabdb070a0ff4337491f65784e368b",
+        "workloadHash": "fa000a15b7dd11bbaeb1a89dfeba197152582fb6e8027ea4c13f4f92b86ba0b9"
+      },
+      "after": {
+        "path": "demos/euler/522_hiddenchains.ra",
+        "status": "ok",
+        "ms": 5594.860651,
+        "cpuMs": 5592.09,
+        "peakRssMiB": 174.390625,
+        "sourceHash": "01b0f58215f75a8568c1f54ff51e303f44aabdb070a0ff4337491f65784e368b",
+        "workloadHash": "fa000a15b7dd11bbaeb1a89dfeba197152582fb6e8027ea4c13f4f92b86ba0b9"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/524_firstsort2.ra",
+        "status": "ok",
+        "ms": 102108.406277,
+        "cpuMs": 101913.435,
+        "peakRssMiB": 565.55078125,
+        "sourceHash": "049dc202747dae65e157654c555737115f704598fe0afe9832ec03b0e255745d",
+        "workloadHash": "12215d0ef147f54794429a2718db434cf22d1ea448505b36af046e05a032c1df"
+      },
+      "after": {
+        "path": "demos/euler/524_firstsort2.ra",
+        "status": "ok",
+        "ms": 113660.149521,
+        "cpuMs": 113453.176,
+        "peakRssMiB": 567.21484375,
+        "sourceHash": "049dc202747dae65e157654c555737115f704598fe0afe9832ec03b0e255745d",
+        "workloadHash": "12215d0ef147f54794429a2718db434cf22d1ea448505b36af046e05a032c1df"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/542_geometricsums.ra",
+        "status": "ok",
+        "ms": 7610.829195,
+        "cpuMs": 7606.398,
+        "peakRssMiB": 583.12890625,
+        "sourceHash": "7f138fabe7fa7683ebaa6c00fd1099770ac94f5a181f68a7e616aa3ca7ca30ec",
+        "workloadHash": "2acf5c17a6ffee4db9e6c280d760bdedf5075c8de0aeeaf7d16fc3f6eb26d871"
+      },
+      "after": {
+        "path": "demos/euler/542_geometricsums.ra",
+        "status": "ok",
+        "ms": 9121.311493000001,
+        "cpuMs": 9114.952,
+        "peakRssMiB": 577.75,
+        "sourceHash": "7f138fabe7fa7683ebaa6c00fd1099770ac94f5a181f68a7e616aa3ca7ca30ec",
+        "workloadHash": "2acf5c17a6ffee4db9e6c280d760bdedf5075c8de0aeeaf7d16fc3f6eb26d871"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/543_primesums.ra",
+        "status": "ok",
+        "ms": 4428.185466999999,
+        "cpuMs": 4425.676,
+        "peakRssMiB": 206.83984375,
+        "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+        "workloadHash": "d1215b65a8ea48497a07c202792dbc57b0df4077ea2d0933f3d469da16d0fe94"
+      },
+      "after": {
+        "path": "demos/euler/543_primesums.ra",
+        "status": "ok",
+        "ms": 5490.289399,
+        "cpuMs": 5487.976,
+        "peakRssMiB": 210.21484375,
+        "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+        "workloadHash": "d1215b65a8ea48497a07c202792dbc57b0df4077ea2d0933f3d469da16d0fe94"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/606_gozintachains.ra",
+        "status": "ok",
+        "ms": 118771.71511599999,
+        "cpuMs": 118537.988,
+        "peakRssMiB": 760.47265625,
+        "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+        "workloadHash": "73984007473095ad567212026c1ec8034064f8dfa2becb0c70cfd65d598835d0"
+      },
+      "after": {
+        "path": "demos/euler/606_gozintachains.ra",
+        "status": "ok",
+        "ms": 124685.85378199999,
+        "cpuMs": 124439.209,
+        "peakRssMiB": 1365.14453125,
+        "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+        "workloadHash": "73984007473095ad567212026c1ec8034064f8dfa2becb0c70cfd65d598835d0"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/614_specialpartitions.ra",
+        "status": "ok",
+        "ms": 20929.0585,
+        "cpuMs": 20895.23,
+        "peakRssMiB": 408.546875,
+        "sourceHash": "235f48d77858d75093bc9ef520856910c4058b7b9dec1b597c8f9334ef634069",
+        "workloadHash": "ec6eb9290b625b6a83cec7ce11bd1973a71dc759c7df0567ddae64739d97f08d"
+      },
+      "after": {
+        "path": "demos/euler/614_specialpartitions.ra",
+        "status": "ok",
+        "ms": 23023.524528,
+        "cpuMs": 22979.22,
+        "peakRssMiB": 447.2734375,
+        "sourceHash": "235f48d77858d75093bc9ef520856910c4058b7b9dec1b597c8f9334ef634069",
+        "workloadHash": "ec6eb9290b625b6a83cec7ce11bd1973a71dc759c7df0567ddae64739d97f08d"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/615_millionthnumber.ra",
+        "status": "ok",
+        "ms": 7019.130554,
+        "cpuMs": 7014.216,
+        "peakRssMiB": 616.015625,
+        "sourceHash": "60815870fa25e7b0a7abd928e14b0d8887d8e3152b360bdb2ff83cbbe1e837a7",
+        "workloadHash": "848f4c5ee638c0c79a70a1ed2526049701aa3d0543f07fe26e1d90db6baf5b8a"
+      },
+      "after": {
+        "path": "demos/euler/615_millionthnumber.ra",
+        "status": "ok",
+        "ms": 8079.9821090000005,
+        "cpuMs": 8073.461,
+        "peakRssMiB": 610.515625,
+        "sourceHash": "60815870fa25e7b0a7abd928e14b0d8887d8e3152b360bdb2ff83cbbe1e837a7",
+        "workloadHash": "848f4c5ee638c0c79a70a1ed2526049701aa3d0543f07fe26e1d90db6baf5b8a"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/623_lambdaterms.ra",
+        "status": "ok",
+        "ms": 7284.654914,
+        "cpuMs": 7279.932,
+        "peakRssMiB": 259.5546875,
+        "sourceHash": "7738922e9a152b5062bef881f5b6335903946b6921756241b3c75e35530fac8e",
+        "workloadHash": "17f7895d47ccb2bd01063a30e9829d878543bd96654fd63b902e8468b8f183b2"
+      },
+      "after": {
+        "path": "demos/euler/623_lambdaterms.ra",
+        "status": "ok",
+        "ms": 8329.369189,
+        "cpuMs": 8324.879,
+        "peakRssMiB": 251.48828125,
+        "sourceHash": "7738922e9a152b5062bef881f5b6335903946b6921756241b3c75e35530fac8e",
+        "workloadHash": "17f7895d47ccb2bd01063a30e9829d878543bd96654fd63b902e8468b8f183b2"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/625_gcdsum.ra",
+        "status": "ok",
+        "ms": 7909.056901000001,
+        "cpuMs": 7905.041,
+        "peakRssMiB": 695.3984375,
+        "sourceHash": "4a81ea7eedbfd663717e9bb97a6dab662a9795f8503ce06415f2f17ad5b27bc3",
+        "workloadHash": "bba670632da39a733ce82f4c1f38e6bc9224be959b28c1ed7c6f531a04eb697b"
+      },
+      "after": {
+        "path": "demos/euler/625_gcdsum.ra",
+        "status": "ok",
+        "ms": 8866.183676,
+        "cpuMs": 8860.215,
+        "peakRssMiB": 695.234375,
+        "sourceHash": "4a81ea7eedbfd663717e9bb97a6dab662a9795f8503ce06415f2f17ad5b27bc3",
+        "workloadHash": "bba670632da39a733ce82f4c1f38e6bc9224be959b28c1ed7c6f531a04eb697b"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/626_binarymatrices.ra",
+        "status": "ok",
+        "ms": 9374.749532,
+        "cpuMs": 9344.397,
+        "peakRssMiB": 373.21484375,
+        "sourceHash": "64742d67c81e792812287ad6bf34e4b129e4ebd157f7cde6d981e21376a76c75",
+        "workloadHash": "852fa67e5f7f83d96fbca65e0ddd290c940b37b226c22a14b911271acf77d21b"
+      },
+      "after": {
+        "path": "demos/euler/626_binarymatrices.ra",
+        "status": "ok",
+        "ms": 10841.178437999999,
+        "cpuMs": 10807.903,
+        "peakRssMiB": 437.9375,
+        "sourceHash": "64742d67c81e792812287ad6bf34e4b129e4ebd157f7cde6d981e21376a76c75",
+        "workloadHash": "852fa67e5f7f83d96fbca65e0ddd290c940b37b226c22a14b911271acf77d21b"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/667_movingpentagon.ra",
+        "status": "ok",
+        "ms": 16422.670021,
+        "cpuMs": 16412.045,
+        "peakRssMiB": 345.76953125,
+        "sourceHash": "2a1b4a81bef7ca2d6995323008ca39d1b8522298e2f70ffd40c8f6efad8ccd43",
+        "workloadHash": "0babaeecdfa137591dccb83bbf3d2de3a2ab798c59aae3d3e75182c416d153d1"
+      },
+      "after": {
+        "path": "demos/euler/667_movingpentagon.ra",
+        "status": "ok",
+        "ms": 16239.745163000001,
+        "cpuMs": 16228.724,
+        "peakRssMiB": 408.21484375,
+        "sourceHash": "2a1b4a81bef7ca2d6995323008ca39d1b8522298e2f70ffd40c8f6efad8ccd43",
+        "workloadHash": "0babaeecdfa137591dccb83bbf3d2de3a2ab798c59aae3d3e75182c416d153d1"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/670_colouringstrip.ra",
+        "status": "ok",
+        "ms": 2798.90021,
+        "cpuMs": 2796.936,
+        "peakRssMiB": 249.9921875,
+        "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+        "workloadHash": "be45e2b4e73a42d31850a56ff9a748cfb26dce3d4afd997d24c711837afdbc40"
+      },
+      "after": {
+        "path": "demos/euler/670_colouringstrip.ra",
+        "status": "ok",
+        "ms": 3553.9351349999997,
+        "cpuMs": 3551.018,
+        "peakRssMiB": 258.625,
+        "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+        "workloadHash": "be45e2b4e73a42d31850a56ff9a748cfb26dce3d4afd997d24c711837afdbc40"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/678_fermatlike.ra",
+        "status": "ok",
+        "ms": 113814.722613,
+        "cpuMs": 113614.424,
+        "peakRssMiB": 852.64453125,
+        "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+        "workloadHash": "1a770f1db8e5c55c16de60d72968fd968688de0bc04422fc30fdd3a0851154bf"
+      },
+      "after": {
+        "path": "demos/euler/678_fermatlike.ra",
+        "status": "ok",
+        "ms": 115377.755806,
+        "cpuMs": 115176.648,
+        "peakRssMiB": 1035.58203125,
+        "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+        "workloadHash": "1a770f1db8e5c55c16de60d72968fd968688de0bc04422fc30fdd3a0851154bf"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/699_triffle.ra",
+        "status": "ok",
+        "ms": 35602.88025,
+        "cpuMs": 35554.165,
+        "peakRssMiB": 524.90625,
+        "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+        "workloadHash": "7abd5862f3cc55a5b4d89199f3efec35ab99e4efc3b46016f073576aab4e1e88"
+      },
+      "after": {
+        "path": "demos/euler/699_triffle.ra",
+        "status": "ok",
+        "ms": 35046.822960000005,
+        "cpuMs": 34996.798,
+        "peakRssMiB": 627.390625,
+        "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+        "workloadHash": "7abd5862f3cc55a5b4d89199f3efec35ab99e4efc3b46016f073576aab4e1e88"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/708_twosareallyouneed.ra",
+        "status": "ok",
+        "ms": 30840.09027,
+        "cpuMs": 30769.38,
+        "peakRssMiB": 1585.8671875,
+        "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+        "workloadHash": "a78c4d66851d60f469180f3fb77d879a7854b51a69b1914a8eb6a2b486ce362e"
+      },
+      "after": {
+        "path": "demos/euler/708_twosareallyouneed.ra",
+        "status": "ok",
+        "ms": 30488.195152,
+        "cpuMs": 30420.72,
+        "peakRssMiB": 1884.0234375,
+        "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+        "workloadHash": "a78c4d66851d60f469180f3fb77d879a7854b51a69b1914a8eb6a2b486ce362e"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/729_periodicrange.ra",
+        "status": "ok",
+        "ms": 53404.048053,
+        "cpuMs": 53329.096,
+        "peakRssMiB": 1034.5546875,
+        "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+        "workloadHash": "503e78901e09c98d16de2044526d7b3d6fa17905990aff1e340da099f14e8fe3"
+      },
+      "after": {
+        "path": "demos/euler/729_periodicrange.ra",
+        "status": "ok",
+        "ms": 60948.062875,
+        "cpuMs": 60871.127,
+        "peakRssMiB": 990.0234375,
+        "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+        "workloadHash": "503e78901e09c98d16de2044526d7b3d6fa17905990aff1e340da099f14e8fe3"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/742_convexgridpolygon.ra",
+        "status": "ok",
+        "ms": 19419.676112999998,
+        "cpuMs": 19383.046,
+        "peakRssMiB": 269.40625,
+        "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+        "workloadHash": "6febf8749ff3de2f84ed470d05b3fb54131709c3dc7ac8320b30c15fed7af48a"
+      },
+      "after": {
+        "path": "demos/euler/742_convexgridpolygon.ra",
+        "status": "ok",
+        "ms": 18895.87476,
+        "cpuMs": 18885.397,
+        "peakRssMiB": 343.765625,
+        "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+        "workloadHash": "6febf8749ff3de2f84ed470d05b3fb54131709c3dc7ac8320b30c15fed7af48a"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/euler/782_distinctrowscolumns.ra",
+        "status": "ok",
+        "ms": 46233.051593,
+        "cpuMs": 46156.773,
+        "peakRssMiB": 364.0703125,
+        "sourceHash": "5b3703e72585e0bd4d7c527fa95d84c563d111213b26cb48cde2acc16e6398b6",
+        "workloadHash": "a3fd224938a71f70820ecf1c52e89cf7c834260b9f18a8a7a56f161d892ebd0b"
+      },
+      "after": {
+        "path": "demos/euler/782_distinctrowscolumns.ra",
+        "status": "ok",
+        "ms": 50261.130393,
+        "cpuMs": 50176.613,
+        "peakRssMiB": 425.953125,
+        "sourceHash": "5b3703e72585e0bd4d7c527fa95d84c563d111213b26cb48cde2acc16e6398b6",
+        "workloadHash": "a3fd224938a71f70820ecf1c52e89cf7c834260b9f18a8a7a56f161d892ebd0b"
+      }
+    },
+    {
+      "before": {
+        "path": "demos/kaggle/009_dogvscat.ra",
+        "status": "ok",
+        "ms": 90744.126699,
+        "cpuMs": 19106.086,
+        "peakRssMiB": 770.37109375,
+        "sourceHash": "eda6a79d458d6e0123933f507c9b698a660828c8ec58e17c926c1bf67b02f370",
+        "workloadHash": "3e762cceb6e7e2802b58d0d50a1d0d75581cac1a147bdda53ae8995782190678"
+      },
+      "after": {
+        "path": "demos/kaggle/009_dogvscat.ra",
+        "status": "ok",
+        "ms": 104287.657828,
+        "cpuMs": 21819.456,
+        "peakRssMiB": 771.01171875,
+        "sourceHash": "eda6a79d458d6e0123933f507c9b698a660828c8ec58e17c926c1bf67b02f370",
+        "workloadHash": "3e762cceb6e7e2802b58d0d50a1d0d75581cac1a147bdda53ae8995782190678"
+      }
+    }
+  ],
+  "series": {
+    "mac-primary": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "three alternating pairs",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1178.389167,
+          "cpuMs": 1300.023,
+          "peakRssMiB": 223.84375,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1204.9695000000002,
+          "cpuMs": 1322.939,
+          "peakRssMiB": 223.421875,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 738.175625,
+          "cpuMs": 1050.969,
+          "peakRssMiB": 267.515625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 911.1514579999999,
+          "cpuMs": 1226.66,
+          "peakRssMiB": 268.25,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1220.918083,
+          "cpuMs": 1338.197,
+          "peakRssMiB": 222.859375,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1203.9550410000002,
+          "cpuMs": 1321.874,
+          "peakRssMiB": 223.296875,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 913.760208,
+          "cpuMs": 1232.096,
+          "peakRssMiB": 267.03125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 761.2338749999999,
+          "cpuMs": 1079.129,
+          "peakRssMiB": 267.984375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1225.724458,
+          "cpuMs": 1348.275,
+          "peakRssMiB": 223.34375,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 1215.097,
+          "cpuMs": 1338.043,
+          "peakRssMiB": 223.421875,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 737.2375000000001,
+          "cpuMs": 1047.977,
+          "peakRssMiB": 267.140625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 913.3087080000001,
+          "cpuMs": 1225.687,
+          "peakRssMiB": 267.65625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-adaptive": {
+      "before": "afc824b0",
+      "after": "def74ea3 + tensor repair",
+      "method": "three alternating pairs",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4101.949666,
+          "cpuMs": 6708.915,
+          "peakRssMiB": 366.65625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4105.0316250000005,
+          "cpuMs": 6585.383,
+          "peakRssMiB": 363.890625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 991.411666,
+          "cpuMs": 1366.053,
+          "peakRssMiB": 269.3125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 843.2385840000001,
+          "cpuMs": 1239.303,
+          "peakRssMiB": 271.484375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4351.094417,
+          "cpuMs": 7097.594,
+          "peakRssMiB": 366.265625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4246.817708,
+          "cpuMs": 6827.273,
+          "peakRssMiB": 362.578125,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 850.583417,
+          "cpuMs": 1250.168,
+          "peakRssMiB": 269.015625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 1025.868041,
+          "cpuMs": 1401.966,
+          "peakRssMiB": 265.828125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4486.965042,
+          "cpuMs": 7204.076,
+          "peakRssMiB": 361.3125,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4327.5437919999995,
+          "cpuMs": 6919.902,
+          "peakRssMiB": 366.15625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 947.320666,
+          "cpuMs": 1278.276,
+          "peakRssMiB": 269.515625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 814.238,
+          "cpuMs": 1160.635,
+          "peakRssMiB": 267.859375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-memory": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one pair per memory candidate",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/060_primepairs.ra",
+          "sourceHash": "654faec96293b95925bf6e72b4bb5e484cab7968e534b145cdcc9af684a1c689",
+          "ms": 2783.88525,
+          "cpuMs": 3674.049,
+          "peakRssMiB": 527.140625,
+          "answer": "26033",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/060_primepairs.ra",
+          "sourceHash": "654faec96293b95925bf6e72b4bb5e484cab7968e534b145cdcc9af684a1c689",
+          "ms": 2797.5878329999996,
+          "cpuMs": 3675.981,
+          "peakRssMiB": 529.609375,
+          "answer": "26033",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "ms": 385.840792,
+          "cpuMs": 788.888,
+          "peakRssMiB": 309.875,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "ms": 406.71479200000005,
+          "cpuMs": 808.262,
+          "peakRssMiB": 379,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "ms": 2857.58575,
+          "cpuMs": 3222.891,
+          "peakRssMiB": 388.609375,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "ms": 2919.8581249999997,
+          "cpuMs": 3286.873,
+          "peakRssMiB": 463.984375,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/353_riskymoon.ra",
+          "sourceHash": "1aa24cfee33ad52239d448e359ba70f8c4224d1b0b722b5c6217931a9fecd271",
+          "ms": 6876.81725,
+          "cpuMs": 7180.871,
+          "peakRssMiB": 217.75,
+          "answer": "1.2759860331",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/353_riskymoon.ra",
+          "sourceHash": "1aa24cfee33ad52239d448e359ba70f8c4224d1b0b722b5c6217931a9fecd271",
+          "ms": 6905.489,
+          "cpuMs": 7217.323,
+          "peakRssMiB": 219.328125,
+          "answer": "1.2759860331",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/438_integerpart.ra",
+          "sourceHash": "adebd9188bf035ec9d44b39c86d2f4de6f910f8de6763f747157fd295cd49048",
+          "ms": 1745.928541,
+          "cpuMs": 2864.305,
+          "peakRssMiB": 367.84375,
+          "answer": "2046409616809",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/438_integerpart.ra",
+          "sourceHash": "adebd9188bf035ec9d44b39c86d2f4de6f910f8de6763f747157fd295cd49048",
+          "ms": 1732.735167,
+          "cpuMs": 2799.051,
+          "peakRssMiB": 369.828125,
+          "answer": "2046409616809",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/606_gozintachains.ra",
+          "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+          "ms": 34167.180499999995,
+          "cpuMs": 52046.548,
+          "peakRssMiB": 1904.640625,
+          "answer": "158452775",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/606_gozintachains.ra",
+          "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+          "ms": 34011.830625,
+          "cpuMs": 51925.036,
+          "peakRssMiB": 1925.125,
+          "answer": "158452775",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/667_movingpentagon.ra",
+          "sourceHash": "2a1b4a81bef7ca2d6995323008ca39d1b8522298e2f70ffd40c8f6efad8ccd43",
+          "ms": 4084.668459,
+          "cpuMs": 7683.554,
+          "peakRssMiB": 390.28125,
+          "answer": "1.5276527929",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/667_movingpentagon.ra",
+          "sourceHash": "2a1b4a81bef7ca2d6995323008ca39d1b8522298e2f70ffd40c8f6efad8ccd43",
+          "ms": 4144.955875,
+          "cpuMs": 7746.829,
+          "peakRssMiB": 433.03125,
+          "answer": "1.5276527929",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/678_fermatlike.ra",
+          "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+          "ms": 31252.231208,
+          "cpuMs": 43800.034,
+          "peakRssMiB": 1338.84375,
+          "answer": "1986065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/678_fermatlike.ra",
+          "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+          "ms": 31472.184333,
+          "cpuMs": 44169.367,
+          "peakRssMiB": 1304.234375,
+          "answer": "1986065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "ms": 7347.554042,
+          "cpuMs": 10770.406,
+          "peakRssMiB": 620.921875,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "ms": 7378.574208,
+          "cpuMs": 10805.203,
+          "peakRssMiB": 621.46875,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/708_twosareallyouneed.ra",
+          "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+          "ms": 9141.357833,
+          "cpuMs": 13319.214,
+          "peakRssMiB": 2130.53125,
+          "answer": "28874142998632109",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/708_twosareallyouneed.ra",
+          "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+          "ms": 8873.72275,
+          "cpuMs": 13090.875,
+          "peakRssMiB": 2131.546875,
+          "answer": "28874142998632109",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "ms": 5401.747708999999,
+          "cpuMs": 8080.035,
+          "peakRssMiB": 281.8125,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "ms": 5471.883250000001,
+          "cpuMs": 8144.91,
+          "peakRssMiB": 364.6875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/782_distinctrowscolumns.ra",
+          "sourceHash": "5b3703e72585e0bd4d7c527fa95d84c563d111213b26cb48cde2acc16e6398b6",
+          "ms": 10936.229167000001,
+          "cpuMs": 14014.464,
+          "peakRssMiB": 480.140625,
+          "answer": "318313204",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/782_distinctrowscolumns.ra",
+          "sourceHash": "5b3703e72585e0bd4d7c527fa95d84c563d111213b26cb48cde2acc16e6398b6",
+          "ms": 11467.22625,
+          "cpuMs": 14648.783,
+          "peakRssMiB": 488.625,
+          "answer": "318313204",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-gc": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "two alternating diagnostic pairs with --expose-gc; heap measured after main and after forced GC; separate from performance samples",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "heapBeforeGc": 81814992,
+          "heapAfterGc": 40493904,
+          "ms": 374.635667,
+          "cpuMs": 739.896,
+          "peakRssMiB": 311.828125,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "heapBeforeGc": 49191104,
+          "heapAfterGc": 40625064,
+          "ms": 381.12974999999994,
+          "cpuMs": 757.918,
+          "peakRssMiB": 386.421875,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "heapBeforeGc": 92364456,
+          "heapAfterGc": 44815024,
+          "ms": 2988.2875,
+          "cpuMs": 3356.63,
+          "peakRssMiB": 390.5,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "heapBeforeGc": 89834464,
+          "heapAfterGc": 44934400,
+          "ms": 3031.39625,
+          "cpuMs": 3475.909,
+          "peakRssMiB": 397.359375,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "heapBeforeGc": 38372960,
+          "heapAfterGc": 35748040,
+          "ms": 5339.433709,
+          "cpuMs": 7937.302,
+          "peakRssMiB": 281.046875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "heapBeforeGc": 38018408,
+          "heapAfterGc": 35854664,
+          "ms": 5360.2601669999995,
+          "cpuMs": 7938.532,
+          "peakRssMiB": 283.96875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "heapBeforeGc": 49390688,
+          "heapAfterGc": 40631808,
+          "ms": 379.937792,
+          "cpuMs": 747.887,
+          "peakRssMiB": 388.03125,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/200_primeproofsqube.ra",
+          "sourceHash": "df2912ee83b74c31bc1cb055c2c6924838f75aff2331c62cdefe6a3c934a06e1",
+          "heapBeforeGc": 49152712,
+          "heapAfterGc": 40494456,
+          "ms": 388.20254200000005,
+          "cpuMs": 770.413,
+          "peakRssMiB": 386.796875,
+          "answer": "229161792008",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "heapBeforeGc": 92204528,
+          "heapAfterGc": 44928712,
+          "ms": 2890.146209,
+          "cpuMs": 3259.578,
+          "peakRssMiB": 391.859375,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/248_eulertotient.ra",
+          "sourceHash": "efa5fb3cb6233baba9ba8acee8d390aab775f5e40039bac1f9c0a24467c02ce1",
+          "heapBeforeGc": 91536688,
+          "heapAfterGc": 44815464,
+          "ms": 2947.9969170000004,
+          "cpuMs": 3322.768,
+          "peakRssMiB": 391.59375,
+          "answer": "23507044290",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "heapBeforeGc": 37802712,
+          "heapAfterGc": 35877856,
+          "ms": 5423.3135,
+          "cpuMs": 8032.499,
+          "peakRssMiB": 283.890625,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "heapBeforeGc": 37424776,
+          "heapAfterGc": 35743912,
+          "ms": 5370.936874999999,
+          "cpuMs": 7991.678,
+          "peakRssMiB": 283.71875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-final729": {
+      "before": "def74ea3 + tensor repair",
+      "after": "def74ea3 + both repairs",
+      "method": "three alternating pairs",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3507.818042,
+          "cpuMs": 3713.111,
+          "peakRssMiB": 186.609375,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3526.290875,
+          "cpuMs": 3736.535,
+          "peakRssMiB": 186.703125,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 20627.198666999997,
+          "cpuMs": 21363.844,
+          "peakRssMiB": 1184.578125,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18305.884208,
+          "cpuMs": 19035.471,
+          "peakRssMiB": 1140.53125,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3519.125625,
+          "cpuMs": 3730.449,
+          "peakRssMiB": 186.71875,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3528.1372499999998,
+          "cpuMs": 3738.646,
+          "peakRssMiB": 186.109375,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18105.168333999998,
+          "cpuMs": 18841.164,
+          "peakRssMiB": 1191.546875,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 20847.764167,
+          "cpuMs": 21594.817,
+          "peakRssMiB": 1210.1875,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3524.8582499999998,
+          "cpuMs": 3739.378,
+          "peakRssMiB": 187.375,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 3511.523208,
+          "cpuMs": 3724.176,
+          "peakRssMiB": 187.078125,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 20836.0565,
+          "cpuMs": 21572.79,
+          "peakRssMiB": 1166.421875,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18247.082625,
+          "cpuMs": 19000.925,
+          "peakRssMiB": 1166.9375,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "intel/primary": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "three alternating pairs",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4113.303225000001,
+          "cpuMs": 4112.943,
+          "peakRssMiB": 209.3828125,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4099.933188,
+          "cpuMs": 4099.884,
+          "peakRssMiB": 208.0546875,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2556.206438,
+          "cpuMs": 2556.23,
+          "peakRssMiB": 258.8984375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3420.6300579999997,
+          "cpuMs": 3420.142,
+          "peakRssMiB": 260.7578125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4254.072179,
+          "cpuMs": 4253.555,
+          "peakRssMiB": 207.13671875,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4336.10832,
+          "cpuMs": 4335.972,
+          "peakRssMiB": 208.265625,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3582.112836,
+          "cpuMs": 3580.479,
+          "peakRssMiB": 261.6328125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2654.931069,
+          "cpuMs": 2654.809,
+          "peakRssMiB": 262.54296875,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4447.330124,
+          "cpuMs": 4447.149,
+          "peakRssMiB": 206.9609375,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/543_primesums.ra",
+          "sourceHash": "5569560b627c62c1cbd6751d14f03ee6814fad57f3b15b282ded9b6822166dbe",
+          "ms": 4460.666705,
+          "cpuMs": 4434.627,
+          "peakRssMiB": 207.36328125,
+          "answer": "199007746081234640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2761.345206,
+          "cpuMs": 2761.588,
+          "peakRssMiB": 256.2578125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3447.537306,
+          "cpuMs": 3447.587,
+          "peakRssMiB": 253.4375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/secondary": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one triage pair per timing candidate",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/507_shortestlattice.ra",
+          "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+          "ms": 15275.305657,
+          "cpuMs": 15247.754,
+          "peakRssMiB": 184.4140625,
+          "answer": "316558047002627270",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/507_shortestlattice.ra",
+          "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+          "ms": 15418.434423,
+          "cpuMs": 15389.027,
+          "peakRssMiB": 184.93359375,
+          "answer": "316558047002627270",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/522_hiddenchains.ra",
+          "sourceHash": "01b0f58215f75a8568c1f54ff51e303f44aabdb070a0ff4337491f65784e368b",
+          "ms": 4860.285911999999,
+          "cpuMs": 4859.355,
+          "peakRssMiB": 175.73828125,
+          "answer": "96772715",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/522_hiddenchains.ra",
+          "sourceHash": "01b0f58215f75a8568c1f54ff51e303f44aabdb070a0ff4337491f65784e368b",
+          "ms": 4849.090563,
+          "cpuMs": 4849.107,
+          "peakRssMiB": 174.609375,
+          "answer": "96772715",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/524_firstsort2.ra",
+          "sourceHash": "049dc202747dae65e157654c555737115f704598fe0afe9832ec03b0e255745d",
+          "ms": 98361.086656,
+          "cpuMs": 98207.253,
+          "peakRssMiB": 566.72265625,
+          "answer": "2432925835413407847",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/524_firstsort2.ra",
+          "sourceHash": "049dc202747dae65e157654c555737115f704598fe0afe9832ec03b0e255745d",
+          "ms": 100875.415724,
+          "cpuMs": 100740.496,
+          "peakRssMiB": 565.6796875,
+          "answer": "2432925835413407847",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/542_geometricsums.ra",
+          "sourceHash": "7f138fabe7fa7683ebaa6c00fd1099770ac94f5a181f68a7e616aa3ca7ca30ec",
+          "ms": 7362.041948,
+          "cpuMs": 7361.114,
+          "peakRssMiB": 527.31640625,
+          "answer": "697586734240314852",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/542_geometricsums.ra",
+          "sourceHash": "7f138fabe7fa7683ebaa6c00fd1099770ac94f5a181f68a7e616aa3ca7ca30ec",
+          "ms": 7534.76882,
+          "cpuMs": 7506.213,
+          "peakRssMiB": 537.2578125,
+          "answer": "697586734240314852",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/614_specialpartitions.ra",
+          "sourceHash": "235f48d77858d75093bc9ef520856910c4058b7b9dec1b597c8f9334ef634069",
+          "ms": 20725.225905,
+          "cpuMs": 20695.147,
+          "peakRssMiB": 429.1953125,
+          "answer": "130694090",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/614_specialpartitions.ra",
+          "sourceHash": "235f48d77858d75093bc9ef520856910c4058b7b9dec1b597c8f9334ef634069",
+          "ms": 20583.370426,
+          "cpuMs": 20553.441,
+          "peakRssMiB": 427.03125,
+          "answer": "130694090",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/615_millionthnumber.ra",
+          "sourceHash": "60815870fa25e7b0a7abd928e14b0d8887d8e3152b360bdb2ff83cbbe1e837a7",
+          "ms": 6921.161881,
+          "cpuMs": 6919.997,
+          "peakRssMiB": 601.875,
+          "answer": "108424772",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/615_millionthnumber.ra",
+          "sourceHash": "60815870fa25e7b0a7abd928e14b0d8887d8e3152b360bdb2ff83cbbe1e837a7",
+          "ms": 6625.359658,
+          "cpuMs": 6623.684,
+          "peakRssMiB": 617.03125,
+          "answer": "108424772",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/623_lambdaterms.ra",
+          "sourceHash": "7738922e9a152b5062bef881f5b6335903946b6921756241b3c75e35530fac8e",
+          "ms": 7258.284388,
+          "cpuMs": 7231.593,
+          "peakRssMiB": 255.625,
+          "answer": "3679796",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/623_lambdaterms.ra",
+          "sourceHash": "7738922e9a152b5062bef881f5b6335903946b6921756241b3c75e35530fac8e",
+          "ms": 7222.589703,
+          "cpuMs": 7221.857,
+          "peakRssMiB": 255.69921875,
+          "answer": "3679796",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/625_gcdsum.ra",
+          "sourceHash": "4a81ea7eedbfd663717e9bb97a6dab662a9795f8503ce06415f2f17ad5b27bc3",
+          "ms": 7627.009425,
+          "cpuMs": 7625.412,
+          "peakRssMiB": 692.64453125,
+          "answer": "551614306",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/625_gcdsum.ra",
+          "sourceHash": "4a81ea7eedbfd663717e9bb97a6dab662a9795f8503ce06415f2f17ad5b27bc3",
+          "ms": 7596.433215,
+          "cpuMs": 7569.997,
+          "peakRssMiB": 696.03125,
+          "answer": "551614306",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/626_binarymatrices.ra",
+          "sourceHash": "64742d67c81e792812287ad6bf34e4b129e4ebd157f7cde6d981e21376a76c75",
+          "ms": 9403.442426,
+          "cpuMs": 9400.008,
+          "peakRssMiB": 373.20703125,
+          "answer": "695577663",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/626_binarymatrices.ra",
+          "sourceHash": "64742d67c81e792812287ad6bf34e4b129e4ebd157f7cde6d981e21376a76c75",
+          "ms": 9331.348622000001,
+          "cpuMs": 9304.645,
+          "peakRssMiB": 438.85546875,
+          "answer": "695577663",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 52528.608347,
+          "cpuMs": 52470.258,
+          "peakRssMiB": 1008.87109375,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 58953.300733000004,
+          "cpuMs": 58891.585,
+          "peakRssMiB": 1007.3671875,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/fixed": {
+      "before": "afc824b0",
+      "after": "def74ea3 + tensor repair",
+      "method": "three alternating pairs",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18948.677377,
+          "cpuMs": 18945.025,
+          "peakRssMiB": 262.34765625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18684.562472,
+          "cpuMs": 18656.188,
+          "peakRssMiB": 266.234375,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3548.651272,
+          "cpuMs": 3548.733,
+          "peakRssMiB": 256.6953125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2876.523441,
+          "cpuMs": 2850.12,
+          "peakRssMiB": 260.87890625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18830.39101,
+          "cpuMs": 18826.339,
+          "peakRssMiB": 291.5078125,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18876.522517,
+          "cpuMs": 18848.119,
+          "peakRssMiB": 255.484375,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2854.392191,
+          "cpuMs": 2854.333,
+          "peakRssMiB": 257.60546875,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3584.825538,
+          "cpuMs": 3557.581,
+          "peakRssMiB": 259.25390625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18842.187506000002,
+          "cpuMs": 18838.385,
+          "peakRssMiB": 260.37890625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 18873.475817,
+          "cpuMs": 18843.198,
+          "peakRssMiB": 294.51171875,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3516.13574,
+          "cpuMs": 3516.403,
+          "peakRssMiB": 259.0625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2882.049349,
+          "cpuMs": 2856.046,
+          "peakRssMiB": 256.63671875,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/memory": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one pair per memory candidate",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/606_gozintachains.ra",
+          "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+          "ms": 129532.849602,
+          "cpuMs": 129354.374,
+          "peakRssMiB": 740.0859375,
+          "answer": "158452775",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/606_gozintachains.ra",
+          "sourceHash": "7bc8ac5370f4bae27006c09747a14c0ff3bad67237416a2a59899a6dde5eae29",
+          "ms": 123494.89319300001,
+          "cpuMs": 123338.105,
+          "peakRssMiB": 770.41015625,
+          "answer": "158452775",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/678_fermatlike.ra",
+          "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+          "ms": 113268.748888,
+          "cpuMs": 113112.445,
+          "peakRssMiB": 1061.265625,
+          "answer": "1986065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/678_fermatlike.ra",
+          "sourceHash": "23abcf796eb0aa6d7cd2e5918e500994a5b7e495d720b4feadcc877d1dd493ab",
+          "ms": 111979.955363,
+          "cpuMs": 111823.177,
+          "peakRssMiB": 869.1875,
+          "answer": "1986065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "ms": 35080.007857,
+          "cpuMs": 35019.838,
+          "peakRssMiB": 519.97265625,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "ms": 36050.36745500001,
+          "cpuMs": 36016.335,
+          "peakRssMiB": 744.66015625,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/708_twosareallyouneed.ra",
+          "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+          "ms": 30042.307421,
+          "cpuMs": 29984.323,
+          "peakRssMiB": 1552.6953125,
+          "answer": "28874142998632109",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/708_twosareallyouneed.ra",
+          "sourceHash": "6225738356090d574e33cd8c1fd928776b6d9f16043decbba3b12d69049f683e",
+          "ms": 29518.291645999998,
+          "cpuMs": 29486.93,
+          "peakRssMiB": 1558.41796875,
+          "answer": "28874142998632109",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "ms": 19052.75573,
+          "cpuMs": 19023.251,
+          "peakRssMiB": 268.71875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/742_convexgridpolygon.ra",
+          "sourceHash": "ef8ca473e170fc7a9ec81ddaedfcbedc60c3d6cfd4c6e84349cf18790f465b22",
+          "ms": 18889.69431,
+          "cpuMs": 18859.869,
+          "peakRssMiB": 269.5546875,
+          "answer": "18397727",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/current729": {
+      "before": "afc824b0",
+      "after": "def74ea3 + tensor repair",
+      "method": "one pair to check current main",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 59746.434552,
+          "cpuMs": 59657.918,
+          "peakRssMiB": 991.859375,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 59417.177616,
+          "cpuMs": 59357.34,
+          "peakRssMiB": 1032.13671875,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/final729": {
+      "before": "afc824b0",
+      "after": "def74ea3 + both repairs",
+      "method": "one final integration pair per workload",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 10515.166706,
+          "cpuMs": 10515.143,
+          "peakRssMiB": 179.84765625,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/552_chineseleftovers2.ra",
+          "sourceHash": "f1e521f6a422efec4bb3c9c98a035114321805c03c208ee563642aecea825b4d",
+          "ms": 10530.441372,
+          "cpuMs": 10530.357,
+          "peakRssMiB": 176.9375,
+          "answer": "326227335",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 19142.15713,
+          "cpuMs": 19113.395,
+          "peakRssMiB": 263.84765625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 19134.055241,
+          "cpuMs": 19103.312,
+          "peakRssMiB": 294.4921875,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 3602.062685,
+          "cpuMs": 3602.059,
+          "peakRssMiB": 252.90625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 2850.8954320000003,
+          "cpuMs": 2851.013,
+          "peakRssMiB": 253.5078125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 60031.803139999996,
+          "cpuMs": 59942.264,
+          "peakRssMiB": 990.125,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-regression-1110/fixed",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 53611.177497,
+          "cpuMs": 53550.841,
+          "peakRssMiB": 990.0390625,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "mac-gc699": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one diagnostic pair with --expose-gc",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 346369744,
+          "heapAfterGc": 57744840,
+          "ms": 7187.47625,
+          "cpuMs": 10499.024,
+          "peakRssMiB": 622.625,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 331167968,
+          "heapAfterGc": 57875720,
+          "ms": 7219.206583,
+          "cpuMs": 10536.757,
+          "peakRssMiB": 624.03125,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-gc699-turns": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one diagnostic pair including four event-loop turns and forced collections",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 316729592,
+          "heapAfterGc": 57744456,
+          "heapAfterTurnGc": 55725648,
+          "ms": 7154.101,
+          "cpuMs": 10465.496,
+          "peakRssMiB": 625.015625,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/latest",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 372114936,
+          "heapAfterGc": 57883008,
+          "heapAfterTurnGc": 55862808,
+          "ms": 7278.348792,
+          "cpuMs": 10598.807,
+          "peakRssMiB": 621.6875,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "intel/gc699-turns": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "two alternating diagnostic pairs including four event-loop turns, forced collections and V8 space/code metrics",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 205606872,
+          "heapAfterGc": 58076560,
+          "heapAfterTurnGc": 55253768,
+          "code": {
+            "code_and_metadata_size": 7654140,
+            "bytecode_and_metadata_size": 1336032,
+            "external_script_source_size": 2348089,
+            "cpu_profiler_metadata_size": 0
+          },
+          "spaces": [
+            {
+              "space_name": "read_only_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_space",
+              "space_size": 134217728,
+              "space_used_size": 21464,
+              "space_available_size": 67083304,
+              "physical_space_size": 134217728
+            },
+            {
+              "space_name": "old_space",
+              "space_size": 39432192,
+              "space_used_size": 32653360,
+              "space_available_size": 6727840,
+              "physical_space_size": 39583744
+            },
+            {
+              "space_name": "code_space",
+              "space_size": 5242880,
+              "space_used_size": 4427136,
+              "space_available_size": 815104,
+              "physical_space_size": 5242880
+            },
+            {
+              "space_name": "shared_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_space",
+              "space_size": 6115328,
+              "space_used_size": 4025424,
+              "space_available_size": 2084472,
+              "physical_space_size": 6291456
+            },
+            {
+              "space_name": "shared_trusted_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 67108864,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "large_object_space",
+              "space_size": 14102528,
+              "space_used_size": 14030984,
+              "space_available_size": 0,
+              "physical_space_size": 14102528
+            },
+            {
+              "space_name": "code_large_object_space",
+              "space_size": 143360,
+              "space_used_size": 139904,
+              "space_available_size": 0,
+              "physical_space_size": 143360
+            },
+            {
+              "space_name": "shared_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "shared_trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            }
+          ],
+          "ms": 34528.28141,
+          "cpuMs": 34492.776,
+          "peakRssMiB": 635.4921875,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 177717664,
+          "heapAfterGc": 53544280,
+          "heapAfterTurnGc": 50264200,
+          "code": {
+            "code_and_metadata_size": 7334098,
+            "bytecode_and_metadata_size": 1341720,
+            "external_script_source_size": 2348089,
+            "cpu_profiler_metadata_size": 0
+          },
+          "spaces": [
+            {
+              "space_name": "read_only_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_space",
+              "space_size": 134217728,
+              "space_used_size": 21464,
+              "space_available_size": 67083304,
+              "physical_space_size": 134217728
+            },
+            {
+              "space_name": "old_space",
+              "space_size": 38645760,
+              "space_used_size": 32694232,
+              "space_available_size": 5891288,
+              "physical_space_size": 38797312
+            },
+            {
+              "space_name": "code_space",
+              "space_size": 5242880,
+              "space_used_size": 4232768,
+              "space_available_size": 1009472,
+              "physical_space_size": 5242880
+            },
+            {
+              "space_name": "shared_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_space",
+              "space_size": 5853184,
+              "space_used_size": 3815400,
+              "space_available_size": 2032688,
+              "physical_space_size": 6029312
+            },
+            {
+              "space_name": "shared_trusted_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 67108864,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "large_object_space",
+              "space_size": 9478144,
+              "space_used_size": 9406440,
+              "space_available_size": 0,
+              "physical_space_size": 9478144
+            },
+            {
+              "space_name": "code_large_object_space",
+              "space_size": 143360,
+              "space_used_size": 139904,
+              "space_available_size": 0,
+              "physical_space_size": 143360
+            },
+            {
+              "space_name": "shared_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "shared_trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            }
+          ],
+          "ms": 34859.864135,
+          "cpuMs": 34826.239,
+          "peakRssMiB": 530.50390625,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 193687920,
+          "heapAfterGc": 52399048,
+          "heapAfterTurnGc": 50796552,
+          "code": {
+            "code_and_metadata_size": 7340090,
+            "bytecode_and_metadata_size": 1341720,
+            "external_script_source_size": 2348089,
+            "cpu_profiler_metadata_size": 0
+          },
+          "spaces": [
+            {
+              "space_name": "read_only_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_space",
+              "space_size": 134217728,
+              "space_used_size": 21464,
+              "space_available_size": 67083304,
+              "physical_space_size": 134217728
+            },
+            {
+              "space_name": "old_space",
+              "space_size": 38645760,
+              "space_used_size": 32693904,
+              "space_available_size": 5897160,
+              "physical_space_size": 38797312
+            },
+            {
+              "space_name": "code_space",
+              "space_size": 5242880,
+              "space_used_size": 4236224,
+              "space_available_size": 1006016,
+              "physical_space_size": 5242880
+            },
+            {
+              "space_name": "shared_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_space",
+              "space_size": 5853184,
+              "space_used_size": 3820336,
+              "space_available_size": 2029032,
+              "physical_space_size": 6029312
+            },
+            {
+              "space_name": "shared_trusted_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 67108864,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "large_object_space",
+              "space_size": 10002432,
+              "space_used_size": 9930728,
+              "space_available_size": 0,
+              "physical_space_size": 10002432
+            },
+            {
+              "space_name": "code_large_object_space",
+              "space_size": 143360,
+              "space_used_size": 139904,
+              "space_available_size": 0,
+              "physical_space_size": 143360
+            },
+            {
+              "space_name": "shared_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "shared_trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            }
+          ],
+          "ms": 34941.261503999995,
+          "cpuMs": 34880.85,
+          "peakRssMiB": 520.8125,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 132840840,
+          "heapAfterGc": 51789088,
+          "heapAfterTurnGc": 50192280,
+          "code": {
+            "code_and_metadata_size": 7316134,
+            "bytecode_and_metadata_size": 1336032,
+            "external_script_source_size": 2348089,
+            "cpu_profiler_metadata_size": 0
+          },
+          "spaces": [
+            {
+              "space_name": "read_only_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_space",
+              "space_size": 134217728,
+              "space_used_size": 21464,
+              "space_available_size": 67083304,
+              "physical_space_size": 134217728
+            },
+            {
+              "space_name": "old_space",
+              "space_size": 39170048,
+              "space_used_size": 32652328,
+              "space_available_size": 6460800,
+              "physical_space_size": 39321600
+            },
+            {
+              "space_name": "code_space",
+              "space_size": 5505024,
+              "space_used_size": 4214208,
+              "space_available_size": 1290144,
+              "physical_space_size": 5505024
+            },
+            {
+              "space_name": "shared_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_space",
+              "space_size": 5591040,
+              "space_used_size": 3809800,
+              "space_available_size": 1776328,
+              "physical_space_size": 5767168
+            },
+            {
+              "space_name": "shared_trusted_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "new_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 67108864,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "large_object_space",
+              "space_size": 9469952,
+              "space_used_size": 9400584,
+              "space_available_size": 0,
+              "physical_space_size": 9469952
+            },
+            {
+              "space_name": "code_large_object_space",
+              "space_size": 143360,
+              "space_used_size": 139904,
+              "space_available_size": 0,
+              "physical_space_size": 143360
+            },
+            {
+              "space_name": "shared_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "shared_trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            },
+            {
+              "space_name": "trusted_large_object_space",
+              "space_size": 0,
+              "space_used_size": 0,
+              "space_available_size": 0,
+              "physical_space_size": 0
+            }
+          ],
+          "ms": 35388.318145,
+          "cpuMs": 35354.465,
+          "peakRssMiB": 528.55859375,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/gc699": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one diagnostic pair with --expose-gc; heap before/after forced collection after timing",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/srv/rank-regression-1110/old",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 176812192,
+          "heapAfterGc": 52799640,
+          "ms": 35019.924538,
+          "cpuMs": 34960.619,
+          "peakRssMiB": 523.92578125,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/srv/rank-bench/repo",
+          "path": "demos/euler/699_triffle.ra",
+          "sourceHash": "837b97b41fc25a9f0de5763a068672c88a1465ee891d02f5db23d209dea73cad",
+          "heapBeforeGc": 232847872,
+          "heapAfterGc": 66091648,
+          "ms": 36302.243252,
+          "cpuMs": 36266.885,
+          "peakRssMiB": 744.7421875,
+          "answer": "37010438774467572",
+          "node": "v24.15.0",
+          "arch": "x64"
+        }
+      ]
+    },
+    "intel/kaggle": {
+      "before": "563c31e3",
+      "after": "afc824b0",
+      "method": "one pair, same datasets and isolated output CSVs",
+      "samples": [
+        {
+          "root": "/srv/rank-regression-1110/old",
+          "ms": 87877.647635,
+          "cpuMs": 18692.253,
+          "peakRssMiB": 772.01171875,
+          "outputHash": "145141b73231374022dcd641188aed5bfbac0fe08edb721d131a8ad91461a259"
+        },
+        {
+          "root": "/srv/rank-bench/repo",
+          "ms": 85963.89703400001,
+          "cpuMs": 18772.583,
+          "peakRssMiB": 773.65234375,
+          "outputHash": "145141b73231374022dcd641188aed5bfbac0fe08edb721d131a8ad91461a259"
+        }
+      ]
+    }
+  },
+  "verification": {
+    "mac": {
+      "tests": 295,
+      "files": 16
+    },
+    "intel": {
+      "tests": 253,
+      "files": 15
+    },
+    "typescript": "passed",
+    "semanticBoundaries": {
+      "tests": 13,
+      "owners": 65
+    },
+    "applicationForms": "passed",
+    "fullSuite": "not run",
+    "exhaustiveAudits": "not run"
+  },
+  "experiments": {
+    "mac-fix": {
+      "description": "Discarded unconditional constant strides for non-gather nodes",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 901.817417,
+          "cpuMs": 1222.285,
+          "peakRssMiB": 267.8125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 737.8407500000001,
+          "cpuMs": 1065.587,
+          "peakRssMiB": 269.0625,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 741.973875,
+          "cpuMs": 1060.338,
+          "peakRssMiB": 268.71875,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 906.8410829999999,
+          "cpuMs": 1226.122,
+          "peakRssMiB": 268.9375,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 909.1266659999999,
+          "cpuMs": 1231.183,
+          "peakRssMiB": 267.5,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/670_colouringstrip.ra",
+          "sourceHash": "070370fcb1a9f06a60ab699288e45453619ca213dd219651f26ca0d42c936a6a",
+          "ms": 741.707083,
+          "cpuMs": 1069.285,
+          "peakRssMiB": 267.953125,
+          "answer": "551055065",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-control": {
+      "description": "Control exposed slowdown from discarded unconditional specialization",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 3772.488917,
+          "cpuMs": 5931.267,
+          "peakRssMiB": 365.140625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 5071.836958,
+          "cpuMs": 8648.171,
+          "peakRssMiB": 357.96875,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4874.741583,
+          "cpuMs": 8276.334,
+          "peakRssMiB": 338.59375,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 3914.183958,
+          "cpuMs": 6177.791,
+          "peakRssMiB": 361.75,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 4238.18925,
+          "cpuMs": 6786.613,
+          "peakRssMiB": 359.34375,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "path": "demos/euler/750_cardstacking.ra",
+          "sourceHash": "85c3c97e6cfed327978f50846295f39d6063adbcf64abbdfd1a9f2694e720967",
+          "ms": 5190.494833,
+          "cpuMs": 8860.247,
+          "peakRssMiB": 364.40625,
+          "answer": "160640",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-729-ablation": {
+      "description": "Disable pointwise fusion to localize Euler 729 regression",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 20653.57475,
+          "cpuMs": 21392.809,
+          "peakRssMiB": 1186.828125,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/tmp/rank-regression-1110/nofusion",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 17208.404959,
+          "cpuMs": 17981.501,
+          "peakRssMiB": 1183.5,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "mac-729-fixed": {
+      "description": "Intermediate real/boolean direct stores, before reusing integer bounds",
+      "samples": [
+        {
+          "round": 0,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 21150.907417,
+          "cpuMs": 21903.246,
+          "peakRssMiB": 1141.609375,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 0,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18419.404709,
+          "cpuMs": 19155.253,
+          "peakRssMiB": 1166.9375,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18128.724917,
+          "cpuMs": 18872.317,
+          "peakRssMiB": 1165.765625,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 1,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 21346.072375,
+          "cpuMs": 22112.031,
+          "peakRssMiB": 1211.75,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 0,
+          "root": "/tmp/rank-regression-1110/current",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 20816.308375,
+          "cpuMs": 21556.937,
+          "peakRssMiB": 1188.5625,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        },
+        {
+          "round": 2,
+          "variant": 1,
+          "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "path": "demos/euler/729_periodicrange.ra",
+          "sourceHash": "e84e966aa4a598e92c34a5fa826b08ca1ddb98e2edfaf9e6ce3d4ce6908ced9d",
+          "ms": 18574.209541,
+          "cpuMs": 19313.311,
+          "peakRssMiB": 1146.5,
+          "answer": "308896374.2502",
+          "node": "v24.15.0",
+          "arch": "arm64"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1068 @@
+{
+  "date": "2026-11-10",
+  "baselineCommit": "def74ea37056c2e81f9d86ac8b68c06723f0d3d2",
+  "baselineNotes": "Both variants include the prior tensor-geometry and pointwise-loop fixes. The before variant disables the three memory optimizations; the shared traversal helper is present but still collects boxed arrays. Programs and default arguments are unchanged. Each measurement uses a fresh Node v24.15.0 process with a 4096 MiB old-space limit. RSS is a process high-water mark, not retained live storage.",
+  "nightly": {
+    "id": "2026-11-09T22-00-53.987Z",
+    "commit": "afc824b024a0fd7f0b7d3c5b4d3e3ea3f50483f5",
+    "host": "jack",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "node": "v24.15.0"
+  },
+  "top10": [
+    {
+      "path": "demos/euler/609_pisequences.ra",
+      "peakRssMiB": 4144.97265625,
+      "ms": 158864.049103,
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/730_shiftedtriples.ra",
+      "peakRssMiB": 4142.9453125,
+      "ms": 499329.863563,
+      "sourceHash": "63b96671509e73d74e36048926b63b6d774c44311c57b69dd135847b1ccb10b8",
+      "status": "ok"
+    },
+    {
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "peakRssMiB": 3713.57421875,
+      "ms": 113809.910529,
+      "sourceHash": "3435ce6087245a731c3bc05c3adc983d9210290f855c4e78fa5670aa8a1db6e9",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/663_sumsofsubarrays.ra",
+      "peakRssMiB": 2899.4140625,
+      "ms": 73973.303725,
+      "sourceHash": "84193db7f632a1634000c2a55214af6ed5e3d89dc0cbc2b22ab4d31f95aa4c83",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/752_powers.ra",
+      "peakRssMiB": 2845.1875,
+      "ms": 97825.88385,
+      "sourceHash": "c2a783e034c3baf11b407496ba173cadb3e96adc6eaafaaa095018437dfcee41",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/468_smoothbinomial.ra",
+      "peakRssMiB": 2840.33203125,
+      "ms": 121970.71747,
+      "sourceHash": "d337bfd09b93e4f5655462f617d87b8b9de7b6fea09b11c7333a1abde087917c",
+      "status": "ok"
+    },
+    {
+      "path": "demos/kaggle/008_nytaxi.ra",
+      "peakRssMiB": 2783.95703125,
+      "ms": 238233.612853,
+      "sourceHash": "8dd2470b9ba75e7016ed13814217650d0fb84f19069f96b9134bf192743e3c08",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "peakRssMiB": 2724.6328125,
+      "ms": 30553.290947999998,
+      "sourceHash": "50dd84feb08415c1e77451387c9474351faccb1015d426ffad3a51de21bcb938",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "peakRssMiB": 2465.90625,
+      "ms": 74200.822424,
+      "sourceHash": "bff2fabf4b6e942cbc61245a63a478809e8cf1ff76fe88e7a87de0ad47852ace",
+      "status": "ok"
+    },
+    {
+      "path": "demos/euler/718_unreachable.ra",
+      "peakRssMiB": 2438.0859375,
+      "ms": 9403.676571999998,
+      "sourceHash": "0032ec7835b9aebef81d78d17c8ed5f94a8d3ae512dc8de48fa4f8f84043ac71",
+      "status": "ok"
+    }
+  ],
+  "measurements": [
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/609_pisequences.ra",
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "ms": 136637.178643,
+      "cpuMs": 144127.674,
+      "peakRssMiB": 4127.515625,
+      "answer": "172023848",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/609_pisequences.ra",
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "ms": 97096.523391,
+      "cpuMs": 99252.961,
+      "peakRssMiB": 1959.67578125,
+      "answer": "172023848",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel",
+      "phase": "initial"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/730_shiftedtriples.ra",
+      "sourceHash": "63b96671509e73d74e36048926b63b6d774c44311c57b69dd135847b1ccb10b8",
+      "ms": 372148.095822,
+      "cpuMs": 586298.536,
+      "peakRssMiB": 4038.96875,
+      "answer": "1315965924",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/730_shiftedtriples.ra",
+      "sourceHash": "63b96671509e73d74e36048926b63b6d774c44311c57b69dd135847b1ccb10b8",
+      "ms": 375317.58137,
+      "cpuMs": 590342.112,
+      "peakRssMiB": 4071.15625,
+      "answer": "1315965924",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/663_sumsofsubarrays.ra",
+      "sourceHash": "84193db7f632a1634000c2a55214af6ed5e3d89dc0cbc2b22ab4d31f95aa4c83",
+      "ms": 76125.01470799999,
+      "cpuMs": 78615.956,
+      "peakRssMiB": 2733.23046875,
+      "answer": "1884138010064752",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/663_sumsofsubarrays.ra",
+      "sourceHash": "84193db7f632a1634000c2a55214af6ed5e3d89dc0cbc2b22ab4d31f95aa4c83",
+      "ms": 79816.086502,
+      "cpuMs": 82410.844,
+      "peakRssMiB": 2735.58203125,
+      "answer": "1884138010064752",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/752_powers.ra",
+      "sourceHash": "c2a783e034c3baf11b407496ba173cadb3e96adc6eaafaaa095018437dfcee41",
+      "ms": 102995.47849499999,
+      "cpuMs": 133862.512,
+      "peakRssMiB": 2836.015625,
+      "answer": "5610899769745488",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/752_powers.ra",
+      "sourceHash": "c2a783e034c3baf11b407496ba173cadb3e96adc6eaafaaa095018437dfcee41",
+      "ms": 105395.867595,
+      "cpuMs": 137636.979,
+      "peakRssMiB": 2819.32421875,
+      "answer": "5610899769745488",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/468_smoothbinomial.ra",
+      "sourceHash": "d337bfd09b93e4f5655462f617d87b8b9de7b6fea09b11c7333a1abde087917c",
+      "ms": 117551.635392,
+      "cpuMs": 142041.399,
+      "peakRssMiB": 2977.77734375,
+      "answer": "852950321",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/468_smoothbinomial.ra",
+      "sourceHash": "d337bfd09b93e4f5655462f617d87b8b9de7b6fea09b11c7333a1abde087917c",
+      "ms": 106291.718639,
+      "cpuMs": 127874.866,
+      "peakRssMiB": 2974.484375,
+      "answer": "852950321",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "sourceHash": "50dd84feb08415c1e77451387c9474351faccb1015d426ffad3a51de21bcb938",
+      "ms": 28539.547981,
+      "cpuMs": 32869.361,
+      "peakRssMiB": 2726.2890625,
+      "answer": "174848216767932",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "sourceHash": "50dd84feb08415c1e77451387c9474351faccb1015d426ffad3a51de21bcb938",
+      "ms": 27745.169891,
+      "cpuMs": 32362.941,
+      "peakRssMiB": 2727.43359375,
+      "answer": "174848216767932",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "sourceHash": "bff2fabf4b6e942cbc61245a63a478809e8cf1ff76fe88e7a87de0ad47852ace",
+      "ms": 50056.710423,
+      "cpuMs": 122229.511,
+      "peakRssMiB": 2478.38671875,
+      "answer": "563917241",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "sourceHash": "bff2fabf4b6e942cbc61245a63a478809e8cf1ff76fe88e7a87de0ad47852ace",
+      "ms": 49440.759076,
+      "cpuMs": 121189.969,
+      "peakRssMiB": 2478.7734375,
+      "answer": "563917241",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/srv/rank-memory-1110/before",
+      "path": "demos/euler/718_unreachable.ra",
+      "sourceHash": "0032ec7835b9aebef81d78d17c8ed5f94a8d3ae512dc8de48fa4f8f84043ac71",
+      "ms": 9308.960003,
+      "cpuMs": 10542.808,
+      "peakRssMiB": 2443.58203125,
+      "answer": "228579116",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/718_unreachable.ra",
+      "sourceHash": "0032ec7835b9aebef81d78d17c8ed5f94a8d3ae512dc8de48fa4f8f84043ac71",
+      "ms": 8913.016042,
+      "cpuMs": 10123.776,
+      "peakRssMiB": 2439.625,
+      "answer": "228579116",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/tmp/rank-memory-1110/before",
+      "path": "demos/euler/609_pisequences.ra",
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "ms": 52662.413624999994,
+      "cpuMs": 55741.163,
+      "peakRssMiB": 4392.15625,
+      "answer": "172023848",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+      "path": "demos/euler/609_pisequences.ra",
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "ms": 39738.08425,
+      "cpuMs": 40904.11,
+      "peakRssMiB": 2360.8125,
+      "answer": "172023848",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac",
+      "phase": "final"
+    },
+    {
+      "root": "/tmp/rank-memory-1110/before",
+      "ms": 28669.877624999997,
+      "cpuMs": 47671.523,
+      "peakRssMiB": 4586.546875,
+      "outputHash": "633464f5457b386a988efc0c5b5b7d221724116356d395290d4884791b29dd15",
+      "host": "mac",
+      "variant": 0,
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "phase": "final",
+      "sourceHash": "3435ce6087245a731c3bc05c3adc983d9210290f855c4e78fa5670aa8a1db6e9",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "root": ".",
+      "ms": 15773.75,
+      "cpuMs": 18630.96,
+      "peakRssMiB": 2105.140625,
+      "outputHash": "633464f5457b386a988efc0c5b5b7d221724116356d395290d4884791b29dd15",
+      "host": "mac",
+      "variant": 1,
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "phase": "final",
+      "sourceHash": "3435ce6087245a731c3bc05c3adc983d9210290f855c4e78fa5670aa8a1db6e9",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "root": "/tmp/rank-memory-1110/before",
+      "ms": 61954.146333000004,
+      "cpuMs": 100992.112,
+      "peakRssMiB": 3179.46875,
+      "outputHash": "c5568fb361f2643b8d40a2c932281daac3ae127d7f550b5188ad025f7ea13ba3",
+      "host": "mac",
+      "variant": 0,
+      "path": "demos/kaggle/008_nytaxi.ra",
+      "phase": "final",
+      "sourceHash": "8dd2470b9ba75e7016ed13814217650d0fb84f19069f96b9134bf192743e3c08",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "root": ".",
+      "ms": 63518.595624999994,
+      "cpuMs": 104167.299,
+      "peakRssMiB": 2403.546875,
+      "outputHash": "c5568fb361f2643b8d40a2c932281daac3ae127d7f550b5188ad025f7ea13ba3",
+      "host": "mac",
+      "variant": 1,
+      "path": "demos/kaggle/008_nytaxi.ra",
+      "phase": "final",
+      "sourceHash": "8dd2470b9ba75e7016ed13814217650d0fb84f19069f96b9134bf192743e3c08",
+      "node": "v24.15.0",
+      "arch": "arm64"
+    },
+    {
+      "root": "/srv/rank-memory-1110/before",
+      "ms": 85369.499864,
+      "cpuMs": 129465.147,
+      "peakRssMiB": 3794.88671875,
+      "outputHash": "633464f5457b386a988efc0c5b5b7d221724116356d395290d4884791b29dd15",
+      "host": "intel",
+      "variant": 0,
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "phase": "final",
+      "sourceHash": "3435ce6087245a731c3bc05c3adc983d9210290f855c4e78fa5670aa8a1db6e9",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "root": "/srv/rank-memory-1110/after",
+      "ms": 43626.94578,
+      "cpuMs": 50962.86,
+      "peakRssMiB": 1742.65625,
+      "outputHash": "633464f5457b386a988efc0c5b5b7d221724116356d395290d4884791b29dd15",
+      "host": "intel",
+      "variant": 1,
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "phase": "final",
+      "sourceHash": "3435ce6087245a731c3bc05c3adc983d9210290f855c4e78fa5670aa8a1db6e9",
+      "node": "v24.15.0",
+      "arch": "x64"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/tmp/rank-memory-1110/before",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "sourceHash": "50dd84feb08415c1e77451387c9474351faccb1015d426ffad3a51de21bcb938",
+      "ms": 11139.404041000002,
+      "cpuMs": 13205.169,
+      "peakRssMiB": 3177.171875,
+      "answer": "174848216767932",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "sourceHash": "50dd84feb08415c1e77451387c9474351faccb1015d426ffad3a51de21bcb938",
+      "ms": 10960.39625,
+      "cpuMs": 12958.135,
+      "peakRssMiB": 3197.84375,
+      "answer": "174848216767932",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac"
+    },
+    {
+      "round": 0,
+      "variant": 0,
+      "root": "/tmp/rank-memory-1110/before",
+      "path": "demos/euler/718_unreachable.ra",
+      "sourceHash": "0032ec7835b9aebef81d78d17c8ed5f94a8d3ae512dc8de48fa4f8f84043ac71",
+      "ms": 3355.256208,
+      "cpuMs": 3828.973,
+      "peakRssMiB": 2641.6875,
+      "answer": "228579116",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+      "path": "demos/euler/718_unreachable.ra",
+      "sourceHash": "0032ec7835b9aebef81d78d17c8ed5f94a8d3ae512dc8de48fa4f8f84043ac71",
+      "ms": 3390.719708,
+      "cpuMs": 3870.326,
+      "peakRssMiB": 2641.390625,
+      "answer": "228579116",
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "host": "mac"
+    },
+    {
+      "round": 0,
+      "variant": 1,
+      "root": "/srv/rank-memory-1110/after",
+      "path": "demos/euler/609_pisequences.ra",
+      "sourceHash": "3e8e525028fd3dc86254447078e672cdc95a2ed4c9952c46b27e8a3fc320dd69",
+      "ms": 100933.685611,
+      "cpuMs": 103087.788,
+      "peakRssMiB": 1970.37109375,
+      "answer": "172023848",
+      "node": "v24.15.0",
+      "arch": "x64",
+      "host": "intel",
+      "phase": "final"
+    }
+  ],
+  "hosts": {
+    "mac": {
+      "node": "v24.15.0",
+      "arch": "arm64",
+      "cpu": "Apple M5",
+      "memoryBytes": 17179869184
+    },
+    "intel": {
+      "node": "v24.15.0",
+      "arch": "x64",
+      "cpu": "Intel Core i7-10750H @ 2.60GHz",
+      "memoryBytes": 25069617152
+    }
+  },
+  "datasets": {
+    "demos/kaggle/data/digits/train.csv": {
+      "bytes": 76775041,
+      "sha256": "b35cc952c291f03d995f48721373e69454f689e299d724bd9a5927bdabddfeed"
+    },
+    "demos/kaggle/data/digits/test.csv": {
+      "bytes": 51118296,
+      "sha256": "3353d136e718a01b18f4e2097d2f0bbd2676e5887b75b9497e35d34e90820013"
+    },
+    "demos/kaggle/data/nyc-taxi/train.csv": {
+      "bytes": 200589097,
+      "sha256": "fc8c777a4ab99a362d8b6b6f2038ff8a2c4625b9593248a47352d0d26fa99927"
+    },
+    "demos/kaggle/data/nyc-taxi/test.csv": {
+      "bytes": 70794289,
+      "sha256": "986697cc7f4996684f1cda4298a2ebbdeb83cb1c0de2edee185f0c316a642dc2"
+    }
+  },
+  "changes": [
+    {
+      "area": "numeric binding completion",
+      "effect": "Stream ordinary numeric traversals into Int32/Int64/Float64 storage, widening exact integers as needed. Preserve specialized ranked collectors and avoid extra shape probes. Inspection and opaque host polling retain the ordinary completion path."
+    },
+    {
+      "area": "choose dense fallback",
+      "effect": "Check every operand before allocating broadcast expansions; a lazy branch no longer causes a large unused mask allocation."
+    },
+    {
+      "area": "named-column binding contracts",
+      "effect": "Reuse a uniform completed scalar domain for column contracts instead of unpacking and copying the whole matrix. Mixed and missing columns retain ordinary checks. Inspection and opaque host polling retain ordinary checks."
+    }
+  ],
+  "verification": {
+    "build": "tsc -b tsconfig.build.json passed",
+    "mac": "709 tests passed in 30 focused files",
+    "semanticBoundaries": "13 tests passed; 65 owners checked",
+    "fullAudits": "Not run, per AGENTS.md",
+    "baselineFailures": [
+      {
+        "file": "test/array-binding-lifetime.test.ts",
+        "test": "compiled=true retains an alias while its binding is live",
+        "expected": "value 10, cowCopies 1",
+        "actual": "value 10, cowCopies 0",
+        "reproducedBeforeMemoryChanges": true
+      },
+      {
+        "file": "test/compact-integer-choose.test.ts",
+        "test": "validates only selected branches and honors reversed views",
+        "expected": "validation callback [3n]",
+        "actual": "validation callback []; values [3n, 2n, 1n] correct",
+        "reproducedBeforeMemoryChanges": true
+      }
+    ],
+    "intel": "530 tests passed in 21 focused files",
+    "observationPaths": "Additional debugger/polling checks: 87 tests in 4 files passed on both Mac and Intel."
+  },
+  "profiles": {
+    "euler609": {
+      "before": [
+        {
+          "line": 41,
+          "source": "for J in 1 to 10",
+          "ms": 21036.57925,
+          "memory": {
+            "rss": 858882048,
+            "heapTotal": 420446208,
+            "heapUsed": 330772992,
+            "external": 241891591,
+            "arrayBuffers": 240068635
+          }
+        },
+        {
+          "line": 45,
+          "source": "Bm = (Gs Rw Pi) + E0",
+          "ms": 1688.8206660000033,
+          "memory": {
+            "rss": 1650540544,
+            "heapTotal": 196673536,
+            "heapUsed": 87514800,
+            "external": 1037338823,
+            "arrayBuffers": 1035515867
+          }
+        },
+        {
+          "line": 47,
+          "source": "Gm = Cw choose (Bm shift 1) Bm",
+          "ms": 25966.172708,
+          "memory": {
+            "rss": 3919265792,
+            "heapTotal": 2712453120,
+            "heapUsed": 2617816928,
+            "external": 1037338727,
+            "arrayBuffers": 1035515771
+          }
+        },
+        {
+          "line": 48,
+          "source": "Gm = Gm * (Zn reshape 1 (Mx + 1))",
+          "ms": 1596.1972500000047,
+          "memory": {
+            "rss": 4197531648,
+            "heapTotal": 2160902144,
+            "heapUsed": 1994415928,
+            "external": 1313888615,
+            "arrayBuffers": 1312065659
+          }
+        },
+        {
+          "line": 54,
+          "source": "Cn = Bf * Wt sum axis 1",
+          "ms": 669.8035830000008,
+          "memory": {
+            "rss": 4605165568,
+            "heapTotal": 491749376,
+            "heapUsed": 353230064,
+            "external": 1659575963,
+            "arrayBuffers": 1657753007
+          }
+        }
+      ],
+      "afterPackingAndChooseGuards": [
+        {
+          "line": 41,
+          "source": "for J in 1 to 10",
+          "ms": 14776.2115,
+          "memory": {
+            "rss": 693649408,
+            "heapTotal": 270073856,
+            "heapUsed": 183430448,
+            "external": 203726023,
+            "arrayBuffers": 201903067
+          }
+        },
+        {
+          "line": 45,
+          "source": "Bm = (Gs Rw Pi) + E0",
+          "ms": 1429.976333999999,
+          "memory": {
+            "rss": 1269923840,
+            "heapTotal": 187760640,
+            "heapUsed": 35613760,
+            "external": 741706151,
+            "arrayBuffers": 739883195
+          }
+        },
+        {
+          "line": 47,
+          "source": "Gm = Cw choose (Bm shift 1) Bm",
+          "ms": 13860.028584,
+          "memory": {
+            "rss": 1270218752,
+            "heapTotal": 71368704,
+            "heapUsed": 65225656,
+            "external": 741706055,
+            "arrayBuffers": 739883099
+          }
+        },
+        {
+          "line": 48,
+          "source": "Gm = Gm * (Zn reshape 1 (Mx + 1))",
+          "ms": 157.8025000000016,
+          "memory": {
+            "rss": 1546797056,
+            "heapTotal": 48037888,
+            "heapUsed": 34906456,
+            "external": 1018255943,
+            "arrayBuffers": 1016432987
+          }
+        },
+        {
+          "line": 54,
+          "source": "Cn = Bf * Wt sum axis 1",
+          "ms": 655.7624579999974,
+          "memory": {
+            "rss": 2507603968,
+            "heapTotal": 492535808,
+            "heapUsed": 353409672,
+            "external": 1363943291,
+            "arrayBuffers": 1362120335
+          }
+        }
+      ]
+    },
+    "digits": {
+      "beforeColumnContractFix": [
+        {
+          "line": 15,
+          "source": "Train = TrainPath csv",
+          "ms": 1715.941292,
+          "memory": {
+            "rss": 613449728,
+            "heapTotal": 108396544,
+            "heapUsed": 56709112,
+            "external": 346702059,
+            "arrayBuffers": 267912809
+          }
+        },
+        {
+          "line": 16,
+          "source": "Test = TestPath csv",
+          "ms": 1148.311458,
+          "memory": {
+            "rss": 848248832,
+            "heapTotal": 108691456,
+            "heapUsed": 47596472,
+            "external": 495281617,
+            "arrayBuffers": 442151559
+          }
+        },
+        {
+          "line": 26,
+          "source": "X = Train Features",
+          "ms": 3194.196625,
+          "memory": {
+            "rss": 2380349440,
+            "heapTotal": 1086242816,
+            "heapUsed": 950324640,
+            "external": 704843321,
+            "arrayBuffers": 702831559
+          }
+        },
+        {
+          "line": 27,
+          "source": "Xtest = Test Features",
+          "ms": 2334.9875,
+          "memory": {
+            "rss": 2937028608,
+            "heapTotal": 1640562688,
+            "heapUsed": 1505144016,
+            "external": 617035321,
+            "arrayBuffers": 615023559
+          }
+        },
+        {
+          "line": 72,
+          "source": "Pixels = (X real rank 0) / 255.0",
+          "ms": 8027.636917,
+          "memory": {
+            "rss": 3650617344,
+            "heapTotal": 2452553728,
+            "heapUsed": 2372269952,
+            "external": 704843321,
+            "arrayBuffers": 702831559
+          }
+        },
+        {
+          "line": 73,
+          "source": "TestPixels = (Xtest real rank 0) / 255.0",
+          "ms": 3109.0811670000003,
+          "memory": {
+            "rss": 4158455808,
+            "heapTotal": 2398552064,
+            "heapUsed": 2325936984,
+            "external": 880459321,
+            "arrayBuffers": 878447559
+          }
+        },
+        {
+          "line": 74,
+          "source": "Centers = Pixels Y Classes centroids",
+          "ms": 919.9010830000007,
+          "memory": {
+            "rss": 4317839360,
+            "heapTotal": 1634664448,
+            "heapUsed": 1520303488,
+            "external": 959011433,
+            "arrayBuffers": 956999671
+          }
+        },
+        {
+          "line": 17,
+          "source": "Submission = Train solve_table Test",
+          "ms": 4668.8665,
+          "memory": {
+            "rss": 4389552128,
+            "heapTotal": 2021343232,
+            "heapUsed": 1896068544,
+            "external": 619056261,
+            "arrayBuffers": 617044499
+          }
+        }
+      ],
+      "afterColumnContractFix": [
+        {
+          "line": 15,
+          "source": "Train = TrainPath csv",
+          "ms": 1706.859959,
+          "memory": {
+            "rss": 612630528,
+            "heapTotal": 108658688,
+            "heapUsed": 56702008,
+            "external": 346702059,
+            "arrayBuffers": 267912809
+          }
+        },
+        {
+          "line": 16,
+          "source": "Test = TestPath csv",
+          "ms": 1145.75025,
+          "memory": {
+            "rss": 847527936,
+            "heapTotal": 108691456,
+            "heapUsed": 48304232,
+            "external": 495281617,
+            "arrayBuffers": 442151559
+          }
+        },
+        {
+          "line": 26,
+          "source": "X = Train Features",
+          "ms": 83.93891600000006,
+          "memory": {
+            "rss": 1111867392,
+            "heapTotal": 109215744,
+            "heapUsed": 40714376,
+            "external": 707587321,
+            "arrayBuffers": 702831559
+          }
+        },
+        {
+          "line": 27,
+          "source": "Xtest = Test Features",
+          "ms": 43.39274999999998,
+          "memory": {
+            "rss": 1287733248,
+            "heapTotal": 109477888,
+            "heapUsed": 36691456,
+            "external": 880459321,
+            "arrayBuffers": 878447559
+          }
+        },
+        {
+          "line": 72,
+          "source": "Pixels = (X real rank 0) / 255.0",
+          "ms": 3711.0080000000003,
+          "memory": {
+            "rss": 1707671552,
+            "heapTotal": 225607680,
+            "heapUsed": 176375840,
+            "external": 1143883321,
+            "arrayBuffers": 1141871559
+          }
+        },
+        {
+          "line": 73,
+          "source": "TestPixels = (Xtest real rank 0) / 255.0",
+          "ms": 2856.456542,
+          "memory": {
+            "rss": 1883668480,
+            "heapTotal": 222461952,
+            "heapUsed": 157453544,
+            "external": 1319499321,
+            "arrayBuffers": 1317487559
+          }
+        },
+        {
+          "line": 74,
+          "source": "Centers = Pixels Y Classes centroids",
+          "ms": 178.49637500000063,
+          "memory": {
+            "rss": 2040643584,
+            "heapTotal": 112885760,
+            "heapUsed": 38588064,
+            "external": 1447473053,
+            "arrayBuffers": 1369710843
+          }
+        },
+        {
+          "line": 17,
+          "source": "Submission = Train solve_table Test",
+          "ms": 4281.737374999999,
+          "memory": {
+            "rss": 1620099072,
+            "heapTotal": 280854528,
+            "heapUsed": 93693184,
+            "external": 1057202321,
+            "arrayBuffers": 1055190559
+          }
+        }
+      ]
+    },
+    "euler730": {
+      "iterations": 5594,
+      "maximumPoolCells": 70740901,
+      "arrayUnpackBoxes": 0,
+      "notes": "All large arrays remained Int32 or bitmaps. Each of three pools exceeded 70 million cells; roots and intermediate vectors stay live. RSS also includes retired external allocations and allocator retention; no memory optimization is claimed for this case."
+    }
+  },
+  "top10Findings": {
+    "609_pisequences": "Confirmed avoidable boxed completion and discarded broadcast expansion; fixed.",
+    "004_digitsreq": "Confirmed named-column contract checks unpacked completed numeric matrices; fixed.",
+    "008_nytaxi": "Uses the same column-contract path; lower peak memory verified with identical CSV output.",
+    "730_shiftedtriples": "Packed buffers and very large pools dominate; no boxed unpacking observed.",
+    "663_sumsofsubarrays": "Four segment trees with 33554432 cells each plus a 20400001-cell recurrence table; used as an unchanged packed-storage control.",
+    "752_powers": "Ranked factorization results and matrix powers; no specific additional compiler defect established in this audit.",
+    "468_smoothbinomial": "Large event arrays and segment trees; used as a full-input control.",
+    "735_divisorsoftwo": "Ragged task expansion with a 16777216-cell batch budget and retained global vectors; used as a full-input control.",
+    "680_yarragnisrever": "Persistent rope nodes and numeric vectors; no additional compiler defect established in this audit.",
+    "718_unreachable": "Several vectors over 17**6 entries (24137569); used as a full-input control."
+  },
+  "runtimeSourceHashes": {
+    "packages/interpreter/src/materialize.ts": "9e6498478c22fc62303e1a8cbd8be69510604cb1cc29b3678c7d87c0e03abf87",
+    "packages/interpreter/src/runtime/array-binding-contract.ts": "bbb54f3021433823be2ef38a472b7f61778a03bed65698c4c5c1395a88db006f",
+    "packages/interpreter/src/runtime/array-read.ts": "edaddde45e727847af8f2df8d68915a342246e9a57ff2507c377f3a6f13deed4",
+    "packages/interpreter/src/runtime/binding-cells.ts": "7ad123544be25d865e63cefc14518695044741a609d6a1e0770115e55e3f1a84",
+    "packages/interpreter/src/runtime/tensor.ts": "48faf6c4df752fb24e2a60576d9edced2c3dc5b7996776da6839d62b9fcecf06"
+  },
+  "notes": [
+    "All Euler outputs match the latest published answers. Both Kaggle output hashes match before and after.",
+    "Mac wall times varied during sustained runs; no speedup is claimed for NYC Taxi. Peak-memory savings persisted in repeats.",
+    "The seven Euler control cases other than 609 changed peak RSS by less than one percent on Intel.",
+    "No demo algorithms, default arguments, datasets or public benchmark results were changed."
+  ],
+  "summary": [
+    {
+      "host": "intel",
+      "path": "demos/euler/468_smoothbinomial.ra",
+      "beforeMiB": 2977.77734375,
+      "afterMiB": 2974.484375,
+      "memoryChangePercent": -0.11058478757357548,
+      "beforeSeconds": 117.551635392,
+      "afterSeconds": 106.291718639,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/609_pisequences.ra",
+      "beforeMiB": 4127.515625,
+      "afterMiB": 1970.37109375,
+      "memoryChangePercent": -52.26254064755963,
+      "beforeSeconds": 136.637178643,
+      "afterSeconds": 100.93368561099999,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/663_sumsofsubarrays.ra",
+      "beforeMiB": 2733.23046875,
+      "afterMiB": 2735.58203125,
+      "memoryChangePercent": 0.08603601221655044,
+      "beforeSeconds": 76.125014708,
+      "afterSeconds": 79.816086502,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/680_yarragnisrever.ra",
+      "beforeMiB": 2478.38671875,
+      "afterMiB": 2478.7734375,
+      "memoryChangePercent": 0.015603648416706584,
+      "beforeSeconds": 50.056710423,
+      "afterSeconds": 49.440759076,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/718_unreachable.ra",
+      "beforeMiB": 2443.58203125,
+      "afterMiB": 2439.625,
+      "memoryChangePercent": -0.16193568291937854,
+      "beforeSeconds": 9.308960003,
+      "afterSeconds": 8.913016041999999,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/730_shiftedtriples.ra",
+      "beforeMiB": 4038.96875,
+      "afterMiB": 4071.15625,
+      "memoryChangePercent": 0.7969237196994827,
+      "beforeSeconds": 372.148095822,
+      "afterSeconds": 375.31758137,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "beforeMiB": 2726.2890625,
+      "afterMiB": 2727.43359375,
+      "memoryChangePercent": 0.04198128752166408,
+      "beforeSeconds": 28.539547981,
+      "afterSeconds": 27.745169891,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/euler/752_powers.ra",
+      "beforeMiB": 2836.015625,
+      "afterMiB": 2819.32421875,
+      "memoryChangePercent": -0.5885512795790748,
+      "beforeSeconds": 102.99547849499999,
+      "afterSeconds": 105.395867595,
+      "outputMatches": true
+    },
+    {
+      "host": "intel",
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "beforeMiB": 3794.88671875,
+      "afterMiB": 1742.65625,
+      "memoryChangePercent": -54.078833463202436,
+      "beforeSeconds": 85.36949986399999,
+      "afterSeconds": 43.62694578,
+      "outputMatches": true
+    },
+    {
+      "host": "mac",
+      "path": "demos/euler/609_pisequences.ra",
+      "beforeMiB": 4392.15625,
+      "afterMiB": 2360.8125,
+      "memoryChangePercent": -46.249350760233085,
+      "beforeSeconds": 52.66241362499999,
+      "afterSeconds": 39.73808425,
+      "outputMatches": true
+    },
+    {
+      "host": "mac",
+      "path": "demos/euler/718_unreachable.ra",
+      "beforeMiB": 2641.6875,
+      "afterMiB": 2641.390625,
+      "memoryChangePercent": -0.011238081718600856,
+      "beforeSeconds": 3.3552562079999997,
+      "afterSeconds": 3.390719708,
+      "outputMatches": true
+    },
+    {
+      "host": "mac",
+      "path": "demos/euler/735_divisorsoftwo.ra",
+      "beforeMiB": 3177.171875,
+      "afterMiB": 3197.84375,
+      "memoryChangePercent": 0.6506376051814922,
+      "beforeSeconds": 11.139404041000002,
+      "afterSeconds": 10.96039625,
+      "outputMatches": true
+    },
+    {
+      "host": "mac",
+      "path": "demos/kaggle/004_digitsreq.ra",
+      "beforeMiB": 4586.546875,
+      "afterMiB": 2105.140625,
+      "memoryChangePercent": -54.10183995993718,
+      "beforeSeconds": 28.669877624999998,
+      "afterSeconds": 15.77375,
+      "outputMatches": true
+    },
+    {
+      "host": "mac",
+      "path": "demos/kaggle/008_nytaxi.ra",
+      "beforeMiB": 3179.46875,
+      "afterMiB": 2403.546875,
+      "memoryChangePercent": -24.404135911070046,
+      "beforeSeconds": 61.954146333000004,
+      "afterSeconds": 63.518595624999996,
+      "outputMatches": true
+    }
+  ],
+  "cleanup": {
+    "intelTemporaryDirectoryRemoved": "/srv/rank-memory-1110",
+    "requestedDirectoryConfirmedAbsent": "/srv/rank-regression-111"
+  }
+}

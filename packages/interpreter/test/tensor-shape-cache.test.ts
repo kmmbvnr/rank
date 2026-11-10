@@ -42,3 +42,28 @@ it('reuses numeric gather code while binding each broadcast geometry separately'
     expect(readArrayItem(result, 0)).toBe(wide);
     expect(readArrayItem(result, result.shape[0] * result.shape[1] - 1)).toBe(wide);
 });
+
+it('specializes repeated broadcast strides and preserves exact replay', () => {
+    const left: TensorNode = { kind: 'input', name: 'Left' };
+    const right: TensorNode = { kind: 'input', name: 'Right' };
+    const root: TensorNode = { kind: 'binary', op: '*', left, right };
+    const domains = new Map([left, right, root].map(node => [node, ['integer'] as const]));
+    const code: TensorCodeCache = new Map();
+    const inputs = new Map<string, RankValue>();
+    const kernel = compileNativeTensorCopy(root, domains,
+        { lookup: name => inputs.get(name), builtin: () => true }, code)!;
+    for (const [round, width] of [7, 8, 13, 7].entries()) {
+        const rows = [2n, -3n, round === 3 ? 9007199254740993n : 5n];
+        inputs.set('Left', typedArray(new BigInt64Array(rows), [3, 1]));
+        inputs.set('Right', typedArray(Int32Array.from({ length: width }, (_, i) => i - 2), [1, width]));
+        let result;
+        for (let repeat = 0; repeat < 10; repeat++) result = kernel.run();
+        if (result === undefined || !isRankArray(result)) throw Error('expected array');
+        expect(result.shape).toEqual([3, width]);
+        expect(Array.from({ length: 3 * width }, (_, i) => readArrayItem(result, i)))
+            .toEqual(rows.flatMap(row => Array.from({ length: width }, (_, i) => row * BigInt(i - 2))));
+    }
+    const numeric = [...code.keys()].filter(source => source.includes('/* number '));
+    expect(numeric.length).toBeGreaterThan(0);
+    expect(numeric.some(source => !source.includes('geometry['))).toBe(true);
+});

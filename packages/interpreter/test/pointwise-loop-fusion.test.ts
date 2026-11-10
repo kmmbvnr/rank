@@ -50,6 +50,7 @@ for I in 1 to 2
 end`);
         expect(actual.observation.error).toBeUndefined();
         expect(actual.code).toContain('fusedCell');
+        expect(actual.code).toMatch(/fusedArray\d+\.cells\[fusedCell\d+\] =/);
         expect(actual.diagnostics.numberLoops).toBe(1);
     });
     it.each(['array 1 2', 'array 1', 'array shape 0 fill 0'])('retains separate geometries for %s', input => {
@@ -61,6 +62,18 @@ for I in 1 to 2
 end`);
         expect(actual.observation.error).toBeUndefined();
         expect(actual.diagnostics.numberLoops).toBe(1);
+        expect(actual.diagnostics.numberLoopOverflows).toBe(0);
+    });
+    it('promotes integer outputs beyond signed words', () => {
+        const actual = compare(`A = array 2147483646 -2147483648
+B = array 1 2
+for I in 1 to 3
+ A = A + I
+ B = B + 1
+end`);
+        expect(actual.observation.error).toBeUndefined();
+        expect(actual.observation.variables).toContainEqual(['A', '2147483652 -2147483642']);
+        expect(actual.code).toContain('fusedCell');
         expect(actual.diagnostics.numberLoopOverflows).toBe(0);
     });
     it.each([

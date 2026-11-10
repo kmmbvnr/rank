@@ -5,9 +5,10 @@ import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
 import { arrayElementTypes } from './array-element-types.js';
+import { hasNativeArrayHeader, storedScalarKinds } from './array-storage.js';
 import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, arrayCells, arrayValues, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import { registerScalarView } from './integer-view.js';
 import { recordContract, retainRecordContract } from '../record-contract.js';
 import { isRankArray, isRankRecord, isRankTuple, tuple, requireHomogeneous, MISSING, mergeCollectionElementType, typeName, unionElementType,
@@ -218,6 +219,15 @@ export class ArrayBindingContract {
             }
             if (active.has(value) || forbidden?.has(value)) throw new RankError(`${this.name}: cyclic arrays cannot establish an element contract`, 'TypeError');
             if (value.columnNames && value.shape.length === 2) {
+                // Uniform completed storage proves each column's domain without
+                // unpacking the matrix and copying every column into JS arrays.
+                const kinds = privateLoopPolling() && hasNativeArrayHeader(value) && !value.itemAt
+                    ? storedScalarKinds(value, true) : undefined;
+                if (value.shape[0] > 0 && kinds?.length === 1) {
+                    done({ value, contract: { ...base, positions: Array.from({ length: value.shape[1] }, () =>
+                        ({ type: 'array', rank: 1, elements: [{ type: kinds[0] }] })) } });
+                    return;
+                }
                 active.add(value);
                 const columns: Prepared[] = [];
                 const stored = materializedArrayItems(value);

@@ -1,8 +1,9 @@
 import { materializeTensorMap } from './tensor-map.js';
+import { collectBindingCells } from './runtime/binding-cells.js';
 import { copyArrayStorage, materializeArrayView, materializeSelectedView } from './array-copy.js';
 import { materializePackedBooleans } from './packed-booleans.js';
 import type { CallParameter } from '@arrrank/language';
-import { denseScalarItems, collectArrayCells, ownedArray, ownedObject } from './array-storage.js';
+import { denseScalarItems, ownedArray, ownedObject } from './array-storage.js';
 import { demandValue } from './plan.js';
 import { checkpoint } from './interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -229,7 +230,9 @@ function aggregateValue(value: RankValue): Aggregate | undefined {
     }
     if (isRankArray(value)) {
         if (value.kind === 'bytes' || denseScalarItems(value) !== undefined) return undefined;
-        const cells = collectArrayCells(value);
+        const cells = collectBindingCells(value);
+        if (!Array.isArray(cells)) return { values: [], force: true,
+            finish: () => inheritSemanticArrayType(value, cells) };
         return { values: cells, force: true, finish: (values, _, nestedChanged) => {
             const result = ownedArray(values, value.shape, false, value.columnNames, {
                 tableScopes: value.tableScopes, sortKeys: value.sortKeys,

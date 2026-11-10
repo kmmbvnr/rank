@@ -351,15 +351,32 @@ interface DestinationTarget {
     kind: 'real' | 'boolean' | 'integer';
 }
 
+function numericTensorRun(source: string): KernelRun {
+    return new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', 'mulmod', source)
+        (checkpoint, IntegerCells, safeInteger, overflowSignal, checkedNumberModularMultiply) as KernelRun;
+}
+
 /** Keep cached runners outside bindRun's activation: its other closures capture
  * input buffers, which a wrapper created there would retain in V8's context. */
-function speculativeTensorRun(exact: KernelRun, fast: KernelRun, geometry: readonly number[]): KernelRun {
+function speculativeTensorRun(exact: KernelRun, fast: KernelRun, geometry: readonly number[],
+    specialized: string | undefined, code: TensorCodeCache): KernelRun {
+    let runs = 0;
     return (data, offsets, scalars, size, checks, routes, start, visit, dest) => {
         // A destination may alias an input; never overwrite it before the exact run.
         if (dest === undefined && !data.some(cells => cells instanceof BigInt64Array
             && typeof SharedArrayBuffer !== 'undefined' && cells.buffer instanceof SharedArrayBuffer)) {
             const numbers = scalars.map(scalar => typeof scalar === 'bigint' ? Number(scalar) : scalar);
             if (scalars.every((scalar, at) => typeof scalar !== 'bigint' || BigInt(numbers[at] as number) === scalar && Number.isSafeInteger(numbers[at]))) {
+                // Changing shapes keep the shared runner. Repeated shapes earn
+                // constant strides, allowing V8 to simplify division/remainder.
+                if (specialized && ++runs === 8) {
+                    try {
+                        fast = code.get(specialized) ?? numericTensorRun(specialized);
+                        code.delete(specialized);
+                        if (code.size >= 32) code.delete(code.keys().next().value!);
+                        code.set(specialized, fast);
+                    } catch { /* Retain the shared numeric runner. */ }
+                }
                 try { return fast(data, offsets, numbers as RankValue[], size, checks, routes, start, visit, dest, geometry); }
                 catch (error) { if (error !== overflowSignal && error !== numberOverflow) throw error; }
             }
@@ -1266,13 +1283,13 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const geometry: number[] = [];
             const numberBody = terminal === 'copy' && outputKind === 'integer' && !scanning && !visit && !axes && !compact
                 && !structural.length && !hasCalls && !readers.size ? numberKernelBody() : undefined;
-            function numberKernelBody(): string | undefined {
+            function numberKernelBody(specialized = false): string | undefined {
                 const names = new Map<TensorNode, Map<string, string>>();
                 const body: string[] = [];
                 const wordSlots = new Set<number>();
                 // Bind dimensions separately so successive shapes share a hot
                 // numeric runner rather than recompiling their broadcast loop.
-                const dimension = (value: number) => `geometry[${geometry.push(value) - 1}]`;
+                const dimension = (value: number) => specialized ? String(value) : `geometry[${geometry.push(value) - 1}]`;
                 const addresses = new Map<string, string>();
                 function numberAddress(shape: readonly number[], target: readonly number[], index: string): string {
                     if (same(shape, target)) return index;
@@ -1374,13 +1391,13 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (compiled && numberBody) {
                 const exact = execute!;
                 try {
-                    const fast = numericCode.get(numberBody) ?? new Function('checkpoint', 'IntegerCells', 'safe', 'overflow', 'mulmod', numberBody)(checkpoint, IntegerCells, safeInteger, overflowSignal, checkedNumberModularMultiply) as KernelRun;
+                    const fast = numericCode.get(numberBody) ?? numericTensorRun(numberBody);
                     // Keep shared numeric code hot as shape-specific exact
                     // fallbacks move through the bounded code cache.
                     numericCode.delete(numberBody);
                     if (numericCode.size >= 32) numericCode.delete(numericCode.keys().next().value!);
                     numericCode.set(numberBody, fast);
-                    execute = speculativeTensorRun(exact, fast, geometry);
+                    execute = speculativeTensorRun(exact, fast, geometry, geometry.length ? numberKernelBody(true) : undefined, numericCode);
                     if (code) code.set(generated, execute);
                 } catch { execute = exact; }
             }

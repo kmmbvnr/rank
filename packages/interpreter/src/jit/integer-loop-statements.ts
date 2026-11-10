@@ -2,6 +2,7 @@ import { AstUtils } from 'langium';
 import { arrayPermutation } from './array-transfer.js';
 import { compileArrayRegion } from './array-region.js';
 import { type LoopTerm } from './integer-loop-plan.js';
+import { fitsIntegerRepresentation } from './integer-representation.js';
 import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
@@ -112,7 +113,14 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
 
         outputs.forEach((output, i) => body.push(`const ${output} = vectorArray(${vectors[i]!.shape}, ${vectors[i]!.type === 'real'}, vectorPool, vectorLive,
             [result, iterationResult, ${[...sources, ...outputs.slice(0, i).map(name => `${name}.cells`)].join(',')}], ${vectors[i]!.type === 'boolean'});`));
-        const store = (value: LoopTerm, i: number) => `${outputs[i]}.store(${cell}, ${vectors[i]!.type === 'boolean' ? `${value.code} ? 1 : 0` : value.code});`;
+        const store = (value: LoopTerm, i: number) => {
+            const type = vectors[i]!.type;
+            // Match ordinary vector stores: only unbounded integer outputs
+            // can need storage promotion.
+            return type === 'integer' && !(value.bounds && fitsIntegerRepresentation(value.bounds, 'int32'))
+                ? `${outputs[i]}.store(${cell}, ${value.code});`
+                : `${outputs[i]}.cells[${cell}] = ${type === 'boolean' ? `${value.code} ? 1 : 0` : value.code};`;
+        };
         const fast: string[] = [];
         const compactFrame = { ...frame, compact: true, offsets: new Map<string, string>(), values: new Map<string, LoopTerm>() };
         const compactValues = vectors.map(vector => vector!.cell(cell, fast, compactFrame));

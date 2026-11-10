@@ -160,25 +160,37 @@ export function* arrayValues(value: RankArray, streaming = false): IterableItera
     }
 }
 
+interface CellCollector<T> {
+    write(index: number, value: RankValue): void;
+    finish(): T;
+}
+
+export function collectArrayValues(size: number, values: IterableIterator<RankValue>): RankValue[] {
+    return collectValues(size, values, () => {
+        const items = new Array<RankValue>(size);
+        return { write(index, value) { items[index] = value; }, finish: () => items };
+    });
+}
+
 /** Even a zero-element result must finish its traversal: a nonempty rank frame
  * can contain callbacks producing empty cells. Always close abandoned readers. */
-export function collectArrayValues(size: number, values: IterableIterator<RankValue>): RankValue[] {
+function collectValues<T>(size: number, values: IterableIterator<RankValue>, create: () => CellCollector<T>): T {
     let finished = false;
     let failed = false;
     try {
         if (size > MAX_HELD_CELLS) {
             throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
         }
-        const items = new Array<RankValue>(size);
+        const collector = create();
         let index = 0;
         while (true) {
             const next = values.next();
             if (next.done) { finished = true; break; }
             if (index >= size) throw new RankError('array reader exceeded its declared shape', 'DimensionMismatch');
-            items[index++] = next.value;
+            collector.write(index++, next.value);
         }
         if (index !== size) throw new RankError('array reader ended before its declared shape', 'DimensionMismatch');
-        return items;
+        return collector.finish();
     } catch (error) { failed = true; throw error; }
     finally {
         if (!finished) {
@@ -188,8 +200,20 @@ export function collectArrayValues(size: number, values: IterableIterator<RankVa
     }
 }
 
-export function collectArrayCells(value: RankArray): RankValue[] {
+/** Binding collectors may pack cells as they arrive without changing traversal. */
+export function collectArrayCellsInto<T>(value: RankArray, collector: CellCollector<T>): T {
     const collect = arrayReadPlans.get(value)?.collect;
+    const values = collect ? collect()[Symbol.iterator]() : arrayValues(value);
+    return collectValues(value.shape.reduce((total, n) => total * n, 1), values, () => collector);
+}
+
+/** A specialized collector owns its shape probe and the first produced cell. */
+export function arrayCellCollector(value: RankArray): (() => RankValue[]) | undefined {
+    return arrayReadPlans.get(value)?.collect;
+}
+
+export function collectArrayCells(value: RankArray): RankValue[] {
+    const collect = arrayCellCollector(value);
     if (collect) return collect();
     return collectArrayValues(value.shape.reduce((total, n) => total * n, 1), arrayValues(value));
 }

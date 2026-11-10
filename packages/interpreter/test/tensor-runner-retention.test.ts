@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { expect, it } from 'vitest';
 
-it('cached Number tensor variants release their previous input buffers', () => {
+it('specialized Number broadcast variants release their previous input buffers', () => {
     const index = new URL('../out/index.js', import.meta.url).href;
     const storage = new URL('../out/array-storage.js', import.meta.url).href;
     const compiler = new URL('../out/tensor-kernel.js', import.meta.url).href;
@@ -12,15 +12,18 @@ it('cached Number tensor variants release their previous input buffers', () => {
         import { typedArray, readArrayItem } from ${JSON.stringify(storage)};
         import { compileTensorKernel } from ${JSON.stringify(compiler)};
         const values = new Map(), references = [];
-        const kernel = compileTensorKernel(parse('Result = (Source mod 7 + 1) copy').statements[0], {
+        const kernel = compileTensorKernel(parse('Result = (Source mod 7 + Other) copy').statements[0], {
             lookup: name => values.get(name), builtin: () => true,
         });
         function call(size) {
             const cells = new BigInt64Array(size).fill(2n ** 40n);
             references.push(new WeakRef(cells.buffer));
-            values.set('Source', typedArray(cells, [size]));
-            const result = kernel.run();
-            assert.equal(readArrayItem(result, size - 1), (2n ** 40n) % 7n + 1n);
+            values.set('Source', typedArray(cells, [size, 1]));
+            values.set('Other', typedArray(new Int32Array([1, 2]), [1, 2]));
+            for (let repeat = 0; repeat < 10; repeat++) {
+                const result = kernel.run();
+                assert.equal(readArrayItem(result, size * 2 - 1), (2n ** 40n) % 7n + 2n);
+            }
         }
         for (const size of [10000, 20000, 30000]) call(size);
         values.clear();
