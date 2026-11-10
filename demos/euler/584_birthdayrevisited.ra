@@ -1,97 +1,94 @@
 rem Birthday Problem Revisited
 rem https://projecteuler.net/problem=584
-
 use numbers
 use sequences
+use algo
+use linalg
 use io
 use cli
-
 arg N integer = 365
 arg K integer = 4
 arg D integer = 7
 
-rem E = sum over n of P(no K people
-rem within D days of each other) = sum
-rem of A(n) n! / N^n, A(n) the weight
-rem sum over day counts c_1 .. c_N with
-rem every D + 1 cyclic days holding at
-rem most K - 1 people, of prod 1 / c_i!.
-rem A(n) is the x^n coefficient of the
-rem trace of the N-th power of a
-rem transfer matrix on the counts of
-rem the last D days (sum <= K - 1), each
-rem new day c weighing x^c / c!.
-Bs = K ** D
-Ix = array shape Bs fill 0 - 1
-Sn = 0
-Ds = array shape 0 fill 0
-for Cd in 0 till Bs
-  Sm = 0
-  Cu = Cd
-  for # in 1 to D
-    Sm += (Cu mod K)
-    Cu = Cu // K
-  end
-  if Sm at most K - 1
-    Ix Cd = Sn
-    Ds = concat Ds (array Cd)
-    Sn += 1
-  end
+Bound = K ** D
+Codes = 0 till Bound copy
+Powers = K ** (0 till D) copy
+Grid = Codes reshape Bound 1
+Digits = Grid // Powers mod K
+Sums = Digits sum axis 1
+Good = Sums less K
+Codes = Codes Good
+Sums = Sums Good
+Count = Codes len
+Index = array shape Bound fill 0
+Index Codes = 0 till Count copy
+Limit = N * (K - 1) // (D + 1)
+Counts = 1 till K copy
+Facts = Counts scan *
+Facts = concat (array 1) Facts
+
+rem A(n) weights day counts by 1/c!;
+rem expectation sums A(n) n! / N^n.
+rem Sparse entries of the transfer.
+EdgeCounts = K - Sums
+Ends = EdgeCounts scan +
+Begins = Ends - EdgeCounts
+Edges = EdgeCounts sum
+Positions = 0 till Edges copy
+Owners = Ends upperindex Positions
+Oldest = Positions - Begins Owners
+Previous = Oldest * K ** (D - 1)
+Previous = Previous + Codes Owners // K
+Sources = Index Previous
+Added = Codes Owners mod K
+Slots = Owners * Count + Sources
+Divisors = Facts Added
+
+rem The trace generates A(n). Integrate
+rem exp(-t) A(t/N): its moments are n!.
+rem Order nodes cover its whole degree.
+Order = Limit // 2 + 1
+Range = 0 till Order copy
+Size = Order * Order
+Jacobi = array shape Size fill 0.0
+Diagonal = Range * Order + Range
+Jacobi Diagonal = 2.0 * Range + 1.0
+Side = 1 till Order copy
+Upper = (Side - 1) * Order + Side
+Lower = Side * Order + Side - 1
+Jacobi Upper = Side * 1.0
+Jacobi Lower = Side * 1.0
+Table = Jacobi reshape Order Order
+Spectrum = Table eigh
+Nodes = Spectrum 0
+
+rem Recurrence preserves tiny weights.
+rem Squared eigenvector entries do not.
+Prior = array shape Order fill 1.0
+Current = Prior - Nodes
+for I in 1 to Order
+  Term = 2 * I + 1 - Nodes
+  Next = Term * Current - I * Prior
+  Next = Next / (I + 1)
+  Prior = Current
+  Current = Next
 end
-Mc = K - 1
-Nx = array shape Sn K fill 0 - 1
-Su = array shape Sn fill 0
-Sh = K ** (D - 1)
-for S in 0 till Sn
-  Cd = Ds S
-  Sm = 0
-  Cu = Cd
-  for # in 1 to D
-    Sm += (Cu mod K)
-    Cu = Cu // K
-  end
-  Su S = Sm
-  for C in 0 to Mc - Sm
-    Nc = (Cd mod Sh) * K + C
-    Nx S C = Ix Nc
-  end
+Factor = (Order + 1) * Current
+Weights = Nodes / (Factor * Factor)
+
+fun X trace
+  Terms = X ** Added / Divisors
+  Size = Count * Count
+  Matrix = array shape Size fill 0.0
+  Matrix Slots = Terms
+  Table = Matrix reshape Count Count
+  Power = Table matpow N
+  Diagonal = Power diag
+  return Diagonal sum
 end
-Pm = N * Mc // (D + 1)
-If = array shape K fill 1.0
-for C in 1 till K
-  If C = (If (C - 1)) / C
-end
-Ac = array shape (Pm + 1) fill 0.0
-for S0 in 0 till Sn
-  Dp = array shape Sn (Pm + 1) fill 0.0
-  Dp S0 0 = 1.0
-  for Dy in 1 to N
-    Nw = Dp * 0.0
-    for S in 0 till Sn
-      for C in 0 to Mc - (Su S)
-        T = Nx S C
-        W = If C
-        for P in 0 to Pm - C
-          Nw T (P + C) += W * (Dp S P)
-        end
-      end
-    end
-    Dp = Nw
-  end
-  for P in 0 to Pm
-    Ac P += Dp S0 P
-  end
-end
-Lf = array shape (Pm + 1) fill 0.0
-for P in 1 to Pm
-  Lg = P * 1.0 log
-  Lf P = (Lf (P - 1)) + Lg
-end
-Ln = N * 1.0 log
-Answer = 0.0
-for P in 0 to Pm
-  Ex = (Lf P) - P * Ln
-  Answer += (Ac P) * (Ex exp)
-end
+Samples = Nodes / N
+Values = Samples trace rank 0
+Mass = Values * Weights
+Answer = Mass sum
 Answer = Answer round 8
 Answer print

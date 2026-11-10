@@ -3854,3 +3854,22 @@ The longer ordinary-call control (200,000 calls, seven process pairs) measured
 includes preparation overhead; these measurements do not establish a universal
 speedup. The raw cold times, warm samples and process RSS observations are in
 `benchmarks/function-composition-results.json`.
+
+### Euler 584: real matrix powers and a transfer-polynomial integral
+
+The shared numerical `matpow` implementation keeps trusted Float64 snapshots
+and completed products unboxed. Positive real powers reuse invocation-local
+product and transpose buffers, preserving dot-product order and preventing
+scratch from aliasing live operands. The prepared input remains a snapshot;
+integer/modular powers and observable-budget execution retain their established
+paths. No Number admission threshold or syntax changes are involved.
+
+Euler 584 now evaluates its birthday-count generating polynomial by matrix
+powers and integrates it with Gauss-Laguerre nodes. The degree bound fixes the
+node count without truncating probability tails. Laguerre recurrence weights
+avoid the inaccurate tiny eigenvector components of the Jacobi eigensolver.
+Array operations and existing linear-algebra functions replace the nested
+coefficient DP; one explicit loop computes the quadrature weights. The
+[benchmark](../../benchmarks/euler584.md) separates algorithm and runtime
+contributions, reports the whole-program memory tradeoff, and records rejected
+array/keyed variants and Mac/Intel correctness and performance checks.

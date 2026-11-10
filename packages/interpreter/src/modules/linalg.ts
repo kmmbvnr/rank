@@ -797,8 +797,9 @@ function numberMatmul(
 function contiguousNumberMatmul(
     left: Float64Array | Int32Array, right: Float64Array | Int32Array,
     rows: number, columns: number, inner: number, compact = false,
+    output?: Float64Array, work?: Float64Array,
 ): Float64Array | Int32Array {
-    const transpose = right instanceof Int32Array ? new Int32Array(right.length) : new Float64Array(right.length);
+    const transpose = work ?? (right instanceof Int32Array ? new Int32Array(right.length) : new Float64Array(right.length));
     for (let k = 0; k < inner; k++) {
         for (let j = 0; j < columns; j++) {
             const index = k * columns + j;
@@ -806,7 +807,7 @@ function contiguousNumberMatmul(
             transpose[j * inner + k] = right[index];
         }
     }
-    const result = compact ? new Int32Array(rows * columns) : new Float64Array(rows * columns);
+    const result = output ?? (compact ? new Int32Array(rows * columns) : new Float64Array(rows * columns));
     const period = inner >= 256 ? 1 : 1024;
     for (let i = 0; i < rows; i++) {
         const offset = i * inner, row = i * columns;
@@ -857,8 +858,28 @@ export function prepareMatrixPower(value: RankValue, power: RankValue) {
 
     const size = value.shape[0];
     // Products stay lazy otherwise, and squaring would recompute them.
-    const settle = (matrix: RankValue, modulus?: bigint): RankArray => {
+    const settle = (matrix: RankValue, modulus?: bigint, snapshot = false): RankArray => {
         const cells = matrix as RankArray;
+        // A native real product is already complete. Keep its unboxed storage;
+        // the initial operand alone needs a snapshot before later evaluation.
+        const packed = modulus === undefined && privateLoopPolling() && !demandBudgetEnabled()
+            && !cells.columnNames && !cells.tableScopes && !cells.sortKeys && !hasMaskedCells(cells)
+            ? float64Cells(cells) : undefined;
+        if (packed && packed.length === size * size && packed.buffer instanceof ArrayBuffer) {
+            const diagnostics = currentDiagnostics();
+            if (!snapshot) {
+                if (diagnostics) diagnostics.cost('matpow.real-product').calls++;
+                return cells;
+            }
+            const copy = new Float64Array(packed.length);
+            for (let start = 0; start < copy.length; start += 4096) {
+                const end = Math.min(copy.length, start + 4096);
+                checkpoint('preparing matrix power', end - start);
+                copy.set(packed.subarray(start, end), start);
+            }
+            if (diagnostics) { const cost = diagnostics.cost('matpow.real-snapshot'); cost.calls++; cost.copiedBytes += copy.byteLength; cost.allocatedBytes += copy.byteLength; }
+            return typedArray(copy, [size, size]);
+        }
         return ownedArray(Array.from({ length: size * size }, (_, index) => {
             if ((index & 4095) === 0) checkpoint('preparing matrix power', Math.min(4096, size * size - index));
             const item = arrayItem(cells, index);
@@ -867,7 +888,7 @@ export function prepareMatrixPower(value: RankValue, power: RankValue) {
             return remainder < 0n ? remainder + modulus : remainder;
         }), [size, size]);
     };
-    const input = settle(value);
+    const input = settle(value, undefined, true);
     const integers = Array.from({ length: size * size }, (_, index) => arrayItem(input, index))
         .every(item => typeof item === 'bigint');
     return {
@@ -877,6 +898,9 @@ export function prepareMatrixPower(value: RankValue, power: RankValue) {
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.modularMatrixPowers++;
             }
+            const packed = modulus === undefined && power >= 0n && privateLoopPolling() && !demandBudgetEnabled()
+                ? float64Cells(input) : undefined;
+            if (packed && packed.length === size * size && packed.buffer instanceof ArrayBuffer) return power === 1n ? input : realMatrixPower(packed, size, power);
             let base = modulus === undefined ? input : settle(input, modulus);
             let exponent = power;
             if (exponent < 0n) {
@@ -897,6 +921,35 @@ export function prepareMatrixPower(value: RankValue, power: RankValue) {
                 index % (size + 1) === 0 ? one : zero), [size, size]);
         },
     };
+}
+
+/** Invocation-local work buffers never alias an operand or escape as scratch.
+ * Reusing them keeps repeated real squaring off the allocator's hot path. */
+function realMatrixPower(input: Float64Array, size: number, power: bigint): RankArray {
+    const pool: Float64Array[] = [], work = new Float64Array(input.length);
+    const product = (left: Float64Array, right: Float64Array, retained?: Float64Array): Float64Array => {
+        let output = pool.find(buffer => buffer !== left && buffer !== right && buffer !== retained);
+        if (!output) { output = new Float64Array(input.length); pool.push(output); }
+        return contiguousNumberMatmul(left, right, size, size, size, false, output, work) as Float64Array;
+    };
+    let base = input, result: Float64Array | undefined;
+    while (power > 0n) {
+        checkpoint('computing linear algebra');
+        if (power & 1n) result = result ? product(result, base) : base;
+        power >>= 1n;
+        if (power > 0n) base = product(base, base, result);
+    }
+    const identity = result === undefined;
+    if (!result) {
+        result = new Float64Array(input.length);
+        for (let i = 0; i < size; i++) { checkpoint('computing linear algebra'); result[i * (size + 1)] = 1; }
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        const cost = diagnostics.cost('matpow.real-work'); cost.calls++;
+        cost.allocatedBytes += (pool.length + 1 + Number(identity)) * input.byteLength;
+    }
+    return typedArray(result, [size, size]);
 }
 
 /** Exponentiation by squaring, exact for integer cells. */
