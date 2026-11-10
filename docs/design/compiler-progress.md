@@ -603,6 +603,55 @@ snapshots. Detailed tracing adds work at each observed call and can noticeably
 slow programs with many tiny function calls; use ordinary execution for timings
 and a separate diagnostic run to explain admission.
 
+### Executable capability matrix
+
+Run the bounded matrix from the repository root:
+
+```sh
+npm run test:capabilities
+npm run test:capabilities -- --report /tmp/rank-capabilities.json
+```
+
+The ordinary interpreter suite also runs `test/capability-matrix.test.ts`.
+The report command checks committed snapshots in CI mode and publishes its JSON
+only after all checks pass. It does not run the exhaustive demo/type audits.
+
+Rows in `test/capability-matrix/cases.ts` describe input/result types, ranks,
+storage or layout, effects and combinations. Operator rows are generated from
+every declared loop, scalar-function, scalar-expression and tensor signature.
+Builtin rows expand the declared compiled-call domains, including mixed numeric
+arguments, arrays, text and bytes. Each row runs with compilation disabled,
+compilation enabled, and detailed tracing enabled. Values, errors and ordered
+output must agree; execution counters must also agree between traced and
+untraced compiled runs. Int32, Int64 and Float64 input fixtures are fresh for
+each run. Outputs are consumed inside the diagnostic scope, including lazy
+results.
+
+Reviewed snapshots record results, errors, output, completed paths by source
+location, and candidate rejection reasons. A path change fails even if the
+answer stays correct. Rejections are classified as missing lowering, failed
+admission proofs/preconditions, runtime guards or cost limits; language errors
+are recorded separately. Unknown reason families fail the test for review.
+These classifications describe a candidate, not the final program outcome.
+For an intentional implementation change, inspect the changed paths and then
+update this test's snapshots with the package test runner and `-u`.
+
+The JSON joins the current AST and operation catalogues to reproducer IDs and
+includes source, observed paths and proven types. An empty case list means that
+this matrix has no execution evidence for that catalogue entry, not that Rank
+rejects it. Catalogue signatures remain declarations, not proof that every
+backend implements them. Layout labels describe the fixture construction;
+stored input rows explicitly provide typed buffers. The matrix is extensible,
+not an enumeration of all possible programs or combinations.
+
+Euler 001, 002, 003 and 006 run with their default inputs and known answers.
+They cover masks and tensor reduction, a consumed generator, a scalar loop,
+and deferred sequence arithmetic. The matrix also includes type-changing
+assignment errors, zero division, exact-integer fallback, statement budgets,
+copy-on-write, empty arrays, rank changes, effects and exception order.
+This suite measures correctness and execution choices; it makes no runtime or
+memory improvement claim.
+
 Euler 103 uses scalar leaf checks and copies a successful set into its output
 array element by element, allowing the full depth-array search to compile. The
 saved result remains independent of later candidate writes. Euler 88 retains
