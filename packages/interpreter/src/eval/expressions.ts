@@ -225,6 +225,19 @@ export class ExpressionEvaluator {
             this.context.requireModule('algo', 'new');
             return newStructure(expression.structure);
         };
+        // Small synchronous constructors need no execution-stack tasks. Every
+        // call still creates fresh storage and checks the usual array contracts.
+        if (isArrayExpression(expression) && !expression.range && expression.dimensions.length === 0) {
+            const items = expression.rows.length > 0 ? expression.rows.flatMap(row => row.items) : expression.items;
+            if (items.length > 64) return undefined;
+            const reads = items.map(item => {
+                const read = this.compileDirect(item.value);
+                return read && (item.sign ? () => this.context.operators.evaluateUnary(item.sign!, read()) : read);
+            });
+            if (!reads.every(read => read !== undefined)) return undefined;
+            return observedRun(expression, 'native-array-construction', () =>
+                new ArrayBindingContract('array').check(array(reads.map(read => read()))));
+        }
         if (isNumberLiteral(expression) || isBooleanLiteral(expression) || isStringLiteral(expression)) {
             return () => expression.value;
         }
@@ -872,10 +885,10 @@ export class ExpressionEvaluator {
         return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
     }
 
-    *evaluateArrayItem(item: ArrayItem): Execution<RankValue> {
-        const value = (yield* resume(this.evaluate(item.value)));
-        if (!item.sign) return value;
-        return this.context.operators.evaluateUnary(item.sign, value);
+    evaluateArrayItem(item: ArrayItem): Evaluation<RankValue> {
+        const task = this.evaluate(item.value);
+        const sign = item.sign;
+        return sign ? mapResult(task, value => this.context.operators.evaluateUnary(sign, value)) : task;
     }
 
     evaluateAddressItem(item: AddressItem): Evaluation<RankValue> {

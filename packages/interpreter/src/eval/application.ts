@@ -52,7 +52,7 @@ export interface ApplicationContext {
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of an expression that is not an application, without classifying it again. */
     compile(expression: Expression, missing?: () => RankValue, tail?: boolean, classify?: boolean): () => Evaluation<RankValue>;
-    evaluateArrayItem(item: ArrayItem): Execution<RankValue>;
+    evaluateArrayItem(item: ArrayItem): Evaluation<RankValue>;
     /** Builtin identity a name is bound to, or false for a user value; never runs user code. */
     operationOf(name: string): Operation | undefined | false;
     resolve(name: string): RankValue;

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { analyzeValues } from '@arrrank/language';
-import { Interpreter, formatValue, parse } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, parse } from '../src/index.js';
 import { type RankArray } from '../src/value.js';
 
 for (const compiled of [true, false]) describe(`array construction (compiled ${compiled})`, () => {
@@ -11,6 +11,66 @@ for (const compiled of [true, false]) describe(`array construction (compiled ${c
         r.execute('use sequences');
         return r;
     };
+    it('rebuilds synchronous items on every execution without sharing mutable results', () => {
+        const r = runtime();
+        try {
+            const program = parse('A = array 1 -2 3\nA');
+            const diagnostics = new RuntimeDiagnostics(Infinity, true);
+            expect(formatValue(diagnostics.run(() => r.executeProgram(program))!)).toBe('1 -2 3');
+            expect(diagnostics.compilerObservations.some(entry => entry.backend === 'native-array-construction'
+                && entry.phase === 'execute' && entry.outcome === 'selected')).toBe(true);
+            r.execute('A 0 = 99');
+            expect(formatValue(r.executeProgram(program)!)).toBe('1 -2 3');
+        } finally { r.dispose(); }
+    });
+    it.each([64, 65])('keeps constructors with %s elements valid across the direct-path budget', count => {
+        const r = runtime();
+        try {
+            const value = r.execute(`array ${Array(count).fill('1').join(' ')}`) as RankArray;
+            expect(value.shape).toEqual([count]);
+            expect(value.items).toEqual(Array(count).fill(1n));
+        } finally { r.dispose(); }
+    });
+    it('resumes signed constructor items once in source order', () => {
+        const output: string[] = [];
+        const r = new Interpreter(line => output.push(String(line)), { compilation: compiled });
+        try {
+            const result = r.execute(`use io
+fun N observed
+ N print
+ return N
+end
+array (1 observed) -(2 observed) (3 observed)`);
+            expect(formatValue(result!)).toBe('1 -2 3');
+            expect(output).toEqual(['1', '2', '3']);
+        } finally { r.dispose(); }
+    });
+    it('stops at an operand error before evaluating later items', () => {
+        const output: string[] = [];
+        const r = new Interpreter(line => output.push(String(line)), { compilation: compiled });
+        try {
+            expect(() => r.execute(`use io
+fun N observed
+ N print
+ return 10 // N
+end
+array (1 observed) (0 observed) (2 observed)`)).toThrow();
+            expect(output).toEqual(['1', '0']);
+        } finally { r.dispose(); }
+    });
+    it('checks the element contract after evaluating all constructor items', () => {
+        const output: string[] = [];
+        const r = new Interpreter(line => output.push(String(line)), { compilation: compiled });
+        try {
+            expect(() => r.execute(`use io
+fun N observed
+ N print
+ return N
+end
+array (1 observed) "bad" (2 observed)`)).toThrow();
+            expect(output).toEqual(['1', '2']);
+        } finally { r.dispose(); }
+    });
     it('stacks equally shaped vectors and matrices in input order', () => {
         const r = runtime();
         r.execute('A = array 1 2 3\nB = array 4 5 6\nM = array A B\nT = array M (M + 10)');

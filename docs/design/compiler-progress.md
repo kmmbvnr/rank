@@ -4071,13 +4071,81 @@ Median warm times across processes (milliseconds, before → after):
 | partial-axis column traversal | 7.74 → 6.72 | 20.97 → 20.44 |
 | scalar helper control | 1.97 → 1.85 | 5.64 → 5.87 |
 
-Gather remains a measured regression: about 12% on Mac and 4% on Intel in this
-workload. Median process RSS increased from 372,160 → 387,280 KiB on Mac and
+The initial three-pair run suggested a gather regression of about 12% on Mac
+and 4% on Intel. The larger exact replication below confirms a slowdown in
+that workload; the constructor optimization then removes it. Median process RSS increased from 372,160 → 387,280 KiB on Mac and
 351,524 → 368,092 KiB on Intel (about 4–5%). Its median cold times were
 146.17 → 143.40 ms and 431.36 → 424.76 ms, respectively. Investigation removed
 intermediate continuation generators and rest-argument observation wrappers,
 and kept numeric range-loop routing unchanged. Those changes did not eliminate
-the gather regression. This remains performance work, not a compilation coverage
-success to count as an optimization. Scatter and partial-axis timing improved;
+the difference in that short run. It was recorded as a performance concern,
+not a compilation coverage success to count as an optimization. Scatter and partial-axis timing improved;
 mask and scalar controls do not establish a general speedup. All cold, warm and
 peak-memory samples are retained in the results file.
+
+### Gather replication and direct array construction
+
+The earlier three-pair gather result warranted replication. Running the unchanged
+`array-selections.mjs ROOT gather` in twelve balanced process groups confirmed
+slower execution in `e397b730` than in `1c22f6d8`: paired time ratios were 1.108
+on Mac (95% bootstrap interval 1.084–1.131) and 1.079 on Intel (1.048–1.111).
+The slowdown in this benchmark was not just an unsupported inference from three
+noisy samples.
+
+A separate extended test, `gather-regression.mjs`, adds pre-bound selector arrays
+and measures nine fresh-interpreter executions followed by thirteen executions
+of one parsed program in one interpreter. It excludes Interpreter creation from
+the fresh-run timer. Even its first-five sample window is therefore not an exact
+replication of the original source and timing scope. It did not show the same
+regression, and later warm samples were often faster. That result describes
+sensitivity to source shape and preparation; it does not invalidate the exact
+replication. The raw report distinguishes both protocols explicitly.
+
+Small array constructors with at most 64 synchronous items now have a direct
+native path. It builds fresh storage through the existing `array` helper and
+`ArrayBindingContract`, preserving cell shapes, homogeneous element contracts,
+signs and evaluation order. It does not cache mutable array results. Explicit
+shape/range constructors, larger constructors and operands requiring suspension
+keep their existing paths. Array-item evaluation returns an already completed
+result directly instead of always creating a generator. Suspended operands still
+use the execution driver. Diagnostics identify `native-array-construction`.
+
+On the unchanged original benchmark, median warm process times were:
+
+| Host | Before step 6 | Shipped step 6 | Optimized constructor |
+| --- | ---: | ---: | ---: |
+| Mac | 44.71 ms | 50.44 ms | 36.51 ms |
+| Intel | 171.36 ms | 185.30 ms | 134.60 ms |
+
+Paired optimized/shipped time ratios were 0.726 on Mac (0.710–0.738) and
+0.723 on Intel (0.699–0.746): about 27–28% less time. In the extended test,
+after discarding the first three samples, fresh-interpreter execution improved
+by about 21% on Mac and 18% on Intel; repeated parsed-program execution improved
+by about 21% on both. The pre-bound-selector control was broadly unchanged.
+These results apply to these workloads, not all array programs.
+
+Memory results depend on the protocol. In the unchanged original benchmark
+with ordinary GC, median peak RSS fell from 381,216 to 310,008 KiB on Mac
+and from 368,262 to 292,158 KiB on Intel, about 19% and 21%.
+
+In the separate extended memory experiment, five alternating process pairs with
+explicit GC before each execution and after the series showed a tradeoff.
+Median peak RSS increased from
+237,888 to 257,872 KiB on Mac and 225,204 to 244,272 KiB on Intel, roughly
+19–20 MiB. Retained JavaScript heap after GC was nearly unchanged: 36.65 to
+36.66 MB on Mac and 36.64 to 36.65 MB on Intel. RSS includes runtime, code and
+allocator pages; it is not a count of live Rank values. The original workload improves both time and peak RSS, but the forced-GC
+result rules out a general claim that this path always reduces process memory.
+
+`benchmarks/gather-regression-results.json` retains all final samples, the exact
+replication, extended-protocol comparisons and separate GC measurements.
+`python3 benchmarks/gather-regression-summary.py benchmarks/gather-regression-results.json`
+recomputes paired geometric mean ratios and bootstrap intervals (10,000 draws,
+seed 565). Resampling uses process pairs, not correlated warm samples within one
+process. The intervals describe the observed runs, not every host or workload.
+
+Validation passed: TypeScript build, 919 checks across 20 focused interpreter
+suites, and all 12 CLI diagnostics checks. Constructor tests cover fresh storage,
+signed and effectful operands, error order, post-evaluation type validation and
+both sides of the direct-path size limit. Capability snapshots record the new
+native path without changing results or errors. Exhaustive audits were not run.
