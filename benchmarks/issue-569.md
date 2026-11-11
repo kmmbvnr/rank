@@ -99,3 +99,22 @@ shows no consistent acceleration. Mac median peak RSS changes from 829 to
 
 Verification: TypeScript and 141 focused tests in six files, including nested,
 grouped and table materialization, deferred bindings and collection contracts.
+
+## Speed 6: observation switching rejected
+
+A tested prototype changed positional wrappers at diagnostic-scope entry/exit,
+including nested scopes and exceptions, instead of checking tracing on each
+call. Weak references and finalization kept disposed interpreters collectible.
+It passed 85 focused tests but did not produce a consistent speedup:
+
+| Case | Mac before / after, s | Intel before / after, s |
+| --- | ---: | ---: |
+| Euler 505, input 100000000000 | 3.376 / 3.366 | 10.233 / 10.441 |
+| Euler 507, default input | 5.710 / 5.695 | 14.554 / 14.680 |
+
+The baseline here includes the positional bridge. The prototype also included
+the array-completion changes, which do not explain a gain in these tests.
+With negligible Mac differences and slightly slower Intel medians, the extra
+lifecycle machinery is not justified. The prototype was removed; production
+retains the existing dynamic tracing checks. The raw archive includes its patch
+and all samples so that the experiment can be reproduced.

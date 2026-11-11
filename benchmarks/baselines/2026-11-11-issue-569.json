@@ -1522,6 +1522,394 @@
         "node": "v24.15.0",
         "arch": "x64"
       }
+    ],
+    "observer-mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3422.696,
+        "cpuMs": 3532.005,
+        "peakRssMiB": 187.09375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3521.394625,
+        "cpuMs": 3631.71,
+        "peakRssMiB": 186.125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5678.3661250000005,
+        "cpuMs": 5838.542,
+        "peakRssMiB": 198.390625,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5690.650917000001,
+        "cpuMs": 5848.325,
+        "peakRssMiB": 197.609375,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3330.962458,
+        "cpuMs": 3447.59,
+        "peakRssMiB": 186.53125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3375.871792,
+        "cpuMs": 3492.344,
+        "peakRssMiB": 188.953125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5695.058792000001,
+        "cpuMs": 5854.269,
+        "peakRssMiB": 197.890625,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5710.4935829999995,
+        "cpuMs": 5866.436,
+        "peakRssMiB": 196.96875,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3346.919875,
+        "cpuMs": 3459.428,
+        "peakRssMiB": 186.671875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3366.390709,
+        "cpuMs": 3478.688,
+        "peakRssMiB": 186.828125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-bridge-frozen/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5736.311291,
+        "cpuMs": 5897.242,
+        "peakRssMiB": 197.390625,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5727.0902080000005,
+        "cpuMs": 5892.852,
+        "peakRssMiB": 198.234375,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "observer-intel": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10192.883146,
+        "cpuMs": 10415.992,
+        "peakRssMiB": 172.390625,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 9816.560033,
+        "cpuMs": 10048.529,
+        "peakRssMiB": 171.67578125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14312.254729,
+        "cpuMs": 14651.47,
+        "peakRssMiB": 185.6953125,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14474.505252,
+        "cpuMs": 14803.974,
+        "peakRssMiB": 185.89453125,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10441.418904,
+        "cpuMs": 10666.741,
+        "peakRssMiB": 171.88671875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10409.227213,
+        "cpuMs": 10659.085,
+        "peakRssMiB": 174.375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14679.869143,
+        "cpuMs": 14999.296,
+        "peakRssMiB": 185.73046875,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14553.54982,
+        "cpuMs": 14871.662,
+        "peakRssMiB": 184.7890625,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10232.798589,
+        "cpuMs": 10466.24,
+        "peakRssMiB": 171.35546875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10719.771566,
+        "cpuMs": 10946.842,
+        "peakRssMiB": 172.328125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/bridge",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14583.024879,
+        "cpuMs": 14912.777,
+        "peakRssMiB": 184.71484375,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/observer",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 15027.500309,
+        "cpuMs": 15346.878,
+        "peakRssMiB": 191,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
     ]
   },
   "bridgeSourceHashes": {
@@ -1529,5 +1917,6 @@
     "packages/interpreter/src/jit/recursive-scalar-bridge.ts": "17fb98f10c747a2cc1cd96a27f97c18bd449425c51e61e27ce51ad238e9eb1fd"
   },
   "collectorSourceHash": "ed27d258fb871fb364ac5cc3dad0dff15ebdea6e8c21a831997102063155b6f4",
-  "scalarCellsSourceHash": "6e0dc1843992c8a23cbf4ecf4dd33fbcce0309b505d9c35883388fe2f428c77f"
+  "scalarCellsSourceHash": "6e0dc1843992c8a23cbf4ecf4dd33fbcce0309b505d9c35883388fe2f428c77f",
+  "rejectedObserverPatch": "diff --git a/packages/interpreter/src/compiler-observation.ts b/packages/interpreter/src/compiler-observation.ts\nindex 5762eed3..447cd204 100644\n--- a/packages/interpreter/src/compiler-observation.ts\n+++ b/packages/interpreter/src/compiler-observation.ts\n@@ -1,6 +1,6 @@\n import { ReturnSignal, TailCallSignal, BreakSignal, ContinueSignal } from './control-signals.js';\n import type { Expression, Statement } from '@arrrank/language';\n-import { currentDiagnostics, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n+import { currentDiagnostics, registerCompilerTraceSwitch, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n import { describeCompilerRejection } from './compiler-rejection.js';\n \n type Site = Expression | Statement;\n@@ -132,13 +132,14 @@ export function observedPositionalRun<A extends unknown[], T>(\n     let factory = positionalObservers.get(arity);\n     if (!factory) {\n         const args = Array.from({ length: arity }, (_, index) => `arg${index}`).join(',');\n-        factory = new Function('diagnostics', 'observe', 'site', 'backend', 'run', 'types',\n-            `return function(${args}) { return diagnostics()?.traceCompiler\n-                ? observe(site, backend, 'execute', () => run(${args}), types)\n-                : run(${args}); };`);\n+        factory = new Function('register', 'observe', 'site', 'backend', 'run', 'types',\n+            `const traced = function(${args}) { return observe(site, backend, 'execute', () => run(${args}), types); };\n+             const target = { current: run, setTracing(enabled) { this.current = enabled ? traced : run; } };\n+             register(target);\n+             return function(${args}) { return target.current(${args}); };`);\n         positionalObservers.set(arity, factory);\n     }\n-    return factory(currentDiagnostics, observeCompiler, site, backend, run, provenTypes);\n+    return factory(registerCompilerTraceSwitch, observeCompiler, site, backend, run, provenTypes);\n }\n \n /** Name a deliberate frontend boundary without evaluating its rejected operands. */\ndiff --git a/packages/interpreter/src/diagnostics.ts b/packages/interpreter/src/diagnostics.ts\nindex e56c0161..693832bd 100644\n--- a/packages/interpreter/src/diagnostics.ts\n+++ b/packages/interpreter/src/diagnostics.ts\n@@ -328,12 +328,35 @@ export class RuntimeDiagnostics {\n     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */\n     run<T>(operation: () => T): T {\n         const previous = active;\n-        active = this;\n+        activateDiagnostics(this);\n         try { return operation(); }\n-        finally { active = previous; }\n+        finally { activateDiagnostics(previous); }\n     }\n }\n let active: RuntimeDiagnostics | undefined;\n+interface CompilerTraceSwitch { setTracing(enabled: boolean): void; }\n+const traceSwitches = new Set<WeakRef<CompilerTraceSwitch>>();\n+const releasedTraceSwitches = new FinalizationRegistry<WeakRef<CompilerTraceSwitch>>(reference => traceSwitches.delete(reference));\n+\n+/** Prepared code remains collectible when its interpreter is disposed. */\n+export function registerCompilerTraceSwitch(target: CompilerTraceSwitch): void {\n+    const reference = new WeakRef(target);\n+    traceSwitches.add(reference);\n+    releasedTraceSwitches.register(target, reference);\n+    target.setTracing(active?.traceCompiler === true);\n+}\n+\n+function activateDiagnostics(next: RuntimeDiagnostics | undefined): void {\n+    const changed = (active?.traceCompiler === true) !== (next?.traceCompiler === true);\n+    active = next;\n+    if (!changed) return;\n+    for (const reference of traceSwitches) {\n+        const target = reference.deref();\n+        if (target) target.setTracing(next?.traceCompiler === true);\n+        else traceSwitches.delete(reference);\n+    }\n+}\n+\n export function currentDiagnostics(): RuntimeDiagnostics | undefined { return active; }\n export function recordFallback(reason: string, category?: FallbackCategory): undefined {\n     if (active) {\ndiff --git a/packages/interpreter/test/compiler-observation.test.ts b/packages/interpreter/test/compiler-observation.test.ts\nindex b25d5f82..833694d9 100644\n--- a/packages/interpreter/test/compiler-observation.test.ts\n+++ b/packages/interpreter/test/compiler-observation.test.ts\n@@ -5,7 +5,7 @@ import { currentDiagnostics, recordFallback } from '../src/diagnostics.js';\n import { prepareBoundedTensor } from '../src/jit/tensor-bounds.js';\n import { typedArray } from '../src/array-storage.js';\n import { runExecution, type Execution } from '../src/execution.js';\n-import { withCompilerSource, observeCompiler, observedRun } from '../src/compiler-observation.js';\n+import { withCompilerSource, observeCompiler, observedRun, observedPositionalRun } from '../src/compiler-observation.js';\n import { prepareNumberTensor } from '../src/jit/tensor-number.js';\n import { prepareLayoutNumberTensor } from '../src/jit/tensor-number-layout.js';\n import type { TensorNode } from '../src/jit/tensor-kernel.js';\n@@ -291,3 +291,23 @@ end`);\n         ]));\n     } finally { runtime.dispose(); }\n });\n+\n+\n+it('switches positional observation across nested scopes and exceptions', () => {\n+    const site = parse('1').statements[0];\n+    const call = observedPositionalRun(site, 'scalar-function-direct', (value: bigint) => value + 1n, 1);\n+    const outer = new RuntimeDiagnostics(Infinity, true), inner = new RuntimeDiagnostics();\n+    const count = () => outer.compilerObservations.reduce((sum, item) => sum + (item.count ?? 1), 0);\n+    outer.run(() => {\n+        expect(call(1n)).toBe(2n);\n+        const before = count();\n+        expect(() => inner.run(() => { expect(call(2n)).toBe(3n); throw Error('leave scope'); })).toThrow('leave scope');\n+        expect(count()).toBe(before);\n+        expect(call(3n)).toBe(4n);\n+        expect(count()).toBeGreaterThan(before);\n+    });\n+    const after = count();\n+    expect(call(4n)).toBe(5n);\n+    expect(count()).toBe(after);\n+    expect(inner.compilerObservations).toEqual([]);\n+});\n"
 }
