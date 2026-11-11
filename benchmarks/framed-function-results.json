@@ -1,0 +1,368 @@
+{
+  "baseline": "c0a38108185f7e6c7809bdb33d706b771cc82a2d",
+  "method": "Three alternating process pairs. Each process executes one cold run and five warm runs, each with a fresh Interpreter. Times include parsing and preparation. rssKiB is process peak RSS including imports.",
+  "mac": [
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 133.16625,
+      "median": 44.65666700000003,
+      "rssKiB": 354400,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 133.95933399999998,
+      "median": 37.03883399999995,
+      "rssKiB": 372704,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 172.805583,
+      "median": 69.36129100000005,
+      "rssKiB": 342992,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 173.586875,
+      "median": 71.52208300000001,
+      "rssKiB": 343408,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 103.40687500000001,
+      "median": 12.876666,
+      "rssKiB": 241536,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 104.57454199999998,
+      "median": 12.829667000000029,
+      "rssKiB": 243760,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 134.169042,
+      "median": 38.72579099999996,
+      "rssKiB": 373136,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 138.69020899999998,
+      "median": 43.779083000000014,
+      "rssKiB": 362672,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 177.62974999999997,
+      "median": 71.92650000000003,
+      "rssKiB": 342016,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 172.41120800000002,
+      "median": 69.91195799999997,
+      "rssKiB": 343936,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 105.19162499999999,
+      "median": 13.162374999999997,
+      "rssKiB": 242224,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 104.32045799999997,
+      "median": 12.908583999999962,
+      "rssKiB": 242000,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 134.813375,
+      "median": 45.04587499999997,
+      "rssKiB": 359872,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 136.516375,
+      "median": 45.795208,
+      "rssKiB": 356992,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 174.29137500000002,
+      "median": 68.43683399999998,
+      "rssKiB": 344512,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 174.903167,
+      "median": 72.71245900000002,
+      "rssKiB": 339088,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 103.839042,
+      "median": 13.042124999999999,
+      "rssKiB": 241888,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 105.10970900000001,
+      "median": 12.890958000000012,
+      "rssKiB": 242640,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    }
+  ],
+  "intel": [
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 436.05167900000004,
+      "median": 161.86132599999996,
+      "rssKiB": 338216,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 442.720616,
+      "median": 153.74159799999984,
+      "rssKiB": 353636,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 593.277838,
+      "median": 269.83790899999985,
+      "rssKiB": 319328,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 609.787568,
+      "median": 275.6405339999999,
+      "rssKiB": 325656,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 307.140122,
+      "median": 47.564177000000086,
+      "rssKiB": 221460,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 315.95235999999994,
+      "median": 47.733063000000016,
+      "rssKiB": 226708,
+      "node": "v24.15.0",
+      "pair": 0,
+      "version": "after"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 440.33364399999994,
+      "median": 176.21944199999984,
+      "rssKiB": 339540,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 473.23655700000006,
+      "median": 183.6376640000001,
+      "rssKiB": 351828,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 652.203295,
+      "median": 289.4678959999999,
+      "rssKiB": 321276,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 584.5119480000001,
+      "median": 298.70926099999997,
+      "rssKiB": 320852,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 301.28851599999996,
+      "median": 47.428128000000015,
+      "rssKiB": 222120,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 300.68467,
+      "median": 44.74034299999994,
+      "rssKiB": 221808,
+      "node": "v24.15.0",
+      "pair": 1,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 441.831387,
+      "median": 182.21809800000005,
+      "rssKiB": 353620,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "nested",
+      "result": "2009000",
+      "cold": 437.52011699999997,
+      "median": 163.802598,
+      "rssKiB": 352804,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 578.32969,
+      "median": 276.208447,
+      "rssKiB": 324852,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "mutual",
+      "result": "true",
+      "cold": 591.009731,
+      "median": 297.43814299999985,
+      "rssKiB": 323132,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 298.29788800000006,
+      "median": 46.25983699999995,
+      "rssKiB": 220024,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "before"
+    },
+    {
+      "name": "resumed",
+      "result": "500",
+      "cold": 301.44311100000004,
+      "median": 47.5173309999999,
+      "rssKiB": 223376,
+      "node": "v24.15.0",
+      "pair": 2,
+      "version": "after"
+    }
+  ]
+}

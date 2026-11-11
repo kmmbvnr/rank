@@ -152,3 +152,7 @@ add('composition/mutual-recursion-boundary', 'fun X even\n if X equal 0\n  retur
 add('composition/nested-body-boundary', 'fun X helper\n fun Y shifted\n  return X + Y\n end\n return 3 shifted\nend\n4 helper', ['integer'], 'integer');
 for (const size of [0, 3]) add(`composition/ranked-array-result-${size}`,
     `use sequences\nfun X pair rank 0\n return array X (X + 1)\nend\nValues = array shape ${size} fill 3\nResult = Values pair\nResult shape`, ['integer[]'], 'integer[]', [1, 2], 'ranked cells');
+
+add('composition/mutual-nontail-framed', 'fun N first\n if N equal 0\n  return 0\n end\n return ((N - 1) second) + 1\nend\nfun N second\n if N equal 0\n  return 0\n end\n return ((N - 1) first) + 1\nend\n10 first', ['integer'], 'integer');
+add('composition/nested-branch-framed', 'fun Offset outer\n fun X shifted\n  return X + Offset\n end\n if Offset greater 0\n  Result = 3 shifted\n  return Result + 1\n else\n  return 0\n end\nend\n4 outer', ['integer'], 'integer');
+add('composition/nested-array-framed', 'use sequences\nfun Offset outer\n fun X pair\n  return array X (X + Offset)\n end\n Values = 3 pair\n Before = Values copy\n Values 0 = 9\n return array (Before sum) (Values sum)\nend\n4 outer', ['integer'], 'integer[]', [0, 1], 'owned array', ['write']);

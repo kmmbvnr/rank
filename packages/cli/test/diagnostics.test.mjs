@@ -151,3 +151,26 @@ test('diagnostics reports non-loop sites and makes truncation recoverable', t =>
     assert.ok(complete.stderr.includes(`${file}:81:`), complete.stderr);
     assert.match(complete.stderr, /tensor:unsupported-type:array/);
 });
+
+test('diagnostics identifies generated function control flow around nested helpers', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-framed-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, `use io
+fun Offset outer
+ fun X shifted
+  return X + Offset
+ end
+ Result = 3 shifted
+ return Result + 1
+end
+Result = 4 outer
+Result print`);
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '8\n');
+    assert.match(result.stderr, /compiledFramedFunctions: 1/);
+    assert.match(result.stderr, /framed-function execute: selected/);
+    const summary = result.stderr.split('Execution counters')[0];
+    assert.match(summary, /framed-function/);
+});

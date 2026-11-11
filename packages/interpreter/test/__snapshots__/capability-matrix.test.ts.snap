@@ -4008,13 +4008,91 @@ exports[`executable compiler capability matrix > composition/forwarded-callable 
 }
 `;
 
-exports[`executable compiler capability matrix > composition/mutual-recursion-boundary 1`] = `
+exports[`executable compiler capability matrix > composition/mutual-nontail-framed 1`] = `
 {
   "boundaries": [
     {
-      "category": "cost-limit",
-      "reason": "block-routing:statement-budget",
+      "category": "missing-lowering",
+      "reason": "bounded-tensor:unsupported-ir:select",
     },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:first",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:second",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-recursive-call-graph",
+    },
+    {
+      "category": "runtime-guard",
+      "reason": "tensor:binding:first",
+    },
+    {
+      "category": "runtime-guard",
+      "reason": "tensor:binding:second",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "11:10 direct-expression: direct-expression",
+    "11:10 interpreted-expression: direct-expression, framed-function",
+    "11:10 interpreted-expression: direct-expression, framed-function, native-operator",
+    "11:10 user-call: direct-expression, framed-function",
+    "11:10 user-call: direct-expression, framed-function, native-operator",
+    "11:27 direct-expression: direct-expression",
+    "11:9 direct-expression: direct-expression",
+    "13:1 direct-expression: direct-expression",
+    "13:1 interpreted-expression: direct-expression, framed-function, native-operator",
+    "13:1 statement-dispatch: direct-expression, framed-function, native-operator",
+    "13:1 user-call: direct-expression, framed-function, native-operator",
+    "1:1 block-dispatch: direct-expression, framed-function, native-operator, statement-dispatch",
+    "1:1 framed-function: direct-expression, framed-function",
+    "1:1 framed-function: direct-expression, framed-function, native-operator",
+    "1:1 native-operator: native-operator",
+    "1:1 statement-dispatch: statement-dispatch",
+    "3:10 direct-expression: direct-expression",
+    "3:3 statement-dispatch: direct-expression",
+    "5:10 direct-expression: direct-expression",
+    "5:10 interpreted-expression: direct-expression, framed-function, native-operator",
+    "5:10 user-call: direct-expression, framed-function, native-operator",
+    "5:28 direct-expression: direct-expression",
+    "5:9 direct-expression: direct-expression",
+    "7:1 framed-function: direct-expression, framed-function, native-operator",
+    "7:1 native-operator: native-operator",
+    "7:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "10",
+}
+`;
+
+exports[`executable compiler capability matrix > composition/mutual-recursion-boundary 1`] = `
+{
+  "boundaries": [
     {
       "category": "missing-lowering",
       "reason": "numeric-function:unsupported-statement",
@@ -4040,10 +4118,6 @@ exports[`executable compiler capability matrix > composition/mutual-recursion-bo
       "reason": "scalar-function:unsupported-recursive-call-graph",
     },
     {
-      "category": "cost-limit",
-      "reason": "statement-dispatch:statement-budget",
-    },
-    {
       "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
     },
@@ -4057,20 +4131,17 @@ exports[`executable compiler capability matrix > composition/mutual-recursion-bo
   "regions": [
     "11:9 direct-expression: direct-expression",
     "13:1 direct-expression: direct-expression",
-    "13:1 interpreted-expression: direct-expression, statement-dispatch",
-    "13:1 statement-dispatch: direct-expression, statement-dispatch",
-    "13:1 user-call: direct-expression, statement-dispatch",
-    "1:1 block-dispatch: direct-expression",
-    "1:1 block-dispatch: direct-expression, statement-dispatch",
+    "13:1 interpreted-expression: direct-expression, framed-function",
+    "13:1 statement-dispatch: direct-expression, framed-function",
+    "13:1 user-call: direct-expression, framed-function",
+    "1:1 block-dispatch: direct-expression, framed-function, statement-dispatch",
+    "1:1 framed-function: direct-expression, framed-function",
     "1:1 statement-dispatch: statement-dispatch",
-    "2:2 statement-dispatch: direct-expression",
-    "2:2 statement-dispatch: statement-dispatch",
     "3:10 direct-expression: direct-expression",
     "3:3 statement-dispatch: direct-expression",
     "5:9 direct-expression: direct-expression",
-    "7:1 block-dispatch: direct-expression, statement-dispatch",
+    "7:1 framed-function: direct-expression, framed-function",
     "7:1 statement-dispatch: statement-dispatch",
-    "8:2 statement-dispatch: statement-dispatch",
   ],
   "result": "true",
 }
@@ -4176,6 +4247,90 @@ exports[`executable compiler capability matrix > composition/named-rank-1 1`] = 
 }
 `;
 
+exports[`executable compiler capability matrix > composition/nested-array-framed 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "computed-array-update:unsupported-assignment:=",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "fused-sum:inline-arithmetic-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:FunctionStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-node:FunctionStatement",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:no-fusible-operation",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "11:1 direct-expression: direct-expression",
+    "11:1 interpreted-expression: direct-expression, framed-function, native-call, scalar-function-direct, statement-dispatch",
+    "11:1 statement-dispatch: direct-expression, framed-function, native-call, scalar-function-direct, statement-dispatch",
+    "11:1 user-call: direct-expression, framed-function, native-call, scalar-function-direct, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, native-call, scalar-function-direct, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function, native-call, scalar-function-direct, statement-dispatch",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:2 scalar-function-direct: scalar-function-direct",
+    "3:2 statement-dispatch: statement-dispatch",
+    "6:11 direct-expression: direct-expression",
+    "6:11 interpreted-expression: direct-expression, scalar-function-direct",
+    "6:11 user-call: scalar-function-direct",
+    "6:2 statement-dispatch: direct-expression, scalar-function-direct",
+    "7:11 interpreted-expression: native-call",
+    "7:11 native-call: native-call",
+    "7:2 statement-dispatch: native-call",
+    "8:2 statement-dispatch: statement-dispatch",
+    "9:15 interpreted-expression: direct-expression, native-call",
+    "9:16 direct-expression: direct-expression",
+    "9:16 interpreted-expression: direct-expression, native-call",
+    "9:16 native-call: native-call",
+    "9:23 direct-expression: direct-expression",
+    "9:28 interpreted-expression: direct-expression, native-call",
+    "9:29 direct-expression: direct-expression",
+    "9:29 interpreted-expression: direct-expression, native-call",
+    "9:29 native-call: native-call",
+    "9:36 direct-expression: direct-expression",
+  ],
+  "result": "10 16",
+}
+`;
+
 exports[`executable compiler capability matrix > composition/nested-body-boundary 1`] = `
 {
   "boundaries": [
@@ -4207,18 +4362,69 @@ exports[`executable compiler capability matrix > composition/nested-body-boundar
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, scalar-function-number, statement-dispatch",
-    "1:1 block-dispatch: direct-expression, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "1:1 framed-function: direct-expression, framed-function, statement-dispatch",
     "1:1 statement-dispatch: statement-dispatch",
     "2:2 scalar-function-number: scalar-function-number",
     "2:2 statement-dispatch: statement-dispatch",
     "5:9 direct-expression: direct-expression",
     "7:1 direct-expression: direct-expression",
-    "7:1 interpreted-expression: direct-expression, scalar-function-number, statement-dispatch",
-    "7:1 statement-dispatch: direct-expression, scalar-function-number, statement-dispatch",
-    "7:1 user-call: direct-expression, scalar-function-number, statement-dispatch",
+    "7:1 interpreted-expression: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "7:1 statement-dispatch: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "7:1 user-call: direct-expression, framed-function, scalar-function-number, statement-dispatch",
   ],
   "result": "7",
+}
+`;
+
+exports[`executable compiler capability matrix > composition/nested-branch-framed 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "numeric-function:terminal-return-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-node:FunctionStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "12:1 direct-expression: direct-expression",
+    "12:1 interpreted-expression: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "12:1 statement-dispatch: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "12:1 user-call: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "1:1 framed-function: direct-expression, framed-function, scalar-function-number, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:2 scalar-function-number: scalar-function-number",
+    "2:2 statement-dispatch: statement-dispatch",
+    "6:12 direct-expression: direct-expression",
+    "6:12 interpreted-expression: direct-expression, scalar-function-number",
+    "6:12 user-call: scalar-function-number",
+    "6:3 statement-dispatch: direct-expression, scalar-function-number",
+    "7:10 direct-expression: direct-expression",
+    "7:3 statement-dispatch: direct-expression",
+  ],
+  "result": "8",
 }
 `;
 
@@ -4277,19 +4483,19 @@ exports[`executable compiler capability matrix > composition/nested-callable-cap
   "error": undefined,
   "output": [],
   "regions": [
-    "10:1 statement-dispatch: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
+    "10:1 statement-dispatch: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
     "10:9 direct-expression: direct-expression",
-    "10:9 interpreted-expression: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
-    "10:9 user-call: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
-    "11:1 statement-dispatch: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
+    "10:9 interpreted-expression: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
+    "10:9 user-call: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
+    "11:1 statement-dispatch: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
     "11:10 direct-expression: direct-expression",
-    "11:10 interpreted-expression: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
-    "11:10 user-call: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
+    "11:10 interpreted-expression: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
+    "11:10 user-call: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
     "12:1 statement-dispatch: statement-dispatch",
-    "1:1 block-dispatch: direct-expression, scalar-function, scalar-function-number, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, scalar-function, scalar-function-number, statement-dispatch",
     "1:1 scalar-function: scalar-function, scalar-function-number",
     "1:1 statement-dispatch: statement-dispatch",
-    "4:1 block-dispatch: direct-expression, statement-dispatch",
+    "4:1 framed-function: direct-expression, framed-function, statement-dispatch",
     "4:1 statement-dispatch: statement-dispatch",
     "5:2 scalar-function-number: scalar-function-number",
     "5:2 statement-dispatch: statement-dispatch",

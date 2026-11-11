@@ -151,17 +151,7 @@ export class BlockExecution implements BlockSteps {
         let prepared = cache.get(statement);
         if (!prepared) {
             prepared = this.host.prepare(statement);
-            // Non-capturing nested blocks can share the outer loop's storage.
-            // A helper needs its own loop frame so a later loop entry cannot
-            // overwrite an escaped closure or retain a previous declaration.
-            if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
-                && (!insideLoop(statement) || isForStatement(statement)
-                    && statement.statements.some(node => isFunctionStatement(node) || isFunctionBindingStatement(node)))) {
-                const names = blockNames(statement, this.host.syntheticNames());
-                const known = alwaysFresh(statement, names);
-                prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
-                    ...names.filter(name => !known.has(name))], known.size);
-            }
+            prepared = this.scopeStatement(statement, prepared);
             if (this.host.options().tensorFusion !== false
                 && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
                 const tensor = this.host.fastPaths.tensorStatement(statement);
@@ -171,6 +161,19 @@ export class BlockExecution implements BlockSteps {
                 ? { ...prepared, run: observedRun(statement, 'statement-dispatch', prepared.run, undefined, false, 'success') }
                 : { ...prepared, stream: observedRun(statement, 'statement-dispatch', prepared.stream, undefined, true) };
             cache.set(statement, prepared);
+        }
+        return prepared;
+    }
+
+    /** Preserve ordinary branch/loop-local bindings around generated control flow. */
+    scopeStatement(statement: Statement, prepared: PreparedStatement): PreparedStatement {
+        if ((isForStatement(statement) || isIfStatement(statement) || isTryStatement(statement))
+            && (!insideLoop(statement) || isForStatement(statement)
+                && statement.statements.some(node => isFunctionStatement(node) || isFunctionBindingStatement(node)))) {
+            const names = blockNames(statement, this.host.syntheticNames());
+            const known = alwaysFresh(statement, names);
+            prepared = this.scopeBlock(prepared, [...names.filter(name => known.has(name)),
+                ...names.filter(name => !known.has(name))], known.size);
         }
         return prepared;
     }

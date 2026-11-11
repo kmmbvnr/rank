@@ -16,8 +16,9 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
-    isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
+    isIfStatement, isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
+import { compileFramedFunction } from './jit/framed-function.js';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
 import { compileTensorRegion } from './jit/tensor-region.js';
 import { compileNumericFunction } from './jit/numeric-function.js';
@@ -85,6 +86,7 @@ export interface ApplicationReference {
 export interface BlockSteps {
     executeIn(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;
     preparedStatement(statements: Statement[], index: number): PreparedStatement;
+    scopeStatement(statement: Statement, prepared: PreparedStatement): PreparedStatement;
     continueCompiledBlock(
         statements: Statement[], index: number, task: Execution<RankValue | undefined>,
         context: ExecutionContext, block: CompiledBlock<ExecutionContext>,
@@ -154,7 +156,7 @@ export class FastPaths {
         return declineCompiler(this.compiler.blocks.blocks ? 'statement-budget' : 'disabled', statements[0]);
     }
 
-    /** A function body ending in `return` compiled per argument signature, its return a terminal step. */
+    /** Compile function control flow per argument signature, retaining runtime call boundaries. */
     functionBody(
         statement: FunctionStatement, arguments_: RankValue[], steps: BlockSteps,
     ): CompiledBlock<ExecutionContext> | undefined {
@@ -171,28 +173,56 @@ export class FastPaths {
         if (body === undefined) {
             const commands = statement.statements;
             const last = commands.at(-1);
-            if (!last || !isReturnStatement(last) || !last.value) declineCompiler('terminal-return-required', statement);
-            body = last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
+            const prepare = (index: number): PreparedStatement => {
+                if (index !== commands.length - 1 || !last || !isReturnStatement(last) || !last.value) return steps.preparedStatement(commands, index);
+                const tensor = steps.preparedStatement(commands, index).tensor;
+                const direct = this.context.compileDirect(last.value);
+                if (direct) return { run: () => {
+                    this.context.checkMutation(last);
+                    return runExecution(this.context.evaluateReturn(last.value!));
+                }, tensor };
+                const value = () => {
+                    this.context.checkMutation(last);
+                    return this.context.evaluateReturn(last.value!, true);
+                };
+                return { stream: value, tensor };
+            };
+            const ordinaryBody = () => last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
                 source: statement,
-                prepare: index => {
-                    if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
-                    const tensor = steps.preparedStatement(commands, index).tensor;
-                    const direct = this.context.compileDirect(last.value!);
-                    if (direct) return { run: () => {
-                        this.context.checkMutation(last);
-                        return runExecution(this.context.evaluateReturn(last.value!));
-                    }, tensor };
-                    const value = () => {
-                        this.context.checkMutation(last);
-                        return this.context.evaluateReturn(last.value!, true);
-                    };
-                    return { stream: value, tensor };
-                },
+                prepare,
                 locate: (error, index) => this.context.locate(error, commands[index]),
                 pause: (index, task, context, compiled) => steps.continueCompiledBlock(commands, index, task, context, compiled),
                 compiled: this.compiler.hooks.onFunctionBodyCompiled,
                 executed: this.compiler.hooks.onFunctionBodyExecuted,
             }) ?? null : null;
+            if (commands.some(command => isFunctionStatement(command) || isIfStatement(command))) {
+                const framed = compileFramedFunction(statement, {
+                    prepare: (statements, index) => statements === commands ? prepare(index) : steps.preparedStatement(statements, index),
+                    scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
+                    direct: expression => this.context.compileDirect(expression),
+                    evaluate: expression => this.context.evaluate(expression),
+                    locate: (error, statement) => this.context.locate(error, statement),
+                    compiled: this.compiler.hooks.onFunctionBodyCompiled,
+                    executed: () => {
+                        this.compiler.hooks.onFunctionBodyExecuted?.();
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.compiledFramedFunctions++;
+                    },
+                });
+                if (framed) {
+                    let ordinary: CompiledBlock<ExecutionContext> | null | undefined;
+                    body = (context, index = 0, previous) => {
+                        if (index) {
+                            if (ordinary === undefined) ordinary = ordinaryBody();
+                            return ordinary ? ordinary(context, index, previous)
+                                : steps.executeIn(commands.slice(index), context);
+                        }
+                        return framed(context);
+                    };
+                }
+            }
+            body ??= ordinaryBody();
+            if (!body && (!last || !isReturnStatement(last) || !last.value)) declineCompiler('terminal-return-required', statement);
             // Join fresh writes or scalar vector reductions in one private
             // prefix. Helpers need no wrapper loop to keep scratch storage
             // private; the numeric-function backend below keeps first choice.

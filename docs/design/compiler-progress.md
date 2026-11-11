@@ -3821,21 +3821,20 @@ logical stack. Callable specialization stops at 16 cached argument-domain entrie
 per capture variant and reports `callable-specialization-limit`; later calls keep
 ordinary execution.
 
-This is a partial implementation of issue #565's fourth workstream. Creating a
-nested closure still needs an interpreter frame; this change compiles eligible
-nested callees and higher-order consumers, not the whole enclosing declaration.
-Mutual recursion reports `unsupported-recursive-call-graph`, distinct from the
-`call-graph-depth-limit` cost boundary. Native callbacks without a declared-body
-proof, effectful callbacks, function-valued results, configurable/deferred
-higher-order calls and lifted callable application still retain their ordinary
-paths. They are not covered by a claim of complete function composition.
+The scalar kernel still requires a closed return-type proof. Its
+`unsupported-recursive-call-graph` rejection is distinct from the
+`call-graph-depth-limit` cost boundary. The framed backend below supplies a
+compiled control-flow path when nested declarations or mutual recursion prevent
+that scalar proof. Native callbacks without a declared-body proof, effectful
+callbacks, function-valued results, configurable/deferred higher-order calls and
+lifted callable application retain their ordinary call boundaries. This is not a
+claim that all calls become one scalar kernel.
 
 `function-composition.test.ts` checks compiled entry selection, exact integers,
 real inputs, callable identity/forwarding, captures, protected writes, recursion,
 array results, errors and the specialization bound. The capability matrix adds
-12 composition cases, including the remaining nested-body/mutual-recursion
-boundaries and empty/nonempty ranked array results. Existing snapshots are
-unchanged. `benchmarks/function-composition.mjs` compares fresh interpreters in
+12 initial composition cases, including nested-body/mutual-recursion
+boundaries and empty/nonempty ranked array results. `benchmarks/function-composition.mjs` compares fresh interpreters in
 separate baseline/current processes; its cold sample includes parsing and first
 compilation, and its warm samples still create fresh interpreters. Peak RSS is
 process-wide, including module loading.
@@ -3873,3 +3872,62 @@ coefficient DP; one explicit loop computes the quadrature weights. The
 [benchmark](../../benchmarks/euler584.md) separates algorithm and runtime
 contributions, reports the whole-program memory tradeoff, and records rejected
 array/keyed variants and Mac/Intel correctness and performance checks.
+
+### Function composition: generated control flow with runtime frames
+
+The `framed-function` backend generates straight-line continuations and
+`if`/`elif`/`else` branches for function bodies containing nested declarations or
+branches. Normal invocation still creates lexical frames, hoists helpers and
+checks argument and return contracts. Nested helpers therefore retain each
+invocation's captures, while the enclosing function has generated control flow.
+
+Mutually recursive calls use the existing execution driver and tail-call
+trampoline. Non-tail calls suspend and resume without replaying effects. The
+compiler does not expand the recursive graph or assume a recursive return type.
+Scalar and numeric specializations retain priority. Expressions and statement
+leaves use existing prepared paths; loops and protected control flow remain
+callouts. A successful `framed-function` entry means compiled control flow, not
+that every delegated operation was lowered. Diagnostics report those delegated
+paths and count function entries in `compiledFramedFunctions`.
+
+Generation is bounded to 256 statements in the outer body and its generated
+branches. A body needs a terminal return or branches that all return. Inspection,
+blocked dynamic JavaScript and larger bodies keep ordinary execution with a
+reason. Closure values and frames are not part of a global compilation cache.
+The ordinary block dispatcher is prepared only if needed, avoiding duplicate
+code generation for the same function.
+
+`framed-function.test.ts` compares interpreted and compiled values, errors and
+effects, and asserts entry into the generated backend. It covers nested and
+shadowed captures, ranked/callable combinations, arrays and copy-on-write,
+tail/non-tail mutual recursion, return contracts, call-depth limits, `finally`,
+cancellation, capability switches and the code-size limit. The capability matrix
+adds three combinations and updates three existing execution-path snapshots;
+CLI tests check the visible backend and counter.
+
+`benchmarks/framed-function.mjs` measures nested helpers (2,000 calls), mutual
+tail recursion (10,000 transfers), and non-tail recursion (500 calls). Each of
+three alternating baseline/current process pairs contains one cold run and five
+warm runs with fresh interpreters. Parsing and preparation are included; RSS is
+process-wide, including imports. Raw results are in
+`benchmarks/framed-function-results.json`.
+
+Median warm times across the three processes (milliseconds, before → after):
+
+| Case | Mac | Intel |
+| --- | ---: | ---: |
+| nested helpers | 44.66 → 38.73 | 182.22 → 163.80 |
+| mutual tail recursion | 69.36 → 71.93 | 276.21 → 289.47 |
+| non-tail recursion | 12.91 → 12.89 | 46.26 → 47.52 |
+
+Cold times were 134.81 → 134.17 / 441.83 → 440.33 ms for nested helpers,
+172.81 → 174.90 / 584.51 → 609.79 ms for mutual recursion, and
+103.84 → 105.11 / 300.68 → 301.44 ms for non-tail recursion (Mac / Intel).
+Median process RSS changed by +3.6% / +0.3%, -0.6% / +0.7%, and
++0.3% / +0.9%, respectively. These are small workload measurements, not a
+universal speed or memory improvement. Intermediate measurements exposed excess
+generator allocation and duplicate preparation; synchronous continuations,
+direct terminal completion and lazy dispatcher preparation removed those costs.
+The final mutual-tail workload still took about 4–5% longer, and short Intel
+measurements varied between runs. This remaining overhead is recorded separately
+from the functional coverage gain.

@@ -6,7 +6,7 @@ type Site = Expression | Statement;
 
 const compiledBackends = new Set([
     'scalar-expression', 'resumable-scalar-expression', 'scalar-function', 'scalar-function-direct',
-    'scalar-function-number', 'exact-loop', 'number-loop', 'mixed-loop', 'numeric-call-loop',
+    'framed-function', 'scalar-function-number', 'exact-loop', 'number-loop', 'mixed-loop', 'numeric-call-loop',
     'numeric-function', 'integer-array-function', 'real-array-function', 'generator-loop',
     'tensor', 'tensor-reduction', 'tensor-region', 'array-region', 'number-tensor',
     'layout-number-tensor', 'bounded-tensor', 'tensor-cell-copy', 'fused-arithmetic-reader',
