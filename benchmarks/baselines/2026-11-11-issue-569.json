@@ -1910,6 +1910,606 @@
         "node": "v24.15.0",
         "arch": "x64"
       }
+    ],
+    "historical-mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3434.1985830000003,
+        "cpuMs": 3534.352,
+        "peakRssMiB": 185.546875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3858.4138749999997,
+        "cpuMs": 3967.335,
+        "peakRssMiB": 186.21875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 4181.419208,
+        "cpuMs": 4289.052,
+        "peakRssMiB": 186.421875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3661.875208,
+        "cpuMs": 3764.886,
+        "peakRssMiB": 185.4375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3421.622875,
+        "cpuMs": 3525.292,
+        "peakRssMiB": 184.8125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3927.790667,
+        "cpuMs": 4037.936,
+        "peakRssMiB": 186.375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "historical-intel": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10380.848221,
+        "cpuMs": 10606.722,
+        "peakRssMiB": 171.625,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 12195.228662000001,
+        "cpuMs": 12410.015,
+        "peakRssMiB": 172.5703125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 12284.279062,
+        "cpuMs": 12503.792,
+        "peakRssMiB": 172.4453125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10230.362591000001,
+        "cpuMs": 10447.964,
+        "peakRssMiB": 171.41796875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10299.235714,
+        "cpuMs": 10521.888,
+        "peakRssMiB": 172.34765625,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 12166.487438,
+        "cpuMs": 12388.964,
+        "peakRssMiB": 172.86328125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "final-historical-mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3360.3235409999998,
+        "cpuMs": 3458.726,
+        "peakRssMiB": 185.6875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3318.812667,
+        "cpuMs": 3430.095,
+        "peakRssMiB": 186.46875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3393.370416,
+        "cpuMs": 3506.011,
+        "peakRssMiB": 186.421875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3407.831291,
+        "cpuMs": 3514.852,
+        "peakRssMiB": 185.578125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3632.4764999999998,
+        "cpuMs": 3733.987,
+        "peakRssMiB": 185.359375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 3330.3803329999996,
+        "cpuMs": 3442.567,
+        "peakRssMiB": 187.015625,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "final-historical-intel": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10085.281917999999,
+        "cpuMs": 10298.443,
+        "peakRssMiB": 169.8515625,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 9645.286088,
+        "cpuMs": 9872.432,
+        "peakRssMiB": 172.9453125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 9952.060779000001,
+        "cpuMs": 10179,
+        "peakRssMiB": 171.7421875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 1,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 9839.129982999999,
+        "cpuMs": 10055.743,
+        "peakRssMiB": 170.24609375,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/historical",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10288.687731,
+        "cpuMs": 10503.795,
+        "peakRssMiB": 173.14453125,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 2,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/505_bidirectional.ra",
+        "sourceHash": "c3c564c76b5e552172ab094ccb5020e5465b5bf215c69fe2da79e03311be6cc7",
+        "ms": 10359.819781,
+        "cpuMs": 10584.584,
+        "peakRssMiB": 171.046875,
+        "answer": "459260736097816346",
+        "args": [
+          "100000000000"
+        ],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
+    ],
+    "final-integration-mac": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/098_anagramsquares.ra",
+        "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+        "ms": 372.2066249999999,
+        "cpuMs": 702.725,
+        "peakRssMiB": 216.1875,
+        "answer": "18769",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/098_anagramsquares.ra",
+        "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+        "ms": 371.11025000000006,
+        "cpuMs": 704.874,
+        "peakRssMiB": 216.96875,
+        "answer": "18769",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5706.19625,
+        "cpuMs": 5872.501,
+        "peakRssMiB": 198.96875,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 5700.114292,
+        "cpuMs": 5860.295,
+        "peakRssMiB": 197.9375,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/private/tmp/rank-569-before",
+        "path": "demos/euler/792_toomanytwos.ra",
+        "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+        "ms": 13414.436708,
+        "cpuMs": 16322.122,
+        "peakRssMiB": 810.625,
+        "answer": "2500500025183626",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/private/tmp/rank-issue-569",
+        "path": "demos/euler/792_toomanytwos.ra",
+        "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+        "ms": 9712.232292,
+        "cpuMs": 12478.525,
+        "peakRssMiB": 795.671875,
+        "answer": "2500500025183626",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "arm64"
+      }
+    ],
+    "final-integration-intel": [
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/098_anagramsquares.ra",
+        "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+        "ms": 1004.369629,
+        "cpuMs": 1683.274,
+        "peakRssMiB": 201.12890625,
+        "answer": "18769",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/098_anagramsquares.ra",
+        "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+        "ms": 1040.2206860000001,
+        "cpuMs": 1734.096,
+        "peakRssMiB": 201.0390625,
+        "answer": "18769",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14341.945587,
+        "cpuMs": 14687.395,
+        "peakRssMiB": 186.7421875,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/507_shortestlattice.ra",
+        "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+        "ms": 14347.323863,
+        "cpuMs": 14666.908,
+        "peakRssMiB": 185.8671875,
+        "answer": "316558047002627270",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 0,
+        "root": "/srv/rank-issue-569/before",
+        "path": "demos/euler/792_toomanytwos.ra",
+        "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+        "ms": 36349.11612100001,
+        "cpuMs": 43311.108,
+        "peakRssMiB": 707.81640625,
+        "answer": "2500500025183626",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      },
+      {
+        "round": 0,
+        "variant": 1,
+        "root": "/srv/rank-issue-569/final",
+        "path": "demos/euler/792_toomanytwos.ra",
+        "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+        "ms": 29697.135661,
+        "cpuMs": 37639.612,
+        "peakRssMiB": 705.94140625,
+        "answer": "2500500025183626",
+        "args": [],
+        "profiled": false,
+        "node": "v24.15.0",
+        "arch": "x64"
+      }
     ]
   },
   "bridgeSourceHashes": {
@@ -1918,5 +2518,3916 @@
   },
   "collectorSourceHash": "ed27d258fb871fb364ac5cc3dad0dff15ebdea6e8c21a831997102063155b6f4",
   "scalarCellsSourceHash": "6e0dc1843992c8a23cbf4ecf4dd33fbcce0309b505d9c35883388fe2f428c77f",
-  "rejectedObserverPatch": "diff --git a/packages/interpreter/src/compiler-observation.ts b/packages/interpreter/src/compiler-observation.ts\nindex 5762eed3..447cd204 100644\n--- a/packages/interpreter/src/compiler-observation.ts\n+++ b/packages/interpreter/src/compiler-observation.ts\n@@ -1,6 +1,6 @@\n import { ReturnSignal, TailCallSignal, BreakSignal, ContinueSignal } from './control-signals.js';\n import type { Expression, Statement } from '@arrrank/language';\n-import { currentDiagnostics, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n+import { currentDiagnostics, registerCompilerTraceSwitch, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n import { describeCompilerRejection } from './compiler-rejection.js';\n \n type Site = Expression | Statement;\n@@ -132,13 +132,14 @@ export function observedPositionalRun<A extends unknown[], T>(\n     let factory = positionalObservers.get(arity);\n     if (!factory) {\n         const args = Array.from({ length: arity }, (_, index) => `arg${index}`).join(',');\n-        factory = new Function('diagnostics', 'observe', 'site', 'backend', 'run', 'types',\n-            `return function(${args}) { return diagnostics()?.traceCompiler\n-                ? observe(site, backend, 'execute', () => run(${args}), types)\n-                : run(${args}); };`);\n+        factory = new Function('register', 'observe', 'site', 'backend', 'run', 'types',\n+            `const traced = function(${args}) { return observe(site, backend, 'execute', () => run(${args}), types); };\n+             const target = { current: run, setTracing(enabled) { this.current = enabled ? traced : run; } };\n+             register(target);\n+             return function(${args}) { return target.current(${args}); };`);\n         positionalObservers.set(arity, factory);\n     }\n-    return factory(currentDiagnostics, observeCompiler, site, backend, run, provenTypes);\n+    return factory(registerCompilerTraceSwitch, observeCompiler, site, backend, run, provenTypes);\n }\n \n /** Name a deliberate frontend boundary without evaluating its rejected operands. */\ndiff --git a/packages/interpreter/src/diagnostics.ts b/packages/interpreter/src/diagnostics.ts\nindex e56c0161..693832bd 100644\n--- a/packages/interpreter/src/diagnostics.ts\n+++ b/packages/interpreter/src/diagnostics.ts\n@@ -328,12 +328,35 @@ export class RuntimeDiagnostics {\n     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */\n     run<T>(operation: () => T): T {\n         const previous = active;\n-        active = this;\n+        activateDiagnostics(this);\n         try { return operation(); }\n-        finally { active = previous; }\n+        finally { activateDiagnostics(previous); }\n     }\n }\n let active: RuntimeDiagnostics | undefined;\n+interface CompilerTraceSwitch { setTracing(enabled: boolean): void; }\n+const traceSwitches = new Set<WeakRef<CompilerTraceSwitch>>();\n+const releasedTraceSwitches = new FinalizationRegistry<WeakRef<CompilerTraceSwitch>>(reference => traceSwitches.delete(reference));\n+\n+/** Prepared code remains collectible when its interpreter is disposed. */\n+export function registerCompilerTraceSwitch(target: CompilerTraceSwitch): void {\n+    const reference = new WeakRef(target);\n+    traceSwitches.add(reference);\n+    releasedTraceSwitches.register(target, reference);\n+    target.setTracing(active?.traceCompiler === true);\n+}\n+\n+function activateDiagnostics(next: RuntimeDiagnostics | undefined): void {\n+    const changed = (active?.traceCompiler === true) !== (next?.traceCompiler === true);\n+    active = next;\n+    if (!changed) return;\n+    for (const reference of traceSwitches) {\n+        const target = reference.deref();\n+        if (target) target.setTracing(next?.traceCompiler === true);\n+        else traceSwitches.delete(reference);\n+    }\n+}\n+\n export function currentDiagnostics(): RuntimeDiagnostics | undefined { return active; }\n export function recordFallback(reason: string, category?: FallbackCategory): undefined {\n     if (active) {\ndiff --git a/packages/interpreter/test/compiler-observation.test.ts b/packages/interpreter/test/compiler-observation.test.ts\nindex b25d5f82..833694d9 100644\n--- a/packages/interpreter/test/compiler-observation.test.ts\n+++ b/packages/interpreter/test/compiler-observation.test.ts\n@@ -5,7 +5,7 @@ import { currentDiagnostics, recordFallback } from '../src/diagnostics.js';\n import { prepareBoundedTensor } from '../src/jit/tensor-bounds.js';\n import { typedArray } from '../src/array-storage.js';\n import { runExecution, type Execution } from '../src/execution.js';\n-import { withCompilerSource, observeCompiler, observedRun } from '../src/compiler-observation.js';\n+import { withCompilerSource, observeCompiler, observedRun, observedPositionalRun } from '../src/compiler-observation.js';\n import { prepareNumberTensor } from '../src/jit/tensor-number.js';\n import { prepareLayoutNumberTensor } from '../src/jit/tensor-number-layout.js';\n import type { TensorNode } from '../src/jit/tensor-kernel.js';\n@@ -291,3 +291,23 @@ end`);\n         ]));\n     } finally { runtime.dispose(); }\n });\n+\n+\n+it('switches positional observation across nested scopes and exceptions', () => {\n+    const site = parse('1').statements[0];\n+    const call = observedPositionalRun(site, 'scalar-function-direct', (value: bigint) => value + 1n, 1);\n+    const outer = new RuntimeDiagnostics(Infinity, true), inner = new RuntimeDiagnostics();\n+    const count = () => outer.compilerObservations.reduce((sum, item) => sum + (item.count ?? 1), 0);\n+    outer.run(() => {\n+        expect(call(1n)).toBe(2n);\n+        const before = count();\n+        expect(() => inner.run(() => { expect(call(2n)).toBe(3n); throw Error('leave scope'); })).toThrow('leave scope');\n+        expect(count()).toBe(before);\n+        expect(call(3n)).toBe(4n);\n+        expect(count()).toBeGreaterThan(before);\n+    });\n+    const after = count();\n+    expect(call(4n)).toBe(5n);\n+    expect(count()).toBe(after);\n+    expect(inner.compilerObservations).toEqual([]);\n+});\n"
+  "rejectedObserverPatch": "diff --git a/packages/interpreter/src/compiler-observation.ts b/packages/interpreter/src/compiler-observation.ts\nindex 5762eed3..447cd204 100644\n--- a/packages/interpreter/src/compiler-observation.ts\n+++ b/packages/interpreter/src/compiler-observation.ts\n@@ -1,6 +1,6 @@\n import { ReturnSignal, TailCallSignal, BreakSignal, ContinueSignal } from './control-signals.js';\n import type { Expression, Statement } from '@arrrank/language';\n-import { currentDiagnostics, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n+import { currentDiagnostics, registerCompilerTraceSwitch, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';\n import { describeCompilerRejection } from './compiler-rejection.js';\n \n type Site = Expression | Statement;\n@@ -132,13 +132,14 @@ export function observedPositionalRun<A extends unknown[], T>(\n     let factory = positionalObservers.get(arity);\n     if (!factory) {\n         const args = Array.from({ length: arity }, (_, index) => `arg${index}`).join(',');\n-        factory = new Function('diagnostics', 'observe', 'site', 'backend', 'run', 'types',\n-            `return function(${args}) { return diagnostics()?.traceCompiler\n-                ? observe(site, backend, 'execute', () => run(${args}), types)\n-                : run(${args}); };`);\n+        factory = new Function('register', 'observe', 'site', 'backend', 'run', 'types',\n+            `const traced = function(${args}) { return observe(site, backend, 'execute', () => run(${args}), types); };\n+             const target = { current: run, setTracing(enabled) { this.current = enabled ? traced : run; } };\n+             register(target);\n+             return function(${args}) { return target.current(${args}); };`);\n         positionalObservers.set(arity, factory);\n     }\n-    return factory(currentDiagnostics, observeCompiler, site, backend, run, provenTypes);\n+    return factory(registerCompilerTraceSwitch, observeCompiler, site, backend, run, provenTypes);\n }\n \n /** Name a deliberate frontend boundary without evaluating its rejected operands. */\ndiff --git a/packages/interpreter/src/diagnostics.ts b/packages/interpreter/src/diagnostics.ts\nindex e56c0161..693832bd 100644\n--- a/packages/interpreter/src/diagnostics.ts\n+++ b/packages/interpreter/src/diagnostics.ts\n@@ -328,12 +328,35 @@ export class RuntimeDiagnostics {\n     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */\n     run<T>(operation: () => T): T {\n         const previous = active;\n-        active = this;\n+        activateDiagnostics(this);\n         try { return operation(); }\n-        finally { active = previous; }\n+        finally { activateDiagnostics(previous); }\n     }\n }\n let active: RuntimeDiagnostics | undefined;\n+interface CompilerTraceSwitch { setTracing(enabled: boolean): void; }\n+const traceSwitches = new Set<WeakRef<CompilerTraceSwitch>>();\n+const releasedTraceSwitches = new FinalizationRegistry<WeakRef<CompilerTraceSwitch>>(reference => traceSwitches.delete(reference));\n+\n+/** Prepared code remains collectible when its interpreter is disposed. */\n+export function registerCompilerTraceSwitch(target: CompilerTraceSwitch): void {\n+    const reference = new WeakRef(target);\n+    traceSwitches.add(reference);\n+    releasedTraceSwitches.register(target, reference);\n+    target.setTracing(active?.traceCompiler === true);\n+}\n+\n+function activateDiagnostics(next: RuntimeDiagnostics | undefined): void {\n+    const changed = (active?.traceCompiler === true) !== (next?.traceCompiler === true);\n+    active = next;\n+    if (!changed) return;\n+    for (const reference of traceSwitches) {\n+        const target = reference.deref();\n+        if (target) target.setTracing(next?.traceCompiler === true);\n+        else traceSwitches.delete(reference);\n+    }\n+}\n+\n export function currentDiagnostics(): RuntimeDiagnostics | undefined { return active; }\n export function recordFallback(reason: string, category?: FallbackCategory): undefined {\n     if (active) {\ndiff --git a/packages/interpreter/test/compiler-observation.test.ts b/packages/interpreter/test/compiler-observation.test.ts\nindex b25d5f82..833694d9 100644\n--- a/packages/interpreter/test/compiler-observation.test.ts\n+++ b/packages/interpreter/test/compiler-observation.test.ts\n@@ -5,7 +5,7 @@ import { currentDiagnostics, recordFallback } from '../src/diagnostics.js';\n import { prepareBoundedTensor } from '../src/jit/tensor-bounds.js';\n import { typedArray } from '../src/array-storage.js';\n import { runExecution, type Execution } from '../src/execution.js';\n-import { withCompilerSource, observeCompiler, observedRun } from '../src/compiler-observation.js';\n+import { withCompilerSource, observeCompiler, observedRun, observedPositionalRun } from '../src/compiler-observation.js';\n import { prepareNumberTensor } from '../src/jit/tensor-number.js';\n import { prepareLayoutNumberTensor } from '../src/jit/tensor-number-layout.js';\n import type { TensorNode } from '../src/jit/tensor-kernel.js';\n@@ -291,3 +291,23 @@ end`);\n         ]));\n     } finally { runtime.dispose(); }\n });\n+\n+\n+it('switches positional observation across nested scopes and exceptions', () => {\n+    const site = parse('1').statements[0];\n+    const call = observedPositionalRun(site, 'scalar-function-direct', (value: bigint) => value + 1n, 1);\n+    const outer = new RuntimeDiagnostics(Infinity, true), inner = new RuntimeDiagnostics();\n+    const count = () => outer.compilerObservations.reduce((sum, item) => sum + (item.count ?? 1), 0);\n+    outer.run(() => {\n+        expect(call(1n)).toBe(2n);\n+        const before = count();\n+        expect(() => inner.run(() => { expect(call(2n)).toBe(3n); throw Error('leave scope'); })).toThrow('leave scope');\n+        expect(count()).toBe(before);\n+        expect(call(3n)).toBe(4n);\n+        expect(count()).toBeGreaterThan(before);\n+    });\n+    const after = count();\n+    expect(call(4n)).toBe(5n);\n+    expect(count()).toBe(after);\n+    expect(inner.compilerObservations).toEqual([]);\n+});\n",
+  "storageDistribution": {
+    "shape": [
+      200,
+      10000
+    ],
+    "size": 2000000,
+    "int32": 10005,
+    "safeInteger": 4,
+    "int64": 2,
+    "wide": 1989989,
+    "wideFraction": 0.9949945,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  "diagnostics": {
+    "505": {
+      "file": "demos/euler/505_bidirectional.ra",
+      "args": [
+        "100000000000"
+      ],
+      "output": [
+        "459260736097816346"
+      ],
+      "counters": {
+        "compilerRejectionLimit": 64,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "nativeFirstSearches": 0,
+        "nativeFirstSearchCells": 0,
+        "compiledLoops": 0,
+        "compiledFunctionFolds": 0,
+        "integerWordScalings": 0,
+        "nativeIntegerSums": 0,
+        "nativeIntegerJoins": 0,
+        "nativeModularPowerTriples": 0,
+        "compiledModularPowers": 0,
+        "nativeIntegerSumCells": 0,
+        "weightedAxisSums": 0,
+        "weightedAxisSumCells": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericSortedCounts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "sortedIndexBatches": 0,
+        "sortedIndexCoarseBatches": 0,
+        "sortedIndexRangeBatches": 0,
+        "storedSeededScans": 0,
+        "sortedIndexBatchQueries": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberLoopUnpolled": 0,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 47593981,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedIntegerBuffers": 0,
+        "numberLoopBorrowedIntegerCells": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "nativeModularMatrixPowers": 0,
+        "nativeModularMatrixBatches": 0,
+        "modularCallbackScans": 0,
+        "modularCallbackReductions": 0,
+        "compiledTensors": 0,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 0,
+        "tensorRangeScannedCells": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "compiledFramedFunctions": 0,
+        "compiledValueBlocks": 0,
+        "compiledScalarRegions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 0,
+        "reusedTensorBufferCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 0,
+        "typedArrayPublishedCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "compilerRejectionsOmitted": 0,
+        "compilerObservationsOmitted": 0
+      },
+      "fallbacks": {
+        "scalar-expression:too-small": 1
+      }
+    },
+    "792": {
+      "file": "demos/euler/792_toomanytwos.ra",
+      "args": [],
+      "output": [
+        "2500500025183626"
+      ],
+      "counters": {
+        "compilerRejectionLimit": 64,
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "primeRunSieves": 0,
+        "cellsComputed": 1860000,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "nativeFirstSearches": 0,
+        "nativeFirstSearchCells": 0,
+        "compiledLoops": 199,
+        "compiledFunctionFolds": 0,
+        "integerWordScalings": 0,
+        "nativeIntegerSums": 0,
+        "nativeIntegerJoins": 0,
+        "nativeModularPowerTriples": 0,
+        "compiledModularPowers": 0,
+        "nativeIntegerSumCells": 0,
+        "weightedAxisSums": 0,
+        "weightedAxisSumCells": 0,
+        "fusedArrayRegions": 0,
+        "fusedArrayRegionCells": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "integerKeyedFolds": 0,
+        "realKeyedFolds": 0,
+        "keyedNativeReaders": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericSortedCounts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSmallestSelections": 0,
+        "numericUniqueSums": 0,
+        "sortedIndexBatches": 0,
+        "sortedIndexCoarseBatches": 0,
+        "sortedIndexRangeBatches": 0,
+        "storedSeededScans": 0,
+        "sortedIndexBatchQueries": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "numberLoopUnpolled": 0,
+        "numberLoopBatched": 0,
+        "numberFunctions": 0,
+        "numberFunctionFallbacks": 0,
+        "numberFunctionSkips": 0,
+        "numberFunctionArrayBorrows": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopSliceCopies": 0,
+        "numberLoopSliceCopyCells": 0,
+        "numberLoopSliceDirectCells": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "numberLoopBorrowedIntegerBuffers": 0,
+        "numberLoopBorrowedIntegerCells": 0,
+        "numberLoopBorrowedRealBuffers": 0,
+        "numberLoopBorrowedRealCells": 0,
+        "modularMatrixPowers": 0,
+        "nativeModularMatrixPowers": 0,
+        "nativeModularMatrixBatches": 0,
+        "modularCallbackScans": 0,
+        "modularCallbackReductions": 0,
+        "compiledTensors": 999,
+        "packedBooleanGathers": 0,
+        "packedBooleanGatherCells": 0,
+        "tensorRangeScans": 400,
+        "tensorRangeScannedCells": 4000000,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "compiledFramedFunctions": 0,
+        "compiledValueBlocks": 199,
+        "compiledScalarRegions": 0,
+        "numericFunctionPreparations": 0,
+        "numericFunctionPlanHits": 0,
+        "compiledNumericCallLoops": 0,
+        "numericLoopCalls": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "reusedTensorBuffers": 198,
+        "reusedTensorBufferCells": 1980000,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 799,
+        "elementTypeScannedCells": 7990000,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedArrayPublications": 3202,
+        "typedArrayPublishedCells": 432460000,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "compilerRejectionsOmitted": 0,
+        "compilerObservationsOmitted": 0
+      },
+      "fallbacks": {
+        "scalar-expression:unsupported-op:to": 3,
+        "tensor:unsupported-op:to": 2,
+        "scalar-expression:too-small": 13,
+        "loop:unbound-name:NameExpression": 1,
+        "tensor:binding:integer": 200,
+        "scalar-expression:operator-guard:/": 200,
+        "scalar-expression:operator-guard:+": 200,
+        "number-loop:unsafe-input": 199,
+        "scalar-expression:unsupported-op:axis": 2,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+        "scalar-expression:unsupported-op:mod": 2
+      }
+    }
+  },
+  "profiles": {
+    "baseline-505-mac": [
+      {
+        "file": "/tmp/rank-569-profiles-mac/505_bidirectional-0-0.cpuprofile",
+        "durationMs": 4337.0,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 2181.747,
+            "selfPercent": 50.30544154945815,
+            "inclusivePercent": 88.2945353931289
+          },
+          {
+            "name": "get",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 804.329,
+            "selfPercent": 18.5457459073092,
+            "inclusivePercent": 18.5457459073092
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 826,
+            "selfMs": 364.496,
+            "selfPercent": 8.404334793636155,
+            "inclusivePercent": 87.99091537929445
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 941,
+            "selfMs": 182.921,
+            "selfPercent": 4.21768503573899,
+            "inclusivePercent": 22.76343094304819
+          },
+          {
+            "name": "directFn",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1165,
+            "selfMs": 137.588,
+            "selfPercent": 3.172423334101914,
+            "inclusivePercent": 88.2993313350242
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 114.878,
+            "selfPercent": 2.648789485819691,
+            "inclusivePercent": 87.95632925985704
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 107.04,
+            "selfPercent": 2.4680654830528015,
+            "inclusivePercent": 2.4680654830528015
+          },
+          {
+            "name": "tryNumber",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1124,
+            "selfMs": 89.543,
+            "selfPercent": 2.0646299285220198,
+            "inclusivePercent": 2.2740373530089926
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 65.083,
+            "selfPercent": 1.5006456075628314,
+            "inclusivePercent": 1.5006456075628314
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 53.75,
+            "selfPercent": 1.239335946506802,
+            "inclusivePercent": 1.239335946506802
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 15.416,
+            "selfPercent": 0.35545307816462995,
+            "inclusivePercent": 0.5850818538160019
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 11.707,
+            "selfPercent": 0.26993313350242104,
+            "inclusivePercent": 0.26993313350242104
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 10.876,
+            "selfPercent": 0.25077242333410193,
+            "inclusivePercent": 0.25077242333410193
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1143,
+            "selfMs": 9.082,
+            "selfPercent": 0.20940742448697255,
+            "inclusivePercent": 0.20940742448697255
+          },
+          {
+            "name": "open",
+            "url": "",
+            "line": 0,
+            "selfMs": 8.833,
+            "selfPercent": 0.20366612866036432,
+            "inclusivePercent": 0.20366612866036432
+          },
+          {
+            "name": "add",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 8.043,
+            "selfPercent": 0.1854507724233341,
+            "inclusivePercent": 0.1854507724233341
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 6.083,
+            "selfPercent": 0.14025824302513257,
+            "inclusivePercent": 0.14025824302513257
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 6.043,
+            "selfPercent": 0.13933594650680195,
+            "inclusivePercent": 3.320267465990316
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 5.417,
+            "selfPercent": 0.12490200599492737,
+            "inclusivePercent": 0.12490200599492737
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 5.251,
+            "selfPercent": 0.1210744754438552,
+            "inclusivePercent": 0.1210744754438552
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 4.708,
+            "selfPercent": 0.10855430020751672,
+            "inclusivePercent": 0.5850818538160019
+          },
+          {
+            "name": "#asyncInstantiate",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 304,
+            "selfMs": 4.542,
+            "selfPercent": 0.10472676965644455,
+            "inclusivePercent": 0.10472676965644455
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 4.416,
+            "selfPercent": 0.10182153562370302,
+            "inclusivePercent": 1.095227115517639
+          },
+          {
+            "name": "isOptionalProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 12,
+            "selfMs": 4.043,
+            "selfPercent": 0.09322112059026977,
+            "inclusivePercent": 0.09322112059026977
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 3.376,
+            "selfPercent": 0.07784182614710629,
+            "inclusivePercent": 3.354853585427715
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 3.334,
+            "selfPercent": 0.07687341480285911,
+            "inclusivePercent": 0.9934055798939359
+          },
+          {
+            "name": "closure",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 3.209,
+            "selfPercent": 0.07399123818307586,
+            "inclusivePercent": 0.25559142264237955
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/rest.js",
+            "line": 7,
+            "selfMs": 3.166,
+            "selfPercent": 0.07299976942587041,
+            "inclusivePercent": 0.13640765506110214
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 3.084,
+            "selfPercent": 0.0711090615632926,
+            "inclusivePercent": 0.17486741987548998
+          },
+          {
+            "name": "(anonymous)",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1782,
+            "selfMs": 3.0,
+            "selfPercent": 0.06917223887479824,
+            "inclusivePercent": 0.3919760202905234
+          },
+          {
+            "name": "consoleCall",
+            "url": "",
+            "line": 0,
+            "selfMs": 3.0,
+            "selfPercent": 0.06917223887479824,
+            "inclusivePercent": 0.06917223887479824
+          },
+          {
+            "name": "firstSet",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 243,
+            "selfMs": 2.583,
+            "selfPercent": 0.05955729767120129,
+            "inclusivePercent": 0.05955729767120129
+          },
+          {
+            "name": "resolve",
+            "url": "node:path",
+            "line": 1245,
+            "selfMs": 2.375,
+            "selfPercent": 0.05476135577588195,
+            "inclusivePercent": 0.09029282914456999
+          },
+          {
+            "name": "accept",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 24,
+            "selfMs": 2.125,
+            "selfPercent": 0.04899700253631543,
+            "inclusivePercent": 0.0855199446622089
+          },
+          {
+            "name": "normalizeString",
+            "url": "node:path",
+            "line": 92,
+            "selfMs": 1.958,
+            "selfPercent": 0.04514641457228499,
+            "inclusivePercent": 0.04514641457228499
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 92,
+            "selfMs": 1.792,
+            "selfPercent": 0.04131888402121282,
+            "inclusivePercent": 0.04131888402121282
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 1.791,
+            "selfPercent": 0.04129582660825455,
+            "inclusivePercent": 0.14696795019598802
+          },
+          {
+            "name": "moduleResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 827,
+            "selfMs": 1.708,
+            "selfPercent": 0.03938206133271847,
+            "inclusivePercent": 0.6638459764814388
+          },
+          {
+            "name": "lookAheadSequenceFromAlternatives",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 368,
+            "selfMs": 1.708,
+            "selfPercent": 0.03938206133271847,
+            "inclusivePercent": 0.6590500345861194
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 1.666,
+            "selfPercent": 0.03841364998847129,
+            "inclusivePercent": 0.03841364998847129
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-profiles-mac/505_bidirectional-0-1.cpuprofile",
+        "durationMs": 4484.583,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 2446.461,
+            "selfPercent": 54.55269754177813,
+            "inclusivePercent": 88.38326774195059
+          },
+          {
+            "name": "get",
+            "url": "file:///private/tmp/rank-issue-569/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 909.545,
+            "selfPercent": 20.281595858522408,
+            "inclusivePercent": 20.281595858522408
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 279.461,
+            "selfPercent": 6.231593885094779,
+            "inclusivePercent": 88.14264336282771
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-issue-569/packages/interpreter/out/function-invocation.js",
+            "line": 942,
+            "selfMs": 207.035,
+            "selfPercent": 4.616594229608416,
+            "inclusivePercent": 24.898190088130825
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-issue-569/packages/interpreter/out/function-invocation.js",
+            "line": 827,
+            "selfMs": 168.995,
+            "selfPercent": 3.768354828085465,
+            "inclusivePercent": 88.33309585305925
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 76.459,
+            "selfPercent": 1.7049299789969323,
+            "inclusivePercent": 1.7049299789969323
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 56.584,
+            "selfPercent": 1.261744960456747,
+            "inclusivePercent": 1.2951928863843083
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 53.001,
+            "selfPercent": 1.181849014724446,
+            "inclusivePercent": 1.181849014724446
+          },
+          {
+            "name": "open",
+            "url": "",
+            "line": 0,
+            "selfMs": 14.999,
+            "selfPercent": 0.33445696065832653,
+            "inclusivePercent": 0.33445696065832653
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 11.457,
+            "selfPercent": 0.2554752582347121,
+            "inclusivePercent": 0.5778909655591167
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 9.207,
+            "selfPercent": 0.20530336934337037,
+            "inclusivePercent": 0.33539350258429823
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 8.751,
+            "selfPercent": 0.1951351998613918,
+            "inclusivePercent": 0.1951351998613918
+          },
+          {
+            "name": "add",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 8.0,
+            "selfPercent": 0.17838893828032618,
+            "inclusivePercent": 0.17838893828032618
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 7.5,
+            "selfPercent": 0.16723962963780578,
+            "inclusivePercent": 0.16723962963780578
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 7.292,
+            "selfPercent": 0.1626015172425173,
+            "inclusivePercent": 0.1626015172425173
+          },
+          {
+            "name": "resolve",
+            "url": "node:path",
+            "line": 1245,
+            "selfMs": 6.334,
+            "selfPercent": 0.14123944188344825,
+            "inclusivePercent": 0.20628450850391217
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 5.959,
+            "selfPercent": 0.13287746040155796,
+            "inclusivePercent": 0.13287746040155796
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 5.958,
+            "selfPercent": 0.13285516178427292,
+            "inclusivePercent": 0.13285516178427292
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 5.708,
+            "selfPercent": 0.12728050746301273,
+            "inclusivePercent": 0.5778909655591167
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 5.5,
+            "selfPercent": 0.12264239506772424,
+            "inclusivePercent": 3.591013924817536
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 4.626,
+            "selfPercent": 0.10315340356059861,
+            "inclusivePercent": 0.10315340356059861
+          },
+          {
+            "name": "get compiler",
+            "url": "file:///private/tmp/rank-issue-569/packages/interpreter/out/function-invocation.js",
+            "line": 79,
+            "selfMs": 4.542,
+            "selfPercent": 0.10128031970865518,
+            "inclusivePercent": 0.10128031970865518
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 4.499,
+            "selfPercent": 0.10032147916539844,
+            "inclusivePercent": 0.2350497248016148
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 4.458,
+            "selfPercent": 0.09940723585671177,
+            "inclusivePercent": 1.3806411878205844
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 4.458,
+            "selfPercent": 0.09940723585671177,
+            "inclusivePercent": 0.09940723585671177
+          },
+          {
+            "name": "firstForSequence",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/first.js",
+            "line": 28,
+            "selfMs": 4.416,
+            "selfPercent": 0.09847069393074005,
+            "inclusivePercent": 0.10032147916539844
+          },
+          {
+            "name": "accept",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 24,
+            "selfMs": 4.209,
+            "selfPercent": 0.0938548801527366,
+            "inclusivePercent": 0.09572796400468003
+          },
+          {
+            "name": "containsPath",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 440,
+            "selfMs": 3.875,
+            "selfPercent": 0.08640714197953299,
+            "inclusivePercent": 0.08640714197953299
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 3.543,
+            "selfPercent": 0.07900400104089945,
+            "inclusivePercent": 3.591013924817536
+          },
+          {
+            "name": "normalizeString",
+            "url": "node:path",
+            "line": 92,
+            "selfMs": 3.458,
+            "selfPercent": 0.07710861857167099,
+            "inclusivePercent": 0.07710861857167099
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/parser/traits/gast_recorder.js",
+            "line": 104,
+            "selfMs": 3.042,
+            "selfPercent": 0.06783239378109403,
+            "inclusivePercent": 0.06783239378109403
+          },
+          {
+            "name": "walkFlat",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/rest.js",
+            "line": 44,
+            "selfMs": 3.001,
+            "selfPercent": 0.06691815047240736,
+            "inclusivePercent": 0.20719875181259886
+          },
+          {
+            "name": "URL",
+            "url": "node:internal/url",
+            "line": 803,
+            "selfMs": 2.958,
+            "selfPercent": 0.0659593099291506,
+            "inclusivePercent": 0.22764658386298123
+          },
+          {
+            "name": "rejectArguments",
+            "url": "file:///private/tmp/rank-issue-569/packages/interpreter/out/function-invocation.js",
+            "line": 1120,
+            "selfMs": 2.583,
+            "selfPercent": 0.057597328447260315,
+            "inclusivePercent": 0.057597328447260315
+          },
+          {
+            "name": "isOptionalProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 12,
+            "selfMs": 1.916,
+            "selfPercent": 0.04272415071813812,
+            "inclusivePercent": 0.06408622607720718
+          },
+          {
+            "name": "LangiumParser.parser.parse",
+            "url": "file:///private/tmp/rank-issue-569/packages/language/out/rank-module.js",
+            "line": 79,
+            "selfMs": 1.792,
+            "selfPercent": 0.03995912217479306,
+            "inclusivePercent": 0.777664277815797
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 1.709,
+            "selfPercent": 0.03810833694013468,
+            "inclusivePercent": 0.07340704810235422
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 1.625,
+            "selfPercent": 0.036235253088191255,
+            "inclusivePercent": 1.2812339519638727
+          },
+          {
+            "name": "(anonymous)",
+            "url": "node:internal/streams/duplex",
+            "line": 1,
+            "selfMs": 1.583,
+            "selfPercent": 0.03529871116221954,
+            "inclusivePercent": 0.03529871116221954
+          },
+          {
+            "name": "afterLoad",
+            "url": "node:internal/modules/esm/loader",
+            "line": 505,
+            "selfMs": 1.542,
+            "selfPercent": 0.03438446785353287,
+            "inclusivePercent": 0.737749752875574
+          }
+        ]
+      }
+    ],
+    "baseline-792-mac": [
+      {
+        "file": "/tmp/rank-569-profiles-mac/792_toomanytwos-0-0.cpuprofile",
+        "durationMs": 17963.292,
+        "top": [
+          {
+            "name": "floorRemainder",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/numeric-division.js",
+            "line": 37,
+            "selfMs": 2484.063,
+            "selfPercent": 13.8285510250571,
+            "inclusivePercent": 13.8285510250571
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 1897.297,
+            "selfPercent": 10.56207848761797,
+            "inclusivePercent": 10.56207848761797
+          },
+          {
+            "name": "collectValues",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-read.js",
+            "line": 161,
+            "selfMs": 1581.609,
+            "selfPercent": 8.804672328435123,
+            "inclusivePercent": 26.93942179417893
+          },
+          {
+            "name": "materializeValue",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/materialize.js",
+            "line": 24,
+            "selfMs": 1503.152,
+            "selfPercent": 8.36790940101625,
+            "inclusivePercent": 49.23253488280433
+          },
+          {
+            "name": "arrayValues",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-read.js",
+            "line": 125,
+            "selfMs": 1421.133,
+            "selfPercent": 7.911317146099947,
+            "inclusivePercent": 17.264240875224875
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/concat-array.js",
+            "line": 236,
+            "selfMs": 1355.635,
+            "selfPercent": 7.546695783824034,
+            "inclusivePercent": 8.794384681827808
+          },
+          {
+            "name": "enter",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/materialize.js",
+            "line": 31,
+            "selfMs": 838.841,
+            "selfPercent": 4.66975095656186,
+            "inclusivePercent": 32.3110652546315
+          },
+          {
+            "name": "set",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1026,
+            "selfMs": 824.76,
+            "selfPercent": 4.59136332026446,
+            "inclusivePercent": 4.990794560373455
+          },
+          {
+            "name": "ownedArray",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 866,
+            "selfMs": 707.13,
+            "selfPercent": 3.936527892548871,
+            "inclusivePercent": 8.978938827025692
+          },
+          {
+            "name": "createOwned",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1328,
+            "selfMs": 637.492,
+            "selfPercent": 3.5488595297565726,
+            "inclusivePercent": 5.092975162904438
+          },
+          {
+            "name": "mapStoredIntegers",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 22,
+            "selfMs": 619.874,
+            "selfPercent": 3.4507817386701727,
+            "inclusivePercent": 26.93364334332482
+          },
+          {
+            "name": "operation",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 27,
+            "selfMs": 613.306,
+            "selfPercent": 3.4142182847108424,
+            "inclusivePercent": 3.4142182847108424
+          },
+          {
+            "name": "stored",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/eval/assignments.js",
+            "line": 541,
+            "selfMs": 607.091,
+            "selfPercent": 3.3796199493945767,
+            "inclusivePercent": 52.84455098764747
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 515.422,
+            "selfPercent": 2.869307029023411,
+            "inclusivePercent": 30.48582075045042
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/integer-view.js",
+            "line": 160,
+            "selfMs": 335.252,
+            "selfPercent": 1.866317153893618,
+            "inclusivePercent": 1.866317153893618
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1342,
+            "selfMs": 310.872,
+            "selfPercent": 1.7305959286304538,
+            "inclusivePercent": 1.7305959286304538
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 140.666,
+            "selfPercent": 0.7830747281734328,
+            "inclusivePercent": 0.7830747281734328
+          },
+          {
+            "name": "write",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/binding-cells.js",
+            "line": 25,
+            "selfMs": 136.914,
+            "selfPercent": 0.7621876880919154,
+            "inclusivePercent": 0.8531175688732333
+          },
+          {
+            "name": "mapStoredInt32Binary",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 212,
+            "selfMs": 121.919,
+            "selfPercent": 0.6787118975742308,
+            "inclusivePercent": 0.7394802689841038
+          },
+          {
+            "name": "operation",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 26,
+            "selfMs": 118.122,
+            "selfPercent": 0.6575743466175353,
+            "inclusivePercent": 0.6575743466175353
+          },
+          {
+            "name": "mapDenseArrays",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/tensor.js",
+            "line": 65,
+            "selfMs": 78.792,
+            "selfPercent": 0.4386278417118644,
+            "inclusivePercent": 27.476416906210734
+          },
+          {
+            "name": "widenInt32",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 220,
+            "selfMs": 71.751,
+            "selfPercent": 0.3994312401089956,
+            "inclusivePercent": 0.3994312401089956
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 67.044,
+            "selfPercent": 0.373227802565365,
+            "inclusivePercent": 0.373227802565365
+          },
+          {
+            "name": "copyStoredArrayBlocks",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-copy.js",
+            "line": 132,
+            "selfMs": 63.001,
+            "selfPercent": 0.3507207921576958,
+            "inclusivePercent": 0.35930496481379914
+          },
+          {
+            "name": "storedScalarKinds",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 48,
+            "selfMs": 42.582,
+            "selfPercent": 0.2370500908185426,
+            "inclusivePercent": 0.2370500908185426
+          },
+          {
+            "name": "isStoredValue",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/stored-value.js",
+            "line": 18,
+            "selfMs": 31.751,
+            "selfPercent": 0.17675490661733942,
+            "inclusivePercent": 0.17675490661733942
+          },
+          {
+            "name": "reduceAt",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/reduction.js",
+            "line": 608,
+            "selfMs": 23.834,
+            "selfPercent": 0.13268169331100335,
+            "inclusivePercent": 0.2075955788059338
+          },
+          {
+            "name": "integerArray",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/numeric-conversions.js",
+            "line": 8,
+            "selfMs": 23.458,
+            "selfPercent": 0.1305885357761818,
+            "inclusivePercent": 0.24123083897984846
+          },
+          {
+            "name": "ownedScalarArray",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 912,
+            "selfMs": 22.043,
+            "selfPercent": 0.12271136047891444,
+            "inclusivePercent": 0.17350939905669852
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 20.583,
+            "selfPercent": 0.11458367430646899,
+            "inclusivePercent": 0.11458367430646899
+          },
+          {
+            "name": "integerValue",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/numeric-conversions.js",
+            "line": 56,
+            "selfMs": 19.875,
+            "selfPercent": 0.11064230320366668,
+            "inclusivePercent": 0.11064230320366668
+          },
+          {
+            "name": "readArrayItem",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-read.js",
+            "line": 387,
+            "selfMs": 19.79,
+            "selfPercent": 0.1101691159949969,
+            "inclusivePercent": 0.7593931001065951
+          },
+          {
+            "name": "collectArrayCellsInto",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-read.js",
+            "line": 205,
+            "selfMs": 16.874,
+            "selfPercent": 0.09393601128345518,
+            "inclusivePercent": 27.033357805462384
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 16.709,
+            "selfPercent": 0.09301747140780209,
+            "inclusivePercent": 0.18510526912327652
+          },
+          {
+            "name": "demandValue",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/plan.js",
+            "line": 39,
+            "selfMs": 15.041,
+            "selfPercent": 0.08373186830120002,
+            "inclusivePercent": 0.08373186830120002
+          },
+          {
+            "name": "IntegerCells",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 984,
+            "selfMs": 15.001,
+            "selfPercent": 0.08350919196770837,
+            "inclusivePercent": 0.08350919196770837
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/tensor.js",
+            "line": 25,
+            "selfMs": 13.374,
+            "selfPercent": 0.07445183210293525,
+            "inclusivePercent": 0.3748310721665049
+          },
+          {
+            "name": "invoke",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/jit/tensor-kernel.js",
+            "line": 540,
+            "selfMs": 13.248,
+            "selfPercent": 0.07375040165243654,
+            "inclusivePercent": 3.23995735302861
+          },
+          {
+            "name": "evaluateArrayItem",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-read.js",
+            "line": 414,
+            "selfMs": 12.333,
+            "selfPercent": 0.0686566805238149,
+            "inclusivePercent": 0.41820842193067953
+          },
+          {
+            "name": "scanForMissing",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/runtime/array-validity.js",
+            "line": 31,
+            "selfMs": 11.918,
+            "selfPercent": 0.06634641356383897,
+            "inclusivePercent": 0.06634641356383897
+          }
+        ]
+      }
+    ],
+    "historical-mac": [
+      {
+        "file": "/tmp/rank-569-profiles-historical-mac/505_bidirectional-0-0.cpuprofile",
+        "durationMs": 3906.375,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 2007.844,
+            "selfPercent": 51.39916162682794,
+            "inclusivePercent": 88.89208025343189
+          },
+          {
+            "name": "get",
+            "url": "file:///private/tmp/rank-569-historical/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 925.286,
+            "selfPercent": 23.686563629963842,
+            "inclusivePercent": 23.686563629963842
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-historical/packages/interpreter/out/function-invocation.js",
+            "line": 804,
+            "selfMs": 229.085,
+            "selfPercent": 5.864388339573134,
+            "inclusivePercent": 88.3950209593293
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-historical/packages/interpreter/out/function-invocation.js",
+            "line": 892,
+            "selfMs": 173.621,
+            "selfPercent": 4.444555374228025,
+            "inclusivePercent": 28.131119004191866
+          },
+          {
+            "name": "directFn",
+            "url": "file:///private/tmp/rank-569-historical/packages/interpreter/out/function-invocation.js",
+            "line": 1046,
+            "selfMs": 169.582,
+            "selfPercent": 4.341160282870948,
+            "inclusivePercent": 88.35767175450385
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 88.373,
+            "selfPercent": 2.262276407154971,
+            "inclusivePercent": 2.262276407154971
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 57.585,
+            "selfPercent": 1.474128827877508,
+            "inclusivePercent": 1.548801638347573
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 34.666,
+            "selfPercent": 0.8874212025215193,
+            "inclusivePercent": 0.8874212025215193
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 12.291,
+            "selfPercent": 0.31463953153499086,
+            "inclusivePercent": 0.7178522287286807
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 9.25,
+            "selfPercent": 0.23679242264247544,
+            "inclusivePercent": 0.23679242264247544
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 8.749,
+            "selfPercent": 0.22396723304854244,
+            "inclusivePercent": 3.507087773191258
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 8.417,
+            "selfPercent": 0.21546830501423955,
+            "inclusivePercent": 0.21546830501423955
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 7.791,
+            "selfPercent": 0.19944321781702987,
+            "inclusivePercent": 3.4686890019519376
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 7.584,
+            "selfPercent": 0.19414418738600364,
+            "inclusivePercent": 0.19414418738600364
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 7.543,
+            "selfPercent": 0.1930946209721289,
+            "inclusivePercent": 0.1930946209721289
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 7.334,
+            "selfPercent": 0.18774439217945027,
+            "inclusivePercent": 0.7178522287286807
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "",
+            "line": 0,
+            "selfMs": 6.042,
+            "selfPercent": 0.15467025055198233,
+            "inclusivePercent": 0.15467025055198233
+          },
+          {
+            "name": "open",
+            "url": "",
+            "line": 0,
+            "selfMs": 5.832,
+            "selfPercent": 0.1492944225784775,
+            "inclusivePercent": 0.1492944225784775
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 4.459,
+            "selfPercent": 0.11414674730408626,
+            "inclusivePercent": 0.11414674730408626
+          },
+          {
+            "name": "isOptionalProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 12,
+            "selfMs": 4.458,
+            "selfPercent": 0.11412114812326006,
+            "inclusivePercent": 0.15144475376787941
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 4.417,
+            "selfPercent": 0.1130715817093853,
+            "inclusivePercent": 0.1525199193625804
+          },
+          {
+            "name": "add",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 4.417,
+            "selfPercent": 0.1130715817093853,
+            "inclusivePercent": 0.1130715817093853
+          },
+          {
+            "name": "resolve",
+            "url": "node:path",
+            "line": 1245,
+            "selfMs": 4.25,
+            "selfPercent": 0.10879651851140763,
+            "inclusivePercent": 0.12372084093309015
+          },
+          {
+            "name": "read",
+            "url": "",
+            "line": 0,
+            "selfMs": 3.375,
+            "selfPercent": 0.08639723528847076,
+            "inclusivePercent": 0.08639723528847076
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 92,
+            "selfMs": 3.167,
+            "selfPercent": 0.08107260567661835,
+            "inclusivePercent": 0.08107260567661835
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 3.042,
+            "selfPercent": 0.07787270807334165,
+            "inclusivePercent": 0.348814437937986
+          },
+          {
+            "name": "getNearestParentPackageJSON",
+            "url": "",
+            "line": 0,
+            "selfMs": 3.0,
+            "selfPercent": 0.07679754247864068,
+            "inclusivePercent": 0.07679754247864068
+          },
+          {
+            "name": "_resolve",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/langium/lib/dependency-injection.js",
+            "line": 100,
+            "selfMs": 2.958,
+            "selfPercent": 0.07572237688393971,
+            "inclusivePercent": 1.6426226360756455
+          },
+          {
+            "name": "ModuleWrap",
+            "url": "",
+            "line": 0,
+            "selfMs": 2.917,
+            "selfPercent": 0.07467281047006495,
+            "inclusivePercent": 0.07467281047006495
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 2.833,
+            "selfPercent": 0.07252247928066302,
+            "inclusivePercent": 1.1519887363604364
+          },
+          {
+            "name": "closure",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 2.791,
+            "selfPercent": 0.07144731368596205,
+            "inclusivePercent": 0.1706441393875396
+          },
+          {
+            "name": "firstSet",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 243,
+            "selfMs": 2.542,
+            "selfPercent": 0.06507311766023487,
+            "inclusivePercent": 0.06507311766023487
+          },
+          {
+            "name": "addDFAState",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 520,
+            "selfMs": 2.5,
+            "selfPercent": 0.06399795206553391,
+            "inclusivePercent": 0.06399795206553391
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 2.417,
+            "selfPercent": 0.061873220056958174,
+            "inclusivePercent": 0.09919682570157755
+          },
+          {
+            "name": "walkOr",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/rest.js",
+            "line": 78,
+            "selfMs": 2.209,
+            "selfPercent": 0.056548590445105754,
+            "inclusivePercent": 0.1343956993376212
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 2.042,
+            "selfPercent": 0.05227352724712809,
+            "inclusivePercent": 0.05227352724712809
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 1.917,
+            "selfPercent": 0.049073629643851396,
+            "inclusivePercent": 0.12587117212249208
+          },
+          {
+            "name": "lookAheadSequenceFromAlternatives",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 368,
+            "selfMs": 1.708,
+            "selfPercent": 0.04372340085117276,
+            "inclusivePercent": 0.7615756295798535
+          },
+          {
+            "name": "resolvePackageTargetString",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 372,
+            "selfMs": 1.542,
+            "selfPercent": 0.03947393683402131,
+            "inclusivePercent": 0.03947393683402131
+          },
+          {
+            "name": "getPathFromURLPosix",
+            "url": "node:internal/url",
+            "line": 1559,
+            "selfMs": 1.542,
+            "selfPercent": 0.03947393683402131,
+            "inclusivePercent": 0.03947393683402131
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-profiles-historical-mac/505_bidirectional-0-1.cpuprofile",
+        "durationMs": 4190.708,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 1943.174,
+            "selfPercent": 46.36863269881843,
+            "inclusivePercent": 88.57286167397012
+          },
+          {
+            "name": "get",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 841.501,
+            "selfPercent": 20.080163065524967,
+            "inclusivePercent": 20.080163065524967
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 826,
+            "selfMs": 464.573,
+            "selfPercent": 11.0857878907335,
+            "inclusivePercent": 88.35607252998777
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 941,
+            "selfMs": 192.917,
+            "selfPercent": 4.60344648207415,
+            "inclusivePercent": 24.612046460884415
+          },
+          {
+            "name": "directFn",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1165,
+            "selfMs": 142.25,
+            "selfPercent": 3.3944144998888017,
+            "inclusivePercent": 88.28448558095673
+          },
+          {
+            "name": "tryNumber",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1124,
+            "selfMs": 94.332,
+            "selfPercent": 2.250980025332235,
+            "inclusivePercent": 2.321564757076847
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 89.749,
+            "selfPercent": 2.141619029529139,
+            "inclusivePercent": 88.28646615321325
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 79.588,
+            "selfPercent": 1.8991540331609837,
+            "inclusivePercent": 1.8991540331609837
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 52.378,
+            "selfPercent": 1.2498604054493894,
+            "inclusivePercent": 1.2498604054493894
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 40.332,
+            "selfPercent": 0.9624149427733929,
+            "inclusivePercent": 0.9624149427733929
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 15.834,
+            "selfPercent": 0.37783591698586494,
+            "inclusivePercent": 0.37783591698586494
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 13.499,
+            "selfPercent": 0.3221174083233668,
+            "inclusivePercent": 0.3221174083233668
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 11.083,
+            "selfPercent": 0.2644660520370305,
+            "inclusivePercent": 0.2644660520370305
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 10.167,
+            "selfPercent": 0.24260817026621756,
+            "inclusivePercent": 0.24260817026621756
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 7.959,
+            "selfPercent": 0.18992017577936712,
+            "inclusivePercent": 0.6780954435384188
+          },
+          {
+            "name": "read",
+            "url": "",
+            "line": 0,
+            "selfMs": 5.958,
+            "selfPercent": 0.14217168077565892,
+            "inclusivePercent": 0.14217168077565892
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 5.333,
+            "selfPercent": 0.1272577330608575,
+            "inclusivePercent": 3.484900403464045
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 4.832,
+            "selfPercent": 0.11530271257267269,
+            "inclusivePercent": 3.5206938779795682
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 4.624,
+            "selfPercent": 0.11033935077318677,
+            "inclusivePercent": 0.6780954435384188
+          },
+          {
+            "name": "open",
+            "url": "",
+            "line": 0,
+            "selfMs": 4.542,
+            "selfPercent": 0.10838264083300483,
+            "inclusivePercent": 0.10838264083300483
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 4.5,
+            "selfPercent": 0.10738042354657018,
+            "inclusivePercent": 0.10738042354657018
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 4.417,
+            "selfPercent": 0.10539985129004455,
+            "inclusivePercent": 0.21180191986652375
+          },
+          {
+            "name": "isOptionalProd",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 12,
+            "selfMs": 4.166,
+            "selfPercent": 0.0994104098877803,
+            "inclusivePercent": 0.13420166711686904
+          },
+          {
+            "name": "lookAheadSequenceFromAlternatives",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 368,
+            "selfMs": 4.042,
+            "selfPercent": 0.0964514826611637,
+            "inclusivePercent": 0.8113187556851968
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 3.917,
+            "selfPercent": 0.09346869311820341,
+            "inclusivePercent": 1.2984679438414701
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 3.458,
+            "selfPercent": 0.08251588991645326,
+            "inclusivePercent": 0.11830936443197665
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 3.042,
+            "selfPercent": 0.07258916631748144,
+            "inclusivePercent": 0.12131601629128061
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 3.041,
+            "selfPercent": 0.07256530400113775,
+            "inclusivePercent": 1.407828939644566
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "",
+            "line": 0,
+            "selfMs": 3.001,
+            "selfPercent": 0.07161081134739046,
+            "inclusivePercent": 0.07161081134739046
+          },
+          {
+            "name": "finalizeResolution",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 225,
+            "selfMs": 2.958,
+            "selfPercent": 0.07058473174461213,
+            "inclusivePercent": 0.5199598731288365
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///private/tmp/rank-569-before/packages/interpreter/out/function-invocation.js",
+            "line": 1143,
+            "selfMs": 2.958,
+            "selfPercent": 0.07058473174461213,
+            "inclusivePercent": 0.07058473174461213
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 2.875,
+            "selfPercent": 0.0686041594880865,
+            "inclusivePercent": 0.0686041594880865
+          },
+          {
+            "name": "visitChildren",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/regexp-to-ast/lib/src/base-regexp-visitor.js",
+            "line": 2,
+            "selfMs": 2.791,
+            "selfPercent": 0.06659972491521719,
+            "inclusivePercent": 0.06659972491521719
+          },
+          {
+            "name": "resolve",
+            "url": "node:path",
+            "line": 1245,
+            "selfMs": 2.709,
+            "selfPercent": 0.06464301497503525,
+            "inclusivePercent": 0.10043648949055864
+          },
+          {
+            "name": "accept",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 24,
+            "selfMs": 2.709,
+            "selfPercent": 0.06464301497503525,
+            "inclusivePercent": 0.08848146900237382
+          },
+          {
+            "name": "getEpsilonTarget",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 581,
+            "selfMs": 2.458,
+            "selfPercent": 0.058653573572771,
+            "inclusivePercent": 0.058653573572771
+          },
+          {
+            "name": "#asyncInstantiate",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 304,
+            "selfMs": 2.417,
+            "selfPercent": 0.057675218602680024,
+            "inclusivePercent": 0.057675218602680024
+          },
+          {
+            "name": "closure",
+            "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 2.417,
+            "selfPercent": 0.057675218602680024,
+            "inclusivePercent": 0.15212226669097442
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 79,
+            "selfMs": 2.083,
+            "selfPercent": 0.04970520494389015,
+            "inclusivePercent": 0.04970520494389015
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 2.0,
+            "selfPercent": 0.04772463268736452,
+            "inclusivePercent": 0.04772463268736452
+          }
+        ]
+      }
+    ],
+    "intel": [
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-intel/505_bidirectional-0-0.cpuprofile",
+        "durationMs": 13069.454,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 5188.47,
+            "selfPercent": 39.69921008176776,
+            "inclusivePercent": 92.94374501031183
+          },
+          {
+            "name": "get",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 3804.563,
+            "selfPercent": 29.110343859812353,
+            "inclusivePercent": 29.110343859812353
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 826,
+            "selfMs": 1717.758,
+            "selfPercent": 13.143303461644228,
+            "inclusivePercent": 92.94374501031183
+          },
+          {
+            "name": "directFn",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1165,
+            "selfMs": 529.154,
+            "selfPercent": 4.048784287392572,
+            "inclusivePercent": 92.99304316767939
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 941,
+            "selfMs": 478.298,
+            "selfPercent": 3.6596632116383745,
+            "inclusivePercent": 32.74520878990048
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 276.04,
+            "selfPercent": 2.1121004748935954,
+            "inclusivePercent": 93.04315237652621
+          },
+          {
+            "name": "tryNumber",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1124,
+            "selfMs": 198.54,
+            "selfPercent": 1.5191147235378004,
+            "inclusivePercent": 1.6184761811778825
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 132.354,
+            "selfPercent": 1.0126972404509018,
+            "inclusivePercent": 1.0126972404509018
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 129.841,
+            "selfPercent": 0.9934691992488746,
+            "inclusivePercent": 1.043195836643214
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 24.967,
+            "selfPercent": 0.19103322908516301,
+            "inclusivePercent": 0.4622381317536295
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 23.062,
+            "selfPercent": 0.17645725674538507,
+            "inclusivePercent": 0.17645725674538507
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 22.881,
+            "selfPercent": 0.17507234808737993,
+            "inclusivePercent": 0.17507234808737993
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 17.054,
+            "selfPercent": 0.13048747101447392,
+            "inclusivePercent": 0.24925295272472744
+          },
+          {
+            "name": "add",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 16.434,
+            "selfPercent": 0.12574358500362753,
+            "inclusivePercent": 0.14656312344800326
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 16.158,
+            "selfPercent": 0.12363179058589593,
+            "inclusivePercent": 0.12363179058589593
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 12.351,
+            "selfPercent": 0.09450280019348933,
+            "inclusivePercent": 0.09450280019348933
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1143,
+            "selfMs": 11.921,
+            "selfPercent": 0.0912126857020959,
+            "inclusivePercent": 0.0912126857020959
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 11.555,
+            "selfPercent": 0.0884122626698866,
+            "inclusivePercent": 0.46232229747317677
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 10.719,
+            "selfPercent": 0.08201566798429376,
+            "inclusivePercent": 2.746511063124749
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 10.711,
+            "selfPercent": 0.08195445655189575,
+            "inclusivePercent": 0.08195445655189575
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 10.361,
+            "selfPercent": 0.07927645638448247,
+            "inclusivePercent": 2.738392896902962
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 9.692,
+            "selfPercent": 0.07415765035019825,
+            "inclusivePercent": 1.0897318281238069
+          },
+          {
+            "name": "firstForSequence",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/first.js",
+            "line": 28,
+            "selfMs": 8.595,
+            "selfPercent": 0.0657640326826201,
+            "inclusivePercent": 0.07516763898476554
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 8.436,
+            "selfPercent": 0.0645474554637095,
+            "inclusivePercent": 0.0645474554637095
+          },
+          {
+            "name": "resolve",
+            "url": "node:path",
+            "line": 1245,
+            "selfMs": 8.313,
+            "selfPercent": 0.06360632969058998,
+            "inclusivePercent": 0.10471745797490851
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 8.256,
+            "selfPercent": 0.0631701982347541,
+            "inclusivePercent": 0.0631701982347541
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 8.132,
+            "selfPercent": 0.06222142103258484,
+            "inclusivePercent": 0.11979077320292034
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 7.65,
+            "selfPercent": 0.058533432230604275,
+            "inclusivePercent": 1.0002024568126564
+          },
+          {
+            "name": "#asyncInstantiate",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 304,
+            "selfMs": 7.404,
+            "selfPercent": 0.05665118068436524,
+            "inclusivePercent": 0.06483055833855034
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 7.228,
+            "selfPercent": 0.05530452917160885,
+            "inclusivePercent": 0.08032470216429852
+          },
+          {
+            "name": "defaultLoadSync",
+            "url": "node:internal/modules/esm/load",
+            "line": 132,
+            "selfMs": 6.577,
+            "selfPercent": 0.05032344886022017,
+            "inclusivePercent": 0.17964025123008198
+          },
+          {
+            "name": "closure",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 6.525,
+            "selfPercent": 0.04992557454963306,
+            "inclusivePercent": 0.17191230788983228
+          },
+          {
+            "name": "lookAheadSequenceFromAlternatives",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 368,
+            "selfMs": 6.199,
+            "selfPercent": 0.04743120867941385,
+            "inclusivePercent": 0.5513925830413421
+          },
+          {
+            "name": "normalizeString",
+            "url": "node:path",
+            "line": 92,
+            "selfMs": 5.962,
+            "selfPercent": 0.045617819994622576,
+            "inclusivePercent": 0.045617819994622576
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 5.372,
+            "selfPercent": 0.04110347685526878,
+            "inclusivePercent": 0.06566456410497332
+          },
+          {
+            "name": "finalizeResolution",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 225,
+            "selfMs": 5.371,
+            "selfPercent": 0.04109582542621903,
+            "inclusivePercent": 0.43140287268312816
+          },
+          {
+            "name": "ModuleWrap",
+            "url": "",
+            "line": 0,
+            "selfMs": 5.361,
+            "selfPercent": 0.041019311135721506,
+            "inclusivePercent": 0.041019311135721506
+          },
+          {
+            "name": "read",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 122,
+            "selfMs": 5.357,
+            "selfPercent": 0.0409887054195225,
+            "inclusivePercent": 0.05802843791332063
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 92,
+            "selfMs": 5.251,
+            "selfPercent": 0.04017765394024877,
+            "inclusivePercent": 0.04017765394024877
+          },
+          {
+            "name": "update",
+            "url": "",
+            "line": 0,
+            "selfMs": 4.275,
+            "selfPercent": 0.03270985918769063,
+            "inclusivePercent": 0.03270985918769063
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-intel/505_bidirectional-0-1.cpuprofile",
+        "durationMs": 12422.974,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 5333.775,
+            "selfPercent": 42.934767471943516,
+            "inclusivePercent": 92.69753764275768
+          },
+          {
+            "name": "get",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 2989.367,
+            "selfPercent": 24.06321545871383,
+            "inclusivePercent": 24.06321545871383
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 826,
+            "selfMs": 1832.193,
+            "selfPercent": 14.748424974567282,
+            "inclusivePercent": 92.65408588957845
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 941,
+            "selfMs": 499.52,
+            "selfPercent": 4.020937337548964,
+            "inclusivePercent": 28.058120382446265
+          },
+          {
+            "name": "directFn",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1165,
+            "selfMs": 442.808,
+            "selfPercent": 3.5644282922913626,
+            "inclusivePercent": 92.68899701472449
+          },
+          {
+            "name": "tryNumber",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1124,
+            "selfMs": 228.145,
+            "selfPercent": 1.8364765152048133,
+            "inclusivePercent": 1.9338606037491506
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 218.109,
+            "selfPercent": 1.7556907065892595,
+            "inclusivePercent": 92.68906141154284
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 142.707,
+            "selfPercent": 1.148734594469891,
+            "inclusivePercent": 1.148734594469891
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 123.963,
+            "selfPercent": 0.9978528490842853,
+            "inclusivePercent": 1.0676509505694851
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 27.514,
+            "selfPercent": 0.2214767574978423,
+            "inclusivePercent": 0.2214767574978423
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 21.381,
+            "selfPercent": 0.1721085466330365,
+            "inclusivePercent": 0.1721085466330365
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 19.663,
+            "selfPercent": 0.15827932989314797,
+            "inclusivePercent": 0.46243355254546936
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 19.035,
+            "selfPercent": 0.1532241796529559,
+            "inclusivePercent": 0.3543193441441639
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 18.537,
+            "selfPercent": 0.14921547771089275,
+            "inclusivePercent": 0.14921547771089275
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 14.985,
+            "selfPercent": 0.12062329036509294,
+            "inclusivePercent": 2.8866517791955455
+          },
+          {
+            "name": "add",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 13.476,
+            "selfPercent": 0.10847644050450399,
+            "inclusivePercent": 0.1307335908454771
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 12.325,
+            "selfPercent": 0.09921134826491627,
+            "inclusivePercent": 0.09921134826491627
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1143,
+            "selfMs": 12.098,
+            "selfPercent": 0.09738408854433729,
+            "inclusivePercent": 0.09738408854433729
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 11.458,
+            "selfPercent": 0.09223234307662562,
+            "inclusivePercent": 0.09223234307662562
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 10.907,
+            "selfPercent": 0.0877970122130176,
+            "inclusivePercent": 0.10480582185875942
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 79,
+            "selfMs": 10.838,
+            "selfPercent": 0.08724158965477993,
+            "inclusivePercent": 0.08724158965477993
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 10.281,
+            "selfPercent": 0.0827579611774121,
+            "inclusivePercent": 0.4625140485684024
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 9.786,
+            "selfPercent": 0.07877340804222886,
+            "inclusivePercent": 1.2144595971946814
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 9.763,
+            "selfPercent": 0.07858826718948297,
+            "inclusivePercent": 0.07858826718948297
+          },
+          {
+            "name": "URL",
+            "url": "node:internal/url",
+            "line": 803,
+            "selfMs": 9.728,
+            "selfPercent": 0.07830653110921748,
+            "inclusivePercent": 0.2213399142588562
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 9.5,
+            "selfPercent": 0.0764712217863452,
+            "inclusivePercent": 2.869393431878711
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "",
+            "line": 0,
+            "selfMs": 8.71,
+            "selfPercent": 0.0701120359746386,
+            "inclusivePercent": 0.0701120359746386
+          },
+          {
+            "name": "ModuleWrap",
+            "url": "",
+            "line": 0,
+            "selfMs": 8.671,
+            "selfPercent": 0.06979810148519992,
+            "inclusivePercent": 0.06979810148519992
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 8.02,
+            "selfPercent": 0.06455781039226195,
+            "inclusivePercent": 1.0823817227662234
+          },
+          {
+            "name": "defaultLoadSync",
+            "url": "node:internal/modules/esm/load",
+            "line": 132,
+            "selfMs": 7.684,
+            "selfPercent": 0.06185314402171332,
+            "inclusivePercent": 0.18117239881529174
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 7.184,
+            "selfPercent": 0.057828342875063575,
+            "inclusivePercent": 0.057828342875063575
+          },
+          {
+            "name": "pathToFileURL",
+            "url": "",
+            "line": 0,
+            "selfMs": 6.542,
+            "selfPercent": 0.0526604982027653,
+            "inclusivePercent": 0.0526604982027653
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 24,
+            "selfMs": 6.528,
+            "selfPercent": 0.0525478037706591,
+            "inclusivePercent": 0.08332948294023637
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/rest.js",
+            "line": 7,
+            "selfMs": 5.987,
+            "selfPercent": 0.04819296892998408,
+            "inclusivePercent": 0.22432631670967032
+          },
+          {
+            "name": "firstSet",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 243,
+            "selfMs": 5.761,
+            "selfPercent": 0.04637375881169839,
+            "inclusivePercent": 0.04637375881169839
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 5.745,
+            "selfPercent": 0.0462449651750056,
+            "inclusivePercent": 0.08994625602532856
+          },
+          {
+            "name": "isOptionalProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/@chevrotain/gast/lib/src/helpers.js",
+            "line": 12,
+            "selfMs": 5.727,
+            "selfPercent": 0.046100072333726205,
+            "inclusivePercent": 0.09864787610438532
+          },
+          {
+            "name": "#asyncInstantiate",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 304,
+            "selfMs": 5.42,
+            "selfPercent": 0.04362884442968326,
+            "inclusivePercent": 0.07002349034941231
+          },
+          {
+            "name": "closure",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 4.724,
+            "selfPercent": 0.038026321233546816,
+            "inclusivePercent": 0.14934427134758552
+          },
+          {
+            "name": "Alternative",
+            "url": "file:///srv/rank-bench/repo/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 59,
+            "selfMs": 4.498,
+            "selfPercent": 0.03620711111526113,
+            "inclusivePercent": 0.03620711111526113
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-intel/792_toomanytwos-0-0.cpuprofile",
+        "durationMs": 39094.96,
+        "top": [
+          {
+            "name": "floorRemainder",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/numeric-division.js",
+            "line": 37,
+            "selfMs": 6522.137,
+            "selfPercent": 16.682807707182715,
+            "inclusivePercent": 16.682807707182715
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/concat-array.js",
+            "line": 236,
+            "selfMs": 4826.575,
+            "selfPercent": 12.345772958969647,
+            "inclusivePercent": 13.451559996480364
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 4465.832,
+            "selfPercent": 11.423037649865865,
+            "inclusivePercent": 11.423037649865865
+          },
+          {
+            "name": "arrayValues",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 125,
+            "selfMs": 2493.302,
+            "selfPercent": 6.377553526081111,
+            "inclusivePercent": 20.59751435990726
+          },
+          {
+            "name": "collectValues",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 161,
+            "selfMs": 2309.962,
+            "selfPercent": 5.908592821171834,
+            "inclusivePercent": 27.44944872689472
+          },
+          {
+            "name": "operation",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 27,
+            "selfMs": 2297.816,
+            "selfPercent": 5.877524877887073,
+            "inclusivePercent": 5.877524877887073
+          },
+          {
+            "name": "materializeValue",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/materialize.js",
+            "line": 24,
+            "selfMs": 2276.856,
+            "selfPercent": 5.823911829043948,
+            "inclusivePercent": 45.71920779558286
+          },
+          {
+            "name": "enter",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/materialize.js",
+            "line": 31,
+            "selfMs": 1588.437,
+            "selfPercent": 4.063022445860029,
+            "inclusivePercent": 32.35621676042129
+          },
+          {
+            "name": "set",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1026,
+            "selfMs": 1578.384,
+            "selfPercent": 4.037308133836177,
+            "inclusivePercent": 4.417421069109675
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 1479.729,
+            "selfPercent": 3.7849610282246102,
+            "inclusivePercent": 36.01572939325171
+          },
+          {
+            "name": "ownedArray",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 866,
+            "selfMs": 1219.299,
+            "selfPercent": 3.118813780599852,
+            "inclusivePercent": 7.6504490604415505
+          },
+          {
+            "name": "stored",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/eval/assignments.js",
+            "line": 541,
+            "selfMs": 1115.866,
+            "selfPercent": 2.8542451507815843,
+            "inclusivePercent": 48.703896870594065
+          },
+          {
+            "name": "mapStoredIntegers",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 22,
+            "selfMs": 1086.82,
+            "selfPercent": 2.779949128992586,
+            "inclusivePercent": 31.567542210044465
+          },
+          {
+            "name": "createOwned",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1328,
+            "selfMs": 1004.484,
+            "selfPercent": 2.5693439768195185,
+            "inclusivePercent": 4.400608160233442
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1342,
+            "selfMs": 725.706,
+            "selfPercent": 1.8562648484612851,
+            "inclusivePercent": 1.8562648484612851
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/integer-view.js",
+            "line": 160,
+            "selfMs": 477.125,
+            "selfPercent": 1.2204258554043794,
+            "inclusivePercent": 1.2204258554043794
+          },
+          {
+            "name": "operation",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 26,
+            "selfMs": 447.355,
+            "selfPercent": 1.1442779325007622,
+            "inclusivePercent": 1.1442779325007622
+          },
+          {
+            "name": "write",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/binding-cells.js",
+            "line": 25,
+            "selfMs": 295.345,
+            "selfPercent": 0.7554554346647241,
+            "inclusivePercent": 0.9542585540437949
+          },
+          {
+            "name": "mapStoredInt32Binary",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 212,
+            "selfMs": 233.88,
+            "selfPercent": 0.5982356805071549,
+            "inclusivePercent": 0.7070348709910433
+          },
+          {
+            "name": "mapDenseArrays",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/tensor.js",
+            "line": 65,
+            "selfMs": 185.1,
+            "selfPercent": 0.47346256397244046,
+            "inclusivePercent": 32.09822954160843
+          },
+          {
+            "name": "copyStoredArrayBlocks",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-copy.js",
+            "line": 132,
+            "selfMs": 154.127,
+            "selfPercent": 0.3942375180841725,
+            "inclusivePercent": 0.4054435661271939
+          },
+          {
+            "name": "widenInt32",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 220,
+            "selfMs": 147.51,
+            "selfPercent": 0.37731206273135975,
+            "inclusivePercent": 0.37731206273135975
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 125.269,
+            "selfPercent": 0.32042237669510343,
+            "inclusivePercent": 0.3286868691002625
+          },
+          {
+            "name": "packedIntegers",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 969,
+            "selfMs": 95.192,
+            "selfPercent": 0.24348918632990033,
+            "inclusivePercent": 0.24348918632990033
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 92.11,
+            "selfPercent": 0.23560581722042945,
+            "inclusivePercent": 0.23560581722042945
+          },
+          {
+            "name": "collectArrayCellsInto",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 205,
+            "selfMs": 81.423,
+            "selfPercent": 0.20826981278405196,
+            "inclusivePercent": 27.657718539678772
+          },
+          {
+            "name": "reduceAt",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/reduction.js",
+            "line": 608,
+            "selfMs": 73.801,
+            "selfPercent": 0.18877369359119436,
+            "inclusivePercent": 0.2641158860374841
+          },
+          {
+            "name": "IntegerCells",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 984,
+            "selfMs": 72.231,
+            "selfPercent": 0.18475783067689544,
+            "inclusivePercent": 0.18475783067689544
+          },
+          {
+            "name": "readArrayItem",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 387,
+            "selfMs": 71.771,
+            "selfPercent": 0.18358120842175052,
+            "inclusivePercent": 0.8814998148098886
+          },
+          {
+            "name": "ownedScalarArray",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 912,
+            "selfMs": 51.045,
+            "selfPercent": 0.13056670220406927,
+            "inclusivePercent": 0.18961779216553745
+          },
+          {
+            "name": "invoke",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/tensor-kernel.js",
+            "line": 540,
+            "selfMs": 41.357,
+            "selfPercent": 0.10578601436093041,
+            "inclusivePercent": 4.1469949067603595
+          },
+          {
+            "name": "arrayElementTypes",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-element-types.js",
+            "line": 7,
+            "selfMs": 35.76,
+            "selfPercent": 0.09146959096517812,
+            "inclusivePercent": 0.1512087491584593
+          },
+          {
+            "name": "mapStoredUnary",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/unary-array-kernel.js",
+            "line": 8,
+            "selfMs": 31.372,
+            "selfPercent": 0.08024563780088277,
+            "inclusivePercent": 0.1077606934499997
+          },
+          {
+            "name": "storedScalarKinds",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 48,
+            "selfMs": 28.678,
+            "selfPercent": 0.07335472398488194,
+            "inclusivePercent": 0.07335472398488194
+          },
+          {
+            "name": "consumeSafeIntegerBuffer",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 208,
+            "selfMs": 28.458,
+            "selfPercent": 0.07279199160198654,
+            "inclusivePercent": 0.07279199160198654
+          },
+          {
+            "name": "applyCell",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/rank-application.js",
+            "line": 224,
+            "selfMs": 27.483,
+            "selfPercent": 0.07029806399597288,
+            "inclusivePercent": 0.09875185957473802
+          },
+          {
+            "name": "integerArray",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/numeric-conversions.js",
+            "line": 8,
+            "selfMs": 27.33,
+            "selfPercent": 0.06990670920241382,
+            "inclusivePercent": 0.14932871142469514
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/tensor.js",
+            "line": 25,
+            "selfMs": 27.309,
+            "selfPercent": 0.06985299383859198,
+            "inclusivePercent": 0.3322320831125035
+          },
+          {
+            "name": "itemAt",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/derived-array.js",
+            "line": 56,
+            "selfMs": 26.042,
+            "selfPercent": 0.06661216688800807,
+            "inclusivePercent": 0.7975810692733795
+          },
+          {
+            "name": "isStoredValue",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/stored-value.js",
+            "line": 18,
+            "selfMs": 26.011,
+            "selfPercent": 0.06653287277950917,
+            "inclusivePercent": 0.06653287277950917
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-intel/792_toomanytwos-0-1.cpuprofile",
+        "durationMs": 38207.905,
+        "top": [
+          {
+            "name": "floorRemainder",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/numeric-division.js",
+            "line": 37,
+            "selfMs": 6308.925,
+            "selfPercent": 16.512093505257617,
+            "inclusivePercent": 16.512093505257617
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/concat-array.js",
+            "line": 236,
+            "selfMs": 4609.687,
+            "selfPercent": 12.06474681090209,
+            "inclusivePercent": 13.13097643013926
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 4391.335,
+            "selfPercent": 11.493262977909938,
+            "inclusivePercent": 11.493262977909938
+          },
+          {
+            "name": "arrayValues",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 125,
+            "selfMs": 2555.47,
+            "selfPercent": 6.688327978202416,
+            "inclusivePercent": 20.51341731508179
+          },
+          {
+            "name": "collectValues",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 161,
+            "selfMs": 2311.731,
+            "selfPercent": 6.050399779836136,
+            "inclusivePercent": 27.568692918389534
+          },
+          {
+            "name": "operation",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 27,
+            "selfMs": 2294.357,
+            "selfPercent": 6.0049275143455265,
+            "inclusivePercent": 6.0049275143455265
+          },
+          {
+            "name": "materializeValue",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/materialize.js",
+            "line": 24,
+            "selfMs": 2191.993,
+            "selfPercent": 5.737014369146908,
+            "inclusivePercent": 45.66771980824387
+          },
+          {
+            "name": "enter",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/materialize.js",
+            "line": 31,
+            "selfMs": 1516.593,
+            "selfPercent": 3.9693173441464533,
+            "inclusivePercent": 32.29006929325227
+          },
+          {
+            "name": "set",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1026,
+            "selfMs": 1461.44,
+            "selfPercent": 3.824967634315464,
+            "inclusivePercent": 4.257454053029079
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 1422.364,
+            "selfPercent": 3.7226956044828943,
+            "inclusivePercent": 35.8432894972912
+          },
+          {
+            "name": "ownedArray",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 866,
+            "selfMs": 1236.313,
+            "selfPercent": 3.235751868625092,
+            "inclusivePercent": 7.719727108827349
+          },
+          {
+            "name": "stored",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/eval/assignments.js",
+            "line": 541,
+            "selfMs": 1093.1,
+            "selfPercent": 2.86092629260882,
+            "inclusivePercent": 48.65054234195777
+          },
+          {
+            "name": "mapStoredIntegers",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 22,
+            "selfMs": 1061.363,
+            "selfPercent": 2.777862329797983,
+            "inclusivePercent": 31.422746156848955
+          },
+          {
+            "name": "createOwned",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1328,
+            "selfMs": 992.787,
+            "selfPercent": 2.598381146519287,
+            "inclusivePercent": 4.401186089632499
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 1342,
+            "selfMs": 703.412,
+            "selfPercent": 1.8410116964015693,
+            "inclusivePercent": 1.8410116964015693
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/integer-view.js",
+            "line": 160,
+            "selfMs": 456.379,
+            "selfPercent": 1.1944622454437113,
+            "inclusivePercent": 1.1944622454437113
+          },
+          {
+            "name": "operation",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 26,
+            "selfMs": 451.17,
+            "selfPercent": 1.1808289410267325,
+            "inclusivePercent": 1.1808289410267325
+          },
+          {
+            "name": "write",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/binding-cells.js",
+            "line": 25,
+            "selfMs": 297.724,
+            "selfPercent": 0.7792209491726908,
+            "inclusivePercent": 1.0020256279426993
+          },
+          {
+            "name": "mapStoredInt32Binary",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/integer-array-kernel.js",
+            "line": 212,
+            "selfMs": 238.491,
+            "selfPercent": 0.6241928208311867,
+            "inclusivePercent": 0.7209633713232902
+          },
+          {
+            "name": "widenInt32",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 220,
+            "selfMs": 165.244,
+            "selfPercent": 0.4324864187136144,
+            "inclusivePercent": 0.4324864187136144
+          },
+          {
+            "name": "mapDenseArrays",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/tensor.js",
+            "line": 65,
+            "selfMs": 162.195,
+            "selfPercent": 0.4245063946845555,
+            "inclusivePercent": 31.929625557852493
+          },
+          {
+            "name": "copyStoredArrayBlocks",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-copy.js",
+            "line": 132,
+            "selfMs": 149.536,
+            "selfPercent": 0.39137450744813146,
+            "inclusivePercent": 0.39709583658146136
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 137.38,
+            "selfPercent": 0.35955910170944994,
+            "inclusivePercent": 0.3765215601326479
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 106.184,
+            "selfPercent": 0.27791107625503153,
+            "inclusivePercent": 0.27791107625503153
+          },
+          {
+            "name": "packedIntegers",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 969,
+            "selfMs": 80.815,
+            "selfPercent": 0.21151382155080212,
+            "inclusivePercent": 0.21505235631212966
+          },
+          {
+            "name": "reduceAt",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/reduction.js",
+            "line": 608,
+            "selfMs": 71.009,
+            "selfPercent": 0.1858489754934221,
+            "inclusivePercent": 0.2652356887926726
+          },
+          {
+            "name": "readArrayItem",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 387,
+            "selfMs": 65.585,
+            "selfPercent": 0.17165296029709035,
+            "inclusivePercent": 0.8766144074112412
+          },
+          {
+            "name": "IntegerCells",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 984,
+            "selfMs": 64.464,
+            "selfPercent": 0.16871901246613757,
+            "inclusivePercent": 0.16871901246613757
+          },
+          {
+            "name": "collectArrayCellsInto",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 205,
+            "selfMs": 61.396,
+            "selfPercent": 0.1606892605077405,
+            "inclusivePercent": 27.72938217889727
+          },
+          {
+            "name": "ownedScalarArray",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 912,
+            "selfMs": 58.543,
+            "selfPercent": 0.1532222193286965,
+            "inclusivePercent": 0.21648923174405924
+          },
+          {
+            "name": "invoke",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/tensor-kernel.js",
+            "line": 540,
+            "selfMs": 38.798,
+            "selfPercent": 0.10154443170856921,
+            "inclusivePercent": 4.0966679539221005
+          },
+          {
+            "name": "cellAt",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/rank-application.js",
+            "line": 491,
+            "selfMs": 34.836,
+            "selfPercent": 0.09117484981183868,
+            "inclusivePercent": 0.3863755419199247
+          },
+          {
+            "name": "applyCell",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/rank-application.js",
+            "line": 224,
+            "selfMs": 32.719,
+            "selfPercent": 0.08563411157978958,
+            "inclusivePercent": 0.10261227355962071
+          },
+          {
+            "name": "mapStoredUnary",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/jit/unary-array-kernel.js",
+            "line": 8,
+            "selfMs": 32.188,
+            "selfPercent": 0.0842443468177593,
+            "inclusivePercent": 0.09929882311003443
+          },
+          {
+            "name": "storedScalarKinds",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/owned-array.js",
+            "line": 48,
+            "selfMs": 31.442,
+            "selfPercent": 0.08229187127637592,
+            "inclusivePercent": 0.08229187127637592
+          },
+          {
+            "name": "evaluateArrayItem",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/array-read.js",
+            "line": 414,
+            "selfMs": 30.683,
+            "selfPercent": 0.08030537136228746,
+            "inclusivePercent": 0.5074473463017666
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 27.73,
+            "selfPercent": 0.07257660423935833,
+            "inclusivePercent": 0.153531055942481
+          },
+          {
+            "name": "semanticArrayType",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/semantic-array-type.js",
+            "line": 18,
+            "selfMs": 26.053,
+            "selfPercent": 0.06818746016040397,
+            "inclusivePercent": 0.11145075868462298
+          },
+          {
+            "name": "isStoredValue",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/runtime/stored-value.js",
+            "line": 18,
+            "selfMs": 26.041,
+            "selfPercent": 0.06815605304713776,
+            "inclusivePercent": 0.06815605304713776
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 25.299,
+            "selfPercent": 0.06621404654350978,
+            "inclusivePercent": 0.06621404654350978
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-historical-intel/505_bidirectional-0-0.cpuprofile",
+        "durationMs": 10827.906,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 5193.007,
+            "selfPercent": 47.95947619050258,
+            "inclusivePercent": 92.12375873968614
+          },
+          {
+            "name": "get",
+            "url": "file:///srv/rank-issue-569/historical/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 3058.084,
+            "selfPercent": 28.24261680882712,
+            "inclusivePercent": 28.24261680882712
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/historical/packages/interpreter/out/function-invocation.js",
+            "line": 804,
+            "selfMs": 922.169,
+            "selfPercent": 8.516595914297742,
+            "inclusivePercent": 92.04153600890145
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/historical/packages/interpreter/out/function-invocation.js",
+            "line": 892,
+            "selfMs": 450.776,
+            "selfPercent": 4.163094877255122,
+            "inclusivePercent": 32.40571168608224
+          },
+          {
+            "name": "directFn",
+            "url": "file:///srv/rank-issue-569/historical/packages/interpreter/out/function-invocation.js",
+            "line": 1046,
+            "selfMs": 392.116,
+            "selfPercent": 3.62134654659913,
+            "inclusivePercent": 92.04161912746564
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 112.24,
+            "selfPercent": 1.0365808495197502,
+            "inclusivePercent": 1.0690617373294522
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 107.143,
+            "selfPercent": 0.9895080359951407,
+            "inclusivePercent": 0.9895080359951407
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 27.233,
+            "selfPercent": 0.2515075398696664,
+            "inclusivePercent": 0.5279229428109183
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 21.51,
+            "selfPercent": 0.19865336843522655,
+            "inclusivePercent": 0.19865336843522655
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 19.226,
+            "selfPercent": 0.17755972392076547,
+            "inclusivePercent": 0.17755972392076547
+          },
+          {
+            "name": "add",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 17.163,
+            "selfPercent": 0.15850710192718703,
+            "inclusivePercent": 0.21568343869996656
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 16.969,
+            "selfPercent": 0.15671543509890093,
+            "inclusivePercent": 0.15671543509890093
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 15.236,
+            "selfPercent": 0.14071049379261327,
+            "inclusivePercent": 0.35084345948330176
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 13.14,
+            "selfPercent": 0.12135310373030575,
+            "inclusivePercent": 0.17262802244496767
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 12.984,
+            "selfPercent": 0.1199123819508592,
+            "inclusivePercent": 0.1199123819508592
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 12.961,
+            "selfPercent": 0.11969996784235105,
+            "inclusivePercent": 0.5279229428109183
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 12.145,
+            "selfPercent": 0.11216388468832293,
+            "inclusivePercent": 1.4007786916509988
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "",
+            "line": 0,
+            "selfMs": 11.872,
+            "selfPercent": 0.10964262157429147,
+            "inclusivePercent": 0.10964262157429147
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 11.421,
+            "selfPercent": 0.10547745796832739,
+            "inclusivePercent": 0.10547745796832739
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 11.262,
+            "selfPercent": 0.10400903000081456,
+            "inclusivePercent": 3.17565556996893
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 9.756,
+            "selfPercent": 0.09010052359154208,
+            "inclusivePercent": 0.09010052359154208
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 9.601,
+            "selfPercent": 0.08866903720811761,
+            "inclusivePercent": 3.1658660501855116
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 8.897,
+            "selfPercent": 0.08216731840856395,
+            "inclusivePercent": 0.08216731840856395
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 8.807,
+            "selfPercent": 0.08133613276657554,
+            "inclusivePercent": 0.11150817157075431
+          },
+          {
+            "name": "get",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 79,
+            "selfMs": 7.6,
+            "selfPercent": 0.07018900976790896,
+            "inclusivePercent": 0.07018900976790896
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 7.269,
+            "selfPercent": 0.06713209368459608,
+            "inclusivePercent": 0.06713209368459608
+          },
+          {
+            "name": "firstForSequence",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/first.js",
+            "line": 28,
+            "selfMs": 6.55,
+            "selfPercent": 0.06049184394471101,
+            "inclusivePercent": 0.0844392258299989
+          },
+          {
+            "name": "read",
+            "url": "",
+            "line": 0,
+            "selfMs": 6.539,
+            "selfPercent": 0.06039025458846798,
+            "inclusivePercent": 0.06039025458846798
+          },
+          {
+            "name": "finalizeResolution",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 225,
+            "selfMs": 6.534,
+            "selfPercent": 0.06034407760835751,
+            "inclusivePercent": 0.4521557538456651
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 5.528,
+            "selfPercent": 0.051053269210131674,
+            "inclusivePercent": 1.2379863659695605
+          },
+          {
+            "name": "#asyncInstantiate",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 304,
+            "selfMs": 5.512,
+            "selfPercent": 0.05090550287377818,
+            "inclusivePercent": 0.07075236892525665
+          },
+          {
+            "name": "open",
+            "url": "",
+            "line": 0,
+            "selfMs": 5.43,
+            "selfPercent": 0.05014820039996653,
+            "inclusivePercent": 0.05014820039996653
+          },
+          {
+            "name": "containsPath",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 440,
+            "selfMs": 5.384,
+            "selfPercent": 0.04972337218295024,
+            "inclusivePercent": 0.04972337218295024
+          },
+          {
+            "name": "lookAheadSequenceFromAlternatives",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 368,
+            "selfMs": 4.594,
+            "selfPercent": 0.042427409325496546,
+            "inclusivePercent": 0.6603215801836477
+          },
+          {
+            "name": "accept",
+            "url": "file:///srv/rank-bench/repo/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 24,
+            "selfMs": 4.57,
+            "selfPercent": 0.042205759820966304,
+            "inclusivePercent": 0.04371112937256751
+          },
+          {
+            "name": "URL",
+            "url": "node:internal/url",
+            "line": 803,
+            "selfMs": 4.358,
+            "selfPercent": 0.040247855864282533,
+            "inclusivePercent": 0.24892162898348028
+          },
+          {
+            "name": "update",
+            "url": "",
+            "line": 0,
+            "selfMs": 4.35,
+            "selfPercent": 0.040173972696105786,
+            "inclusivePercent": 0.040173972696105786
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/langium/lib/utils/stream.js",
+            "line": 24,
+            "selfMs": 4.218,
+            "selfPercent": 0.03895490042118947,
+            "inclusivePercent": 0.03895490042118947
+          },
+          {
+            "name": "getATNConfigKey",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 43,
+            "selfMs": 4.032,
+            "selfPercent": 0.03723711676108012,
+            "inclusivePercent": 0.03723711676108012
+          },
+          {
+            "name": "closure",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 3.74,
+            "selfPercent": 0.03454038112262888,
+            "inclusivePercent": 0.23560418791962176
+          }
+        ]
+      },
+      {
+        "file": "/tmp/rank-569-intel-evidence/profiles-historical-intel/505_bidirectional-0-1.cpuprofile",
+        "durationMs": 13085.622,
+        "top": [
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 5,
+            "selfMs": 5751.76,
+            "selfPercent": 43.954807803557216,
+            "inclusivePercent": 93.14733376831457
+          },
+          {
+            "name": "get",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/frame.js",
+            "line": 87,
+            "selfMs": 3210.845,
+            "selfPercent": 24.537198155349436,
+            "inclusivePercent": 24.537198155349436
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 826,
+            "selfMs": 1734.089,
+            "selfPercent": 13.251865291539065,
+            "inclusivePercent": 93.13931733623362
+          },
+          {
+            "name": "directFn",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1165,
+            "selfMs": 548.5,
+            "selfPercent": 4.191623447475405,
+            "inclusivePercent": 93.15562531150601
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 941,
+            "selfMs": 517.567,
+            "selfPercent": 3.955234225778492,
+            "inclusivePercent": 28.45160894911988
+          },
+          {
+            "name": "(anonymous)",
+            "url": "",
+            "line": 3,
+            "selfMs": 257.081,
+            "selfPercent": 1.964606649955195,
+            "inclusivePercent": 93.229591990354
+          },
+          {
+            "name": "tryNumber",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1124,
+            "selfMs": 192.601,
+            "selfPercent": 1.4718520831489708,
+            "inclusivePercent": 1.5954992433680264
+          },
+          {
+            "name": "compileSourceTextModule",
+            "url": "node:internal/modules/esm/utils",
+            "line": 316,
+            "selfMs": 141.215,
+            "selfPercent": 1.0791615408117399,
+            "inclusivePercent": 1.1201683802267863
+          },
+          {
+            "name": "(garbage collector)",
+            "url": "",
+            "line": 0,
+            "selfMs": 120.275,
+            "selfPercent": 0.9191385782043834,
+            "inclusivePercent": 0.9191385782043834
+          },
+          {
+            "name": "getAlternativesForProd",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 172,
+            "selfMs": 27.502,
+            "selfPercent": 0.21016960447122804,
+            "inclusivePercent": 0.4837446779373575
+          },
+          {
+            "name": "remainingPathWith",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 168,
+            "selfMs": 25.191,
+            "selfPercent": 0.19250899957220222,
+            "inclusivePercent": 0.19250899957220222
+          },
+          {
+            "name": "wrapSafe",
+            "url": "node:internal/modules/cjs/loader",
+            "line": 1721,
+            "selfMs": 19.668,
+            "selfPercent": 0.1503023700363651,
+            "inclusivePercent": 0.1503023700363651
+          },
+          {
+            "name": "defaultLoadSync",
+            "url": "node:internal/modules/esm/load",
+            "line": 132,
+            "selfMs": 14.272,
+            "selfPercent": 0.10906627136256877,
+            "inclusivePercent": 0.22072317234901023
+          },
+          {
+            "name": "internalModuleStat",
+            "url": "",
+            "line": 0,
+            "selfMs": 14.062,
+            "selfPercent": 0.10746145655132022,
+            "inclusivePercent": 0.10746145655132022
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "",
+            "line": 0,
+            "selfMs": 14.054,
+            "selfPercent": 0.10740032074898694,
+            "inclusivePercent": 0.10740032074898694
+          },
+          {
+            "name": "getPackageScopeConfig",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 192,
+            "selfMs": 13.629,
+            "selfPercent": 0.10415248125003153,
+            "inclusivePercent": 0.29067017219357244
+          },
+          {
+            "name": "add",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/dfa.js",
+            "line": 20,
+            "selfMs": 13.21,
+            "selfPercent": 0.10095049360282607,
+            "inclusivePercent": 0.11760235776335279
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-issue-569/before/packages/interpreter/out/function-invocation.js",
+            "line": 1143,
+            "selfMs": 12.941,
+            "selfPercent": 0.09889480224936957,
+            "inclusivePercent": 0.09889480224936957
+          },
+          {
+            "name": "parse",
+            "url": "",
+            "line": 0,
+            "selfMs": 12.408,
+            "selfPercent": 0.0948216294189149,
+            "inclusivePercent": 0.0948216294189149
+          },
+          {
+            "name": "realpathSync",
+            "url": "node:fs",
+            "line": 2700,
+            "selfMs": 12.136,
+            "selfPercent": 0.09274301213958343,
+            "inclusivePercent": 0.17579599960934222
+          },
+          {
+            "name": "resolveSync",
+            "url": "node:internal/modules/esm/loader",
+            "line": 730,
+            "selfMs": 12.036,
+            "selfPercent": 0.09197881461041744,
+            "inclusivePercent": 1.0802925531549055
+          },
+          {
+            "name": "#getOrCreateModuleJobAfterResolve",
+            "url": "node:internal/modules/esm/loader",
+            "line": 527,
+            "selfMs": 11.925,
+            "selfPercent": 0.09113055535304321,
+            "inclusivePercent": 2.768588302489557
+          },
+          {
+            "name": "syncLink",
+            "url": "node:internal/modules/esm/module_job",
+            "line": 146,
+            "selfMs": 9.692,
+            "selfPercent": 0.07406602452676686,
+            "inclusivePercent": 2.7603044012733977
+          },
+          {
+            "name": "possiblePathsFrom",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/interpreter.js",
+            "line": 162,
+            "selfMs": 9.517,
+            "selfPercent": 0.0727286788507264,
+            "inclusivePercent": 0.4837446779373575
+          },
+          {
+            "name": "(program)",
+            "url": "",
+            "line": 0,
+            "selfMs": 9.301,
+            "selfPercent": 0.07107801218772787,
+            "inclusivePercent": 0.07107801218772787
+          },
+          {
+            "name": "(anonymous)",
+            "url": "file:///srv/rank-bench/repo/node_modules/string-width/index.js",
+            "line": 1,
+            "selfMs": 8.729,
+            "selfPercent": 0.06670680232089847,
+            "inclusivePercent": 0.06670680232089847
+          },
+          {
+            "name": "deserializePackageJSON",
+            "url": "node:internal/modules/package_json_reader",
+            "line": 44,
+            "selfMs": 8.514,
+            "selfPercent": 0.0650637776331916,
+            "inclusivePercent": 0.0650637776331916
+          },
+          {
+            "name": "defaultResolve",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 943,
+            "selfMs": 7.296,
+            "selfPercent": 0.05575585172794996,
+            "inclusivePercent": 0.9633321213160521
+          },
+          {
+            "name": "closure",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 549,
+            "selfMs": 6.997,
+            "selfPercent": 0.05347090111574368,
+            "inclusivePercent": 0.18202420947204498
+          },
+          {
+            "name": "getConflictingAltSets",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 623,
+            "selfMs": 6.235,
+            "selfPercent": 0.047647715943498904,
+            "inclusivePercent": 0.055985110986699754
+          },
+          {
+            "name": "normalizeString",
+            "url": "node:path",
+            "line": 92,
+            "selfMs": 6.054,
+            "selfPercent": 0.04626451841570848,
+            "inclusivePercent": 0.04626451841570848
+          },
+          {
+            "name": "compileForInternalLoader",
+            "url": "node:internal/bootstrap/realm",
+            "line": 383,
+            "selfMs": 5.174,
+            "selfPercent": 0.03953958015904785,
+            "inclusivePercent": 0.08092851833867737
+          },
+          {
+            "name": "addDFAState",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain-allstar/lib/all-star-lookahead.js",
+            "line": 520,
+            "selfMs": 4.846,
+            "selfPercent": 0.03703301226338343,
+            "inclusivePercent": 0.0444915801480434
+          },
+          {
+            "name": "accept",
+            "url": "file:///srv/rank-bench/repo/node_modules/@chevrotain/gast/lib/src/model.js",
+            "line": 24,
+            "selfMs": 4.71,
+            "selfPercent": 0.0359937036237177,
+            "inclusivePercent": 0.0470974937224994
+          },
+          {
+            "name": "URL",
+            "url": "node:internal/url",
+            "line": 803,
+            "selfMs": 4.388,
+            "selfPercent": 0.03353298757980324,
+            "inclusivePercent": 0.1527707280555712
+          },
+          {
+            "name": "firstForSequence",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/first.js",
+            "line": 28,
+            "selfMs": 4.369,
+            "selfPercent": 0.0333877900492617,
+            "inclusivePercent": 0.0510331109977042
+          },
+          {
+            "name": "performSubruleAssignment",
+            "url": "file:///srv/rank-bench/repo/node_modules/langium/lib/parser/langium-parser.js",
+            "line": 263,
+            "selfMs": 4.363,
+            "selfPercent": 0.033341938197511745,
+            "inclusivePercent": 0.033341938197511745
+          },
+          {
+            "name": "pathToHashKeys",
+            "url": "file:///srv/rank-bench/repo/node_modules/chevrotain/lib/src/parse/grammar/lookahead.js",
+            "line": 331,
+            "selfMs": 4.362,
+            "selfPercent": 0.03333429622222008,
+            "inclusivePercent": 0.03333429622222008
+          },
+          {
+            "name": "read",
+            "url": "",
+            "line": 0,
+            "selfMs": 4.336,
+            "selfPercent": 0.03313560486463693,
+            "inclusivePercent": 0.03313560486463693
+          },
+          {
+            "name": "finalizeResolution",
+            "url": "node:internal/modules/esm/resolve",
+            "line": 225,
+            "selfMs": 4.331,
+            "selfPercent": 0.03309739498817863,
+            "inclusivePercent": 0.39554099912102
+          }
+        ]
+      }
+    ]
+  },
+  "storageInstrumentation": {
+    "prefixPublications": 200,
+    "maxPrefixBufferBytes": 8000000,
+    "totalPublishedPrefixBytes": 804000000,
+    "copiedPrefixBuffers": 0,
+    "maxRssAtPrefix": 832995328,
+    "maxReferenceSlots": 2000000,
+    "output": [
+      "2500500025183626"
+    ],
+    "peakRssMiB": 794.40625,
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  "finalDefault505Answer": "714591308667615832",
+  "verification": {
+    "interpreterTests": 401,
+    "interpreterFiles": 18,
+    "cliDiagnosticsTests": 13,
+    "semanticOwners": 65,
+    "typescript": "passed",
+    "applicationForms": "passed",
+    "fullSuite": "not run",
+    "exhaustiveAudits": "not run"
+  }
 }
