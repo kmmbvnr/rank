@@ -275,3 +275,19 @@ it('keeps kernel identity across ordinary and traced preparations', () => {
     expect(stats.run(() => traced!.run([2n, 3n], error => error))).toBe(5n);
     expect(stats.compilerObservations.some(item => item.backend === 'scalar-function' && item.phase === 'execute' && item.execution)).toBe(true);
 });
+
+it('traces positional kernels prepared and executed before tracing starts', () => {
+    const runtime = new Interpreter();
+    try {
+        runtime.execute(`fun A B C D E F total
+ return A + B + C + D + E + F
+end`);
+        expect(runtime.execute('1 2 3 4 5 6 total')).toBe(21n);
+        const diagnostics = new RuntimeDiagnostics(Infinity, true);
+        expect(diagnostics.run(() => runtime.execute('6 5 4 3 2 1 total'))).toBe(21n);
+        expect(diagnostics.compilerObservations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ backend: 'scalar-function-number', outcome: 'selected',
+                source: expect.objectContaining({ function: 'total' }) }),
+        ]));
+    } finally { runtime.dispose(); }
+});

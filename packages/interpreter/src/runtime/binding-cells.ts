@@ -3,6 +3,8 @@ import { IntegerCells, typedArray } from './owned-array.js';
 import { checkpoint, privateLoopPolling } from '../interrupt.js';
 import type { RankArray, RankValue } from './value.js';
 
+const int64Min = -(1n << 63n), int64Max = (1n << 63n) - 1n;
+
 /** Complete numeric bindings directly into packed storage. If a later cell
  * needs ordinary storage, retain the prefix without replaying any reads. */
 export function collectBindingCells(value: RankArray): RankArray | RankValue[] {
@@ -25,7 +27,7 @@ export function collectBindingCells(value: RankArray): RankArray | RankValue[] {
                 else if (typeof cell === 'number') reals = new Float64Array(size);
                 else items = new Array(size);
             }
-            if (integers && typeof cell === 'bigint') integers.set(index, cell);
+            if (integers && typeof cell === 'bigint' && cell >= int64Min && cell <= int64Max) integers.set(index, cell);
             else if (reals && typeof cell === 'number') reals[index] = cell;
             else {
                 if (!items) {
@@ -40,6 +42,7 @@ export function collectBindingCells(value: RankArray): RankArray | RankValue[] {
                 }
                 items[index] = cell;
             }
+            return items;
         },
         finish: () => integers?.array(value.shape) ?? (reals ? typedArray(reals, value.shape) : items!),
     });

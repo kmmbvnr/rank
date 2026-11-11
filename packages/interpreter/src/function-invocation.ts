@@ -17,7 +17,7 @@ import {
     functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation,
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
     groupExpressions, flattenApplication, isNameExpression, isFunctionOperator, declaredRanks, functionEffects,
-    isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
+    isReturnStatement, isForStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
     type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
@@ -51,6 +51,7 @@ import { FunctionPlanDemandError } from './function-plan.js';
 import { preparePositionalBuiltin } from './jit/typed-native.js';
 import type { LoopCallable, LoopWorkCounter } from './jit/integer-loop-plan.js';
 import { numberOverflow, checkedNumberPower } from './jit/number-loop-runtime.js';
+import { checkedNumberInteger } from './jit/number-arithmetic.js';
 import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
@@ -981,13 +982,7 @@ export class FunctionInvocation {
             && !inspectionEnabled() && privateLoopPolling() && !demandBudgetEnabled();
         const rawNumber = kernel.numberDirect ? kernel.numberDirect(
             locate,
-            val => {
-                if (!Number.isSafeInteger(val)) {
-                    rejectCompilerGuard(statement, 'scalar-function-number', 'integer-exactness-guard');
-                    throw numberOverflow;
-                }
-                return val;
-            },
+            checkedNumberInteger,
             () => new RankError('division by zero'),
             numberOverflow,
             poll,
@@ -1025,6 +1020,11 @@ export class FunctionInvocation {
                 // and throw on every call. Probe again after bounded delays
                 // so a later small-input phase can recover its fast path.
                 let numberDelay = 0, numberBackoff = 0;
+                // A tiny captured lookup costs less in the caller's exact ABI
+                // than borrowing Number storage and boxing its result again.
+                // Numeric callers still use numberDirect without this bridge.
+                const smallCapturedLeaf = kernel.numberReadOnly && kernel.captures.length > 0
+                    && kernel.locations.length <= 4 && !kernel.locations.some(isForStatement);
                 directLeaf = (arguments_, tail) => {
                     if (!tail && this.depth >= this.maxDepth) {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
@@ -1037,7 +1037,7 @@ export class FunctionInvocation {
                         if (diagnostics) diagnostics.numberFunctionSkips++;
                         rejectNumber('overflow-backoff');
                     }
-                    if (rawNumber && probeNumber && (!kernel.numberReadOnly || readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
+                    if (rawNumber && (!smallCapturedLeaf || this.scalarHostDepth === 0) && probeNumber && (!kernel.numberReadOnly || readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
                         && (!kernel.plans || (!observablePlan || rejectNumber('observable-plan'))
                             && (privateLoopPolling() || rejectNumber('observable-polling'))
                             && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled')))
@@ -1089,6 +1089,47 @@ export class FunctionInvocation {
                 directFn = (...arguments_) => directLeaf!(arguments_,false);
             } else {
                 let numberDelay = 0, numberBackoff = 0;
+                const rejectArguments = () => {
+                    numberBackoff = Math.min(255, numberBackoff * 2 + 1);
+                    numberDelay = numberBackoff;
+                    return rejectNumber('safe-integer-arguments-required');
+                };
+                const tryNumber = (arguments_: RankValue[]): RankValue | undefined => {
+                    // Private callees can replay their local work
+                    // exactly after a failed numeric guard.
+                    const probeNumber = numberDelay === 0;
+                    if (numberDelay > 0) {
+                        numberDelay--;
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.numberFunctionSkips++;
+                        rejectNumber('overflow-backoff');
+                    }
+                    if (probeNumber && rawNumber && (!this.compiler.hooks.onScalarFunctionExecuted || rejectNumber('observable-function-hook'))
+                        && (kernel.returnType === 'integer' || kernel.numberReadOnly || rejectNumber('integer-result-or-readonly-specialization-required'))
+                        && (!kernel.plans || rejectNumber('nested-plan-boundary'))
+                        && (!kernel.numberStorage || rejectNumber('nested-storage-boundary'))
+                        && (!kernel.memberships.length || rejectNumber('nested-membership-boundary'))
+                        && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
+                        && (privateLoopPolling() || rejectNumber('observable-polling'))
+                        && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled'))
+                        && (arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a))) || rejectArguments())) {
+                        try {
+                            const diagnostics = currentDiagnostics();
+                            if (diagnostics) diagnostics.numberFunctions++;
+                            const value = rawNumber(...arguments_.map(Number) as never[]);
+                            numberBackoff = 0;
+                            return kernel.returnType === 'integer' ? BigInt(value as number) : value;
+                        } catch (error) {
+                            if (error !== numberOverflow) throw error;
+                            const diagnostics = currentDiagnostics();
+                            if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                            rejectNumber('number-runtime-guard');
+                            numberBackoff = Math.min(255, numberBackoff * 2 + 1);
+                            numberDelay = numberBackoff;
+                        }
+                    }
+                    return undefined;
+                };
                 directFn = (...arguments_: RankValue[]) => {
                     if (this.depth >= this.maxDepth) {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
@@ -1099,39 +1140,8 @@ export class FunctionInvocation {
                         for (;;) {
                             try {
                                 this.compiler.hooks.onScalarFunctionExecuted?.();
-                                // Private callees can replay their local work
-                                // exactly after a failed numeric guard.
-                                const probeNumber = numberDelay === 0;
-                                if (numberDelay > 0) {
-                                    numberDelay--;
-                                    const diagnostics = currentDiagnostics();
-                                    if (diagnostics) diagnostics.numberFunctionSkips++;
-                                    rejectNumber('overflow-backoff');
-                                }
-                                if (probeNumber && rawNumber && (!this.compiler.hooks.onScalarFunctionExecuted || rejectNumber('observable-function-hook'))
-                                    && (kernel.returnType === 'integer' || kernel.numberReadOnly || rejectNumber('integer-result-or-readonly-specialization-required'))
-                                    && (!kernel.plans || rejectNumber('nested-plan-boundary'))
-                                    && (!kernel.numberStorage || rejectNumber('nested-storage-boundary'))
-                                    && (!kernel.memberships.length || rejectNumber('nested-membership-boundary'))
-                                    && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
-                                    && (privateLoopPolling() || rejectNumber('observable-polling'))
-                                    && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled'))
-                                    && (arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a))) || rejectNumber('safe-integer-arguments-required'))) {
-                                    try {
-                                        const diagnostics = currentDiagnostics();
-                                        if (diagnostics) diagnostics.numberFunctions++;
-                                        const value = rawNumber(...arguments_.map(Number) as never[]);
-                                        numberBackoff = 0;
-                                        return kernel.returnType === 'integer' ? BigInt(value as number) : value;
-                                    } catch (error) {
-                                        if (error !== numberOverflow) throw error;
-                                        const diagnostics = currentDiagnostics();
-                                        if (diagnostics) diagnostics.numberFunctionFallbacks++;
-                                        rejectNumber('number-runtime-guard');
-                                        numberBackoff = Math.min(255, numberBackoff * 2 + 1);
-                                        numberDelay = numberBackoff;
-                                    }
-                                }
+                                const numeric = rawNumber ? tryNumber(arguments_) : undefined;
+                                if (numeric !== undefined) return numeric;
                                 return kernelDirect(...arguments_ as never[]);
                             } catch (error) {
                                 if (error instanceof FunctionPlanDemandError) throw error.error;

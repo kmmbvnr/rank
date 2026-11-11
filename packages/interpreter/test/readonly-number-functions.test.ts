@@ -233,3 +233,50 @@ it('replays unsafe captured scalars instead of rounding them', () => {
     expect(compiled.observation).toEqual(run(source, false).observation);
     expect(compiled.diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
 });
+
+it('backs off wide recursive arguments and resumes numeric calls after they shrink', () => {
+    const runtime = new Interpreter();
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.execute(`fun Depth tree Value
+ if Depth equal 0
+  return Value
+ end
+ Left = (Depth - 1) tree Value
+ Right = (Depth - 1) tree Value
+ return Left + Right
+end`);
+        expect(diagnostics.run(() => runtime.execute('10 tree 1152921504606846976')))
+            .toBe(1024n * 1152921504606846976n);
+        expect(diagnostics.numberFunctionSkips).toBeGreaterThan(1000);
+        const attempts = diagnostics.numberFunctions;
+        expect(diagnostics.run(() => runtime.execute('10 tree 1'))).toBe(1024n);
+        expect(diagnostics.numberFunctions).toBeGreaterThan(attempts);
+    } finally { runtime.dispose(); }
+});
+
+it('keeps tiny captured lookups exact for exact callers and numeric for numeric callers', () => {
+    const runtime = new Interpreter();
+    try {
+        runtime.execute(`use sequences
+Data = 1 to 8 array
+fun Index lookup
+ return Data Index
+end
+fun Count total Start
+ Answer = Start
+ for I in 1 to Count
+  Answer += (I mod 8) lookup
+ end
+ return Answer
+end`);
+        const exact = new RuntimeDiagnostics();
+        expect(exact.run(() => runtime.execute('1000 total 1152921504606846976')))
+            .toBe(1152921504606846976n + 4500n);
+        expect(exact.numberFunctions).toBe(0);
+        const numeric = new RuntimeDiagnostics();
+        for (let attempt = 0; attempt < 3; attempt++)
+            expect(numeric.run(() => runtime.execute('1000 total 0'))).toBe(4500n);
+        expect(numeric.numberFunctions).toBeGreaterThan(0);
+    } finally { runtime.dispose(); }
+});

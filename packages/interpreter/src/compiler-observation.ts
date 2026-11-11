@@ -121,6 +121,26 @@ export function observedRun<A extends unknown[], T>(
         : run(...args);
 }
 
+// Scalar kernels have a proved positional arity. Keep their ordinary calls
+// allocation-free even when tracing can be enabled after preparation.
+const positionalObservers = new Map<number, Function>();
+export function observedPositionalRun<A extends unknown[], T>(
+    site: Site, backend: string, run: (...args: A) => T, arity: number,
+    provenTypes?: Readonly<Record<string, string>>,
+): (...args: A) => T {
+    if (arity > 16) return observedRun(site, backend, run, provenTypes);
+    let factory = positionalObservers.get(arity);
+    if (!factory) {
+        const args = Array.from({ length: arity }, (_, index) => `arg${index}`).join(',');
+        factory = new Function('diagnostics', 'observe', 'site', 'backend', 'run', 'types',
+            `return function(${args}) { return diagnostics()?.traceCompiler
+                ? observe(site, backend, 'execute', () => run(${args}), types)
+                : run(${args}); };`);
+        positionalObservers.set(arity, factory);
+    }
+    return factory(currentDiagnostics, observeCompiler, site, backend, run, provenTypes);
+}
+
 /** Name a deliberate frontend boundary without evaluating its rejected operands. */
 export function declineCompiler(reason: string, site?: Site): undefined {
     const diagnostics = currentDiagnostics();

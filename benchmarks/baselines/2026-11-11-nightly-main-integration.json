@@ -1,0 +1,80 @@
+[
+  {
+    "round": 0,
+    "variant": 0,
+    "root": "/private/tmp/rank-scalar-body-regions",
+    "path": "demos/euler/098_anagramsquares.ra",
+    "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+    "ms": 1200.104584,
+    "cpuMs": 2045.3,
+    "peakRssMiB": 492.484375,
+    "answer": "18769",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "round": 0,
+    "variant": 1,
+    "root": "/private/tmp/rank-issue-569",
+    "path": "demos/euler/098_anagramsquares.ra",
+    "sourceHash": "48a940539d99ee520e9d55eb53163d6dfaa39b8758f67f2604c4754472bec723",
+    "ms": 378.294666,
+    "cpuMs": 714.885,
+    "peakRssMiB": 215.890625,
+    "answer": "18769",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "round": 0,
+    "variant": 0,
+    "root": "/private/tmp/rank-scalar-body-regions",
+    "path": "demos/euler/507_shortestlattice.ra",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "ms": 16660.209042,
+    "cpuMs": 16746.616,
+    "peakRssMiB": 197.234375,
+    "answer": "316558047002627270",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "round": 0,
+    "variant": 1,
+    "root": "/private/tmp/rank-issue-569",
+    "path": "demos/euler/507_shortestlattice.ra",
+    "sourceHash": "6975191850382e8c30f32d289cfc6df02232c7093e13d4c6d0f2e50c580a0aad",
+    "ms": 5748.6295,
+    "cpuMs": 5905.712,
+    "peakRssMiB": 197.765625,
+    "answer": "316558047002627270",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "round": 0,
+    "variant": 0,
+    "root": "/private/tmp/rank-scalar-body-regions",
+    "path": "demos/euler/792_toomanytwos.ra",
+    "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+    "ms": 15219.689666,
+    "cpuMs": 20325.884,
+    "peakRssMiB": 1221.9375,
+    "answer": "2500500025183626",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  },
+  {
+    "round": 0,
+    "variant": 1,
+    "root": "/private/tmp/rank-issue-569",
+    "path": "demos/euler/792_toomanytwos.ra",
+    "sourceHash": "1f76ddfc258211e0b2f941ad44f2821caf4609a27a8d1c007fe5636b4a370ffd",
+    "ms": 14350.676042000001,
+    "cpuMs": 17536.384,
+    "peakRssMiB": 836.34375,
+    "answer": "2500500025183626",
+    "node": "v24.15.0",
+    "arch": "arm64"
+  }
+]

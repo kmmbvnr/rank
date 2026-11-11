@@ -75,6 +75,19 @@ describe('packed binding completion', () => {
         expect(readArrayItem(result, size - 2)).toBe(BigInt(size - 2));
     });
 
+    it.each([0, 3, size - 1])('keeps the written prefix when cell %s needs arbitrary precision', wide => {
+        let reads = 0;
+        const values = [1n << 100n, -7n, 0n, MISSING];
+        const input = source(index => {
+            expect(index).toBe(reads++);
+            return index < wide ? BigInt(index) : values[(index - wide) % values.length];
+        });
+        const result = materializeValue(input) as RankArray;
+        expect(reads).toBe(size);
+        expect(result.items).toEqual(Array.from({length: size}, (_, index) =>
+            index < wide ? BigInt(index) : values[(index - wide) % values.length]));
+    });
+
     it('retains missing cells without replaying the numeric prefix', () => {
         let reads = 0;
         const result = materializeValue(source(index => { reads++; return index === size - 1 ? MISSING : 3n; })) as RankArray;

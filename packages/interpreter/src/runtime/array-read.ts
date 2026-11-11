@@ -161,14 +161,16 @@ export function* arrayValues(value: RankArray, streaming = false): IterableItera
 }
 
 interface CellCollector<T> {
-    write(index: number, value: RankValue): void;
+    // Once exposed, ordinary writes need no collector callback.
+    readonly items?: RankValue[];
+    write(index: number, value: RankValue): RankValue[] | void;
     finish(): T;
 }
 
 export function collectArrayValues(size: number, values: IterableIterator<RankValue>): RankValue[] {
     return collectValues(size, values, () => {
         const items = new Array<RankValue>(size);
-        return { write(index, value) { items[index] = value; }, finish: () => items };
+        return { items, write(index, value) { items[index] = value; }, finish: () => items };
     });
 }
 
@@ -182,12 +184,14 @@ function collectValues<T>(size: number, values: IterableIterator<RankValue>, cre
             throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
         }
         const collector = create();
+        let items: RankValue[] | void = collector.items;
         let index = 0;
         while (true) {
             const next = values.next();
             if (next.done) { finished = true; break; }
             if (index >= size) throw new RankError('array reader exceeded its declared shape', 'DimensionMismatch');
-            collector.write(index++, next.value);
+            if (items) items[index++] = next.value;
+            else items = collector.write(index++, next.value);
         }
         if (index !== size) throw new RankError('array reader ended before its declared shape', 'DimensionMismatch');
         return collector.finish();

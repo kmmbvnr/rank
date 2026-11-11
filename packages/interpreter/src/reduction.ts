@@ -590,7 +590,7 @@ export class ReductionEvaluator {
         let axisPrepared = false;
         let axisReduction: ReturnType<typeof prepareTensorAxisReduction>;
         const reduceAt = (frameIndex: number): RankValue => {
-            if (!producer && !booleanFold && builtin && reducedAxes.length > 0
+            if (!producer && (!booleanFold || !contiguousBoolean) && builtin && reducedAxes.length > 0
                 && this.isTensorFusion() && privateLoopPolling() && hasNativeImplementation(reducer)) {
                 if (!axisPrepared) {
                     axisPrepared = true;

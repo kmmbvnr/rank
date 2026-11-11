@@ -26,6 +26,18 @@ After`;
         expect(compiled.diagnostics.compiledTensors).toBeGreaterThanOrEqual(40);
     });
 
+    it.each(['all', 'any'])('prepares one graph across %s column comparisons', operation => {
+        const source = `A = (1 to 600) reshape 6 100
+Want = (1 to 6) reshape 6 1
+Match' = (A greater 200) equal (Want greater 2)
+Mask' = Match ${operation} axis 0
+Mask copy`;
+        const compiled = execute(source, true);
+        expect(compiled.value).toBe(execute(source, false).value);
+        expect(compiled.diagnostics.tensorMapPreparations).toBeLessThanOrEqual(2);
+        expect(compiled.diagnostics.compiledTensors).toBeGreaterThanOrEqual(100);
+    });
+
     it.each(['all', 'any'])('refreshes a graph after lazy contract refinement for %s', operation => {
         const source = `Sorted = 1 to 1000 array
 Pos = (0 to 12 array) reshape 1 13
@@ -92,7 +104,7 @@ Mask copy`;
         expect(execute(source, true).value).toBe(execute(source, false).value);
     });
 
-    it.each(['all', 'any'])('keeps noncontiguous %s axes on their ordinary path', operation => {
+    it.each(['all', 'any'])('shares a graph across noncontiguous %s axes', operation => {
         const source = `A = (1 to 24) reshape 2 3 4
 Mask' = (A greater 9) ${operation} axis 0 2
 Mask copy`;

@@ -395,8 +395,8 @@ export class RankApplication {
         const natural = frameAxes.every((axis, i) => i === 0 || axis > frameAxes[i - 1])
             && (!cellAxes || cellAxes.every((axis, i) => axis === reducedAxes[i]));
         const reduction = cells.cellShape.length > 0 && natural
-            && ['sum', 'mean', 'min', 'max'].includes(operation)
-            && ['core', 'stats'].some(module => {
+            && ['sum', 'mean', 'min', 'max', 'all', 'any'].includes(operation)
+            && ['core', 'stats', 'sequences'].some(module => {
                 const definition = standardModules[module][operation];
                 return definition !== undefined && this.standardFunctions.get(definition) === fn;
             });

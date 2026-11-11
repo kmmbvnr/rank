@@ -1,8 +1,21 @@
 import { multiply, multiplyWide } from '../runtime/modular-power.js';
-import { declineCompiler } from '../compiler-observation.js';
+import { declineCompiler, compilerSource, observeCompilerSource } from '../compiler-observation.js';
 
 // Internal replay signal, never a Rank error or a numeric value.
 export const numberOverflow = {};
+
+// Keep the hot guard independent of per-function compiler contexts. The
+// diagnostic path must not prevent inlining at every arithmetic operation.
+export function checkedNumberInteger(value: number): number {
+    if (!Number.isSafeInteger(value)) throw unsafeInteger();
+    return value;
+}
+
+function unsafeInteger(): typeof numberOverflow {
+    observeCompilerSource(compilerSource(), 'scalar-function-number', 'execute',
+        () => declineCompiler('integer-exactness-guard'));
+    return numberOverflow;
+}
 
 /** Safe integer operands. Up to 2^31, all residues fit signed Int32 cells;
  * larger moduli retain exact replay. The <=2^30 multiplier stays unchanged. */

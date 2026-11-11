@@ -1,6 +1,6 @@
 import { completeStoredBinary, sumStoredInteger } from '../runtime/function-plan-completion.js';
 import { fusedModularProduct } from '../modular-fold.js';
-import { rejectCompilerGuard, observeCompiler, observedRun, withCompilerMethods } from '../compiler-observation.js';
+import { rejectCompilerGuard, observeCompiler, observedRun, observedPositionalRun, withCompilerMethods } from '../compiler-observation.js';
 import type { CapturedIntegerReader } from './scalar-selection.js';
 import { tensorCells } from '../rank-application.js';
 import { Operators, makeRange } from '../operators.js';
@@ -807,7 +807,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     if (existing) return existing;
     // Observations are selected at execution, so one stable wrapper works
     // across ordinary and traced preparations without defeating kernel identity.
-    const observed = withCompilerMethods(candidate, { run: observedRun(statement, 'scalar-function', candidate.run.bind(candidate), provenTypes), direct: candidate.direct && ((...args) => observedRun(statement, 'scalar-function-direct', candidate.direct!(...args), provenTypes)), numberDirect: candidate.numberDirect && ((...args) => observedRun(statement, 'scalar-function-number', candidate.numberDirect!(...args), provenTypes)) });
+    const observed = withCompilerMethods(candidate, { run: observedRun(statement, 'scalar-function', candidate.run.bind(candidate), provenTypes), direct: candidate.direct && ((...args) => observedPositionalRun(statement, 'scalar-function-direct', candidate.direct!(...args), statement.parameters.length, provenTypes)), numberDirect: candidate.numberDirect && ((...args) => observedPositionalRun(statement, 'scalar-function-number', candidate.numberDirect!(...args), statement.parameters.length, provenTypes)) });
     observedKernels.set(candidate, observed);
     return observed;
 }
