@@ -13,15 +13,15 @@ it.each([0, 1, 31, 32, 33, 4097])('preserves signed cells and bitmap tails at %i
     expect(items(result)).toEqual(bits.map((hit, i) => hit ? BigInt(data[i]) : -7n));
     if (size) { writeArrayCell(yes, 0, 42n); expect(readArrayItem(result, 0)).toBe(2147483647n); }
 });
-it('validates only selected branches and honors reversed views', () => {
+it.each([false, true])('validates only selected branches and honors reversed views (pure=%s)', pureCheck => {
     const source = typedArray(Int32Array.of(1, 2, 3)), reads: bigint[] = [];
     const reverse = registerScalarView<RankArray>({ kind: 'array', shape: [3], items: [], itemAt: i => BigInt(3 - i) },
-        source, i => 2 - i, { linear: () => ({ offset: 2, stride: -1 }), scalarCheck: true,
+        source, i => 2 - i, { linear: () => ({ offset: 2, stride: -1 }), scalarCheck: true, pureCheck,
             check: value => { reads.push(value as bigint); return value; } });
     expect(items(chooseStoredIntegers(false, reverse, 0n, [3])!)).toEqual([0n, 0n, 0n]);
     expect(reads).toEqual([]);
     expect(items(chooseStoredIntegers(true, reverse, 0n, [3])!)).toEqual([3n, 2n, 1n]);
-    expect(reads).toEqual([3n]);
+    expect(reads).toEqual(pureCheck ? [3n] : [3n, 2n, 1n]);
 });
 it('retains wide values and broadcasting', () => {
     const result = chooseStoredIntegers(ownedArray([true, false, true, false], [2, 2]),

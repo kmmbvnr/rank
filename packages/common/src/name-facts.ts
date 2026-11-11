@@ -165,13 +165,14 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
         const head = unaryApplicationHead(call, arities,
             name => !analysis.bindings.has(name) && !runtime.has(name));
         const facts = (part: Expression): ValueFacts => {
-            const found = expressionValue(part);
-            if (found.types.length) return found;
+            const found = analysis.expressions.get(part);
+            if (found?.types.length) return found;
             // Flattened calls may omit intermediate heads from the expression map.
             // Reuse facts at their reads, never the final value of a changed binding.
             const reads = new Map<string, ValueFacts>();
             for (const node of AstUtils.streamAst(part)) {
-                if (isNameExpression(node)) reads.set(node.name, expressionValue(node));
+                if (isNameExpression(node) && !analysis.expressions.get(node)?.builtinOperation)
+                    reads.set(node.name, expressionValue(node));
             }
             return expressionFacts(part, Object.assign((name: string) => reads.get(name), {
                 arity: (name: string) => {

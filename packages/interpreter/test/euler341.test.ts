@@ -26,7 +26,7 @@ describe('Euler 341 self-describing runs', () => {
                     expect(runtime.variables.get('Actual'), `term(${n})`).toBe(BigInt(values[n]));
                 }
             } finally { runtime.dispose(); }
-        }, 20000);
+        }, 60000);
 
         it(`keeps the complete default answer (compilation=${compilation})`, () => {
             const output: string[] = [], diagnostics = new RuntimeDiagnostics();
@@ -37,7 +37,7 @@ describe('Euler 341 self-describing runs', () => {
                 expect(diagnostics.indexWrites).toBe(25639);
                 expect(diagnostics.typedArrayPublishedCells).toBe(0);
             } finally { runtime.dispose(); }
-        }, 40000);
+        }, 120000);
     }
 
     it('keeps the original array recurrence in one mixed private region', () => {

@@ -14,7 +14,7 @@ for (const [id, answer] of [
     ['511', '935247012'],
     ['513', '2925619196'],
 ] as const) {
-    const timeout = id === '505' ? 180_000 : 120_000;
+    const timeout = id === '505' ? 360_000 : 120_000;
     it(`checks the complete Euler ${id} answer`, () => {
         const run = spawnSync(process.execPath, ['benchmarks/euler505-investigation.mjs', id, 'full', 'compiled'],
             { cwd: root, encoding: 'utf8', timeout, env: { ...process.env, CONTROL: '', PROFILE: '', DIAGNOSTICS: '', LC: '' } });

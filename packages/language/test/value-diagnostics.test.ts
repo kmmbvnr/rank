@@ -7,6 +7,11 @@ import { analyzeValues } from '../src/analysis/value-diagnostics.js';
 import { functionTestExamples } from '../src/analysis/test-examples.js';
 import type { ValueFacts } from '../src/analysis/value-domain.js';
 
+it('rejects concat only when a receiver has no supported alternative', () => {
+    expect(messages('use sequences\nfun Values append\n return concat (array 1) (Values reverse)\nend')).toEqual([]);
+    expect(messages('use sequences\nconcat (array 1) "text"')).toContain('concat expects arrays or sequences');
+});
+
 it('accepts mixed numeric operands and unknown function inputs', () => {
     for (const operator of ['+', '-', '*', '/', '//', 'mod', '**',
         'equal', 'not equal', 'less', 'greater', 'at least', 'at most']) {

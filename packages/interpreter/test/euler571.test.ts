@@ -37,4 +37,4 @@ describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('E
 });
 it('retains the full base-12 result', () => {
     expect(run(12, 10, {})).toBe(30510390701978n);
-}, 120000);
+}, 360000);

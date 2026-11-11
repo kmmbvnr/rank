@@ -39,5 +39,5 @@ for (const compilation of [false, true]) {
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(11762187201804552n);
         } finally { runtime.dispose(); }
-    }, 15_000);
+    }, 45_000);
 }

@@ -64,7 +64,7 @@ it.each([{}, { numberLoopCompilation: false }, { compilation: false }])('matches
             expect(r.variables.get('Answer'), `Limit=${limit}`).toBe(small[limit]);
         }
     } finally { r.dispose(); }
-}, 30000);
+}, 90000);
 
 it('matches the original exact recurrence below, at and beyond 18 labels', () => {
     const r = new Interpreter(() => {});

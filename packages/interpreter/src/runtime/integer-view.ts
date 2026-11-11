@@ -130,7 +130,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
         const needsCheck = view.accepts && !view.accepts();
         if (needsCheck && (!allowChecks || !view.check)) return undefined;
         layers.push({ regular: view.linear !== undefined || view.regular === true, offset: view.offset, validate: arrayCellValidator(source),
-            check: needsCheck ? view.check : undefined });
+            check: view.scalarCheck || needsCheck ? view.check : undefined });
         source = typeof view.source === 'function' ? view.source() : view.source;
     }
     const regular = layers.every(layer => layer.regular);

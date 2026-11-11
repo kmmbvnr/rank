@@ -66,8 +66,11 @@ export function returnConflicts(values: readonly ValueFacts[]): { kind: 'TypeErr
                 return conflicts;
             }
         }
-        const a = left.types.join() === 'array' ? left.elements ?? [] : left.types;
-        const b = right.types.join() === 'array' ? right.elements ?? [] : right.types;
+        // Compare cells only when both results are known arrays. An unresolved
+        // array alternative still overlaps an array return, regardless of cells.
+        const arrays = left.types.join() === 'array' && right.types.join() === 'array';
+        const a = arrays ? left.elements ?? [] : left.types;
+        const b = arrays ? right.elements ?? [] : right.types;
         if (a.length && b.length && !a.some(type => b.includes(type))) {
             conflicts.push({ kind: 'TypeError', message: `returns incompatible types: ${a.join(' or ')} and ${b.join(' or ')}` });
             return conflicts;

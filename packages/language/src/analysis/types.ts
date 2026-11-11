@@ -43,6 +43,7 @@ export function unionTypes(left: Types, right: Types): Types {
 
 /** Types that a comparison reduces to a single boolean rather than a mask. */
 const SCALARS = new Set(['integer', 'real', 'boolean', 'text', 'date', 'datetime', 'duration', 'symbol']);
+const NULLABLE_SCALARS = new Set([...SCALARS, 'missing']);
 
 const NUMBERS = new Set(['integer', 'real']);
 
@@ -214,6 +215,9 @@ export function binaryType(operator: string, left: Types, right: Types, scalarGu
     }
     if (COMPARISONS.has(operator)) {
         if (within(left, SCALARS) && within(right, SCALARS)) return ['boolean'];
+        if (!['in', 'notin', 'is'].includes(operator)
+            && within(left, NULLABLE_SCALARS) && within(right, NULLABLE_SCALARS))
+            return same(left, 'missing') || same(right, 'missing') ? ['missing'] : ['boolean', 'missing'];
         // Over a collection a comparison is a mask with the same shape.
         return operator === 'in' || operator === 'is'
             ? UNKNOWN : elementwise(left, right) ?? UNKNOWN;

@@ -1489,6 +1489,8 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     expect(facts('P 1 default 0.0', env).types).toEqual(['real']);
     expect(facts('N + 1', env)).toEqual({ types: ['missing'], rank: 0, shape: [] });
     expect(facts('R less N', env)).toEqual({ types: ['missing'], rank: 0, shape: [] });
+    env.set('Text', { types: ['text', 'missing'] });
+    expect(facts('Text equal "value"', env).types).toEqual(['boolean', 'missing']);
     expect(facts('R and N', env).types).toEqual(['boolean', 'missing']);
     // The numeric kernels' proof does not cover cells that may have no value.
     expect(facts('P + 1.0', env).callbackFreeScalarCells).toBeUndefined();

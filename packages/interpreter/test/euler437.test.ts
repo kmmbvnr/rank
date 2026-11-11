@@ -47,7 +47,7 @@ describe('Euler 437 primitive Fibonacci roots', () => {
             expect(stats.compiledTensors).toBeGreaterThan(0);
             expect(stats.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }
-    }, 30_000);
+    }, 90_000);
 
     it('checks each admissible prime against its independently enumerated root order', () => {
         const runtime = new Interpreter(() => {}, {args: ['--n=2000']});

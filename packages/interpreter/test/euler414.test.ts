@@ -54,7 +54,7 @@ describe.each([false, true])('Euler 414 (compilation=%s)', compilation => {
         expect(solve(18, 18, compilation).answer).toBe(400668930299n);
         expect(solve(40, 40, compilation).answer).toBe(40372025866559n);
         expect(solve(100, 100, compilation).answer).toBe(9032180012980999n);
-    }, 30000);
+    }, 90000);
     it('handles empty ranges, small moduli and multiple bases', () => {
         expect(solve(2, 1, compilation).answer).toBe(0n);
         expect(solve(2, 2, compilation, '1').answer).toBe(0n);

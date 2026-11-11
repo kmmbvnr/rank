@@ -171,13 +171,13 @@ it('infers the numeric Euler palindrome signature from notebook context before a
 });
 
 
-it('infers a text palindrome result without notebook argument facts', async () => {
+it('retains the missing alternative of text conversion without notebook argument facts', async () => {
     const source = 'fun X palindrome\n Text = X text\n return Text equal (Text reverse)\nend';
     const session = createReplSession();
     try {
         await session.execute('use sequences', 0, [], 40, true);
         const result = await session.execute(source, 1, [], 40, true);
-        expect(result.output.map(row => row.text).join(' ')).toBe('a → boolean');
-        expect(session.preview(source, 40, true).valueSummary).toBe('a → boolean');
+        expect(result.output.map(row => row.text).join(' ')).toBe('a → boolean | missing');
+        expect(session.preview(source, 40, true).valueSummary).toBe('a → boolean | missing');
     } finally { session.dispose(); }
 });

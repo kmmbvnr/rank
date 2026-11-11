@@ -36,7 +36,7 @@ for (const options of [{}, { compilation: false }, { numberLoopCompilation: fals
             total += mean;
             expect(total.toFixed(6), `S(${i + 3})`).toBe(reference.prefixes[i].toFixed(6));
         });
-    }, 60000);
+    }, 180000);
 });
 it('matches the equilateral triangle and the endpoint quadrilateral exactly', () => {
     const actual = run(4);

@@ -3,7 +3,15 @@ import { expect, it } from 'vitest';
 import { createRankServices } from '../src/rank-module.js';
 import type { Program } from '../src/generated/ast.js';
 import { analyzeValues } from '../src/analysis/value-diagnostics.js';
+import { returnConflicts } from '../src/analysis/return-contract.js';
 const services = createRankServices(EmptyFileSystem);
+it('compares array cells only against another proved array result', () => {
+    const array = { types: ['array'], elements: ['integer'] };
+    expect(returnConflicts([array, { types: ['text', 'array'] }])).toEqual([]);
+    expect(returnConflicts([array, { types: ['array', 'segment'] }])).toEqual([]);
+    expect(returnConflicts([array, { types: ['text'] }])).not.toEqual([]);
+    expect(returnConflicts([array, { types: ['array'], elements: ['text'] }])).not.toEqual([]);
+});
 function analyze(source: string) {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);

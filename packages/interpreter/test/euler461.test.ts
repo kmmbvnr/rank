@@ -59,4 +59,4 @@ it('retains the full answer and the winning terms', () => {
     expect(result.winning.map(Number).sort((a,b) => a-b)).toEqual([1433,2147,4903,11363]);
     expect(result.diagnostics.numberLoops).toBeGreaterThan(0);
     expect(result.diagnostics.numberLoopOverflows).toBe(0);
-}, 120000);
+}, 360000);

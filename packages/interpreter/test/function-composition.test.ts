@@ -22,7 +22,7 @@ function compare(source: string, compiledFunction?: string) {
     expect({ result: compiled.result, error: compiled.error, output: compiled.output }).toEqual({ result: reference.result, error: reference.error, output: reference.output });
     if (compiledFunction) expect(compiled.diagnostics.compilerObservations.some(entry =>
         entry.source.function === compiledFunction && /^scalar-function(?:-|$)/.test(entry.backend)
-        && entry.phase === 'execute' && ['selected', 'threw'].includes(entry.outcome))).toBe(true);
+        && entry.phase === 'execute' && ['selected', 'completed', 'threw'].includes(entry.outcome))).toBe(true);
     return compiled;
 }
 

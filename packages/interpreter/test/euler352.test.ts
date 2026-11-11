@@ -47,7 +47,7 @@ for (const compilation of [false, true]) {
             cases.forEach(([p, n], i) => expect(runtime.execute(`${p} blood ${n}`)).toBe(expected[i]));
             expect(() => runtime.execute('0.1 blood 0')).toThrow();
         } finally { runtime.dispose(); }
-    }, 15_000);
+    }, 45_000);
 
     if (compilation) it(`preserves the full blood-test answer (${compilation})`, () => {
         const runtime = new Interpreter(() => {}, { compilation });

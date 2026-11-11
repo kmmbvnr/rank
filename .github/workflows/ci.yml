@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: ${{ matrix.suite == 'differential' && 120 || 30 }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"}]}') }}
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"},{"suite":"name-facts","shard":0},{"suite":"name-facts","shard":1},{"suite":"name-facts","shard":2},{"suite":"name-facts","shard":3},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"differential","shard":4},{"suite":"differential","shard":5},{"suite":"differential","shard":6},{"suite":"differential","shard":7},{"suite":"differential","shard":8},{"suite":"differential","shard":9},{"suite":"differential","shard":10},{"suite":"differential","shard":11},{"suite":"differential","shard":12},{"suite":"differential","shard":13},{"suite":"differential","shard":14},{"suite":"differential","shard":15}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"}]}') }}
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
@@ -49,7 +49,16 @@ jobs:
           npm test --workspace @arrrank/cli
       - name: Audit name facts against demo execution
         if: matrix.suite == 'name-facts'
+        env:
+          RANK_NAME_FACTS_SHARDS: 4
+          RANK_NAME_FACTS_SHARD: ${{ matrix.shard }}
+          RANK_NAME_FACTS_SUMMARY: name-facts-${{ matrix.shard }}.json
         run: npm test --workspace @arrrank/common -- test/name-facts-corpus.test.ts --maxWorkers=1 --reporter=verbose
+      - uses: actions/upload-artifact@v4
+        if: matrix.suite == 'name-facts'
+        with:
+          name: name-facts-${{ matrix.shard }}
+          path: packages/common/name-facts-${{ matrix.shard }}.json
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
         env:
@@ -80,7 +89,7 @@ jobs:
       - name: Compare compiled and reference execution
         if: matrix.suite == 'differential'
         env:
-          RANK_DIFFERENTIAL_SHARDS: 4
+          RANK_DIFFERENTIAL_SHARDS: 16
           RANK_DIFFERENTIAL_SHARD: ${{ matrix.shard }}
           RANK_DIFFERENTIAL_SUMMARY: differential-${{ matrix.shard }}.json
         run: npm test --workspace @arrrank/interpreter -- test/differential.test.ts
@@ -114,4 +123,17 @@ jobs:
           pattern: differential-*
           path: differential-results
           merge-multiple: true
-      - run: node scripts/check-differential.mjs differential-results/differential-*.json
+      - run: node scripts/check-differential.mjs --shards 16 differential-results/differential-*.json
+
+  name-facts-coverage:
+    needs: test
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: name-facts-*
+          path: name-facts-results
+          merge-multiple: true
+      - run: node scripts/check-name-facts.mjs name-facts-results/name-facts-*.json

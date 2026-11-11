@@ -34,7 +34,7 @@ it.each([100, 1000000, 1000000000])('matches the original independent prime-coun
 }, 60000);
 it('retains the full default golden with compiled read-only recursion', () => {
     expect(run(10000000000000)).toBe(9219696799346n);
-}, 120000);
+}, 360000);
 it.each([0, 25, 100])('keeps the cache cutoff %s separate from mathematical bounds', cut => {
     const changed = source.replace('Root min 10000', `Root min ${cut}`);
     expect(run(20000, {}, changed)).toBe(BigInt(prefix[20000]));

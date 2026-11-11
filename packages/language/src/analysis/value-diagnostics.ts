@@ -851,7 +851,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     node: form.axis!, kind: 'DimensionMismatch',
                     message: `${operation} axis ${axis?.integer} exceeds result rank ${maximum ?? 'unknown'}`,
                 });
-                const invalid = cells.some(cell => cell.types.length && !cell.types.every(type =>
+                const invalid = cells.some(cell => cell.types.length && !cell.types.some(type =>
                     type === 'array' || type === 'sequence'));
                 if (invalid) {
                     diagnostics.push({ node: expression, kind: 'TypeError',
