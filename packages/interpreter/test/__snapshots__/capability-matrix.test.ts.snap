@@ -504,11 +504,11 @@ exports[`executable compiler capability matrix > budgets/function-regions 1`] = 
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:output-shape",
+      "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "tensor:reduction-or-copy-terminal-required",
+      "category": "cost-limit",
+      "reason": "tensor:scalar-destination-cost",
     },
     {
       "category": "cost-limit",
@@ -1167,11 +1167,11 @@ exports[`executable compiler capability matrix > budgets/loop-regions 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:output-shape",
+      "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "tensor:reduction-or-copy-terminal-required",
+      "category": "cost-limit",
+      "reason": "tensor:scalar-destination-cost",
     },
     {
       "category": "cost-limit",
@@ -5769,11 +5769,11 @@ exports[`executable compiler capability matrix > cost/statements 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "tensor:output-shape",
+      "reason": "tensor:reduction-or-copy-terminal-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "tensor:reduction-or-copy-terminal-required",
+      "category": "cost-limit",
+      "reason": "tensor:scalar-destination-cost",
     },
     {
       "category": "cost-limit",
@@ -6442,6 +6442,10 @@ exports[`executable compiler capability matrix > effect-boundary/helper-loop 1`]
     {
       "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:scalar-destination-cost",
     },
     {
       "category": "cost-limit",

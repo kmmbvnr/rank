@@ -141,7 +141,7 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 /** Composable tensor expression IR. Shape binding is separate from emission;
  * unsupported layouts/values decline without evaluating user code or lazy data. */
 export function compileTensorKernel(statement: Statement, host: TensorKernelHost): {
-    source: string; run(): RankValue | undefined;
+    source: string; scalarDestination?: string; run(): RankValue | undefined;
 } | undefined {
     const provenTypes = undefined;
     const candidate = observeCompiler(statement, 'tensor', 'prepare', () => compileTensorKernelObservedImplementation(statement, host), provenTypes);
@@ -149,7 +149,7 @@ export function compileTensorKernel(statement: Statement, host: TensorKernelHost
 }
 
 function compileTensorKernelObservedImplementation(statement: Statement, host: TensorKernelHost): {
-    source: string; run(): RankValue | undefined;
+    source: string; scalarDestination?: string; run(): RankValue | undefined;
 } | undefined {
     // Both plans parse the same statement: report its first rejection once.
     const attempt = { rejected: false };
@@ -337,7 +337,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         if (!arithmetic(root)) return declineCompiler('pointwise-arithmetic-required', statement.value);
         if (operations < 2) return declineCompiler('too-small', statement.value);
         const destinationName = isAssignmentStatement(statement) ? statement.name : undefined;
-        return build(root, 'copy', host, domains, true, undefined, false, undefined, undefined, undefined, destinationName);
+        const kernel = build(root, 'copy', host, domains, true, undefined, false, undefined, undefined, undefined, destinationName);
+        return kernel && Object.assign(kernel, { scalarDestination: destinationName });
     }
     if (isAssignmentStatement(statement) && ['+=', '-=', '*='].includes(statement.operator) && !statement.name.includes('.')) {
         const right = parse(statement.value);
@@ -350,7 +351,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
         if (!matched) return declineCompiler('operator-domain', statement.value);
         const destinationName = statement.name;
-        return build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
+        const kernel = build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
+        return kernel && Object.assign(kernel, { scalarDestination: destinationName });
     }
     // An ordinary assignment completes its result before the next statement.
     // Only a single expression may enter this source frontend. Named deferred

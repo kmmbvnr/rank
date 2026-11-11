@@ -2,6 +2,7 @@ import type { CompilerObservation, RuntimeDiagnostics } from '@arrrank/interpret
 
 /** Passive observations: a rejected candidate can have a successful alternative. */
 const explanations: Record<string, string> = {
+    'scalar-destination-cost': 'A scalar destination uses the ordinary checked statement instead of pointwise tensor binding.',
     'statement-budget': 'The region exceeds the statement budget.',
     'selector-budget': 'Generated operand evaluation is limited to 64 operands; this selection uses the runtime adapter.',
     'unsupported-axis-traversal': 'This numeric loop backend requires a supported full-axis scalar walk; general traversal can still use a compiled body.',

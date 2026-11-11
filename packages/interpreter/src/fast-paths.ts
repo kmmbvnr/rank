@@ -430,7 +430,17 @@ export class FastPaths {
         const kernel = compileTensorKernel(statement, this.tensorHost());
         if (!kernel) return undefined;
         const assign = isAssignmentStatement(statement) ? this.context.compileAssign(statement.name) : undefined;
+        // A scalar destination uses the ordinary checked update. Do not bind a
+        // tensor graph just to discover its missing output shape. Recheck live
+        // values: the same helper can later receive arrays or deferred inputs.
+        const scalarDestination = kernel.scalarDestination;
         return { run: () => {
+            if (scalarDestination) {
+                const value = this.context.bindings.find(scalarDestination);
+                if (typeof value === 'bigint' || typeof value === 'number') {
+                    return observeCompiler(statement, 'tensor', 'execute', () => recordFallback('tensor:scalar-destination-cost', 'cost'));
+                }
+            }
             if (!assign && !this.context.bindings.insideFunction) return undefined;
             this.context.checkMutation(statement);
             const value = kernel.run();
