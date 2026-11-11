@@ -4167,3 +4167,41 @@ row and right sides. Tests compare against the previous scalar solver, including
 intermediate overflow. Euler 589's full reference is now practical, while its
 full compiled RSS increases; see `benchmarks/euler589.md` for both-host results
 and the explicit memory tradeoff.
+
+### Array ownership across publishing loop stores (#565, workstream 7)
+
+Exact loops now retry ownership-rejected indexed writes with a publishing
+store plan. Existing private-buffer and Number kernels retain their earlier
+priority. The retry uses the ordinary checked assignment contract at each
+store, so a call or container may retain another owner between writes. It
+preserves selector-before-RHS evaluation and publishes completed writes before
+errors, return or cancellation. This is generated loop control with checked
+native stores, not an unchecked buffer kernel.
+
+The plan accepts array-returning calls combined with writes, mutable aliases,
+rebinding and array permutations, including integer, real, boolean and text
+arrays. Queue, stack and deque snapshots can coexist with subsequent source
+writes. Readers follow in-place widening and refresh when COW or a callback
+changes the bound array. Entry type, rank and storage guards remain active;
+Number speculation does not gain permission to replay published mutations.
+
+Array captures in scalar-function proofs carry domain and rank metadata, never
+cached values. Entry checks inspect the current capture. Returned range gathers
+copy only selected cells and pass native range selectors without first building
+an index array. Physical materialization copies are observable under the
+`array.copy` cost entry; COW payload remains separately counted. A retained
+two-cell slice from a thousand-cell source copies 24 bytes across three
+iterations and causes no full-source COW. A fresh returned array causes no COW;
+a newly shared source still requires its snapshot copy before mutation.
+
+The ownership retry does not remove all array restrictions. Modular indexed
+stores and spread selectors retain their existing paths; deferred values,
+suspension and opaque effects still need their own proofs. This is not general
+last-use analysis, and a live alias may legitimately require a full copy.
+Diagnostics distinguish rejected private candidates from a selected exact loop.
+Seven composition cases extend the capability matrix. Focused tests compare
+values, errors and final variables with interpretation, and require exact-loop
+execution for the new cases. They cover slices, masks, index lists, matrix axes,
+accumulating duplicate indices, permutations, container extraction, captures,
+wide integers and exits. Performance and validation details are recorded in
+`benchmarks/array-ownership-composition-results.md`.
