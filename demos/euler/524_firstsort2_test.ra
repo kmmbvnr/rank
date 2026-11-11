@@ -15,3 +15,9 @@ test "brute force ranks"
   run
   Answer equal 3634441
 end
+
+test "full input"
+  use "524_firstsort2"
+  run
+  Answer equal 2432925835413407847
+end

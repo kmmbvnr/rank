@@ -1,117 +1,137 @@
 rem First Sort II
 rem https://projecteuler.net/problem=524
 
-use numbers
 use sequences
 use bits
-use algo
 use io
 use cli
 
 arg K integer = 8916100448256
 
-rem F(P) sums 2^s over the entries that
-rem are not left-to-right maxima, s the
-rem count of smaller entries before.
-rem An identity prefix doubles F at the
-rem same rank, so drop the factors 2.
-rem The best P has N = bits + 1 entries
-rem and uses each bit of K once; fill
-rem it greedily by value, checking that
-rem the rest can still take the bits.
-Kd = K
-for Kd mod 2 equal 0
-  Kd //= 2
-end
-N = Kd binary len + 1
-Vs = 0 till N copy
-rem Can the free values Pf, filled from
-rem the right after Uf, use bits Bf?
-rem The q-th smallest gives s = a + q.
-fun Sn Uf Pf Bf fz
-  if Pf equal 0
-    return Bf equal 0
+rem Nonrecords cost 2^s, with s smaller
+rem values before them. An identity
+rem prefix doubles cost at equal rank.
+fun Steps first_order
+  if Steps equal 0
+    return array 1
   end
-  R = Vs (Pf bit Vs indices)
-  L = R len
-  Tp = R (L - 1)
-  Rc = 1 shl Tp greater Uf
-  Mk = (1 shl R) - 1
-  Sq = Uf band Mk popcount
-  Sq += (0 till L)
-  Lc = L
-  if Rc
-    Lc = L - 1
-  end
-  if Lc equal 0
-    return Bf equal 0
-  end
-  Hb = 1 shl (Sq (Lc - 1) + 1)
-  if Bf at least Hb
-    return false
-  end
-  Ky = ((Uf shl 21) + Pf) shl 21
-  Ky += Bf
-  if Ky in Sn
-    return false
-  end
-  for Q in Lc - 1 to 0 by -1
-    Sv = Sq Q
-    if Bf bit Sv
-      P2 = Pf - (1 shl (R Q))
-      B2 = Bf - (1 shl Sv)
-      if Sn Uf P2 B2 fz
-        return true
+  Low = Steps band (0 - Steps)
+  Odd = Steps // Low
+  rem For odd cost the minimal length
+  rem is one more than its bit length.
+  N = Odd binary len + 1
+  Values = 0 till N copy
+  Ceiling = 1 shl (N - 1)
+
+  rem Pair the forced nonrecords with
+  rem the lowest remaining bits.
+  fun Used fits Bits
+    if Bits at least Ceiling
+      return false
+    end
+    Size = Used binary len
+    Count = Used popcount
+    Forced = Size - Count
+    Available = Bits popcount
+    Rest = Available - Forced
+    if Rest less 0
+      return false
+    end
+    rem Leave the largest free value
+    rem as a record if it exceeds Used.
+    if Rest greater 0
+      Room = N - Size
+      if Rest at least Room
+        return false
+      end
+      Limit = (1 shl Count) - 1
+      Small = Bits band Limit popcount
+      if Small greater Forced
+        return false
       end
     end
-  end
-  if Rc
-    P2 = Pf - (1 shl Tp)
-    if Sn Uf P2 Bf fz
+    if Forced equal 0
       return true
     end
+    Slots = Bits bit Values indices
+    Below = Values (0 till Size)
+    Unused = not (Used bit Below)
+    Free = Below Unused copy
+    Mask = (1 shl Free) - 1
+    Lower = Used band Mask popcount
+    Scores = Slots (0 till Forced)
+    Enough = Scores at least Lower
+    Inside = Scores at most Free
+    Good = Enough and Inside
+    return Good all
   end
-  Sn add Ky
-  return false
-end
-Seen = new set
-Fu = (1 shl N) - 1
-U = 0
-Bm = Kd
-P = array shape N fill 0
-for I in 0 till N
-  for V in 0 till N
-    if U bit V
-      continue
-    end
-    Bv = 1 shl V
-    A = (U band (Bv - 1)) popcount
-    Nb = Bm
-    if Bv less U
-      if not (Bm bit A)
-        continue
+
+  fun State extend
+    Used = State .used
+    Bits = State .bits
+    Order = State .order
+    fun Value possible rank 0
+      if Used bit Value
+        return false
       end
-      Nb = Bm - (1 shl A)
+      Flag = 1 shl Value
+      Cost = Bits
+      if Flag less Used
+        Mask = Flag - 1
+        Score = Used band Mask popcount
+        if not (Bits bit Score)
+          return false
+        end
+        Cost -= 1 shl Score
+      end
+      Next = Used + Flag
+      return Next fits Cost
     end
-    Nu = U + Bv
-    Pl = Fu - Nu
-    if Seen Nu Pl Nb fz
-      U = Nu
-      Bm = Nb
-      P I = V + 1
-      break
+
+    Valid' = Values possible
+    Value = Values first where Valid
+    Bit = 1 shl Value
+    if Bit less Used
+      LowerMask = Bit - 1
+      Below = Used band LowerMask
+      Index = Below popcount
+      Bits -= 1 shl Index
+    end
+    Entry = array (Value + 1)
+    return record
+      .used = Used + Bit
+      .bits = Bits
+      .order = concat Order Entry
     end
   end
+
+  Seed = record
+    .used = 0
+    .bits = Odd
+    .order = array shape 0 fill 0
+  end
+  Final = Seed extend repeat N
+  return Final .order
 end
-rem Rank: later smaller entries times
-rem the factorial weights.
-Ix = 0 till N copy
-Gt = P reshape N 1 greater P
-Af = Ix reshape N 1 less Ix
-Gm = (Gt and Af) integer
-C = Gm reduce + axis 1
-Fs = 1 till N scan *
-Fs = concat (array 1) Fs
-W = Fs (N - 1 - Ix)
-Answer = C * W sum + 1
+
+rem Later smaller entries give the
+rem factorial digits of the rank.
+fun Order rank_of
+  Size = Order len
+  Slots = 0 till Size copy
+  Column = Order reshape Size 1
+  Rows = Slots reshape Size 1
+  Earlier = Rows less Slots
+  Smaller = Column greater Order
+  Pairs = (Smaller and Earlier) integer
+  Counts = Pairs sum axis 1
+  Weights = 1 till Size scan *
+  Weights = concat (array 1) Weights
+  Places = Size - 1 - Slots
+  Units = Weights Places
+  return Counts * Units sum + 1
+end
+
+P = K first_order
+Answer = P rank_of
 Answer print
