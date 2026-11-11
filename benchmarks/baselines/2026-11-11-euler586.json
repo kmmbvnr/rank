@@ -1,0 +1,745 @@
+{
+  "base": "f52b3076",
+  "runs": {
+    "mac": [
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 311.66620800000004,
+        "cpu": {
+          "user": 529671,
+          "system": 14233
+        },
+        "rssMiB": 288.25,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.5244140625,
+          1.447265625,
+          1.40185546875
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 486.069709,
+        "cpu": {
+          "user": 880794,
+          "system": 23323
+        },
+        "rssMiB": 324.25,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.5244140625,
+          1.447265625,
+          1.40185546875
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 481.7022079999999,
+        "cpu": {
+          "user": 866102,
+          "system": 23659
+        },
+        "rssMiB": 325.421875,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          1.64208984375,
+          1.47265625,
+          1.4111328125
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 321.631875,
+        "cpu": {
+          "user": 539981,
+          "system": 14761
+        },
+        "rssMiB": 288.921875,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          1.64208984375,
+          1.47265625,
+          1.4111328125
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 318.51425000000006,
+        "cpu": {
+          "user": 539283,
+          "system": 14986
+        },
+        "rssMiB": 291.890625,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          1.64208984375,
+          1.47265625,
+          1.4111328125
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 479.772333,
+        "cpu": {
+          "user": 866240,
+          "system": 24299
+        },
+        "rssMiB": 324.40625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          1.64208984375,
+          1.47265625,
+          1.4111328125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 7507.871167,
+        "cpu": {
+          "user": 8826095,
+          "system": 68664
+        },
+        "rssMiB": 552.59375,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.64208984375,
+          1.47265625,
+          1.4111328125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 461.437333,
+        "cpu": {
+          "user": 849242,
+          "system": 24823
+        },
+        "rssMiB": 329.046875,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.54296875,
+          1.45654296875,
+          1.40625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 463.033583,
+        "cpu": {
+          "user": 847847,
+          "system": 24635
+        },
+        "rssMiB": 328.90625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          1.54296875,
+          1.45654296875,
+          1.40625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 7668.439208,
+        "cpu": {
+          "user": 8993753,
+          "system": 64744
+        },
+        "rssMiB": 552.109375,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          1.54296875,
+          1.45654296875,
+          1.40625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 7608.259333,
+        "cpu": {
+          "user": 8934931,
+          "system": 64230
+        },
+        "rssMiB": 550.78125,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          1.7392578125,
+          1.49853515625,
+          1.42138671875
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 465.926291,
+        "cpu": {
+          "user": 858432,
+          "system": 26005
+        },
+        "rssMiB": 328.265625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          1.865234375,
+          1.53173828125,
+          1.43310546875
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000",
+        "r": "4",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 3562.880875,
+        "cpu": {
+          "user": 3905226,
+          "system": 38625
+        },
+        "rssMiB": 428.328125,
+        "answer": "237",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.865234375,
+          1.53173828125,
+          1.43310546875
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000",
+        "r": "4",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 201.98125,
+        "cpu": {
+          "user": 348308,
+          "system": 11267
+        },
+        "rssMiB": 193.640625,
+        "answer": "237",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.7958984375,
+          1.5224609375,
+          1.43017578125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000000",
+        "r": "6",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 3599.909208,
+        "cpu": {
+          "user": 3966619,
+          "system": 39212
+        },
+        "rssMiB": 437.5625,
+        "answer": "59517",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.7958984375,
+          1.5224609375,
+          1.43017578125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000000",
+        "r": "6",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 226.83979200000002,
+        "cpu": {
+          "user": 404163,
+          "system": 13630
+        },
+        "rssMiB": 204.828125,
+        "answer": "59517",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.89208984375,
+          1.546875,
+          1.43896484375
+        ]
+      }
+    ],
+    "intel": [
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 876.4299290000001,
+        "cpu": {
+          "user": 1346292,
+          "system": 61946
+        },
+        "rssMiB": 282.55859375,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          2.57080078125,
+          2.3017578125,
+          2.1884765625
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1578.065315,
+        "cpu": {
+          "user": 2465846,
+          "system": 109978
+        },
+        "rssMiB": 314.78515625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          2.52490234375,
+          2.29638671875,
+          2.18701171875
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1570.411586,
+        "cpu": {
+          "user": 2466695,
+          "system": 117363
+        },
+        "rssMiB": 312.90625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          2.52490234375,
+          2.29638671875,
+          2.18701171875
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 872.313267,
+        "cpu": {
+          "user": 1337274,
+          "system": 57656
+        },
+        "rssMiB": 281.09765625,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          2.52490234375,
+          2.29638671875,
+          2.18701171875
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 932.1060520000001,
+        "cpu": {
+          "user": 1477290,
+          "system": 61952
+        },
+        "rssMiB": 281.8203125,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          2.56298828125,
+          2.30810546875,
+          2.19140625
+        ]
+      },
+      {
+        "mode": "compiled",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1591.9734520000002,
+        "cpu": {
+          "user": 2487663,
+          "system": 68909
+        },
+        "rssMiB": 311.99609375,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          2.56298828125,
+          2.30810546875,
+          2.19140625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 27177.772987,
+        "cpu": {
+          "user": 32749219,
+          "system": 179577
+        },
+        "rssMiB": 530.6796875,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          2.56298828125,
+          2.30810546875,
+          2.19140625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1507.562891,
+        "cpu": {
+          "user": 2391057,
+          "system": 138846
+        },
+        "rssMiB": 319.37890625,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          2.40283203125,
+          2.29296875,
+          2.1884765625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1503.3052739999998,
+        "cpu": {
+          "user": 2389645,
+          "system": 98736
+        },
+        "rssMiB": 318.08203125,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          2.40283203125,
+          2.29296875,
+          2.1884765625
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 27868.21874,
+        "cpu": {
+          "user": 33713784,
+          "system": 174397
+        },
+        "rssMiB": 528.15625,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          2.69091796875,
+          2.35498046875,
+          2.208984375
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 28202.346472,
+        "cpu": {
+          "user": 34283772,
+          "system": 194385
+        },
+        "rssMiB": 531.84765625,
+        "answer": "82490213",
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          2.7255859375,
+          2.39013671875,
+          2.2236328125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "1000000000000000",
+        "r": "40",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 1647.391747,
+        "cpu": {
+          "user": 2644951,
+          "system": 134197
+        },
+        "rssMiB": 319.67578125,
+        "answer": "82490213",
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          2.5068359375,
+          2.3681640625,
+          2.220703125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000",
+        "r": "4",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 10966.359394000001,
+        "cpu": {
+          "user": 11683903,
+          "system": 102218
+        },
+        "rssMiB": 417.4296875,
+        "answer": "237",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          2.4658203125,
+          2.36181640625,
+          2.21923828125
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000",
+        "r": "4",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 583.1474939999999,
+        "cpu": {
+          "user": 959514,
+          "system": 33810
+        },
+        "rssMiB": 181.26171875,
+        "answer": "237",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          2.3935546875,
+          2.34912109375,
+          2.21630859375
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000000",
+        "r": "6",
+        "file": "benchmarks/fixtures/euler586-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "4070ef64b30047a43b141f46b02237f6dc301e88c8b908944ffc47c8e58a30b6",
+        "ms": 11182.750571,
+        "cpu": {
+          "user": 11972051,
+          "system": 186971
+        },
+        "rssMiB": 419.79296875,
+        "answer": "59517",
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          2.3935546875,
+          2.34912109375,
+          2.21630859375
+        ]
+      },
+      {
+        "mode": "reference",
+        "n": "100000000",
+        "r": "6",
+        "file": "demos/euler/586_binaryquadraticform.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "34615d5adff9e539ab82c9723bd1d49186c44295aa39ff929a00cb0595e7eae0",
+        "ms": 676.642372,
+        "cpu": {
+          "user": 1070238,
+          "system": 59377
+        },
+        "rssMiB": 184.81640625,
+        "answer": "59517",
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          2.6279296875,
+          2.4033203125,
+          2.2353515625
+        ]
+      }
+    ]
+  }
+}

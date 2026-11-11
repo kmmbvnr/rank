@@ -1,183 +1,215 @@
 rem Binary Quadratic Form
 rem https://projecteuler.net/problem=586
 
+rem For x made of split primes, a norm
+rem x * 5^t * u^2 has floor(tau(x)/2)
+rem forms when u uses inert primes.
+rem The exponent factors of tau(x) are
+rem the exponents plus one.
+rem Split residues are 1 and 4 mod 5.
+rem Inert residues are 2 and 3 mod 5.
 use numbers
 use sequences
+use bits
+use algo
 use io
 use cli
-
 arg N integer = 1000000000000000
 arg R integer = 40
 
-rem k = a^2 + 3ab + b^2 (a > b > 0) has
-rem floor(tau(x) / 2) forms when k =
-rem x 5^t u^2, x made of primes 1, 4 mod
-rem 5 and u of primes 2, 3 mod 5, else
-rem none. So f = sum over such x with
-rem tau(x) = 2R or 2R + 1 of G(n // x),
-rem G(q) the count of m = 5^t u^2 up to
-rem q. A walk over prime powers in
-rem increasing prime order keeps the
-rem divisor count still due; a last
-rem prime with exponent 1 is summed over
-rem m with the split prime counts
-rem pi(M // m).
-Pm = 5000000
-Qm = 3000000
-Ss = array shape (Pm + 1) fill 1
-Ss 0 = 0
-Ss 1 = 0
-Pr = Pm isqrt
-for I in 2 to Pr
-  if Ss I equal 1
-    for J in I * I to Pm by I
-      Ss J = 0
+rem A power-of-two bound suffices.
+fun Bound root_cap Power
+  if Power equal 1 or (Bound less 2)
+    return Bound
+  end
+  if Power equal 2
+    return Bound isqrt
+  end
+  Bits = Bound binary len
+  Shift = (Bits + Power - 1) // Power
+  return 2 ** Shift
+end
+
+Base = 2 * R + 2
+Depth = Base binary len
+Radix = array shape Depth fill Base
+
+fun Need patterns
+  if Need equal 1
+    return array 0
+  end
+  Choices' = Need divisors from 2
+  fun Choice extend rank 0
+    Rest = Need // Choice
+    Tails = Rest patterns
+    Codes = Tails * Base + Choice - 1
+    return Codes
+  end
+  Parts' = Choices extend
+  return concat unpack Parts copy
+end
+
+fun Code exponents
+  Digits = Code digits Radix
+  return Digits (Digits greater 0) copy
+end
+
+Prime' = primes
+Residue' = Prime mod 5
+SmallSide' = Residue equal 1
+LargeSide' = Residue equal 4
+Split' = SmallSide or LargeSide
+First' = Prime filter Split
+Tiny = First take Depth array
+
+fun Code minimum rank 0
+  Exps = Code exponents
+  Count = Exps len
+  Terms = Tiny (0 till Count) ** Exps
+  return Terms reduce * with 1
+end
+
+fun Code prime_limit rank 0
+  Exps = Code exponents
+  Last = Exps len - 1
+  Prefix = Exps (0 till Last)
+  Terms = Tiny (0 till Last) ** Prefix
+  Product = Terms reduce * with 1
+  Bound = N // Product
+  Power = Exps Last
+  return Bound root_cap Power
+end
+
+Codes = array shape 0 fill 0
+if R greater 0
+  Even = 2 * R patterns
+  Odd = 2 * R + 1 patterns
+  Codes = concat Even Odd copy
+end
+Minima = Codes minimum
+Good = Minima at most N
+Codes = Codes Good
+Minima = Minima Good
+Least = N + 1
+PrimeLimit = 0
+if Codes len greater 0
+  Least = Minima min
+  Bounds = Codes prime_limit
+  PrimeLimit = Bounds max
+end
+Primes = PrimeLimit primesieve array
+Residues = Primes mod 5
+Low = Residues equal 1
+Good = Low or (Residues equal 4)
+Primes = Primes Good
+Limit = N // Least
+
+fun X inert rank 0
+  Factors = X factors array
+  Residues = Factors mod 5
+  Low = Residues equal 2
+  Good = Low or (Residues equal 3)
+  return Good all
+end
+Root = Limit isqrt
+Bases = 1 to Root copy
+Bases = Bases (Bases inert)
+Squares = Bases * Bases
+Width = Squares len
+Column = Squares reshape Width 1
+Bits = Limit binary len
+Powers = 5 ** (0 to Bits // 2 copy)
+Grid = Column * Powers
+Size = Width * (Powers len)
+Values = Grid reshape Size
+Values = Values (Values at most Limit)
+Inert = Values sort
+
+fun Counts expand
+  Ends = Counts scan +
+  Begins = Ends - Counts
+  Size = Counts sum
+  Slots = 0 till Size copy
+  Rows = Ends upperindex Slots
+  return record
+    .rows = Rows
+    .steps = Slots - Begins Rows
+  end
+end
+
+fun Exps minima Window
+  Count = Exps len
+  if Count equal 1
+    return Window ** Exps 0 copy
+  end
+  Size = Window len - Count + 1
+  Head = Window (0 till Size)
+  Tail = Window (1 till (Window len))
+  Rest = Exps (1 till Count)
+  Suffix = Rest minima Tail
+  return Head ** Exps 0 * Suffix copy
+end
+
+fun Exps walk State
+  Products = State .products
+  From = State .from
+  Count = Exps len
+  Power = Exps 0
+  Bounds = N // Products
+  Budget = Bounds max
+  if Count equal 1
+    Powers = Primes
+    if Power greater 1
+      Last = Budget root_cap Power
+      End = Primes upperindex Last
+      Slice = Primes (0 till End)
+      Powers = Slice ** Power
     end
+    rem Count the unit scale separately.
+    Stops = Powers upperindex Bounds
+    Total = Stops - From sum
+    Caps = Bounds // Powers From
+    Widths = Inert upperindex Caps
+    Widths -= 1
+    Layout = Widths expand
+    Rows = Layout .rows
+    Steps = Layout .steps + 1
+    Targets = Bounds Rows // Inert Steps
+    Stops = Powers upperindex Targets
+    Extra = Stops - From Rows sum
+    return Total + Extra
   end
+  Weight = Exps sum
+  rem Consecutive primes give the
+  rem cheapest suffix at each offset.
+  Last = Budget root_cap Weight
+  End = Primes upperindex Last
+  Size = Primes len
+  Finish = End + Count - 1 min Size
+  Window = Primes (0 till Finish)
+  Minimum = Exps minima Window
+  Stops = Minimum upperindex Bounds
+  Widths = Stops - From max 0
+  Layout = Widths expand
+  Rows = Layout .rows
+  Positions = From Rows + Layout .steps
+  Powers = Primes Positions ** Power
+  Products = Products Rows * Powers
+  Next = record
+    .products = Products
+    .from = Positions + 1
+  end
+  Remain = Exps (1 till Count)
+  return Remain walk Next
 end
-Ix = Ss equal 1 indices
-Rs = Ix mod 5
-Sl = Rs equal 1 or (Rs equal 4)
-Sp = Ix (Sl indices)
-Np = Sp len
-Fl = Ss * 0
-Fl Sp = 1
-Cs = Fl scan + array
-Ur = Qm isqrt
-Ine = array shape (Ur + 1) fill 1
-Ine 0 = 0
-for P in Ix
-  if P at most Ur
-    Rp = P mod 5
-    Bd = Rp equal 0 or (Rp equal 1)
-    if Bd or (Rp equal 4)
-      for J in P to Ur by P
-        Ine J = 0
-      end
-    end
+
+fun Code solve rank 0
+  Exps = Code exponents
+  Seed = record
+    .products = array 1
+    .from = array 0
   end
+  return Exps walk Seed
 end
-Mk = array shape (Qm + 1) fill 0
-Pw = 1
-for Pw at most Qm
-  for U in 1 to Ur
-    if Ine U equal 1
-      M = Pw * U * U
-      if M at most Qm
-        Mk M = 1
-      end
-    end
-  end
-  Pw *= 5
-end
-Gp = Mk scan + array
-Mv = Mk equal 1 indices
-Nm = Mv len
-Dv = array shape 82 20 fill 0
-Dn = array shape 82 fill 0
-Lg = array shape 82 fill 0
-for Rr in 2 to 81
-  for D in 2 to Rr
-    if Rr mod D equal 0
-      Dv Rr (Dn Rr) = D
-      Dn Rr += 1
-    end
-  end
-  Lb = 0
-  Cv = 1
-  for Cv less Rr
-    Cv *= 2
-    Lb += 1
-  end
-  Lg Rr = Lb
-end
-Tot = 0
-Sx = array shape 64 fill 0
-Sr = array shape 64 fill 0
-Sj0 = array shape 64 fill 0
-Sc = array shape 64 fill 0
-Sp0 = 0
-for T in 2 * R to 2 * R + 1
-  Sx Sp0 = 1
-  Sr Sp0 = T
-  Sj0 Sp0 = 0
-  Sc Sp0 = 0
-  Sp0 += 1
-end
-for Sp0 greater 0
-  T = Sp0 - 1
-  X = Sx T
-  Rq = Sr T
-  J = Sc T
-  Fa = 0
-  if J less Np
-    P = Sp J
-    Sc T = J + 1
-    Cap = N // P
-    Nd = Dn Rq
-    for K in 0 till Nd
-      D = Dv Rq K
-      Pe = 1
-      for Q in 2 to D
-        if Pe greater Cap
-          Pe = N + 1
-        else
-          Pe *= P
-        end
-      end
-      Ok = Pe at most (N // X)
-      if Ok
-        Y = X * Pe
-        if D equal Rq
-          Fa = 1
-          Tot += Gp (N // Y)
-        else
-          Rn = Rq // D
-          Pn = N + 1
-          if J + 1 less Np
-            Pn = Sp (J + 1)
-          end
-          Zr = N // Y
-          Lb = Lg Rn
-          for Q in 1 to Lb
-            Zr = Zr // Pn
-          end
-          if Zr at least 1
-            Fa = 1
-            if Rn equal 2
-              Mq = N // Y
-              Go = 1
-              I = 0
-              Gw = Go equal 1
-              Gw = Gw and (I less Nm)
-              for Gw
-                Mi = Mv I
-                Qv = Mq // Mi min Pm
-                Cn = (Cs Qv) - (J + 1)
-                if Cn greater 0
-                  Tot += Cn
-                  I += 1
-                else
-                  Go = 0
-                end
-                Gw = Go equal 1
-              Gw = Gw and (I less Nm)
-              end
-            else
-              Sx Sp0 = Y
-              Sr Sp0 = Rn
-              Sj0 Sp0 = J + 1
-              Sc Sp0 = J + 1
-              Sp0 += 1
-            end
-          end
-        end
-      end
-    end
-  end
-  if Fa equal 0
-    Sp0 = T
-  end
-end
-Answer = Tot
+Answer = Codes solve sum
 Answer print
