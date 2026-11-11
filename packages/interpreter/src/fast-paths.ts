@@ -66,6 +66,7 @@ export interface FastPathContext {
     checkMutation(statement: Statement): void;
     resolve(name: string): RankValue;
     prepareArrayWrite(statement: ArrayAssignmentStatement): (selectors: RankValue[], rhs: () => RankValue) => { target: RankValue; result: RankValue | undefined };
+    prepareDeferredBinding(statement: import('@arrrank/language').AssignmentStatement): () => RankValue;
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
@@ -145,7 +146,7 @@ export class FastPaths {
                 const structured = (node: AstNode) => isRecordExpression(node) || isRecordUpdateExpression(node)
                     || isTupleExpression(node) || isUnpackStatement(node) || isPushStatement(node)
                     || isArrayAssignmentStatement(node)
-                    || isAssignmentStatement(node) && node.name.includes('.');
+                    || isAssignmentStatement(node) && (node.deferred || node.name.includes('.'));
                 const iteration = forIteration(statements[0].$container.condition);
                 const arrayTraversal = iteration && (isNameExpression(iteration.iterable) || forAxes(iteration.iterable));
                 const structural = !!arrayTraversal
@@ -250,7 +251,8 @@ export class FastPaths {
             if (values === undefined) {
                 values = AstUtils.streamAllContents(statement).some(node => isRecordExpression(node)
                     || isRecordUpdateExpression(node) || isTupleExpression(node) || isUnpackStatement(node)
-                    || isPushStatement(node) || isArrayAssignmentStatement(node) || isAssignmentStatement(node) && node.name.includes('.'));
+                    || isPushStatement(node) || isArrayAssignmentStatement(node)
+                    || isAssignmentStatement(node) && (node.deferred || node.name.includes('.')));
                 this.valueBodies.set(statement, values);
             }
             // Generic frame code is independent of element/field domains. It
@@ -502,6 +504,8 @@ export class FastPaths {
             scalarText: scalars.text,
             evaluate: expression => runExecution(this.context.evaluate(expression)),
             callout: expression => () => runExecution(this.context.evaluate(expression)),
+            evaluateReturn: expression => runExecution(this.context.evaluateReturn(expression)),
+            prepareDeferredBinding: statement => this.context.prepareDeferredBinding(statement),
             nativeCalls: loops.nativeCalls,
             prepareBuiltinCall: (module, name, types, numberMode) => preparePositionalBuiltin(this.context, module, name, types, numberMode),
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({

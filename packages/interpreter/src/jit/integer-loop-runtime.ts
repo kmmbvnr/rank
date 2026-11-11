@@ -2,6 +2,7 @@ import { observeCompiler, observedRun, withCompilerMethods } from '../compiler-o
 import { checkValueMutable } from '../value-protection.js';
 import { integerSquareRoot } from '../integer-square-root.js';
 import { ALL_AXIS } from '../selectors.js';
+import { demandValue } from '../plan.js';
 import { materializeValue } from '../materialize.js';
 import { textLength } from '../text-storage.js';
 import { takeDropValue } from '../sequence.js';
@@ -93,9 +94,23 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
             return written.target;
         },
     };
+    const deferredBindings = new Map<number, () => RankValue>();
+    const deferredBinding = (location: number): RankValue => {
+        let bind = deferredBindings.get(location);
+        if (!bind) {
+            bind = host.prepareDeferredBinding!(locations[location] as import('@arrrank/language').AssignmentStatement);
+            deferredBindings.set(location, bind);
+        }
+        return bind();
+    };
+    const demandDeferred = (value: RankValue, type: LoopTerm['type']): RankValue => {
+        const result = demandValue(value);
+        if (loopValueType(result) !== type) throw new RankError(`deferred result must be ${type}`, 'TypeError');
+        return result;
+    };
     const source = emitIntegerLoopSource(plan, false);
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[], helperWork?: { value: number }) => RankValue | undefined;
-    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', 'tupleResult', code)(
+    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', 'tupleResult', 'deferredBinding', 'demandDeferred', 'deferredReturn', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -150,7 +165,8 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);
                 return items;
             }, observeWork, (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (value: RankValue, name: string) => !plan.statementOwnership && writable.has(name) && isRankArray(value) ? privateArrayCopy(value) : value, tuple);
+            (value: RankValue, name: string) => !plan.statementOwnership && writable.has(name) && isRankArray(value) ? privateArrayCopy(value) : value, tuple, deferredBinding, demandDeferred, (location: number) =>
+                host.evaluateReturn!((locations[location] as import('@arrrank/language').ReturnStatement).value!));
     try { run = compile(source, () => {}); }
     catch { return reject(); }
     let countedRun: typeof run | undefined;

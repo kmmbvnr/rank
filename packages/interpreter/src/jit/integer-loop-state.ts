@@ -47,6 +47,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
     const localTypes: IntegerLoopPlan['localTypes'] = new Map();
     const privateStages = isFunctionStatement(statement) ? privateLoopStages(statement) : new Map();
     const deferredExpressions = new Map<string, Expression>();
+    const deferredBindings = new Set<string>();
     const names: string[] = [];
     if (isFunctionStatement(statement)) {
         for (const param of statement.parameters) {
@@ -189,7 +190,7 @@ export function createLoopState(statement: ForStatement | FunctionStatement, hos
         return loopScopes.length > 0 ? loopScopes[loopScopes.length - 1] : undefined;
     }
     return {
-        statement, privateStages, deferredExpressions, ownershipChecks, integerRanges: integerRangeFacts(statement),
+        statement, privateStages, deferredExpressions, deferredBindings, ownershipChecks, integerRanges: integerRangeFacts(statement),
         host, numberMode, wideScalars, workCounting, checkpoint, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, reboundNames, writers, binders, writerNames, binderNames,
         retainedLocalArrayResult: false, vectorReductions: false, primeCopies: false, containers, builtins, syntax, calls, arrays, calleeArrays, sliceReadSources, sliceResultSources, indexedReads, arrayInputs, arrayDefinitions, ranges, aliases, localAliases, arrayTransfers, dequeArrays,

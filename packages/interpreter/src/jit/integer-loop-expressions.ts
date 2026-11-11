@@ -364,6 +364,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const inferred = inferCompiledExpression<CompiledLoopType, LoopInput>(e, {
             atom: type => types.find(candidate => candidate === type),
             substitute: source => {
+                if (!numberMode && isNameExpression(source) && state.deferredBindings.has(source.name)) {
+                    const type = localTypes.get(source.name)!;
+                    return { type, input: { term: { code: `demandDeferred(r${slot(source.name)}, ${JSON.stringify(type)})`, type }, lines: [] } };
+                }
                 if (isNameExpression(source) && state.deferredExpressions.has(source.name)) {
                     const setup: string[] = [];
                     const term = emit(state.deferredExpressions.get(source.name)!, setup);

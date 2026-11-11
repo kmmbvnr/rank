@@ -179,6 +179,21 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
             if (isAssignmentStatement(assignment) && assignment.deferred) {
+                if (!numberMode && isForStatement(state.statement) && host.prepareDeferredBinding && assignment.operator === '=' && !assignment.name.includes('.')) {
+                    // Collect type and entry-guard evidence without executing
+                    // the expression. Construction and demand keep their contracts.
+                    const value = emit(assignment.value, []);
+                    if (!value || arrays.size || calls.length || state.containers.size) return reject(assignment, 'deferred-expression');
+                    const previous = localTypes.get(assignment.name);
+                    if (previous && previous !== value.type) return reject(assignment, 'deferred-type');
+                    const destination = slot(assignment.name);
+                    localTypes.set(assignment.name, value.type);
+                    state.deferredBindings.add(assignment.name);
+                    written.add(assignment.name);
+                    body.push(`location = ${location}; r${destination} = deferredBinding(${location}); iterationResult = r${destination};`);
+                    recordAssigned(assignment.name);
+                    continue;
+                }
                 const stage = numberMode && state.privateStages.get(assignment);
                 if (!stage) return reject(assignment, 'deferred-binding');
                 for (const name of stage.reads) {
@@ -313,6 +328,11 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 if (numberMode) return undefined;
                 if (!host.returns || !assignment.value) return reject(assignment);
                 state.hasControl = true; state.hasReturn = true;
+                if (state.deferredBindings.size && host.evaluateReturn) {
+                    // Return propagates a recipe; it is not a completion boundary.
+                    body.push(`location = ${location}; leave(deferredReturn(${location}));`);
+                    return 'stop';
+                }
                 const lines: string[] = [];
                 let expression = assignment.value;
                 while (isParenthesizedExpression(expression)) expression = expression.value;
@@ -542,6 +562,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             if (!value || value.type === 'boolean' && !host.booleanLocals) return reject(assignment);
             // A compound update keeps its binding's type, as in `Total += 1`.
             const compound = assignment.operator !== '=';
+            if (compound && state.deferredBindings.has(assignment.name)) return reject(assignment, 'deferred-compound-binding');
             const type = localTypes.get(assignment.name)
                 ?? (compound ? realInput(assignment.name) : undefined) ?? value.type;
             let result = value.code;

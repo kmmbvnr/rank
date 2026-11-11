@@ -250,6 +250,10 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     const lowered = statements(region ? statement.statements.slice(0, -1) : statement.statements, body, !region && !iteration, root.breakLabel);
     if (onStores && locations.some(node => isArrayAssignmentStatement(node) || isUnpackStatement(node))) onStores();
     if (!lowered) return undefined;
+    // Mixed ownership and effect regions keep generated boxed control instead
+    // of treating a deferred value as a private scalar/array register.
+    if (state.deferredBindings.size && (arrays.size || calls.length || containers.size || state.callouts.length))
+        return reject(statement, 'deferred-region-effects');
     if (rootScope) {
         state.popScope();
         if (rootScope.setupLines.length > 0) {

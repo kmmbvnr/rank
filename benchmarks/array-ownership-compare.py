@@ -7,6 +7,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('--node', default='node')
+parser.add_argument('--harness', default=str(Path(__file__).with_name('array-ownership.mjs')))
 parser.add_argument('--before', required=True)
 parser.add_argument('--after', required=True)
 parser.add_argument('--before-revision', required=True)
@@ -24,10 +25,11 @@ report = {
     'after': args.after_revision,
     'host': platform.platform(),
     'gc': args.gc,
+    'harness': str(Path(args.harness).name),
     'protocol': 'One Node process per variant/case/pair. Alternate order by pair. Parsing and reference execution precede timing. Fresh samples use separate interpreters and a shared parsed program. Prepared samples reuse one interpreter. RSS includes reference, warmups and diagnostics. GC mode collects before each sample and after diagnostics.',
     'samples': [],
 }
-harness = Path(__file__).with_name('array-ownership.mjs')
+harness = Path(args.harness)
 for pair in range(args.repeats):
     for case in args.cases:
         for variant in (['before', 'after'] if pair % 2 == 0 else ['after', 'before']):

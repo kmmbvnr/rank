@@ -47,8 +47,8 @@ function summarize(row: CapabilityCase, diagnostics: RuntimeDiagnostics, outcome
         boundaries: reasons.map(reason => ({ reason,
             category: /budget|cost|limit/.test(reason) ? 'cost-limit'
                 : /guard|^tensor:binding:/.test(reason) ? 'runtime-guard'
-                : /unsupported-|generator-function|deferred-binding|container-push|container-write/.test(reason) ? 'missing-lowering'
-                : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct|array-call-write-region|deque-array-write|array-alias/.test(reason) ? 'failed-proof'
+                : /unsupported-|generator-function|deferred-binding|deferred-expression|container-push|container-write/.test(reason) ? 'missing-lowering'
+                : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct|array-call-write-region|deque-array-write|array-alias|deferred-region-effects|deferred-compound-binding|deferred-type|deferred-scalar-return/.test(reason) ? 'failed-proof'
                 : /too-small|no-fusible-operation/.test(reason) ? 'cost-limit'
                 : 'unclassified' })),
         languageError: row.error === true,
@@ -76,7 +76,7 @@ describe('executable compiler capability matrix', () => {
         else expect(traced.error).toBeUndefined();
         for (const counter of ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions', 'compiledValueBlocks',
             'compiledNumericCallLoops', 'compiledGeneratorLoops', 'compiledTensors', 'numberTensors',
-            'fusedArrayRegions', 'compiledEffectCalls'] as const) {
+            'fusedArrayRegions', 'compiledEffectCalls', 'compiledValueBlocks', 'compiledFramedFunctions'] as const) {
             expect(traced.diagnostics[counter], counter).toBe(plain.diagnostics[counter]);
         }
         const summary = summarize(row, traced.diagnostics, observable(traced));
@@ -84,6 +84,10 @@ describe('executable compiler capability matrix', () => {
         expect(summary.boundaries.filter(entry => entry.category === 'unclassified')).toEqual([]);
         expect({ ...observable(traced), regions: summary.regions, boundaries: summary.boundaries }).toMatchSnapshot();
         if (row.id.startsWith('ownership/')) expect(summary.paths).toContain('exact-loop');
+        if (row.id.startsWith('deferred-loop/')) expect(summary.paths).toContain('exact-loop');
+        if (row.id === 'deferred-composition/helper') expect(summary.paths).toContain('value-block');
+        if (row.id === 'deferred-composition/escape') expect(summary.paths).toContain('framed-function');
+        if (row.id === 'deferred-composition/array') expect(summary.paths).toContain('scalar-function-direct');
         if (row.operator) expect(summary.paths.some(path => path === 'number-loop' || path === 'exact-loop')).toBe(true);
         const demo = demos.find(([name]) => row.id === `euler/${name}`);
         if (demo) expect(traced.output.join('\n').trim()).toBe(demo[1]);

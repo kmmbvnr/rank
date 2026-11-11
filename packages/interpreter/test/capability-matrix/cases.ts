@@ -205,3 +205,41 @@ for I in 1 to 3
  Source 0 += I
 end
 tuple Saved Source`, ['integer[]'], 'tuple', [1], 'captured dense array', ['captures', 'mutates']);
+
+for (const [id, body] of [
+    ['scalar', "Value' = I * 2\nTotal += Value"],
+    ['rebind', "Value' = I * 2\nFirst = Value\nValue' = I * 3\nTotal += First + Value"],
+    ['unused', "Unused' = I // 0\nTotal += I"],
+    ['chain', "First' = I + 1\nSecond' = First * 2\nTotal += Second"],
+]) add(`deferred-loop/${id}`, `Total = 0\nfor I in 1 to 3\n${body}\nend\nTotal`,
+    ['integer'], 'integer', [0], 'deferred scalar');
+add('deferred-composition/helper', `fun X' twice
+ return X + X
+end
+Total = 0
+for I in 1 to 3
+ Value' = I * 2
+ Total += Value twice
+end
+Total`, ['integer'], 'integer', [0], 'deferred argument');
+add('deferred-composition/escape', `fun N make
+ First' = N + 1
+ Second' = First * 2
+ return Second
+end
+Left' = 1 make
+Right' = 3 make
+First = Left
+Second = Right
+tuple First Second`, ['integer'], 'tuple', [0], 'escaped plans');
+add('deferred-composition/array', `fun Input make
+ Values' = Input * 2
+ return Values
+end
+Source = array 1 2 3
+Alias = Source
+Result' = Source make
+Alias 0 = 9
+First = Result
+Second = Result
+tuple (First 0) (Second 0) (Alias 0)`, ['integer[]'], 'tuple', [1], 'deferred array snapshot', ['mutates']);

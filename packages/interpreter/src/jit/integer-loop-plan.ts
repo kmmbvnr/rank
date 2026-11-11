@@ -2,7 +2,7 @@ import type { IntegerRangeFacts } from './integer-range-facts.js';
 import type { IntegerBounds } from './integer-representation.js';
 import type { ArrayRegion } from './array-region.js';
 import type { RankDeque } from '../containers.js';
-import type { Expression, ForStatement, FunctionStatement, Statement, ArrayAssignmentStatement, CompiledLoopType } from '@arrrank/language';
+import type { Expression, ForStatement, FunctionStatement, Statement, ArrayAssignmentStatement, AssignmentStatement, CompiledLoopType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { Evaluation } from '../execution.js';
@@ -59,6 +59,7 @@ export interface LoopHost {
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;
     copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean, view?: boolean): RankArray;
+    prepareDeferredBinding?(statement: AssignmentStatement): () => RankValue;
     prepareArrayWrite?(statement: ArrayAssignmentStatement): (selectors: RankValue[], rhs: () => RankValue) => { target: RankValue; result: RankValue | undefined };
     readonly arrayRegions?: boolean;
     readonly arrayValues?: {
@@ -78,6 +79,7 @@ export interface LoopHost {
     module(name: string): boolean;
     builtin(module: string, name: string): boolean;
     evaluate?(expression: Expression): RankValue;
+    evaluateReturn?(expression: Expression): RankValue;
     callout?(expression: Expression): () => RankValue;
     compiled?(source: string): void;
     executed?(): void;

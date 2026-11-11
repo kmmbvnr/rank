@@ -4951,6 +4951,364 @@ exports[`executable compiler capability matrix > cost/statements 1`] = `
 }
 `;
 
+exports[`executable compiler capability matrix > deferred-composition/array 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "computed-array-update:unsupported-assignment:=",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:deferred-scalar-return",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "value-expression:resumable-operand-required",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: statement-dispatch",
+    "11:1 interpreted-expression: native-selection, selection-expression",
+    "11:1 statement-dispatch: native-selection, selection-expression",
+    "11:17 interpreted-expression: native-selection, selection-expression",
+    "11:18 interpreted-expression: native-selection, selection-expression",
+    "11:18 native-selection: native-selection",
+    "11:18 selection-expression: native-selection, selection-expression",
+    "11:28 interpreted-expression: native-selection, selection-expression",
+    "11:29 interpreted-expression: native-selection, selection-expression",
+    "11:29 native-selection: native-selection",
+    "11:29 selection-expression: native-selection, selection-expression",
+    "11:7 interpreted-expression: native-selection, selection-expression",
+    "11:8 interpreted-expression: native-selection, selection-expression",
+    "11:8 native-selection: native-selection",
+    "11:8 selection-expression: native-selection, selection-expression",
+    "1:1 block-dispatch: native-array-construction, native-array-map, native-operator, native-selection, scalar-function-direct, selection-expression, statement-dispatch",
+    "1:1 native-operator: native-array-map, native-operator",
+    "1:1 scalar-function-direct: native-array-map, native-operator, scalar-function-direct",
+    "1:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: native-array-construction",
+    "5:10 native-array-construction: native-array-construction",
+    "6:1 statement-dispatch: statement-dispatch",
+    "7:1 statement-dispatch: native-array-map, native-operator, scalar-function-direct",
+    "7:11 interpreted-expression: native-array-map, native-operator, scalar-function-direct",
+    "7:11 user-call: native-array-map, native-operator, scalar-function-direct",
+    "8:1 statement-dispatch: statement-dispatch",
+    "9:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "2 2 9",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-composition/escape 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:deferred-scalar-return",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: value-expression",
+    "10:1 value-expression: value-expression",
+    "1:1 block-dispatch: direct-expression, framed-function, statement-dispatch, value-expression",
+    "1:1 framed-function: framed-function, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:2 statement-dispatch: statement-dispatch",
+    "3:2 statement-dispatch: statement-dispatch",
+    "6:1 statement-dispatch: direct-expression, framed-function, statement-dispatch",
+    "6:9 direct-expression: direct-expression",
+    "6:9 interpreted-expression: direct-expression, framed-function, statement-dispatch",
+    "6:9 user-call: framed-function, statement-dispatch",
+    "7:1 statement-dispatch: direct-expression, framed-function, statement-dispatch",
+    "7:10 direct-expression: direct-expression",
+    "7:10 interpreted-expression: direct-expression, framed-function, statement-dispatch",
+    "7:10 user-call: framed-function, statement-dispatch",
+    "8:1 statement-dispatch: statement-dispatch",
+    "9:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "4 8",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-composition/helper 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:deferred-region-effects:ForStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-expression:unsupported-op:to",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:compound-arithmetic-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: interpreted-expression, interpreted-loop, native-operator, native-range, statement-dispatch, value-block",
+    "1:1 statement-dispatch: statement-dispatch",
+    "4:1 statement-dispatch: statement-dispatch",
+    "5:1 interpreted-loop: interpreted-expression, interpreted-loop, native-operator, native-range, statement-dispatch, value-block",
+    "5:1 statement-dispatch: interpreted-expression, interpreted-loop, native-operator, native-range, statement-dispatch, value-block",
+    "5:10 direct-expression: native-operator, native-range",
+    "5:10 native-operator: native-operator, native-range",
+    "6:2 statement-dispatch: statement-dispatch",
+    "6:2 value-block: interpreted-expression, native-operator, statement-dispatch, value-block",
+    "7:11 interpreted-expression: interpreted-expression",
+    "7:11 user-call: ",
+    "7:2 native-operator: native-operator",
+    "7:2 statement-dispatch: interpreted-expression, native-operator",
+    "9:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "24",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-loop/chain 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: exact-loop, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 exact-loop: exact-loop",
+    "2:1 loop-dispatch: exact-loop",
+    "2:1 statement-dispatch: exact-loop",
+    "7:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "18",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-loop/rebind 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: exact-loop, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 exact-loop: exact-loop",
+    "2:1 loop-dispatch: exact-loop",
+    "2:1 statement-dispatch: exact-loop",
+    "8:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "30",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-loop/scalar 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: exact-loop, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 exact-loop: exact-loop",
+    "2:1 loop-dispatch: exact-loop",
+    "2:1 statement-dispatch: exact-loop",
+    "6:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "12",
+}
+`;
+
+exports[`executable compiler capability matrix > deferred-loop/unused 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:deferred-binding:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: exact-loop, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 exact-loop: exact-loop",
+    "2:1 loop-dispatch: exact-loop",
+    "2:1 statement-dispatch: exact-loop",
+    "6:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "6",
+}
+`;
+
 exports[`executable compiler capability matrix > effects/catch-finally 1`] = `
 {
   "boundaries": [
