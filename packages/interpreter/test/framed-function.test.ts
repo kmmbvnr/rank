@@ -290,7 +290,7 @@ ${Array.from({ length: 70 }, () => ' Total += 1').join('\n')}
 end
 4 total`, []).result).toBe('81');
     });
-    it('bounds generated code and retains the ordinary large-body path', () => {
+    it('bounds generated code and retains compiled fragments for a large body', () => {
         const result = compare(`fun Offset outer
  fun X shifted
   return X + Offset
@@ -301,9 +301,9 @@ ${Array.from({ length: 260 }, () => ' Total += 1').join('\n')}
 end
 4 outer`, []);
         expect(result.result).toBe('260');
-        expect(result.diagnostics.compiledFramedFunctions).toBe(0);
-        expect(result.diagnostics.compilerObservations.some(entry => entry.backend === 'framed-function'
-            && entry.reasons.some(reason => reason.includes('statement-budget')))).toBe(true);
+        expect(result.diagnostics.compiledFramedFunctions).toBeGreaterThan(0);
+        expect(result.sources.length).toBeGreaterThan(1);
+        expect(result.sources.every(source => source.length < 150000)).toBe(true);
     });
 
 });

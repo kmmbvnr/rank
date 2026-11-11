@@ -44,9 +44,10 @@ function summarize(row: CapabilityCase, diagnostics: RuntimeDiagnostics, outcome
             `${entry.source.line}:${entry.source.column} ${entry.backend}: ${entry.execution!.paths.join(', ')}`)
             .filter((entry, index, all) => all.indexOf(entry) === index).sort(),
         reasons,
+        budgets: observations.filter(entry => entry.budget).map(entry => ({ backend: entry.backend, source: entry.source, ...entry.budget })),
         boundaries: reasons.map(reason => ({ reason,
             category: /budget|cost|limit/.test(reason) ? 'cost-limit'
-                : /guard|^tensor:binding:/.test(reason) ? 'runtime-guard'
+                : /guard|no-text-specialization|^tensor:binding:/.test(reason) ? 'runtime-guard'
                 : /unsupported-|generator-function|deferred-binding|deferred-expression|container-push|container-write/.test(reason) ? 'missing-lowering'
                 : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct|array-call-write-region|deque-array-write|array-alias|deferred-region-effects|deferred-compound-binding|deferred-type|deferred-scalar-return/.test(reason) ? 'failed-proof'
                 : /too-small|no-fusible-operation/.test(reason) ? 'cost-limit'
@@ -91,6 +92,10 @@ describe('executable compiler capability matrix', () => {
         if (row.id === 'effect-boundary/protected-generator') expect(summary.paths).toContain('generator-loop');
         if (row.id === 'effect-boundary/protected-return') expect(summary.paths).toContain('framed-function');
         if (row.id === 'effect-boundary/helper-loop') expect(summary.paths).toContain('value-block');
+        if (row.id === 'budgets/function-regions') expect(summary.paths).toContain('framed-function');
+        if (row.id === 'budgets/loop-regions') expect(summary.paths).toContain('value-block');
+        if (row.id === 'budgets/tensor-rank') expect(summary.paths).toContain('tensor-cell-copy');
+        if (row.id.startsWith('budgets/')) expect(summary.budgets.length).toBeGreaterThan(0);
         if (row.operator) expect(summary.paths.some(path => path === 'number-loop' || path === 'exact-loop')).toBe(true);
         const demo = demos.find(([name]) => row.id === `euler/${name}`);
         if (demo) expect(traced.output.join('\n').trim()).toBe(demo[1]);

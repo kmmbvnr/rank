@@ -1,4 +1,5 @@
 import { compilerSource, observeCompilerSource, observedSourceRun, declineCompiler } from '../compiler-observation.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { checkpoint, interruptsEnabled } from '../interrupt.js';
 import type { RankArray, RankValue } from '../value.js';
 
@@ -13,16 +14,20 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
 }
 
 function compileTensorCellCopyObservedImplementation(rank: number, axes: readonly number[]): Copy | undefined {
-    if (rank > 16) return declineCompiler('rank-budget');
+    const generic = rank > 16;
+    if (generic) currentDiagnostics()?.compilerBudget('unrolled tensor rank', 16, rank, 'generated axis loop');
     const interruptible = interruptsEnabled();
     const key = `${interruptible}:${rank}:${axes.join(',')}`;
     const cached = kernels.get(key);
     if (cached) return cached;
-    const decode = axes.map((axis, position) =>
+    const decode = generic ? `for (let position = routes.length - 1; position >= 0; position--) {
+        coordinates[routes[position]] = remaining % shape[position];
+        remaining = Math.floor(remaining / shape[position]);
+    }` : axes.map((axis, position) =>
         `coordinates[${axis}] = remaining % shape[${position}]; remaining = Math.floor(remaining / shape[${position}]);`)
         .reverse().join('\n');
     let offset = '0';
-    for (let axis = 0; axis < rank; axis++) offset = `(${offset} * dimensions[${axis}] + coordinates[${axis}])`;
+    for (let axis = 0; !generic && axis < rank; axis++) offset = `(${offset} * dimensions[${axis}] + coordinates[${axis}])`;
     const source = `"use strict"; return function(source, coordinates, shape) {
         if (coordinates.length !== ${rank}) return decline('coordinate-rank-guard');
         const size = shape.reduce((a, b) => a * b, 1);
@@ -38,17 +43,20 @@ function compileTensorCellCopyObservedImplementation(rank: number, axes: readonl
                     cell[i] = remaining % shape[i];
                     remaining = Math.floor(remaining / shape[i]);
                 }
-                ${axes.map((axis, i) => `coordinates[${axis}] = cell[${i}];`).join('\n')}
+                ${generic ? 'for (let i = 0; i < routes.length; i++) coordinates[routes[i]] = cell[i];'
+                    : axes.map((axis, i) => `coordinates[${axis}] = cell[${i}];`).join('\n')}
             }
             // Preserve getter order and one storage access per atom.
             const storage = source.items;
             const dimensions = source.shape;
-            items.push(storage[${offset}]);
+            ${generic ? `let offset = 0;
+            for (let axis = 0; axis < ${rank}; axis++) offset = offset * dimensions[axis] + coordinates[axis];` : ''}
+            items.push(storage[${generic ? 'offset' : offset}]);
         }
         return items;
     };`;
     try {
-        const kernel = new Function('checkpoint', 'decline', source)(checkpoint, declineCompiler) as Copy;
+        const kernel = new Function('checkpoint', 'decline', 'routes', source)(checkpoint, declineCompiler, [...axes]) as Copy;
         // A stored generator can resume under a later preview or interrupt.
         // Keep its unchecked specialization behind a call-time scope guard.
         const routes = [...axes];
@@ -58,6 +66,7 @@ function compileTensorCellCopyObservedImplementation(rank: number, axes: readonl
         // Shared axis kernels keep their identity and inherit each caller's source.
         const observed = observedSourceRun({ node: 'NativeDemand', operation: 'tensor cell copy' },
             'tensor-cell-copy', copy, { rank: String(rank), axes: axes.join(', ') });
+        if (kernels.size >= 32) kernels.delete(kernels.keys().next().value!);
         kernels.set(key, observed);
         return observed;
     } catch { return declineCompiler('dynamic-code-unavailable'); }

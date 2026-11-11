@@ -239,7 +239,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
 function scalarFunctionResultObservedImplementation(statement: FunctionStatement, blocks = false,
     parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = [], captures: ScalarCaptureTypes = noCaptures): ScalarFunctionProof | undefined {
     if (path.includes(statement)) return recordFallback('scalar-function:unsupported-recursive-call-graph');
-    if (path.length >= 16) return recordFallback('scalar-function:call-graph-depth-limit');
+    if (path.length >= 16) {
+        currentDiagnostics()?.compilerBudget('scalar call graph depth', 16, path.length, 'decline private scalar proof; caller retains checked calls');
+        return recordFallback('scalar-function:call-graph-depth-limit');
+    }
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
     }
@@ -253,6 +256,10 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
     const cached = proofs.get(key);
     if (cached && 'reason' in cached) return recordCompilerRejection(cached);
     if (cached) return cached;
+    if (proofs.size >= 32) {
+        currentDiagnostics()?.compilerBudget('scalar proof specializations', 32, proofs.size + 1, 'decline private scalar proof; caller retains checked calls');
+        return recordFallback('scalar-function:specialization-budget:32', 'cost');
+    }
     // Duplicate names are bound in order by the ordinary frame. Its array
     // contracts can reject an earlier argument even if the body reads only the
     // last binding. Equal domains are safe; mixed domains keep those checks.

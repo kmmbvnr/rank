@@ -29,6 +29,7 @@ export interface CompilerObservation {
     readonly outcome: 'declined' | 'prepared' | 'selected' | 'completed' | 'threw';
     readonly execution?: CompilerExecution;
     readonly guard?: { expected: string; actual: Readonly<Record<string, string>> };
+    readonly budget?: { kind: string; limit: number; observed: number; alternative: string };
     count?: number;
 }
 export interface CompilerAttempt extends Omit<CompilerObservation, 'outcome' | 'reasons' | 'count'> {
@@ -38,6 +39,7 @@ export interface CompilerAttempt extends Omit<CompilerObservation, 'outcome' | '
     completed?: boolean;
     guard?: { expected: string; actual: Readonly<Record<string, string>> };
     provenTypes?: Readonly<Record<string, string>>;
+    budget?: CompilerObservation['budget'];
 }
 
 /** Optional counters and bounded compilation-failure syntax snapshots. */
@@ -230,8 +232,8 @@ export class RuntimeDiagnostics {
         }
     }
     observeCompiler(observation: CompilerObservation): void {
-        const { source, backend, phase, provenTypes, reasons, outcome, execution, guard } = observation;
-        observation = { source, backend, phase, provenTypes, reasons, outcome, execution, guard };
+        const { source, backend, phase, provenTypes, reasons, outcome, execution, guard, budget } = observation;
+        observation = { source, backend, phase, provenTypes, reasons, outcome, execution, guard, budget };
         const key = JSON.stringify(observation);
         const previous = this.compilerObservationKeys.get(key);
         if (previous) { previous.count = (previous.count ?? 1) + 1; return; }
@@ -251,6 +253,9 @@ export class RuntimeDiagnostics {
     }
     compilerGuard(expected: string, actual: Readonly<Record<string, string>>): void {
         if (this.compilerAttempt) this.compilerAttempt.guard = { expected, actual };
+    }
+    compilerBudget(kind: string, limit: number, observed: number, alternative: string): void {
+        if (this.compilerAttempt) this.compilerAttempt.budget = { kind, limit, observed, alternative };
     }
     compilerType(name: string, type: string): void {
         const attempt = this.compilerAttempt;

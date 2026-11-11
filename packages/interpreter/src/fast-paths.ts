@@ -119,6 +119,7 @@ export class FastPaths {
     private readonly framedBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
     private readonly valueExpressions = new WeakMap<Expression, (() => RankValue) | null>();
     private readonly valueBodies = new WeakMap<FunctionStatement, boolean>();
+    private readonly genericFunctionBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
     private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
     constructor(private readonly context: FastPathContext) {}
@@ -158,7 +159,7 @@ export class FastPaths {
                     || isAssignmentStatement(node) && (node.deferred || node.name.includes('.'));
                 const iteration = forIteration(statements[0].$container.condition);
                 const arrayTraversal = iteration && (isNameExpression(iteration.iterable) || forAxes(iteration.iterable));
-                const structural = !!arrayTraversal
+                const structural = statements.length > 64 || !!arrayTraversal
                     || statements.some(statement => structured(statement) || AstUtils.streamAllContents(statement).some(structured));
                 block = structural ? compileValueBlock(statements, {
                     prepare: (commands, index) => steps.preparedStatement(commands, index),
@@ -229,9 +230,16 @@ export class FastPaths {
     ): CompiledBlock<ExecutionContext> | undefined {
         if (!this.compiler.functions.bodies) return declineCompiler('disabled', statement);
         let instances = this.functionBodies.get(statement);
-        if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations());
+        if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations(32));
         let body = instances.get(arguments_);
         if (body === undefined) {
+            const generic = instances.full;
+            if (generic) {
+                currentDiagnostics()?.compilerBudget('function body specializations', 32, 33, 'shared framed body');
+                recordFallback('function-body:specialization-budget:32', 'cost');
+                const cached = this.genericFunctionBodies.get(statement);
+                if (cached !== undefined) return cached ?? undefined;
+            }
             const commands = statement.statements;
             const last = commands.at(-1);
             const prepare = (index: number): PreparedStatement => {
@@ -266,7 +274,7 @@ export class FastPaths {
             }
             // Generic frame code is independent of element/field domains. It
             // carries boxed values through normal contracts, never integer registers.
-            if (values || arguments_.some(value => typeof value === 'object')
+            if (generic || commands.length > 64 || values || arguments_.some(value => typeof value === 'object')
                 || commands.some(command => isFunctionStatement(command) || isIfStatement(command) || isTryStatement(command))) {
                 let framed = this.framedBodies.get(statement);
                 if (framed === undefined) framed = compileFramedFunction(statement, {
@@ -298,6 +306,10 @@ export class FastPaths {
             }
             body ??= ordinaryBody();
             if (!body && (!last || !isReturnStatement(last) || !last.value)) declineCompiler('terminal-return-required', statement);
+            if (generic) {
+                this.genericFunctionBodies.set(statement, body ?? null);
+                return body ?? undefined;
+            }
             // Join fresh writes or scalar vector reductions in one private
             // prefix. Helpers need no wrapper loop to keep scratch storage
             // private; the numeric-function backend below keeps first choice.

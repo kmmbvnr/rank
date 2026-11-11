@@ -24,6 +24,9 @@ interface PrimitiveNode<T> {
  * domains have fixed ranks (text is rank 1), so their path needs no serialization.
  * Structural inputs retain the semantic signature and its mutation checks. */
 export class CallSpecializations<T> {
+    constructor(private readonly capacity = Infinity) {}
+    private count = 0;
+    get full(): boolean { return this.count >= this.capacity; }
     private readonly primitives: PrimitiveNode<T> = { children: new Map() };
     private readonly structural = new Map<string, T>();
 
@@ -39,6 +42,10 @@ export class CallSpecializations<T> {
     }
 
     set(arguments_: readonly RankValue[], value: T): void {
+        if (this.get(arguments_) === undefined) {
+            if (this.full) return;
+            this.count++;
+        }
         if (arguments_.some(value => primitiveType(value) === undefined)) {
             this.structural.set(argumentSignature(arguments_), value);
             return;

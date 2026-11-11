@@ -62,11 +62,22 @@ describe('compiled tensor cell copying', () => {
         expect(compileTensorCellCopy(2, [1])!(source, [0, 0], [2])).toEqual(items.slice(0, 2));
     });
 
-    it('falls back for excessive rank and unavailable code generation', () => {
-        expect(compileTensorCellCopy(17, [])).toBeUndefined();
+    it('falls back for unavailable code generation', () => {
         const spy = vi.spyOn(globalThis, 'Function').mockImplementation(() => { throw new Error('CSP'); });
         try { expect(compileTensorCellCopy(15, [4, 7])).toBeUndefined(); }
         finally { spy.mockRestore(); }
         expect(compileTensorCellCopy(15, [4, 7])).toBeTypeOf('function');
     });
+    it.each([16, 17, 64, 256])('uses bounded generated routing for rank %s', rank => {
+        const shape = Array(rank).fill(1);
+        shape[rank - 1] = 3;
+        const source: RankArray = { kind: 'array', shape, items: [2n, 'text', true] };
+        const copy = compileTensorCellCopy(rank, [rank - 1]);
+        expect(copy).toBeTypeOf('function');
+        expect(copy!(source, Array(rank).fill(0), [3])).toEqual(source.items);
+        const coordinates = Array(rank).fill(0);
+        coordinates[rank - 1] = 1;
+        expect(compileTensorCellCopy(rank, [])!(source, coordinates, [])).toEqual(['text']);
+    });
+
 });

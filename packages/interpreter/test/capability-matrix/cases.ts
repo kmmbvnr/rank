@@ -276,3 +276,22 @@ for I in 1 to 3
  Total += Before + Current
 end
 Total`, ['integer'], 'integer', [0], 'scalar', ['io']);
+
+add('budgets/function-regions', `use io
+fun N work
+${' N += 1\n'.repeat(300)} N print
+ return N
+end
+3 work`, ['integer'], 'integer', [0], 'scalar', ['io']);
+add('budgets/loop-regions', `use io
+Total = 0
+for I in 1 to 2
+${' Total += I\n'.repeat(300)} Total print
+end
+Total`, ['integer'], 'integer', [0], 'scalar', ['io']);
+add('budgets/tensor-rank', `Values = array shape ${Array(17).fill('1').join(' ')} 2 fill 3
+Total = 0
+for Cell in Values
+ Total += Cell sum
+end
+Total`, ['integer[]'], 'integer', [18], 'dense');

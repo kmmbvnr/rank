@@ -216,3 +216,21 @@ Part print
     assert.match(result.stderr, /native-selection-write execute: selected/);
     assert.match(result.stderr, /mixed \(compiled \+ native\)/);
 });
+
+
+test('diagnostics names the budget and retained compilation strategy', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-budget-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, `use io
+fun N work
+${' N += 1\n'.repeat(300)} N print
+ return N
+end
+3 work`);
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '303\n');
+    assert.match(result.stderr, /budget: statements per generated region; limit 256, observed 302; alternative: lazy fragments of at most 64 statements/);
+    assert.match(result.stderr, /framed-function execute: (?:selected|completed)/);
+});

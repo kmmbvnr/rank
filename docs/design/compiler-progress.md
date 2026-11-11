@@ -4290,3 +4290,55 @@ callback, array snapshot, capture-error, cleanup and cancellation checks.
 `benchmarks/effect-boundaries-results.md` records time, preparation-inclusive
 execution and process memory on Mac and Intel. Compilation coverage, correctness
 and measured performance remain separate claims.
+
+
+### Proof and specialization budgets (#565, workstream 10)
+
+The budget audit distinguishes a bound on generated code, a private-state proof,
+a cache size and an observable execution budget. Observable demand/cancellation
+budgets remain semantic boundaries; this work does not relax them.
+
+| Boundary | Limit retained | Alternative |
+| --- | --- | --- |
+| Framed function/value-block | 256 statement budget per region | Lazy fragments of at most 64 top-level statements |
+| Retained fragments | 16 per large body | Shared checked statement tail, without code eviction/recompilation |
+| Inlined branches | Remaining region budget and depth 16 | Prepared branch callout with ordinary scope/control |
+| Function body variants | 32 argument signatures per source function | Shared framed body with live binding contracts |
+| Private scalar proof variants | 32 per source function and proof mode | Decline that proof; ordinary checked calls can use framed bodies |
+| Scalar call graph | Depth 16 and expanded call-count 64 | Checked function calls; no unbounded inline graph expansion |
+| Text loop variants | 8 | Checked outer loop with independently compiled nested bodies |
+| Tensor cell copy | Unroll ranks through 16; cache 32 kernels | Generated axis loops above rank 16 |
+| Scalar expression traversal | Existing temporary budget | Existing checked subtree reader fallback |
+| Direct generator body | Existing 128-statement budget | General compiled body fragments around prepared yields |
+
+Fragments prepare only when reached, retain no invocation frames and check
+return/loop-control carriers between parts. Suspended calls resume through the
+execution driver. A protected return still unwinds its owner before leaving;
+unreachable fragments are not generated. Once sixteen fragments are retained,
+the remaining statements use shared checked dispatch rather than cyclic code
+cache eviction. That tail is a deliberate boundary, not a claim that every
+statement in an arbitrarily large body becomes generated JavaScript.
+
+Framed bodies qualify for large scalar functions/loop bodies even without a
+structural value or effectful call. Over-budget branches keep a prepared
+callout instead of causing the surrounding generated region to fail. Numeric
+proofs and kernels still get their existing opportunities. Failed Number proofs
+retain exact integer execution; splitting never replays earlier effects.
+
+Function-body code caches are bounded separately from language return
+contracts. Contract state is not evicted or replaced by an unchecked generic
+result. Already prepared private scalar proofs remain reusable after their
+cache fills; new signatures use the existing checked alternatives. Call-graph
+limits are not raised: tests exercise chains on both sides of the depth limit
+and confirm that framed calls remain available.
+
+Tensor cell copies above rank sixteen use loops over the captured axis route
+and current dimensions instead of producing a larger unrolled offset formula.
+Both forms retain getter order, independent output storage and cancellation
+checks. Shared kernel caching is bounded; guards remain valid after eviction.
+
+Compiler observations now include a separate budget decision: kind, limit,
+observed demand and alternative. CLI diagnostics print these fields separately
+from inferred types and rejection reasons. Capability rows assert selected
+function fragments, loop fragments and high-rank copy paths, including parity
+between traced, untraced and interpreted runs.

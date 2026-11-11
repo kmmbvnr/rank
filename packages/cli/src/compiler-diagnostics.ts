@@ -112,6 +112,10 @@ export function compilerDiagnostics(diagnostics: RuntimeDiagnostics): string {
         lines.push(`  ${location} ${observation.backend} ${observation.phase}: ${observation.outcome} (${observation.count})`);
         lines.push(`    operation: ${site.operation ?? site.node}`);
         if (observation.execution) lines.push(`    completed paths: ${observation.execution.paths.join(', ') || 'not recorded'}`);
+        if (observation.budget) {
+            const { kind, limit, observed, alternative } = observation.budget;
+            lines.push(`    budget: ${kind}; limit ${limit}, observed ${observed}; alternative: ${alternative}`);
+        }
         if (observation.guard) lines.push(`    guard: expected ${observation.guard.expected}; received ${JSON.stringify(observation.guard.actual)}`);
         lines.push(`    proven types: ${observation.provenTypes ? JSON.stringify(observation.provenTypes) : 'not established by this backend'}`);
         for (const reason of observation.reasons) {

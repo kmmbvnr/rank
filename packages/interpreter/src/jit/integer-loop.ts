@@ -70,7 +70,10 @@ function prepareIntegerRegion(statement: ForStatement, host: LoopHost, iteration
         if (!text.length && !textArrays.length) return recordFallback('loop:no-text-specialization');
         const key = JSON.stringify([text, textArrays]);
         if (!variants.has(key)) {
-            if (variants.size >= 8) return recordFallback('loop:specialization-budget', 'cost');
+            if (variants.size >= 8) {
+                currentDiagnostics()?.compilerBudget('text loop specializations', 8, variants.size + 1, 'checked loop body; nested loops retain independent compilation');
+                return recordFallback('loop:specialization-budget', 'cost');
+            }
             variants.set(key, compileTypedLoop(statement, host, iteration, new Set(text), new Set(textArrays)));
         }
         return variants.get(key)?.run(insideFinally, insideGenerator, tailCallsAllowed);
