@@ -82,7 +82,8 @@ if (action === '--worker') {
     const root = resolve(action ?? '.'), output = args[0] ?? '/tmp/compiler-evidence.json';
     const pairs = Number(args[1] ?? 3), names = args.slice(2).length ? args.slice(2) : Object.keys(cases);
     if (!Number.isSafeInteger(pairs) || pairs < 1 || names.some(name => !(name in cases))) throw new Error('Invalid pairs or cases');
-    const revision = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+    const revision = process.env.RANK_EVIDENCE_REVISION ? { status: 0, stdout: process.env.RANK_EVIDENCE_REVISION }
+        : spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
     if (revision.status !== 0) throw new Error(revision.stderr);
     const report = { schema: 1, revision: revision.stdout.trim(), host: { platform: platform(), arch: arch(), cpu: cpus()[0]?.model, node: process.version },
         protocol: 'Independent mode/case/pair processes, reversed order each pair. Seven samples, discard first two. Timing excludes parsing, construction, disposal and source hooks. Fresh execution includes lazy preparation. RSS includes warmups for this mode. Preparation self time excludes nested observed preparation; it is not all compiler/V8 cost. Entries are overlapping backend calls, never coverage percentages.',
