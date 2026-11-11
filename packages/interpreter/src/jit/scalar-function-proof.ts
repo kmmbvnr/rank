@@ -5,7 +5,7 @@ import { positionalDeclaredCall, strictDataCall, wholeDeclaredCall } from './dec
 import {
     symbolicApplicationForm, scalarChooseOperands, functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead, terminalReductionForm,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
-    type CompiledExpression, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
+    type CompiledExpression, type CompiledFunctionType, type CompiledScalarType, flattenApplication, isApplicationExpression, isDeclaredCallExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
     isCountClauseExpression, isAllAxisExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement, type Operation, type FunctionEffects, type ReturnOrigin,
 } from '@arrrank/language';
@@ -15,7 +15,7 @@ import { AstUtils } from 'langium';
 import { proveFunctionPlan, functionPlanType, type FunctionPlan, type FunctionPlanConsumer } from '../function-plan.js';
 import { isNumberLiteral, isUnaryExpression } from '@arrrank/language';
 
-export type ScalarCaptureTypes = ReadonlyMap<string, CompiledScalarType>;
+export type ScalarCaptureTypes = ReadonlyMap<string, CompiledFunctionType>;
 export function scalarCaptureKey(captures: ScalarCaptureTypes): string {
     return JSON.stringify([...captures].sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -166,7 +166,7 @@ export function privateScalarFunction(proof: ScalarFunctionProof, consumed = fal
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'materialize-iterable' | 'range-array' | 'reshape' | 'array-native' | 'array-power' | 'stack' | 'fold' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'materialize-iterable' | 'range-array' | 'reshape' | 'array-native' | 'array-power' | 'stack' | 'fold' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'captured-value' | 'captured-len' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array' | 'array-len' | 'sort' | 'unique' | 'argsort' | 'choose' | 'concat' | 'concat-copy' | 'captured-bound-len';
     readonly plan?: FunctionPlanConsumer;
     /** Preserve native symbolic-fold work when polling or hooks are observable. */
     readonly privateFold?: boolean;
@@ -492,14 +492,18 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     // arithmetic or another consumer. Its lowering still owns
                     // the copy and its guards; unused recipes stay deferred.
                     let copied = false;
+                    let selection = false;
                     if (owner && isApplicationExpression(owner)) {
                         const parts = flattenApplication(owner), last = parts.at(-1);
+                        const receiver = isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
+                        selection = parts.length === 2 && unwrap(parts[1]) === source
+                            && !!receiver && isCompiledArray(receiver) && receiver.rank === 1;
                         copied = parts.length === 2 && unwrap(parts[0]) === source && isNameExpression(last)
                             && last.name === 'copy' && !env.has('copy') && !lexicalBinding(scope, 'copy');
                     }
                     // A bare range needs the existing ordinary binding boundary.
                     // Broader metadata consumers must not complete it implicitly.
-                    if ((copied || owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '=')
+                    if ((copied || selection || owner && isAssignmentStatement(owner) && !owner.deferred && owner.operator === '=')
                         && type(source.left, env) === 'integer' && type(source.right, env) === 'integer'
                         && (!source.step || type(source.step, env) === 'integer')) {
                         return { type: { kind: 'array', element: 'integer', rank: 1 }, input: {
@@ -780,7 +784,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                     if (loops && captured && binding && binding.scope.owner !== statement && !binding.function
                         && !source.name.includes('.')) {
                         dependencies.add(source.name);
-                        return { type: captured, input: { name: source.name, operation: 'captured-scalar' } };
+                        return { type: captured, input: { name: source.name, operation: typeof captured === 'string' ? 'captured-scalar' : 'captured-value' } };
                     }
                     return userCall([source], env, source);
                 }
@@ -873,7 +877,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
         if (--budget.remaining < 0) return undefined;
         source = unwrap(source);
         if (isNameExpression(source) && iterableStages.has(source.name)) return iterableStages.get(source.name);
-        if (isNameExpression(source) && !env.has(source.name) && !captures.has(source.name) && !source.name.includes('.')) {
+        if (isNameExpression(source) && !env.has(source.name) && typeof captures.get(source.name) !== 'string' && !source.name.includes('.')) {
             const binding = lexical?.reads.get(source) ?? lexicalBinding(scope, source.name);
             if (binding && binding.scope.owner !== statement && !binding.function) {
                 dependencies.add(source.name);

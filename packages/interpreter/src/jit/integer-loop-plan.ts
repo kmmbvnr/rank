@@ -20,6 +20,8 @@ export type LoopContinuation = {
     readonly ordinal: bigint;
 } | { readonly condition: true });
 export interface LoopHost {
+    /** Publishing fallback: prepare ownership at each indexed store. */
+    readonly statementOwnership?: boolean;
     readonly continuation?: LoopContinuation;
     readonly observableEntry?: boolean;
     canDeferWrites?(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array', number?, ('integer' | 'real' | 'boolean')?][]): boolean;
@@ -154,6 +156,7 @@ export interface IntegerLoopPlan {
     rangeDefinitions?: ReadonlySet<string>;
     arrayTransfers?: ReadonlySet<string>;
     ownershipChecks?: boolean;
+    statementOwnership?: boolean;
     ownedAliases?: ReadonlySet<string>;
     arrayRegions?: { region: ArrayRegion; location: number }[];
     numberVectors?: boolean;

@@ -14,9 +14,9 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     const { host, numberMode, arrays, destinations, assigned, arrayInputs, reject } = state;
     const { slot, emit, arithmetic } = expressions;
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
-        // Accumulation has its own numeric-only validation and reduction contract.
-        // Only the private Number scatter below implements that contract.
-        if (assignment.accumulate || assignment.modulus) {
+        // The publishing adapter owns ordinary accumulation validation. Modular
+        // stores still need a separately lowered modulus operand.
+        if (assignment.modulus || assignment.accumulate && !host.statementOwnership) {
             return numberMode && host.arrayWrites && host.compoundWrites
                 && !assignment.name.includes('.') && emitNumberScatter(state, expressions, assignment, body, location)
                 || reject(assignment);
@@ -143,6 +143,40 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             // allocations are already dirty at their binding statement.
             body.push(`location = ${location};`, ...lines,
                 `cells${target.slot}[${key}] = ${result}; if (rebound${target.slot} === 2) { ${state.dirty(target.slot)} } else if (!rebound${target.slot}) changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; iterationType = ${JSON.stringify(type)};`);
+            return true;
+        }
+        // A call or container can retain a new owner after region entry.
+        // Use the publishing assignment contract at every store in this plan.
+        if (host.statementOwnership) {
+            if (!host.arrayWrites || !host.arrayValues || !host.prepareArrayWrite
+                || assignment.name.includes('.') || !assignment.indices.length
+                || assignment.indices.some(address => address.spread || !address.all && !address.value)
+                || assignment.operator !== '=' && !host.compoundWrites) return undefined;
+            const shape = expressions.arrayType({ $type: 'NameExpression', name: assignment.name } as import('@arrrank/language').Expression);
+            if (!shape || !['integer', 'real', 'boolean', 'text'].includes(shape.element)) return undefined;
+            const lines: string[] = [], rhsLines: string[] = [], selectors: string[] = [];
+            for (const address of assignment.indices) {
+                if (address.all) {
+                    selectors.push('arrayValues.all');
+                    continue;
+                }
+                const expression = address.sign ? { $type: 'UnaryExpression' as const,
+                    operator: address.sign, operand: address.value! } : address.value!;
+                const selector = expressions.emitValue(expression, lines);
+                if (!selector) return undefined;
+                selectors.push(selector.code);
+            }
+            const rhs = expressions.emitValue(assignment.value, rhsLines);
+            if (!rhs) return undefined;
+            const slot = expressions.slot(assignment.name), result = `store${state.serial++}`;
+            const type = shape.element as LoopTerm['type'];
+            arrays.set(assignment.name, { slot, rank: shape.rank, type });
+            destinations.set(assignment.name, { slot, rank: shape.rank, type, compound: assignment.operator !== '=', slice: true });
+            if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
+            const refresh = `storage${slot} = access(r${slot}); reader${slot} = read(storage${slot}, stableReads, ${shape.rank}); write${slot} = write(storage${slot}, batchWrites);`;
+            body.push(`location = ${location};`, ...lines,
+                `const ${result} = arrayValues.write(${location}, [${selectors.join(',')}], () => { r${slot} = arrayValues.current(${JSON.stringify(assignment.name)}); ${refresh} ${rhsLines.join('\n')} return ${rhs.code}; });`,
+                `r${slot} = ${result}.target; ${refresh} iterationResult = ${result}.result;`);
             return true;
         }
         // Bulk selectors use the same checked assignment as interpretation.

@@ -40,7 +40,7 @@ import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
-import { compiledEntryArgumentType, compiledScalarType, nativeDequeMethods } from './jit/compiled-argument-type.js';
+import { compiledEntryArgumentType, compiledStoredArgumentType, compiledScalarType, nativeDequeMethods } from './jit/compiled-argument-type.js';
 import { scalarFunctionResult, privateScalarFunction, scalarCaptureKey, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { compileScalarFunction } from './jit/scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
@@ -638,18 +638,18 @@ export class FunctionInvocation {
         });
     }
 
-    /** Capture only scalar domains; cached proofs never retain their values. */
+    /** Capture completed value domains; cached proofs never retain their values. */
     scalarCaptureTypes(statement: FunctionStatement, context?: LocalFrame): ScalarCaptureTypes {
-        const types = new Map<string, NonNullable<ReturnType<typeof compiledScalarType>>>(), ambiguous = new Set<string>();
+        const types = new Map<string, NonNullable<ReturnType<typeof compiledStoredArgumentType>>>(), ambiguous = new Set<string>();
         const visited = new Set<FunctionStatement>();
         const collect = (owner: FunctionInvocation, body: FunctionStatement, frame?: LocalFrame) => {
             if (visited.has(body)) return;
             visited.add(body);
             for (const capture of functionScope(body)?.captures ?? []) {
                 const value = frame?.lookup(capture.name) ?? owner.bindings.globals.get(capture.name);
-                const type = compiledScalarType(value);
+                const type = value === undefined ? undefined : compiledScalarType(value) ?? compiledStoredArgumentType(value);
                 if (type && !ambiguous.has(capture.name)) {
-                    if (types.has(capture.name) && types.get(capture.name) !== type) {
+                    if (types.has(capture.name) && compiledCalleeTypeKey(types.get(capture.name)!) !== compiledCalleeTypeKey(type)) {
                         types.delete(capture.name); ambiguous.add(capture.name);
                     } else types.set(capture.name, type);
                 }
@@ -1303,7 +1303,11 @@ export class FunctionInvocation {
             if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return reject('set-method-or-polling-guard');
             if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return reject('tensor-plan-capability-guard');
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
-                || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return reject('scalar-capture-type-or-polling-guard');
+                || kernel.scalarCaptures.some(({ name, type }) => {
+                    const value = resolve(name);
+                    const actual = value === undefined ? undefined : compiledScalarType(value) ?? compiledStoredArgumentType(value);
+                    return !actual || compiledCalleeTypeKey(actual) !== compiledCalleeTypeKey(type);
+                }))) return reject('scalar-capture-type-or-polling-guard');
             if (kernel.modules.some(module => !this.modules.has(module))) return reject('module-not-loaded');
             for (const call of kernel.rankedCalls) {
                 const value = resolve(call.name);

@@ -11,7 +11,7 @@ import { wideLoopScalars, wideLoopOutputs, wideLoopBoundary, overflowingLoopOutp
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
-    isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, isAssignmentStatement, isArrayAssignmentStatement, statementResultDiscarded, type ForStatement,
+    isUnpackStatement, isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, isAssignmentStatement, isArrayAssignmentStatement, statementResultDiscarded, type ForStatement,
     type Statement, type FunctionStatement, isFunctionStatement, isReturnStatement,
 } from '@arrrank/language';
 import { isRankArray } from '../value.js';
@@ -133,7 +133,12 @@ function compileIntegerFunctionPrefixObservedImplementation(statement: FunctionS
 function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, numberVariant = false): CompiledLoop | undefined {
     let failure: string | undefined;
     const failed = (reason: string) => { failure ??= reason; };
-    const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed);
+    let stores = false;
+    const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed,
+        false, new Set(), false, 'checked', () => { stores = true; })
+        ?? (stores && host.prepareArrayWrite
+            ? lowerTypedLoop(statement, { ...host, statementOwnership: true }, iteration, textSources, textArrays, failed)
+            : undefined);
     // Replay-safe vector regions may have no publishing exact plan. They still
     // need one bounded copy-cost probe; overflow falls back to interpretation.
     const numberPlan = numberVariant ? lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true) : undefined;
@@ -141,7 +146,7 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     const copiesTrees = region && [...region.containers.values()].some(info => info.kind === 'fenwick');
     const feedback: LoopWorkFeedback | undefined = numberVariant && (region?.destinations.size || copiesTrees)
         ? { cells: 0, allow: true } : undefined;
-    const compileExactCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, false, new Set(), true) : undefined;
+    const compileExactCounted = feedback ? () => lowerTypedLoop(statement, plan?.statementOwnership ? { ...host, statementOwnership: true } : host, iteration, textSources, textArrays, () => {}, false, new Set(), true) : undefined;
     const exact = plan && prepareIntegerLoop(plan, host, () => {
         failed(compilerRejection('loop', statement, 'code-generation'));
         return undefined;
@@ -224,7 +229,7 @@ function prepareMixedLoopsObservedImplementation(plan: IntegerLoopPlan, host: Lo
 /** Shared region checks and lowering; runtime preparation consumes only the plan. */
 function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopHost, iteration: IterationBinding | undefined,
     textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false,
-    wideScalars: ReadonlySet<string> = new Set(), workCounting = false, polling: LoopPolling = 'checked'): IntegerLoopPlan | undefined {
+    wideScalars: ReadonlySet<string> = new Set(), workCounting = false, polling: LoopPolling = 'checked', onStores?: () => void): IntegerLoopPlan | undefined {
     const state = createLoopState(statement, host, textSources, textArrays, failed, numberMode, wideScalars, workCounting, polling);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
@@ -242,7 +247,9 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         ? state.pushScope(root.inductionVariable, root.inductionSlot, root.rangeInfo) : undefined;
     const statements = createLoopStatements(state, expressions, loopParts);
     const body: string[] = [];
-    if (!statements(region ? statement.statements.slice(0, -1) : statement.statements, body, !region && !iteration, root.breakLabel)) return undefined;
+    const lowered = statements(region ? statement.statements.slice(0, -1) : statement.statements, body, !region && !iteration, root.breakLabel);
+    if (onStores && locations.some(node => isArrayAssignmentStatement(node) || isUnpackStatement(node))) onStores();
+    if (!lowered) return undefined;
     if (rootScope) {
         state.popScope();
         if (rootScope.setupLines.length > 0) {
@@ -257,12 +264,12 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     if (calls.some(call => call.receiver && (written.has(call.receiver) || names.includes(call.receiver)))) return reject(statement, 'unstable-effect-receiver');
     // An array-returning callee can share a caller operand after entry COW.
     // Per-store ownership preparation is required before these regions may write.
-    if (state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
+    if (!host.statementOwnership && state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
     // Proven calls cannot retain/observe private bindings. Their entry guards
     // and Number ABI still apply, including current buffers after a move.
     const unsafeCalls = calls.some(call => !call.privateStateSafe);
     const arrayTransfers = new Set(state.arrayTransfers.flat());
-    if (arrayTransfers.size) {
+    if (numberMode && arrayTransfers.size) {
         // A completed iteration replaces its prior result. Escaping control or
         // calls could retain/observe a tuple while its arrays are written later.
         if (state.hasControl || unsafeCalls || state.callouts.length) return reject(statement, 'array-transfer-effects');
@@ -327,7 +334,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
     }
     // A deque retains snapshots of pushed arrays. Their local stores need
     // per-statement copy-on-write, beyond the region-entry write guard.
-    if ([...state.dequeArrays].some(name => writable.has(name))) return reject(statement, 'deque-array-write');
+    if (!host.statementOwnership && [...state.dequeArrays].some(name => writable.has(name))) return reject(statement, 'deque-array-write');
     // Numeric aliases may share read-only buffers. Mutation or calls require
     // a separate ownership proof. Exact bindings snapshot writable aliases;
     // source stores can still invalidate existing compiled alias readers.
@@ -351,10 +358,11 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         && (location.indices.length !== (arrayTransfers.has(location.name) || ownedAliases.has(location.name) ? arrays.get(location.name)?.rank : 1) || location.indices.some(index => index.all || index.sign
             || !index.value || expressions.knownType(index.value) !== 'integer')))) return reject(statement, 'rebound-array-selection');
     if (aliases.some(([target, source]) => numberMode ? !ownedAliases.has(target) && (writable.has(target) || writable.has(source))
-        : destinations.has(source))) return reject(statement, 'mutable-array-alias');
-    if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
-        && (writable.has(target) || writable.has(source)))
-        || state.localAliases.some(([target, source]) => !ownedAliases.has(target) && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
+        : !host.statementOwnership && destinations.has(source))) return reject(statement, 'mutable-array-alias');
+    if (!host.statementOwnership && aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
+        && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
+    if (!host.statementOwnership && state.localAliases.some(([target, source]) => !ownedAliases.has(target)
+        && (writable.has(target) || writable.has(source)))) return reject(statement, 'local-array-alias');
     // A retained slice result can observe later source writes. Discard proofs
     // stop at this region: callers may retain a loop result even when its source
     // program has later statements. Keep live mutable results on the exact path.
@@ -367,6 +375,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, integerRanges: state.integerRanges, rangeNarrowing: state.rangeNarrowing, exactInputs: state.exactInputs, arrays, destinations, root, body: body.map(marks), outlinedLoops: state.outlinedLoops.map(loop => ({ ...loop, body: marks(loop.body) })), locations, required, localTypes, containers,
         retainedLocalArrayResult: state.retainedLocalArrayResult, vectorReductions: state.vectorReductions, primeCopies: state.primeCopies, builtins, syntax, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, sliceReadSources: state.sliceReadSources, indexedReads, reversedPrimes: state.reversedPrimes, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, rangeDefinitions: new Set(state.ranges.keys()), writable, iteration, workCounting, polling, callouts: state.callouts,
+        statementOwnership: host.statementOwnership, ownershipChecks: state.ownershipChecks, ownedAliases, arrayTransfers, arrayRegions: state.arrayRegions, needsAlgo: state.needsAlgo, numberVectors: state.numberVectors, arrayDefinitions, rangeDefinitions: new Set(state.ranges.keys()), writable, iteration, workCounting, polling, callouts: state.callouts,
     };
 }

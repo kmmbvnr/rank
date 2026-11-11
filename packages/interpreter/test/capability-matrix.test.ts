@@ -48,7 +48,7 @@ function summarize(row: CapabilityCase, diagnostics: RuntimeDiagnostics, outcome
             category: /budget|cost|limit/.test(reason) ? 'cost-limit'
                 : /guard|^tensor:binding:/.test(reason) ? 'runtime-guard'
                 : /unsupported-|generator-function|deferred-binding|container-push|container-write/.test(reason) ? 'missing-lowering'
-                : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct/.test(reason) ? 'failed-proof'
+                : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct|array-call-write-region|deque-array-write|array-alias/.test(reason) ? 'failed-proof'
                 : /too-small|no-fusible-operation/.test(reason) ? 'cost-limit'
                 : 'unclassified' })),
         languageError: row.error === true,
@@ -83,6 +83,7 @@ describe('executable compiler capability matrix', () => {
         report[row.id] = summary;
         expect(summary.boundaries.filter(entry => entry.category === 'unclassified')).toEqual([]);
         expect({ ...observable(traced), regions: summary.regions, boundaries: summary.boundaries }).toMatchSnapshot();
+        if (row.id.startsWith('ownership/')) expect(summary.paths).toContain('exact-loop');
         if (row.operator) expect(summary.paths.some(path => path === 'number-loop' || path === 'exact-loop')).toBe(true);
         const demo = demos.find(([name]) => row.id === `euler/${name}`);
         if (demo) expect(traced.output.join('\n').trim()).toBe(demo[1]);

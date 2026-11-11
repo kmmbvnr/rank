@@ -22,7 +22,7 @@ import { indexGet, indexHas, indexRead, indexSet, indexKey } from '../index-stor
 import {
     findCompiledOperator, applicationForm, findOperation, rangeSliceOperands,
     isArrayExpression, isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
-    type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
+    type CompiledExpression, type CompiledOperator, type CompiledFunctionType, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { sequenceValues } from '../sequence.js';
 import { checkpoint, privateLoopPolling, demandBudgetEnabled, InterruptedError } from '../interrupt.js';
@@ -57,7 +57,7 @@ interface Kernel {
     readonly setMembership: boolean;
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; parameter?: boolean; functionArguments?: readonly (readonly [number, number])[]; captures?: ScalarCaptureTypes }[];
     readonly rankedCalls: ScalarFunctionProof['planCalls'];
-    readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
+    readonly scalarCaptures: readonly { name: string; type: CompiledFunctionType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number; iteration?: boolean }[];
     readonly calls: readonly { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[];
@@ -843,7 +843,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
     const locations: (Statement | Expression)[] = [];
     const calls: { operation: Operation; inputs: readonly string[]; native?: boolean; capturedArgument?: string; bound?: 'to' | 'till' }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; parameter?: boolean; functionArguments?: readonly (readonly [number, number])[]; captures?: ScalarCaptureTypes }[] = [];
-    const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
+    const scalarCaptures: { name: string; type: CompiledFunctionType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number; iteration?: boolean }[] = [];
     const writtenSlots = new Set([...proof.arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
@@ -943,9 +943,21 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
                 lines.push(`const ${result} = ${values[0]} ? ${values[1]} : ${values[2]};`);
                 return result;
             }
+            // Complete selected cells independently: a returned short view must
+            // not make the caller's next store copy the whole source buffer.
             if (operation === 'gather' || operation === 'compare-array') {
-                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
-                lines.push(`const ${result} = ${operation === 'gather' ? `applySelectors([${slot(expression.input.name)}, ${values[0]}])`
+                const values = expression.input.indices!.map(input => {
+                    let selector = input;
+                    while (selector.kind === 'group') selector = selector.operand;
+                    // Native selection accepts ranges directly. Building an index
+                    // array here adds allocation and forces an otherwise lazy range.
+                    if (operation === 'gather' && selector.kind === 'input' && selector.input.operation === 'range-array') {
+                        const bounds = selector.input.indices!.map(bound => lower(bound, lines));
+                        return `makeRange(${bounds[0]}, ${bounds[1]}, ${selector.input.name === 'to'}, ${bounds[2] ?? 'undefined'})`;
+                    }
+                    return lower(input, lines);
+                }), result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'gather' ? `copyArray(applySelectors([${slot(expression.input.name)}, ${values[0]}]), false)`
                     : `compareCells(${JSON.stringify(expression.input.name)}, ${values[0]}, ${values[1]})`};`);
                 return result;
             }
@@ -1065,9 +1077,9 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
                 lines.push(`const ${result} = ${operation === 'sequence-not-contains' ? '!' : ''}memberships[${index}](${value});`);
                 return result;
             }
-            if (operation === 'captured-scalar') {
+            if (operation === 'captured-scalar' || operation === 'captured-value') {
                 let index = scalarCaptures.findIndex(capture => capture.name === expression.input.name);
-                if (index < 0) index = scalarCaptures.push({ name: expression.input.name, type: expression.type as CompiledScalarType }) - 1;
+                if (index < 0) index = scalarCaptures.push({ name: expression.input.name, type: expression.type as CompiledFunctionType }) - 1;
                 const result = `v${serial++}`;
                 lines.push(`const ${result} = ${stableCaptures ? `scalarValues[${index}]` : `scalars[${index}]()`};`);
                 return result;

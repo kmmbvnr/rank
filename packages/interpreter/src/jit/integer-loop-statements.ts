@@ -193,7 +193,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 continue;
             }
             if (isUnpackStatement(assignment)) {
-                const transfer = numberMode && host.arrayLocals ? arrayPermutation(assignment) : undefined;
+                const transfer = (numberMode || host.statementOwnership) && host.arrayLocals ? arrayPermutation(assignment) : undefined;
                 if (transfer) {
                     // Resolve every source before changing any destination.
                     const sources = transfer.map(([, expression]) => {
@@ -208,18 +208,23 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         if (!assigned.has(name)) arrayInputs.add(name);
                         return info;
                     });
-                    if (!sources.every(source => source && (source.type === 'integer' || source.type === 'real'))) return reject(assignment);
+                    if (!sources.every(source => source && (source.type === 'integer' || source.type === 'real'
+                        || !numberMode && (source.type === 'boolean' && host.booleanArrays || source.type === 'text' && host.textArrayLoops)))) return reject(assignment);
                     const values = sources.map(source => {
                         const name = `moved${state.serial++}`;
                         body.push(`const ${name} = r${source!.slot};`);
                         return name;
                     });
+                    const result = `transfer${state.serial++}`;
+                    if (!numberMode && !state.resultDiscarded(assignment))
+                        body.push(`const ${result} = tupleResult([${values.join(',')}]);`);
                     for (const [index, [target, source]] of transfer.entries()) {
                         const info = sources[index]!;
                         if (!bindArray(assignment, target, values[index], info.rank, info.type, [], body, location, undefined, true)) return undefined;
                         state.arrayTransfers.push([target, source.name]);
                     }
-                    body.push(`iterationResult = tupleResult([${values.join(',')}]); iterationType = 'tuple';`);
+                    body.push(numberMode ? `iterationResult = tupleResult([${values.join(',')}]); iterationType = 'tuple';`
+                        : `iterationResult = ${state.resultDiscarded(assignment) ? 'undefined' : result};`);
                     continue;
                 }
                 if (numberMode || !host.arrayLocals || assignment.names.some(name => name.includes('.'))) return reject(assignment);
@@ -380,7 +385,10 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     if (value.type !== 'integer' || info.array) return reject(assignment);
                     info.integers = true;
                 } else {
-                    if (value.type.element !== 'integer' || info.integers
+                    if (value.type.element !== 'integer'
+                        && !(value.type.element === 'real' && host.reals)
+                        && !(value.type.element === 'boolean' && host.booleanArrays)
+                        && !(value.type.element === 'text' && host.textArrayLoops) || info.integers
                         || info.array && (info.array.rank !== value.type.rank || info.array.type !== value.type.element)) return reject(assignment);
                     info.array = { rank: value.type.rank, type: value.type.element };
                     let source = assignment.value;

@@ -1,4 +1,4 @@
-import { compiledFunctionTypeKey, type FunctionStatement, type CompiledScalarType, type CompiledFunctionType } from '@arrrank/language';
+import { compiledFunctionTypeKey, type FunctionStatement, type CompiledFunctionType } from '@arrrank/language';
 
 /** Only integer-valued reference containers are admitted to linked regions. */
 export type CompiledContainerType = { readonly kind: 'index' } | { readonly kind: 'set' } | { readonly kind: 'groups' }
@@ -6,7 +6,7 @@ export type CompiledContainerType = { readonly kind: 'index' } | { readonly kind
 export interface CompiledCallableType {
     readonly kind: 'function';
     readonly statement: FunctionStatement;
-    readonly captures: ReadonlyMap<string, CompiledScalarType>;
+    readonly captures: ReadonlyMap<string, CompiledFunctionType>;
 }
 export type CompiledCalleeType = CompiledFunctionType | CompiledContainerType | CompiledCallableType;
 export function isCompiledArray(type: CompiledCalleeType): type is Extract<CompiledFunctionType, object> {

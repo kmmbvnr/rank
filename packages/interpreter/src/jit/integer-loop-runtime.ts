@@ -1,6 +1,7 @@
 import { observeCompiler, observedRun, withCompilerMethods } from '../compiler-observation.js';
 import { checkValueMutable } from '../value-protection.js';
 import { integerSquareRoot } from '../integer-square-root.js';
+import { ALL_AXIS } from '../selectors.js';
 import { materializeValue } from '../materialize.js';
 import { textLength } from '../text-storage.js';
 import { takeDropValue } from '../sequence.js';
@@ -14,7 +15,7 @@ import { checkpoint, inspectionEnabled, privateLoopPolling, interruptsEnabled } 
 import { currentDiagnostics, recordFallback } from '../diagnostics.js';
 import { completed, type Execution } from '../execution.js';
 import { argumentSelectionError, MissingValueError, RankError } from '../errors.js';
-import { isRankArray, isRankIndex, isRankSet, isNativeFunction, type RankArray, type RankValue } from '../value.js';
+import { tuple, isRankArray, isRankIndex, isRankSet, isNativeFunction, type RankArray, type RankValue } from '../value.js';
 import { hasIntegerIteration } from '../integer-entries.js';
 import { prepareSetAdd, setHas } from '../collections.js';
 import { RankDeque } from '../containers.js';
@@ -60,7 +61,8 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
         ? [...destinations].filter(([, info]) => info.type !== 'integer') : [];
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
     const writes = new Map<number, NonNullable<ReturnType<NonNullable<LoopHost['prepareArrayWrite']>>>>();
-    const arrayValues = host.arrayValues && { ...host.arrayValues,
+    const arrayValues = host.arrayValues && { ...host.arrayValues, all: ALL_AXIS,
+        current: (name: string) => host.read(name),
         write(location: number, selectors: RankValue[], rhs: () => RankValue) {
             let write = writes.get(location);
             if (!write) {
@@ -93,13 +95,13 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
     };
     const source = emitIntegerLoopSource(plan, false);
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[], helperWork?: { value: number }) => RankValue | undefined;
-    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', code)(
+    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', 'aliasValue', 'tupleResult', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
             ? new RankError(`array index must be nonnegative on axis ${axis}`)
             : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`),
-        calls.some(call => !call.stableArrayReads) || iterators.length
+        plan.statementOwnership || calls.some(call => !call.stableArrayReads) || iterators.length
             ? (value: RankValue) => value : borrowArrayStorage,
         prepareScalarArrayWriter, (value: RankValue, stableReads: boolean, rank: number) => rank === 1
             ? prepareScalarArrayReader(value, host.arrayRead, stableReads)
@@ -148,7 +150,7 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);
                 return items;
             }, observeWork, (left: number, right: number) => new RankError(`shape mismatch: ${left} and ${right}`, 'DimensionMismatch'),
-            (value: RankValue, name: string) => writable.has(name) && isRankArray(value) ? privateArrayCopy(value) : value);
+            (value: RankValue, name: string) => !plan.statementOwnership && writable.has(name) && isRankArray(value) ? privateArrayCopy(value) : value, tuple);
     try { run = compile(source, () => {}); }
     catch { return reject(); }
     let countedRun: typeof run | undefined;
@@ -322,7 +324,7 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
             })) return entryGuard('container-write-type', name);
         }
         for (const [name, info] of destinations) {
-            if (!arrayInputs.has(name)) continue;
+            if (plan.statementOwnership || !arrayInputs.has(name)) continue;
             let value = values[info.slot]!;
             // Generated code writes cells straight into borrowed storage, so a
             // shared array becomes this name's own copy before the region runs
@@ -337,13 +339,13 @@ function prepareIntegerLoopObservedImplementation(plan: IntegerLoopPlan, host: L
         host.executed?.();
         // No computation can observe an intermediate revision in this region:
         // every array read is owned/eager, and there are no callbacks/iterators.
-        const batchWrites = !hasYield && calls.length === 0 && iterators.length === 0 && containers.size === 0
+        const batchWrites = !plan.statementOwnership && !hasYield && calls.length === 0 && iterators.length === 0 && containers.size === 0
             && [...arrayInputs].every(name => {
                 const value = values[names.indexOf(name)];
                 return value !== undefined && isRankArray(value) && value.itemAt === undefined
                     && arrayRevision(value) !== undefined;
             });
-        const stableReads = !hasYield && stableReadRegion && [...arrayInputs].every(name => {
+        const stableReads = !plan.statementOwnership && !hasYield && stableReadRegion && [...arrayInputs].every(name => {
             const value = values[names.indexOf(name)];
             return value !== undefined && isRankArray(value) && arrayRevision(value) !== undefined;
         });

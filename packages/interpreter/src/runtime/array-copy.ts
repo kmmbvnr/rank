@@ -1,3 +1,4 @@
+import { currentDiagnostics } from '../diagnostics.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { float64Cells, integer32Cells, integer64Cells, MAX_HELD_CELLS, sliceStoredArray, typedArray, typedElementKind } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
@@ -6,6 +7,18 @@ import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 type NumericCells = Int32Array | BigInt64Array | Float64Array;
+/** Physical native copies are separate from COW detachments. */
+function copiedArray(cells: NumericCells, shape: readonly number[], kind?: string): RankArray {
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        const cost = diagnostics.cost('array.copy');
+        cost.calls++;
+        cost.allocatedBytes += cells.byteLength;
+        cost.copiedBytes += cells.byteLength;
+    }
+    return typedArray(cells, shape, undefined, kind);
+}
+
 interface Block { source: RankArray; offset: number; length: number; target: number }
 const copies = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; copy(): RankArray | undefined }>();
 
@@ -98,7 +111,7 @@ export function materializeSelectedView(value: RankArray): RankArray | undefined
             }
         }
     }
-    const result = typedArray(out, [...value.shape], undefined, view.kinds![0]);
+    const result = copiedArray(out, [...value.shape], view.kinds![0]);
     const declaration = arrayDeclaration(value);
     if (declaration) declareArray(result, declaration);
     return inheritSemanticArrayType(value, result);
@@ -215,5 +228,5 @@ export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly
     }
     const kinds = [...prepared.values()].map(view => view.kinds?.length === 1 ? view.kinds[0] : undefined);
     const uniformKind = kinds[0] && kinds.every(kind => kind === kinds[0]) ? kinds[0] : undefined;
-    return typedArray(out, shape, undefined, uniformKind);
+    return copiedArray(out, shape, uniformKind);
 }

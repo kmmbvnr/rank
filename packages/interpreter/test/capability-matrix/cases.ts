@@ -172,3 +172,36 @@ add('selection/text-mask', 'use sequences\nM = (array "a" "b" "c" "d") reshape 2
 add('selection/real-scatter', 'M = array shape 2 3 fill 1.5\nM # (array 1 1) += 2.0\nM', ['real[]'], 'real[]', [2], 'scatter', ['write']);
 add('selection/partial-axis-control', 'use sequences\nM = (0 till 6) reshape 2 3\nTotal = 0\nfor Col I in M axis 1\n if I equal 1\n  continue\n end\n Total += Col 1\nend\nTotal', ['integer[]'], 'integer', [2, 1], 'axis cells');
 add('selection/retained-view', 'M = array shape 2 3 fill 1\nSaved = M # 1\nM # 1 = 7\ntuple Saved M', ['integer[]'], 'tuple', [2, 1], 'retained view', ['write']);
+
+for (const [id, body] of [
+    ['returned-alias', 'Saved = Source pass\n Source 0 += I'],
+    ['retained-slice', 'Saved = Source edge\n Source 0 += I'],
+    ['deque', 'Queue push Source\n Source 0 += I'],
+    ['mask', 'Saved = Source pass\n Source (array true false true) += I'],
+    ['permutation', 'Saved = Source pass\n Source 0 += I\n unpack Source Other = tuple Other Source'],
+    ['early-exit', 'Saved = Source pass\n Source 0 += I\n if I equal 2\n  break\n end'],
+]) add(`ownership/${id}`, `use algo
+fun A pass
+ return A
+end
+fun A edge
+ return A (0 to 1)
+end
+Source = array 1 2 3
+Other = array 4 5 6
+Saved = array 0 0
+Queue = new queue
+for I in 1 to 3
+ ${body}
+end
+tuple Source Saved Other`, ['integer[]'], 'tuple', [1], 'dense and retained selections', ['mutates']);
+add('ownership/captured-array', `Source = array 1 2
+fun N saved
+ return Source
+end
+Saved = Source
+for I in 1 to 3
+ Saved = I saved
+ Source 0 += I
+end
+tuple Saved Source`, ['integer[]'], 'tuple', [1], 'captured dense array', ['captures', 'mutates']);

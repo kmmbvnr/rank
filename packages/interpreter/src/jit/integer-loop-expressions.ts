@@ -1096,7 +1096,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (host.booleanArrays && current && isRankArray(current) && kinds?.join() === 'boolean') {
                 return { kind: 'array', element: 'boolean', rank: current.shape.length };
             }
-            if (numberMode && host.reals && current && isRankArray(current) && kinds?.join() === 'real') {
+            if (host.textArrayLoops && current && isRankArray(current) && kinds?.join() === 'text') {
+                return { kind: 'array', element: 'text', rank: current.shape.length };
+            }
+            if (host.reals && current && isRankArray(current) && kinds?.join() === 'real') {
                 return { kind: 'array', element: 'real', rank: current.shape.length };
             }
         }
@@ -2241,7 +2244,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 const name = source.head.name, current = host.read(name);
                 const first = current && hasNativeDeque(current) && current.size ? current.at(0) : undefined;
                 const type = first && compiledArgumentType(first);
-                if (type && typeof type !== 'string' && type.kind === 'array' && type.element === 'integer') {
+                if (type && typeof type !== 'string' && type.kind === 'array' && (type.element === 'integer'
+                    || type.element === 'real' && host.reals
+                    || type.element === 'boolean' && host.booleanArrays
+                    || type.element === 'text' && host.textArrayLoops)) {
                     const receiver = container(name, 'deque');
                     const info = containers.get(name);
                     if (!receiver || !info || info.integers || info.array && (info.array.rank !== type.rank || info.array.type !== type.element)) return undefined;
@@ -2540,7 +2546,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                             : current === undefined ? undefined : compiledStoredArgumentType(current);
                         if (type && typeof type !== 'string' && isNameExpression(part)) {
                             if (!host.arrayReads || numberMode && (type.element === 'integer' ? type.rank !== 1 : type.element !== 'real' || type.rank > 2)
-                                || type.element === 'real' && (!numberMode || !host.reals) || type.element === 'bytes'
+                                || type.element === 'real' && !host.reals || type.element === 'bytes'
                                 || type.element === 'text' && !host.textArrayLoops
                                 || type.element === 'boolean' && !host.booleanArrays) return undefined;
                             const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
@@ -2569,7 +2575,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     if (numberMode && (!callable?.numberSafe || !callable.bindNumber || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable) {
                         if (typeof callable.type !== 'string') {
-                            if (numberMode && !callable.numberArrayResult || !host.arrayLocals || callable.type.element === 'real' && (!numberMode || !host.reals)
+                            if (numberMode && !callable.numberArrayResult || !host.arrayLocals || callable.type.element === 'real' && !host.reals
                                 || callable.type.element === 'boolean' && !host.booleanArrays
                                 || callable.type.element === 'text' && !host.textArrayLoops) return undefined;
                             if (!numberMode) state.hasArrayCall = true;

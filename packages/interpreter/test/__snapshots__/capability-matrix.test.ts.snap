@@ -11673,6 +11673,640 @@ exports[`executable compiler capability matrix > operator/xor/0 1`] = `
 }
 `;
 
+exports[`executable compiler capability matrix > ownership/captured-array 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:array-call-write-region:ForStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:fresh-real-array-result-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: value-expression",
+    "10:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: native-array-construction",
+    "1:10 native-array-construction: native-array-construction",
+    "2:1 scalar-function-direct: scalar-function-direct",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "6:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "6:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "6:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "8:2 native-selection-write: native-selection-write",
+    "8:2 selection-write: native-selection-write, selection-write",
+  ],
+  "result": "4 2 7 2",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/deque 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:deque-array-write:ForStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "16:1 statement-dispatch: value-expression",
+    "16:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "7 2 3 0 0 4 5 6",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/early-exit 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:array-call-write-region:ForStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:real-scalar-or-array-rank-1-or-2-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "19:1 statement-dispatch: value-expression",
+    "19:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 scalar-function-direct: scalar-function-direct",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "4 2 3 2 2 3 4 5 6",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/mask 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:ArrayAssignmentStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-type:array",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:real-scalar-or-array-rank-1-or-2-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "16:1 statement-dispatch: value-expression",
+    "16:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 scalar-function-direct: scalar-function-direct",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "7 2 9 4 2 6 4 5 6",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/permutation 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:TupleExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:UnpackStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:real-scalar-or-array-rank-1-or-2-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "17:1 statement-dispatch: value-expression",
+    "17:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 scalar-function-direct: scalar-function-direct",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "6 5 6 2 2 3 5 2 3",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/retained-slice 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "integer-array-function:unsupported-expression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:array-call-write-region:ForStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:real-scalar-or-array-rank-1-or-2-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "16:1 statement-dispatch: value-expression",
+    "16:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 scalar-function-direct: scalar-function-direct",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "7 2 3 4 2 4 5 6",
+}
+`;
+
+exports[`executable compiler capability matrix > ownership/returned-alias 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "computed-array-update-binding:unique-linear-selection-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "integer-array-function:fresh-array-result-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "loop:array-call-write-region:ForStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "mixed-loop:no-wide-scalar-candidate",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "real-array-function:real-scalar-or-array-rank-1-or-2-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-type:array",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: native-array-construction",
+    "10:9 native-array-construction: native-array-construction",
+    "11:1 statement-dispatch: statement-dispatch",
+    "12:1 exact-loop: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 loop-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "12:1 statement-dispatch: exact-loop, native-selection-write, scalar-function-direct, selection-write",
+    "14:2 native-selection-write: native-selection-write",
+    "14:2 selection-write: native-selection-write, selection-write",
+    "16:1 statement-dispatch: value-expression",
+    "16:1 value-expression: value-expression",
+    "1:1 block-dispatch: exact-loop, native-array-construction, native-selection-write, scalar-function-direct, selection-write, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 scalar-function-direct: scalar-function-direct",
+    "2:1 statement-dispatch: statement-dispatch",
+    "5:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: native-array-construction",
+    "8:10 native-array-construction: native-array-construction",
+    "9:1 statement-dispatch: native-array-construction",
+    "9:9 native-array-construction: native-array-construction",
+  ],
+  "result": "7 2 3 4 2 3 4 5 6",
+}
+`;
+
 exports[`executable compiler capability matrix > record/update 1`] = `
 {
   "boundaries": [
