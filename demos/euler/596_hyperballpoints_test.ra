@@ -15,3 +15,9 @@ test "statement values"
   run
   Answer equal 733649750
 end
+
+test "full answer"
+  use "596_hyperballpoints"
+  run
+  Answer equal 734582049
+end

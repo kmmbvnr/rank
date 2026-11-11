@@ -1,8 +1,7 @@
 import { createRecord, copyRecordForUpdate, checkNewRecordField, initializeRecordField } from '../record-construction.js';
 import { observedRun } from '../compiler-observation.js';
 import { AstUtils } from 'langium';
-import { integer32Cells } from '../array-storage.js';
-import { modularProduct } from '../modular-fold.js';
+import { hasStoredInt32View, modularProduct } from '../modular-fold.js';
 import { demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { PlanConstruction } from './plan-construction.js';
 import { demand, demandValue } from '../plan.js';
@@ -724,7 +723,7 @@ export class ExpressionEvaluator {
         // Effectful modulus expressions and observable checkpoints stay ordinary.
         if (!privateLoopPolling() || demandBudgetEnabled()) return undefined;
         const plain = (value: RankValue): value is RankArray => isRankArray(value)
-            && !value.columnNames && !value.tableScopes && !value.sortKeys && !!integer32Cells(value);
+            && hasStoredInt32View(value);
         if (!plain(a) || !plain(b)) return undefined;
         const m = isNumberLiteral(modulus) ? modulus.value
             : isNameExpression(modulus) ? this.context.findVariable(modulus.name) : undefined;

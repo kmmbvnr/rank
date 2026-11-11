@@ -1,8 +1,10 @@
-import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { RankError } from '../errors.js';
+import { prepareStoredScalarView } from './integer-view.js';
+import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling, InterruptedError } from '../interrupt.js';
 import { collectArrayCells } from './array-read.js';
 import { multiply, multiplyWide } from './modular-power.js';
 import { integer32Cells, typedArray } from './owned-array.js';
-import type { RankArray } from './value.js';
+import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 /** Largest modulus whose residues fit an Int32 cell. */
 const MAX_MODULUS = 2 ** 31;
@@ -112,6 +114,48 @@ export function modularReduce(op: '+' | '*', source: Residues, seed: bigint | un
     return BigInt(acc);
 }
 
+/** Stored identity/linear views can skip boxed products just like their buffers.
+ * Pure uniform contracts are validated once; opaque offsets stay ordinary. */
+function storedInt32View(value: RankArray) {
+    if (!privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()
+        || value.columnNames || value.tableScopes || value.sortKeys
+        || Object.getOwnPropertyDescriptor(value, 'itemAt')?.get
+        || Object.getOwnPropertyDescriptor(value, 'shape')?.get) return undefined;
+    const view = prepareStoredScalarView(value, true);
+    if (!view?.compact || !view.linear || view.validate && !view.validateUniform
+        || view.source.columnNames || view.source.tableScopes || view.source.sortKeys
+        || typeof SharedArrayBuffer !== 'undefined' && view.compact.buffer instanceof SharedArrayBuffer) return undefined;
+    return view;
+}
+
+export function hasStoredInt32View(value: RankArray): boolean {
+    const view = storedInt32View(value);
+    if (!view) return false;
+    try {
+        if (!value.shape.includes(0)) view.validateUniform?.(BigInt(view.compact![view.linear!.offset]));
+        return true;
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return false;
+        throw error;
+    }
+}
+
+/** Preserve product-before-modulus evaluation when operands are not proved
+ * inert. Matching stored integer arrays can defer the private product itself. */
+export function fusedModularProduct(left: RankValue, right: RankValue, modulus: () => RankValue,
+    binary: (operator: string, a: RankValue, b: RankValue) => RankValue): RankValue {
+    if (isRankArray(left) && isRankArray(right)
+        && hasStoredInt32View(left) && hasStoredInt32View(right)
+        && left.shape.length === right.shape.length && left.shape.every((n, axis) => n === right.shape[axis])) {
+        const m = modulus();
+        return (typeof m === 'bigint' ? modularProduct(left, right, m) : undefined)
+            ?? binary('mod', binary('*', left, right), m);
+    }
+    const product = binary('*', left, right);
+    return binary('mod', product, modulus());
+}
+
 /** `A * B mod M` for equal-shape integer arrays and M up to 2^31: each product is
  * reduced as it forms, so no cell leaves the Int32 range. */
 export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): RankArray | undefined {
@@ -120,12 +164,18 @@ export function modularProduct(a: RankArray, b: RankArray, modulus: bigint): Ran
     const product = m <= 2 ** 30 ? multiply : multiplyWide;
     // Stable Int32 inputs need only the result buffer. Reduce cells in place
     // in the arithmetic expression, rather than allocating two residue copies.
-    const left = integer32Cells(a), right = integer32Cells(b);
-    if (left && right && !a.columnNames && !b.columnNames && privateLoopPolling() && !demandBudgetEnabled()) {
-        checkpoint('computing integer array', left.length);
-        const out = new Int32Array(left.length);
+    const left = storedInt32View(a), right = storedInt32View(b);
+    if (left && right) {
+        const count = a.shape.reduce((n, d) => n * d, 1);
+        if (count) {
+            left.validateUniform?.(BigInt(left.compact![left.linear!.offset]));
+            right.validateUniform?.(BigInt(right.compact![right.linear!.offset]));
+        }
+        checkpoint('computing integer array', count);
+        const out = new Int32Array(count);
         for (let i = 0; i < out.length; i++) {
-            const x = left[i] % m, y = right[i] % m;
+            const x = left.compact![left.linear!.offset + i * left.linear!.stride] % m;
+            const y = right.compact![right.linear!.offset + i * right.linear!.stride] % m;
             out[i] = product(x < 0 ? x + m : x, y < 0 ? y + m : y, m);
         }
         return typedArray(out, a.shape);

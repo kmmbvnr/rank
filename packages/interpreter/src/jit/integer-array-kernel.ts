@@ -1,3 +1,4 @@
+import { wideScalarQuotients } from '../runtime/wide-scalar-quotients.js';
 import { checkedNumberPower, numberOverflow } from './number-arithmetic.js';
 import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { BooleanCells } from '../boolean-cells.js';
@@ -37,6 +38,10 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         return inspectionEnabled() || !privateLoopPolling() ? undefined : mapStoredBitwise(left, right, name);
     }
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    if (name === '//' && typeof left === 'bigint' && isRankArray(right)) {
+        const divided = wideScalarQuotients(left, right);
+        if (divided) return divided;
+    }
     if (name === '+' || name === '-' || name === '*' || name === 'gcd' || name === 'mod' || name === '//' || name === 'min' || name === 'max' || name === '**') {
         try {
             const compact = mapStoredInt32Binary(left, right, name);

@@ -204,6 +204,8 @@ export function proveFunctionPlan(expression: Expression, host: {
 
 interface PlanEmitter {
     readonly number?: boolean;
+    completeBinary?(operation: string, left: string, right: string): string;
+    completeSum?(value: string): string;
     arrayBinary?(operation: string, left: string, right: string, lines: string[]): string;
     check?(value: string, type: CompiledScalarType): string;
     array?(name: string, domain: FunctionPlanDomain): PreparedTensor;
@@ -219,6 +221,34 @@ interface PlanEmitter {
 /** Emit a consumer directly in the scalar function. Preparation evaluates scalar
  * operands at demand; vector cells stream through the consumer in source order. */
 export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[], host: PlanEmitter): string {
+    // Only completed named operands and literals can enter this shortcut.
+    // Deferred stages and scalar subexpressions retain their own preparation
+    // and cell-demand order, including empty-input behavior.
+    const direct = (node: FunctionPlan): string | undefined => {
+        if (node.kind === 'group') return direct(node.operand);
+        if (node.kind === 'literal') return typeof node.value === 'bigint' ? `${node.value}n` : JSON.stringify(node.value);
+        if (node.kind === 'input' && node.input.name && !node.input.stage) return host.slot(node.input.name);
+        return undefined;
+    };
+    let stage = consumer.stage;
+    while (stage.kind === 'group') stage = stage.operand;
+    let candidate: string | undefined;
+    if (!host.number && consumer.terminal === 'copy' && stage.kind === 'binary' && stage.type.rank
+        && stage.type.element === 'integer' && host.completeBinary) {
+        const left = direct(stage.left), right = direct(stage.right);
+        if (left !== undefined && right !== undefined) candidate = host.completeBinary(stage.operation.name, left, right);
+    } else if (!host.number && consumer.terminal === 'sum' && stage.type.rank === 1
+        && stage.type.element === 'integer' && host.completeSum) {
+        const value = direct(stage);
+        if (value !== undefined) candidate = host.completeSum(value);
+    }
+    if (candidate !== undefined) {
+        const result = host.variable(), fallback: string[] = [];
+        const ordinary = emitFunctionPlan(consumer, fallback, { ...host, completeBinary: undefined, completeSum: undefined });
+        lines.push(`let ${result} = ${candidate};`);
+        lines.push(`if (${result} === undefined) { ${fallback.join('\n')} ${result} = ${ordinary}; } else { planConsumed?.(); }`);
+        return result;
+    }
     for (const key of functionPlanCallbacks(consumer.stage)) host.capture(key, lines);
     const demandLocation = host.variable();
     lines.push(`const ${demandLocation} = location;`);
