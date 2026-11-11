@@ -164,6 +164,10 @@ export class ApplicationEvaluator {
                 const source = context.compile(form.source);
                 const selectors = form.selectors.map(selector => isAllAxisExpression(selector)
                     ? () => completed(ALL_AXIS) : context.compile(selector));
+                const compiled = context.fastPaths.selection(expression,
+                    [{ evaluate: source }, ...selectors.map(evaluate => ({ evaluate }))],
+                    values => completed(rankedAddress(values[0], values.slice(1), form.ranks, value => context.resources.ownFiles(value))));
+                if (compiled) return () => compiled(undefined);
                 return function* (): Execution<RankValue> {
                     const receiver = yield* resume(source());
                     const values: RankValue[] = [];
@@ -677,6 +681,21 @@ export class ApplicationEvaluator {
         } : undefined;
         const directParts = parts.map(part => isAllAxisExpression(part)
             ? () => ALL_AXIS : context.compileDirect(part));
+        // Plain data selectors may contain calls in parentheses. Evaluate each
+        // once, then delegate application/selection with the original live values.
+        const dataPart = (part: Expression) => {
+            if (!isNameExpression(part) || /^[A-Z]/.test(part.name)) return true;
+            const value = context.findVariable(part.name);
+            return value !== undefined && !isNativeFunction(value);
+        };
+        if (!checkRename && parts.length > 1 && (isNameExpression(parts[0]) || isParenthesizedExpression(parts[0])) && dataPart(parts[0])
+            && parts.slice(1).every(part => dataPart(part) && !isUnpackExpression(part))) {
+            const selected = context.fastPaths.selection(expression, parts.map((part, index) => ({
+                direct: directParts[index],
+                evaluate: () => isAllAxisExpression(part) ? completed(ALL_AXIS) : context.evaluate(part),
+            })), values => application.apply(values, missing, 0, [], tail, lastUses));
+            if (selected) return () => selected(undefined);
+        }
         if (directParts.every(part => part !== undefined)) {
             const last = parts.at(-1)!;
             if (!tail && (parts.length === 2 || parts.length === 3) && isNameExpression(last)) {

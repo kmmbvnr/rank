@@ -165,3 +165,10 @@ add('values/record-set', 'use algo\nfun Store includeitem Value\n Store add Valu
 add('values/mixed-index', 'use algo\nfun Store populate\n Store "count" = 3\n Store "name" = "Ada"\n return Store\nend\nStore = new index\nAlias = Store populate\ntuple (Alias "count") (Alias "name")', ['index'], 'tuple', [0], 'index', ['write']);
 add('values/record-type-error', 'State = record\n .count = 2\nend\nState .count = "bad"', ['record'], 'error', [0], 'record', ['write'], true);
 add('values/record-loop', 'State = record\n .count = 0\nend\nfor I in 1 to 3\n State .count += I\nend\nState .count', ['record'], 'integer', [0], 'record', ['write']);
+
+add('selection/partial-rank-three', 'use sequences\nM = (0 till 24) reshape 2 3 4\nM # 1 #', ['integer[]'], 'integer[]', [3, 2], 'strided view');
+add('selection/paired-gather', 'use sequences\nM = (0 till 6) reshape 2 3\nM (array 1 0) (array 2 1) rank 0 0', ['integer[]'], 'integer[]', [2, 1], 'ranked gather');
+add('selection/text-mask', 'use sequences\nM = (array "a" "b" "c" "d") reshape 2 2\nM (array false true) #', ['text[]'], 'text[]', [2], 'boxed mask');
+add('selection/real-scatter', 'M = array shape 2 3 fill 1.5\nM # (array 1 1) += 2.0\nM', ['real[]'], 'real[]', [2], 'scatter', ['write']);
+add('selection/partial-axis-control', 'use sequences\nM = (0 till 6) reshape 2 3\nTotal = 0\nfor Col I in M axis 1\n if I equal 1\n  continue\n end\n Total += Col 1\nend\nTotal', ['integer[]'], 'integer', [2, 1], 'axis cells');
+add('selection/retained-view', 'M = array shape 2 3 fill 1\nSaved = M # 1\nM # 1 = 7\ntuple Saved M', ['integer[]'], 'tuple', [2, 1], 'retained view', ['write']);

@@ -1,6 +1,6 @@
 import { isIfStatement, isReturnStatement, type Expression, type FunctionStatement, type Statement } from '@arrrank/language';
 import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
-import { completed, resume, type Evaluation } from '../execution.js';
+import { completed, type Evaluation, type Execution } from '../execution.js';
 import { inspectionEnabled } from '../interrupt.js';
 import { expectBoolean, type RankValue } from '../value.js';
 import type { ExecutionContext, PreparedStatement } from '../statement-control.js';
@@ -69,7 +69,7 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
                 }
                 if (next === 'end') {
                     next = emit(`const task = ${evaluate};
-                        return 'done' in task ? task : suspend(task, context, end, ${location});`, location);
+                        return 'done' in task ? task : suspend(task, context, undefined, ${location});`, location);
                     continue;
                 }
                 const continuation = `(context, value) => context.functionControl?.returned || context.loopControl?.signal ? completed(value) : ${next}(context, value)`;
@@ -111,9 +111,13 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
         };
         // Only an actual suspension allocates a task. Ordinary branches and tail
         // transfers stay synchronous, using the existing function-call trampoline.
-        const suspend = function* (task: Evaluation<Value>, context: ExecutionContext, next: Block, location: number) {
-            try { return yield* resume(next(context, yield* resume(task))); }
-            catch (error) { throw host.locate(error, sites[location]); }
+        const suspend = function* (task: Execution<Value>, context: ExecutionContext, next: Block | undefined, location: number): Execution<Value> {
+            try {
+                const value = (yield { task }) as Value;
+                if (!next) return value;
+                const result = next(context, value);
+                return 'done' in result ? result.value : (yield { task: result }) as Value;
+            } catch (error) { throw host.locate(error, sites[location]); }
         };
         try {
             const run = new Function('step', 'test', 'scope', 'completed', 'suspend', 'expectBoolean', 'locate', 'executed', source)(

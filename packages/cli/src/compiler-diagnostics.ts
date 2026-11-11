@@ -3,6 +3,8 @@ import type { CompilerObservation, RuntimeDiagnostics } from '@arrrank/interpret
 /** Passive observations: a rejected candidate can have a successful alternative. */
 const explanations: Record<string, string> = {
     'statement-budget': 'The region exceeds the statement budget.',
+    'selector-budget': 'Generated operand evaluation is limited to 64 operands; this selection uses the runtime adapter.',
+    'unsupported-axis-traversal': 'This numeric loop backend requires a supported full-axis scalar walk; general traversal can still use a compiled body.',
     'temporary-budget': 'Expression generation exceeds the temporary-value budget.',
     'budget': 'The function exceeds the proof traversal budget.',
     'specialization-budget': 'The specialization cache has reached its limit.',

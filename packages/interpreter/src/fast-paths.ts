@@ -1,3 +1,4 @@
+import { compileOperands, type Operand } from './jit/compiled-operands.js';
 import { compileValueExpression } from './jit/value-expression.js';
 import { withCompilerSource, observeCompiler, declineCompiler } from './compiler-observation.js';
 import { prepareNativeIntegerSum } from './native-integer-sum.js';
@@ -15,9 +16,9 @@ import { isCompiledContainer, isCompiledArray, type CompiledCalleeType } from '.
 import type { CompiledCallee } from './jit/compiled-callee.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
+    forAxes, findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
-    isLabelLiteral, isStringLiteral, isRecordExpression, isRecordUpdateExpression, isTupleExpression, isUnpackStatement, isPushStatement,
+    isRecordExpression, isRecordUpdateExpression, isTupleExpression, isUnpackStatement, isPushStatement,
     isIfStatement, isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileFramedFunction, compileValueBlock } from './jit/framed-function.js';
@@ -116,6 +117,11 @@ export class FastPaths {
         return this.context.compiler ? this.context.compiler() : resolveCompilerCapabilities(this.context.options());
     }
 
+    selection(expression: Expression, operands: readonly Operand<RankValue>[], apply: (values: RankValue[]) => Evaluation<RankValue>) {
+        if (!this.compiler.scalars.expressions) return undefined;
+        return compileOperands(expression, 'selection-expression', operands, apply, 'native-selection');
+    }
+
     valueExpression(expression: Expression, direct: (expression: Expression) => (() => RankValue) | undefined,
         select: (values: RankValue[]) => RankValue) {
         if (!this.compiler.scalars.expressions) return undefined;
@@ -138,9 +144,12 @@ export class FastPaths {
             if (block === undefined) {
                 const structured = (node: AstNode) => isRecordExpression(node) || isRecordUpdateExpression(node)
                     || isTupleExpression(node) || isUnpackStatement(node) || isPushStatement(node)
-                    || isArrayAssignmentStatement(node) && node.indices.some(index => isLabelLiteral(index.value) || isStringLiteral(index.value))
+                    || isArrayAssignmentStatement(node)
                     || isAssignmentStatement(node) && node.name.includes('.');
-                const structural = statements.some(statement => structured(statement) || AstUtils.streamAllContents(statement).some(structured));
+                const iteration = forIteration(statements[0].$container.condition);
+                const arrayTraversal = iteration && (isNameExpression(iteration.iterable) || forAxes(iteration.iterable));
+                const structural = !!arrayTraversal
+                    || statements.some(statement => structured(statement) || AstUtils.streamAllContents(statement).some(structured));
                 block = structural ? compileValueBlock(statements, {
                     prepare: (commands, index) => steps.preparedStatement(commands, index),
                     scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
@@ -241,7 +250,7 @@ export class FastPaths {
             if (values === undefined) {
                 values = AstUtils.streamAllContents(statement).some(node => isRecordExpression(node)
                     || isRecordUpdateExpression(node) || isTupleExpression(node) || isUnpackStatement(node)
-                    || isPushStatement(node) || isAssignmentStatement(node) && node.name.includes('.'));
+                    || isPushStatement(node) || isArrayAssignmentStatement(node) || isAssignmentStatement(node) && node.name.includes('.'));
                 this.valueBodies.set(statement, values);
             }
             // Generic frame code is independent of element/field domains. It

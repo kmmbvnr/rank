@@ -3961,8 +3961,8 @@ field/key writes can use `value-block`. The existing loop driver still owns
 iteration, scope and polling; generated body control uses prepared operations and
 resumes pending calls. Numeric whole-loop specializations retain first choice.
 `compiledValueBlocks` counts body entries, not compiled iterations of the entire
-loop. The shared body generator retains its 256-statement budget. Plain array
-selection and ownership extensions remain separate workstreams.
+loop. The shared body generator retains its 256-statement budget. Array selection
+extensions are described below; general ownership work remains separate.
 
 Unpacking shares one runtime adapter for direct and suspended operands, retaining
 arity checks, materialization before writes, ignored targets and evaluation order.
@@ -4004,3 +4004,80 @@ and 306.75 → 282.36 ms. Tuple/unpack median peak RSS fell from 263,024 →
 211,552 KiB on Mac and 248,356 → 196,228 KiB on Intel. Queue, field and scalar
 controls do not establish a general speedup; their raw cold and RSS measurements
 are retained alongside the faster cases.
+
+### Array selection and traversal boundaries
+
+`selection-expression` generates ordered operand evaluation for ordinary named
+or grouped selection sources and ranked addresses. Scalar indices, omitted axes,
+whole axes, ranges, masks and gathers use the existing native selection rules,
+including element types, shape checks and repeated indices. The generated entry
+can resume effectful operands without replaying earlier operands. It neither
+reads cells during preparation nor assumes a particular array storage layout.
+Specialized scalar selection and materialized-range view paths retain priority.
+
+`selection-write` generates address evaluation for writes that reach the general
+adapter, including multi-axis, ranked and unpacked addresses. Target resolution
+still precedes selectors; address validation still precedes the RHS. Ordinary,
+compound and accumulating writes share the native validation and copy-on-write
+implementation. The existing direct single-index write path stays in place.
+This work does not remove the ownership restrictions of specialized numeric
+kernels or introduce a new aliasing model.
+
+General loop bodies over named sources or explicit axes can use `value-block`,
+as can bodies containing array writes. The native loop driver still owns cell
+iteration, coordinate bindings, demand, scope and polling. Partial-axis cells,
+strided views, empty frames and early exits retain those runtime contracts while
+body control can compile. Array writes also qualify helpers for the framed
+function backend after narrower specializations decline. Whole-loop numeric
+kernels retain priority; a generated body is not evidence of a compiled numeric
+iterator. Terminal and intermediate pending body operations now resume directly
+through the execution driver without intermediate `resume` generators.
+
+Diagnostics distinguish generated operand evaluation (`selection-expression`,
+`selection-write`) from its native adapters (`native-selection`,
+`native-selection-write`). Numeric axis candidates that cannot use their
+full-axis scalar walk report `unsupported-axis-traversal`; this does not reject
+the general iterator or compiled body. Generated operand lists have a 64-operand
+budget and retain the runtime path above it. Inspection and blocked dynamic
+JavaScript also retain ordinary execution. Plain unpacked reads and specialized
+single-index writes may use their existing runtime paths without a new selection
+backend entry.
+
+`compiled-selections.test.ts` compares values, shapes, errors and effect order
+against interpretation and asserts the executed backends. It covers rank-three
+partial selection, paired versus Cartesian addressing, integer/real/boolean/text/
+record cells, masks, duplicate scatter, accumulation, retained views, helper
+writes, unpacked coordinates, descending ranges, signed-index errors, partial-axis
+control, lazy demand after break, empty cells, dynamic-code fallback and the
+operand budget. Six capability cases bring the executable matrix to 397 checks
+including the catalogue inventory. CLI tests distinguish generated and native
+selection work. Exhaustive audits remain separate.
+
+`benchmarks/array-selections.mjs` compares the clean `1c22f6d8` baseline with this
+implementation. Three alternating process pairs per host each measure one cold
+run and five warm runs with fresh interpreters and checked answers. Parsing and
+preparation are included; peak RSS includes module loading. Raw measurements are
+in `benchmarks/array-selections-results.json`. These measurements track coverage,
+time and memory separately; compiled selection does not promise that every
+array operation becomes faster.
+
+Median warm times across processes (milliseconds, before → after):
+
+| Workload | Mac | Intel |
+| --- | ---: | ---: |
+| gather with selector arrays constructed inside the loop | 45.57 → 50.93 | 168.02 → 174.83 |
+| mask selection | 30.47 → 30.76 | 121.76 → 122.88 |
+| real scatter writes | 10.03 → 9.22 | 31.65 → 30.84 |
+| partial-axis column traversal | 7.74 → 6.72 | 20.97 → 20.44 |
+| scalar helper control | 1.97 → 1.85 | 5.64 → 5.87 |
+
+Gather remains a measured regression: about 12% on Mac and 4% on Intel in this
+workload. Median process RSS increased from 372,160 → 387,280 KiB on Mac and
+351,524 → 368,092 KiB on Intel (about 4–5%). Its median cold times were
+146.17 → 143.40 ms and 431.36 → 424.76 ms, respectively. Investigation removed
+intermediate continuation generators and rest-argument observation wrappers,
+and kept numeric range-loop routing unchanged. Those changes did not eliminate
+the gather regression. This remains performance work, not a compilation coverage
+success to count as an optimization. Scatter and partial-axis timing improved;
+mask and scalar controls do not establish a general speedup. All cold, warm and
+peak-memory samples are retained in the results file.

@@ -1,3 +1,5 @@
+import { compileOperands } from '../jit/compiled-operands.js';
+import { resolveCompilerCapabilities } from '../interpreter-options.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { rankedAddressSelection } from '../ranked-address.js';
 import { unpackApplicationItems } from '../value-selection.js';
@@ -29,7 +31,7 @@ import { tableColumnWrite } from '../modules/tables.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { arraySize, type Operators } from '../operators.js';
 import { assignRecordField } from '../record-write.js';
-import { tensorSelection } from '../selectors.js';
+import { ALL_AXIS, tensorSelection } from '../selectors.js';
 import type { PreparedStatement } from '../statement-control.js';
 import { writeTable } from '../table-access.js';
 import { sameShape } from '../tensor-index.js';
@@ -523,6 +525,16 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             return general(target, [selector]);
         } };
     }
+    const compiled = resolveCompilerCapabilities(host.options()).loops.arrayWrites
+        ? compileOperands<RankValue[], RankValue | undefined, RankValue>(statement, 'selection-write',
+            statement.indices.map(index => {
+                const direct = !index.spread && index.value ? host.compileDirect(index.value) : undefined;
+                return { direct: index.all ? () => [ALL_AXIS]
+                    : direct ? () => [index.sign ? host.operators.evaluateUnary(index.sign, direct()) : direct()] : undefined,
+                    evaluate: () => host.evaluateAddressParts(index) };
+            }), (selectors, target) => general(target, selectors.flat()), 'native-selection-write')
+        : undefined;
+    if (compiled) return { stream: () => compiled(host.resolveVariable(statement.name)) };
     return { stream: (): Evaluation<RankValue | undefined> => {
         let target = host.resolveVariable(statement.name);
         // Selectors that all complete hand straight over to the general

@@ -198,3 +198,21 @@ Result print`);
     assert.match(summary, /native-value-selection/);
     assert.match(summary, /mixed \(compiled \+ native\)/);
 });
+
+test('selection diagnostics separate generated operands from native addressing', t => {
+    const file = fixture(t, 1);
+    writeFileSync(file, `use io
+M = array shape 2 3 fill 1
+M # 1 = 7
+Part = M # 1
+Part print
+`);
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '7 7\n');
+    assert.match(result.stderr, /selection-expression execute: selected/);
+    assert.match(result.stderr, /selection-write execute: selected/);
+    assert.match(result.stderr, /native-selection execute: selected/);
+    assert.match(result.stderr, /native-selection-write execute: selected/);
+    assert.match(result.stderr, /mixed \(compiled \+ native\)/);
+});

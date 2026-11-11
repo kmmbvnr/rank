@@ -79,7 +79,8 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         inductionVariable?: string;
         inductionSlot?: number;
     } | undefined {
-        return compileLoopParts(node, iteration, location, continuation) ?? reject(node, 'loop-header');
+        return compileLoopParts(node, iteration, location, continuation)
+            ?? reject(node, iteration && forAxes(iteration.iterable) ? 'unsupported-axis-traversal' : 'loop-header');
     }
     function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation) {
         // A continuation owns a live cursor or an already checked condition;

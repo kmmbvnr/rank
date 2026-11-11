@@ -293,11 +293,11 @@ export function recordFallback(reason: string, category?: FallbackCategory): und
 /** Legacy reasons stay readable; unknown details remain explicitly unclassified. */
 export function fallbackCategory(reason: string): FallbackCategory {
     const detail = reason.split(':')[1];
-    if (['statement-budget', 'temporary-budget', 'specialization-budget'].includes(detail)) return 'cost';
+    if (['statement-budget', 'temporary-budget', 'specialization-budget', 'selector-budget'].includes(detail)) return 'cost';
     if (['unsupported-type', 'storage-or-cell-type', 'unsafe-input', 'unsafe-cell'].includes(detail)) return 'representation';
     if (['mutable-array-alias', 'array-alias-call', 'rebound-array-alias', 'mutable-slice-result',
         'deque-array-write'].includes(detail)) return 'aliasing';
-    if (['unsupported-op', 'unsupported-node', 'unsupported-effect', 'unstable-effect-receiver',
+    if (['unsupported-op', 'unsupported-node', 'unsupported-axis-traversal', 'unsupported-effect', 'unstable-effect-receiver',
         'array-call-write-region'].includes(detail)) return 'effects';
     if (['unstable-bindings', 'escaping-rebound-array', 'rebound-array-selection',
         'code-generation', 'binding-contract'].includes(detail)) return 'proof';
