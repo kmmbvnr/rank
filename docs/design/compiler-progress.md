@@ -4347,3 +4347,8 @@ observed demand and alternative. CLI diagnostics print these fields separately
 from inferred types and rejection reasons. Capability rows assert selected
 function fragments, loop fragments and high-rank copy paths, including parity
 between traced, untraced and interpreted runs.
+
+`benchmarks/compiler-budgets-results.md` records preparation-inclusive and
+prepared execution, peak process memory, remaining small regressions and
+rejected optimizations on Mac and Intel. Coverage expansion does not imply
+that every case becomes faster or uses less process memory.
