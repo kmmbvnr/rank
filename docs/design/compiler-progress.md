@@ -4504,3 +4504,30 @@ RSS caveats, reproduction commands and focused verification are in
 [`large-bodies-results.md`](../../benchmarks/large-bodies-results.md), with raw
 samples in the adjacent JSON report. These measurements do not establish a
 speedup for every compiled program.
+
+## Bounded scalar regions inside checked bodies
+
+The framed-function and block backends now group supported pure scalar
+assignments into regions of 4–32 statements. Generated locals retain values
+between assignments; calls, output, suspension, deferred bindings, indexed writes
+and unsupported operators remain boundaries. Integer arithmetic remains exact
+BigInt, with real arithmetic and mixed comparisons using the shared operator
+catalogue. This extends compilation inside a body that cannot enter the
+whole-function scalar backend.
+
+Every invocation rechecks live inputs and binding contracts without forcing
+plans or arrays. Mutation protection is checked before each destination's first
+write in a region. Normal exit and errors publish the completed prefix; a failed
+entry guard executes ordinary statements without replaying completed work.
+Inspection, interruption and demand-budget modes retain ordinary publication.
+Each region bounds expression analysis, generated source and cached domain
+specializations. Existing framed fragment limits remain in effect.
+
+Diagnostics report `compiledScalarRegions` and source-located `scalar-region`
+entries, including dynamic specialization preparation. Six alternating process
+pairs on Mac ARM64 and Intel x64 show large simple bodies about 2.6–3.6 times
+faster than the previous main, with lower median peak process memory. More
+complex arithmetic has a smaller improvement; control examples and compiler
+versus interpreter comparisons are reported separately. See
+[`scalar-regions-results.md`](../../benchmarks/scalar-regions-results.md) and its
+adjacent raw JSON for the measured cases, protocol, limitations and verification.

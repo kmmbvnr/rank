@@ -56,11 +56,11 @@ describe('scalar regions in framed bodies', () => {
     it.each(['//', 'mod', '/'])('publishes the prefix before %s by zero', operator => {
         const body = updates(10) + ` N = N ${operator} 0\n` + updates(14);
         // A surrounding finally observes the live binding after the error.
-        const source = `use io\nfun N work\n try\n${body} finally\n N print\n end\n return N\nend\n1 work`;
+        const source = `use io\nfun N work\n try\n${body} finally\n N print\n end\n return N\nend\n${operator === '/' ? '1.5' : '1'} work`;
         const result = compare(source, true);
         expect(result.outcome.error).toBeDefined();
-        expect(result.outcome.output).toEqual(['11']);
-        if (operator !== '/') expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
+        expect(result.outcome.output).toEqual([operator === '/' ? '11.5' : '11']);
+        expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
     });
     it('does not replay the completed prefix after a contract rejection', () => {
         const source = helper(updates(10) + ' N = 1.5\n' + updates(14));
