@@ -1,3 +1,5 @@
+import { MissingValueError } from '../src/errors.js';
+import { collectArrayCells } from '../src/runtime/array-read.js';
 import { describe, expect, it } from 'vitest';
 import { materializeValue } from '../src/materialize.js';
 import { collectBindingCells } from '../src/runtime/binding-cells.js';
@@ -119,6 +121,49 @@ describe('packed binding completion', () => {
             finally { closed = true; }
         } });
         expect(() => collectBindingCells(input)).toThrow('exceeded its declared shape');
+        expect(closed).toBe(true);
+    });
+});
+
+
+describe('prepared binding collection', () => {
+    it('keeps read order, missing values and the exact prefix across widening', () => {
+        let reads = 0, preparations = 0;
+        const input = source(() => { throw Error('unprepared read'); });
+        registerArrayReadPlan(input, { prepare: () => {
+            preparations++;
+            return index => {
+                expect(index).toBe(reads++);
+                if (index === 20) throw new MissingValueError('absent', true);
+                return index === 10 ? 1n << 100n : BigInt(index);
+            };
+        } });
+        const result = collectBindingCells(input) as RankValue[];
+        expect([preparations, reads]).toEqual([1, size]);
+        expect(result[9]).toBe(9n);
+        expect(result[10]).toBe(1n << 100n);
+        expect(result[20]).toBe(MISSING);
+        expect(result[size - 1]).toBe(BigInt(size - 1));
+    });
+    it('does not read beyond a strict missing value', () => {
+        let reads = 0;
+        const input = source(() => 0n, [4]);
+        registerArrayReadPlan(input, { prepare: () => index => {
+            reads++;
+            if (index === 2) throw new MissingValueError('strict');
+            return BigInt(index);
+        } });
+        expect(() => collectArrayCells(input)).toThrow('strict');
+        expect(reads).toBe(3);
+    });
+    it('keeps explicit traversal precedence and closes it on error', () => {
+        let closed = false;
+        const input = source(() => 0n, [2]);
+        registerArrayReadPlan(input, {
+            prepare: () => { throw Error('must use traversal'); },
+            *values() { try { yield 1n; throw Error('traversal failure'); } finally { closed = true; } },
+        });
+        expect(() => collectArrayCells(input)).toThrow('traversal failure');
         expect(closed).toBe(true);
     });
 });

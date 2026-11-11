@@ -53,3 +53,27 @@ node benchmarks/experiments/nightly-2026-11-11.mjs BEFORE AFTER
 Set `PROFILE_DIR` to save CPU profiles; profiled runs are marked in the JSON
 and must not be mixed with timing samples. The remaining issue items are still
 under investigation.
+
+## Speed 4: collect prepared readers directly
+
+Prepared scalar readers now write directly to the destination. This removes
+one iterator-result object per cell and the generator transition for eligible
+readers. Explicit traversals, custom collectors and zero-cell observations keep
+the existing path, including iterator cleanup. Checkpoints, soft missing values,
+strict errors and writes to the completed prefix retain their order.
+
+Measured independently of the bridge against `9177bb48`:
+
+| Case | Mac before / after, s | Intel before / after, s |
+| --- | ---: | ---: |
+| Euler 792, default input | 14.117 / 11.570 | 37.656 / 32.505 |
+| Euler 98, default input, control | 0.375 / 0.379 | 1.075 / 1.063 |
+
+Euler 792 improves by 18.0% on Mac and 13.7% on Intel. Euler 98 shows no
+consistent change. Timing is separate from memory: Mac median peak RSS is
+812 / 813 MiB, while the corresponding Intel samples are recorded in the raw
+archive. Do not infer a general memory reduction from this change.
+
+Verification: TypeScript and 100 focused tests in five files. Added cases cover
+prepared read order, widening and soft missing values, stopping at a strict
+missing value, and explicit traversal precedence with cleanup after an error.

@@ -204,11 +204,38 @@ function collectValues<T>(size: number, values: IterableIterator<RankValue>, cre
     }
 }
 
+/** Prepared scalar readers own no iterator state. Write their cells directly
+ * into the destination, retaining checkpoints and soft missing values. */
+function collectPreparedCells<T>(value: RankArray, size: number, collector: CellCollector<T>): T {
+    if (size > MAX_HELD_CELLS) {
+        throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
+    }
+    const read = prepareArrayRead(value) ?? ((index: number) => readArrayItem(value, index));
+    let items: RankValue[] | void = collector.items;
+    for (let index = 0; index < size; index++) {
+        checkpoint('reading array');
+        let item: RankValue;
+        try { item = read(index); }
+        catch (error) {
+            if (!(error instanceof MissingValueError) || !error.soft) throw error;
+            item = MISSING;
+        }
+        if (items) items[index] = item;
+        else items = collector.write(index, item);
+    }
+    return collector.finish();
+}
+
 /** Binding collectors may pack cells as they arrive without changing traversal. */
 export function collectArrayCellsInto<T>(value: RankArray, collector: CellCollector<T>): T {
-    const collect = arrayReadPlans.get(value)?.collect;
-    const values = collect ? collect()[Symbol.iterator]() : arrayValues(value);
-    return collectValues(value.shape.reduce((total, n) => total * n, 1), values, () => collector);
+    const plan = arrayReadPlans.get(value);
+    if (plan?.collect) {
+        const values = plan.collect()[Symbol.iterator]();
+        return collectValues(value.shape.reduce((total, n) => total * n, 1), values, () => collector);
+    }
+    const size = value.shape.reduce((total, n) => total * n, 1);
+    if (size > 0 && plan?.prepare && !plan.values) return collectPreparedCells(value, size, collector);
+    return collectValues(size, arrayValues(value), () => collector);
 }
 
 /** A specialized collector owns its shape probe and the first produced cell. */
@@ -219,7 +246,13 @@ export function arrayCellCollector(value: RankArray): (() => RankValue[]) | unde
 export function collectArrayCells(value: RankArray): RankValue[] {
     const collect = arrayCellCollector(value);
     if (collect) return collect();
-    return collectArrayValues(value.shape.reduce((total, n) => total * n, 1), arrayValues(value));
+    const size = value.shape.reduce((total, n) => total * n, 1);
+    const plan = arrayReadPlans.get(value);
+    if (size > 0 && size <= MAX_HELD_CELLS && plan?.prepare && !plan.values) {
+        const items = new Array<RankValue>(size);
+        return collectPreparedCells(value, size, { items, write(index, item) { items[index] = item; }, finish: () => items });
+    }
+    return collectArrayValues(size, arrayValues(value));
 }
 
 /**
