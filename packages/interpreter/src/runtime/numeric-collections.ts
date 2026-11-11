@@ -86,8 +86,15 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
     const items = numericCells(value);
     if (!items) return undefined;
     // Ordering by position only reads the cells; packed integers need no copy.
-    const stored = mode === 'values' || !isRankArray(value) ? undefined : integer64Cells(value) ?? integer32Cells(value);
-    const values = stored ?? orderingCopy(items);
+    const stored = !isRankArray(value) ? undefined : integer32Cells(value) ?? integer64Cells(value);
+    // Value sorting owns its snapshot; ready integer buffers need no
+    // scalar reader, BigInt boxing or bounds scan to make that copy.
+    // Keep compacting small Int64 values. A wide witness permits a native
+    // copy without changing the compact representation selected before.
+    const wide = stored instanceof BigInt64Array && [0, stored.length >>> 1, stored.length - 1]
+        .some(index => stored[index] < -2147483648n || stored[index] > 2147483647n);
+    const ready = stored instanceof Int32Array || wide ? stored : undefined;
+    const values = mode === 'values' ? ready?.slice() ?? orderingCopy(items) : stored ?? orderingCopy(items);
     if (!values) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.numericSorts++;

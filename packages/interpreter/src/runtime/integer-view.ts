@@ -1,5 +1,5 @@
 import { arrayCellValidator, arrayRevision, integer32Cells, denseScalarItems, materializedArrayItems, storedOperandItems, storedScalarKinds } from './array-storage.js';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, privateLoopPolling, demandBudgetEnabled, inspectionEnabled } from '../interrupt.js';
 import { arrayRange } from '../range-plan.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -235,4 +235,16 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
         return index;
     };
     return { read, kinds, source, items, compact, regular: layers.every(layer => layer.regular), linear, position, validate: check, validateUniform };
+}
+
+/** Classify a trusted integer or boolean selection without collecting cells.
+ * Uniform kind checks are sufficient; opaque readers and observable demand keep the
+ * ordinary traversal, including its errors and checkpoint order. */
+export function storedSelectorKind(value: RankValue): 'integer' | 'boolean' | undefined {
+    if (!privateLoopPolling() || demandBudgetEnabled() || inspectionEnabled()) return undefined;
+    const view = prepareStoredScalarView(value, true), kind = view?.kinds?.[0];
+    if (!view || view.kinds?.length !== 1 || kind !== 'integer' && kind !== 'boolean'
+        || view.validate && !view.validateUniform) return undefined;
+    if (isRankArray(value) && !value.shape.includes(0)) view.validateUniform?.(kind === 'integer' ? 0n : false);
+    return kind;
 }

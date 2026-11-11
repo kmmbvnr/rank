@@ -1,3 +1,4 @@
+import { storedSelectorKind } from './integer-view.js';
 import { maskSelection, rangeMaskSelection } from './array-mask-selection.js';
 export { maskSelection };
 import { indexedSource } from './indexed-source.js';
@@ -586,6 +587,7 @@ function isTableFieldList(value: RankValue, includeEmpty = true): boolean {
     if (typedElementKind(value)) return includeEmpty && value.shape[0] === 0;
     const kinds = storedScalarKinds(value);
     if (kinds) return (includeEmpty && kinds.length === 0) || kinds.includes('text');
+    if (value.shape[0] !== 0 && storedSelectorKind(value)) return false;
     const stored = denseScalarItems(value);
     if (stored) return (includeEmpty && stored.length === 0)
         || Array.prototype.some.call(stored, (item: RankValue) => typeof item === 'string' || isRankLabel(item));

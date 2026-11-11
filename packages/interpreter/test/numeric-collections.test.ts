@@ -220,3 +220,23 @@ it.each([
         expect(cells(source)).toEqual(values.map(BigInt));
     }
 });
+
+
+it.each([false, true])('copies ready integer sort buffers without changing aliases (descending=%s)', descending => {
+    for (const input of [Int32Array.of(4, -2, 4, 0), BigInt64Array.of(9007199254740993n, -2n, 9007199254740992n, 0n)]) {
+        const source = typedArray(input), before = cells(source), result = numericSort(source, descending)!.values!;
+        const expected = before.slice().sort((a, b) => (a < b ? -1 : a > b ? 1 : 0) * (descending ? -1 : 1));
+        expect(cells(result)).toEqual(expected);
+        expect(cells(source)).toEqual(before);
+        result.items[0] = 99n;
+        expect(cells(source)).toEqual(before);
+        source.items[0] = -99n;
+        expect(cells(result).slice(1)).toEqual(expected.slice(1));
+    }
+});
+
+it('continues compacting ready Int64 values that fit Int32', () => {
+    const result = numericSort(typedArray(BigInt64Array.of(2n, 0n, -1n)), false)!.values!;
+    expect(cells(result)).toEqual([-1n, 0n, 2n]);
+    expect(integer32Cells(result)?.byteLength).toBe(12);
+});

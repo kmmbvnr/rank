@@ -1,6 +1,8 @@
+import { registerScalarView, storedSelectorKind } from '../src/integer-view.js';
+import { withDemandBudget } from '../src/interrupt.js';
 import { describe, expect, it, vi } from 'vitest';
 import { formatValue, MISSING, type RankArray, type RankValue } from '../src/index.js';
-import { allPresent, denseScalarItems, maskedArray, ownedArray, typedArray } from '../src/array-storage.js';
+import { allPresent, denseScalarItems, derivedArray, readArrayItem, maskedArray, ownedArray, typedArray } from '../src/array-storage.js';
 import { isIntegerCollectionSelector } from '../src/selectors.js';
 import { selectValues } from '../src/value-selection.js';
 
@@ -116,5 +118,47 @@ describe('table field selector classification', () => {
         const selector: RankArray = { kind: 'array', shape: [1], items: [] };
         Object.defineProperty(selector.items, '0', { get() { throw Error('host field'); } });
         expect(() => selectValues(new Set(['tables']), [rows(), selector])).toThrow('host field');
+    });
+});
+
+
+describe('stored selector views', () => {
+    function reversed(source: RankArray): RankArray {
+        return registerScalarView(derivedArray([2], [source], i => readArrayItem(source, 1 - i)),
+            source, i => 1 - i, { linear: () => ({ offset: 1, stride: -1 }) });
+    }
+    it.each([
+        [() => typedArray(Int32Array.of(0, 1)), true, '20 10'],
+        [() => typedArray(BigInt64Array.of(0n, 1n)), true, '20 10'],
+        [() => ownedArray([false, true]), false, '10'],
+    ] as const)('classifies stored selectors without collecting a view (%#)', (create, integer, expected) => {
+        const selector = reversed(create());
+        const collect = vi.spyOn(selector, 'items', 'get').mockImplementation(() => { throw Error('collected view'); });
+        try {
+            expect(isIntegerCollectionSelector(selector)).toBe(integer);
+            expect(formatValue(selectValues(new Set(), [ownedArray([10n, 20n]), selector]))).toBe(expected);
+            expect(collect).not.toHaveBeenCalled();
+        } finally { collect.mockRestore(); }
+    });
+    it('checks the current source kind and reader identity on every classification', () => {
+        const source = typedArray(Int32Array.of(0, 1)), selector = reversed(source);
+        expect(storedSelectorKind(selector)).toBe('integer');
+        source.items[0] = 'x';
+        expect(storedSelectorKind(selector)).toBeUndefined();
+        expect(() => isIntegerCollectionSelector(selector)).toThrow('arrays require one element type');
+        Object.defineProperty(selector, 'itemAt', { value: () => { throw Error('changed reader'); } });
+        expect(storedSelectorKind(selector)).toBeUndefined();
+        expect(() => isIntegerCollectionSelector(selector)).toThrow('changed reader');
+    });
+    it('retains demand and value-dependent validation rather than borrowing a kind', () => {
+        const source = typedArray(Int32Array.of(0, 1)), selector = reversed(source);
+        expect(withDemandBudget(10, () => storedSelectorKind(selector))).toBeUndefined();
+        const checked = registerScalarView(derivedArray([2], [source], i => {
+            if (i === 1) throw Error('checked cell');
+            return readArrayItem(source, i);
+        }), source, i => i, { accepts: () => false, scalarCheck: true,
+            check: item => { if (item === 1n) throw Error('checked cell'); return item; } });
+        expect(storedSelectorKind(checked)).toBeUndefined();
+        expect(() => isIntegerCollectionSelector(checked)).toThrow('checked cell');
     });
 });

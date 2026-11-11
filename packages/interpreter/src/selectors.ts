@@ -8,7 +8,7 @@ import { permutedArray } from './array-permutation.js';
 import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
-import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type LinearView } from './integer-view.js';
+import { registerScalarView, deferSelectionCopy, prepareIntegerRange, storedSelectorKind, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { materializeTensorMap } from './tensor-map.js';
 import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, booleanCells, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
@@ -668,6 +668,8 @@ export function isIntegerCollectionSelector(value: RankValue): boolean {
         const kinds = storedScalarKinds(value);
         // Packed masks keep their existing selection dispatch and diagnostics.
         if (kinds) return kinds.every(kind => kind === 'integer');
+        const viewKind = value.shape.includes(0) ? undefined : storedSelectorKind(value);
+        if (viewKind) return viewKind === 'integer';
     }
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     return stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'bigint')
