@@ -23,3 +23,6 @@ demos/tidytuesday/*.csv
 packages/cli/native/build/
 .playwright-cli/
 output/playwright/
+
+# Video studio: ideas, slides, takes
+studio/
