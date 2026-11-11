@@ -467,6 +467,23 @@ tuple Saved Source`);
         expect(result.loops).toBe(1);
     });
 
+    it('follows in-place storage widening between stores and reads', () => {
+        const result = compare(`fun N row
+ return array shape 64 fill 2147483647
+end
+Total = 0
+for I in 1 to 3
+ Current = I row
+ Current 0 += 1
+ Total += Current 0
+end
+Total`);
+        expect(result.observation.value).toBe('6442450944');
+        expect(result.observation.error).toBeUndefined();
+        expect(result.loops).toBe(1);
+        expect(result.diagnostics.cowCopies).toBe(0);
+    });
+
     it('publishes preceding scalar assignments before a result binding fails', () => {
         const result = compare(`fun N row
  return array shape 2 fill N

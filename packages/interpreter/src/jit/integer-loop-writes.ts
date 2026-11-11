@@ -173,10 +173,12 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             arrays.set(assignment.name, { slot, rank: shape.rank, type });
             destinations.set(assignment.name, { slot, rank: shape.rank, type, compound: assignment.operator !== '=', slice: true });
             if (!assigned.has(assignment.name)) arrayInputs.add(assignment.name);
+            // Publishing readers follow widening in place. Rebuild only when
+            // COW or a callback changes the binding itself.
             const refresh = `storage${slot} = access(r${slot}); reader${slot} = read(storage${slot}, stableReads, ${shape.rank}); write${slot} = write(storage${slot}, batchWrites);`;
             body.push(`location = ${location};`, ...lines,
-                `const ${result} = arrayValues.write(${location}, [${selectors.join(',')}], () => { r${slot} = arrayValues.current(${JSON.stringify(assignment.name)}); ${refresh} ${rhsLines.join('\n')} return ${rhs.code}; });`,
-                `r${slot} = ${result}.target; ${refresh} iterationResult = ${result}.result;`);
+                `const ${result} = arrayValues.write(${location}, [${selectors.join(',')}], () => { const current = arrayValues.current(${JSON.stringify(assignment.name)}); if (r${slot} !== current) { r${slot} = current; ${refresh} } ${rhsLines.join('\n')} return ${rhs.code}; });`,
+                `if (r${slot} !== ${result}.target) { r${slot} = ${result}.target; ${refresh} } iterationResult = ${result}.result;`);
             return true;
         }
         // Bulk selectors use the same checked assignment as interpretation.
