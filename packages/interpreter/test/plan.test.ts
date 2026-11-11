@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { completed, runExecution } from '../src/execution.js';
-import { demand, type RankPlan } from '../src/plan.js';
+import { checkPlan, demand, type RankPlan } from '../src/plan.js';
 import { sequence } from '../src/sequence.js';
 import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 import type { RankValue } from '../src/value.js';
@@ -46,6 +46,29 @@ describe('deferred result protocol', () => {
         expect(partial).toBeLessThan(10_000);
         expect(runExecution(demand(value))).toBe(7n);
         expect(calls).toBe(partial + 10_000);
+    });
+
+    it('keeps deeply nested validation wrappers on a bounded host stack', () => {
+        let checks = 0;
+        let plan: RankPlan = { kind: 'plan', dependencies, evaluate: () => completed(7n) };
+        for (let index = 0; index < 10_000; index++) plan = checkPlan(plan, value => { checks++; return value; });
+        expect(runExecution(demand(plan))).toBe(7n);
+        expect(checks).toBe(10_000);
+        expect(runExecution(demand(plan))).toBe(7n);
+        expect(checks).toBe(20_000);
+    });
+
+    it('resumes suspended plans without replaying their completed prefix', () => {
+        const effects: string[] = [];
+        const tail: RankPlan = { kind: 'plan', dependencies, evaluate: () => {
+            effects.push('tail');
+            return (function* () { yield { task: (function* () { effects.push('resume'); return 3n; })() }; return 7n; })();
+        } };
+        const head: RankPlan = { kind: 'plan', dependencies, evaluate: () => { effects.push('head'); return completed(tail); } };
+        expect(runExecution(demand(head))).toBe(7n);
+        expect(effects).toEqual(['head', 'tail', 'resume']);
+        expect(runExecution(demand(head))).toBe(7n);
+        expect(effects).toEqual(['head', 'tail', 'resume', 'head', 'tail', 'resume']);
     });
 
     it('rejects a cyclic result without caching the failure', () => {
