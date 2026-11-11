@@ -77,3 +77,25 @@ archive. Do not infer a general memory reduction from this change.
 Verification: TypeScript and 100 focused tests in five files. Added cases cover
 prepared read order, widening and soft missing values, stopping at a strict
 missing value, and explicit traversal precedence with cleanup after an error.
+
+## Scalar completion after collection
+
+The profiles also showed child-completion records being allocated for already
+computed scalar cells. The materializer now advances over those cells without
+allocating a temporary object. Checkpoints still run at the same cell boundary;
+deferred values, nested containers, aliasing and existing NaN handling retain
+their original path.
+
+This is measured incrementally against the prepared-reader collector:
+
+| Case | Mac before / after, s | Intel before / after, s |
+| --- | ---: | ---: |
+| Euler 792, default input | 11.971 / 10.198 | 32.635 / 30.218 |
+| Euler 98, default input, control | 0.386 / 0.384 | 1.023 / 1.039 |
+
+Euler 792 improves by another 14.8% on Mac and 7.4% on Intel. The control
+shows no consistent acceleration. Mac median peak RSS changes from 829 to
+795 MiB; this is whole-process peak RSS, not the size of one allocation.
+
+Verification: TypeScript and 141 focused tests in six files, including nested,
+grouped and table materialization, deferred bindings and collection contracts.

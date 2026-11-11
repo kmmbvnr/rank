@@ -94,6 +94,8 @@ export function materializeValue(value: RankValue): RankValue {
         if (frame.index === node.aggregate.values.length) { pending.pop(); continue; }
         const index = frame.index++;
         const original = node.aggregate.values[index];
+        // Completed scalar cells need no child-completion record.
+        if (typeof original !== 'object' && original === original) continue;
         let child: ReturnType<typeof enter>;
         try { child = enter(original); }
         catch (error) {
