@@ -1,3 +1,4 @@
+import { compileScalarRegion, type ScalarRegion } from './jit/scalar-region.js';
 import { compileOperands, type Operand } from './jit/compiled-operands.js';
 import { compileValueExpression } from './jit/value-expression.js';
 import { withCompilerSource, observeCompiler, declineCompiler } from './compiler-observation.js';
@@ -162,6 +163,7 @@ export class FastPaths {
                 const structural = statements.length > 64 || !!arrayTraversal
                     || statements.some(statement => structured(statement) || AstUtils.streamAllContents(statement).some(structured));
                 block = structural ? compileValueBlock(statements, {
+                    region: (commands, index) => this.scalarRegion(commands, index),
                     prepare: (commands, index) => steps.preparedStatement(commands, index),
                     scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
                     direct: expression => this.context.compileDirect(expression),
@@ -181,10 +183,12 @@ export class FastPaths {
         if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
+                const scalarRegion = this.scalarRegions(statements);
                 const regions = new Map<number, ReturnType<typeof compileTensorRegion>>();
                 const regionWriters = new Map<Statement, (value: RankValue) => void>();
                 block = compileBlock<ExecutionContext>(statements.length, {
                     source: statements[0],
+                    scalarRegion,
                     prepare: index => steps.preparedStatement(statements, index),
                     region: index => {
                         if (!this.compiler.tensors.fusion) return undefined;
@@ -216,6 +220,29 @@ export class FastPaths {
             return block ?? undefined;
         }
         return declineCompiler(this.compiler.blocks.blocks ? 'statement-budget' : 'disabled', statements[0]);
+    }
+
+    private scalarRegions(commands: Statement[]) {
+        const regions = new Map<number, ScalarRegion | null>();
+        return (index: number) => {
+            if (!regions.has(index)) {
+                const region = this.scalarRegion(commands, index);
+                regions.set(index, region ?? null);
+                if (region) for (let next = index + 1; next < index + region.length; next++) regions.set(next, null);
+            }
+            return regions.get(index) ?? undefined;
+        };
+    }
+
+    private scalarRegion(commands: Statement[], index: number) {
+        if (!this.compiler.scalars.expressions) return undefined;
+        return compileScalarRegion(commands, index, {
+            bindings: this.context.bindings,
+            check: statement => this.context.checkMutation(statement),
+            writer: name => this.context.compileAssign(name),
+            binary: (operator, left, right) => this.context.operators.evaluateBinary(operator, left, right),
+            locate: (error, statement) => this.context.locate(error, statement),
+        });
     }
 
     /** Compile function control flow per argument signature, retaining runtime call boundaries. */
@@ -256,8 +283,10 @@ export class FastPaths {
                 };
                 return { stream: value, tensor };
             };
+            const scalarRegion = this.scalarRegions(commands);
             const ordinaryBody = () => last && isReturnStatement(last) && last.value ? compileBlock<ExecutionContext>(commands.length, {
                 source: statement,
+                scalarRegion,
                 prepare,
                 locate: (error, index) => this.context.locate(error, commands[index]),
                 pause: (index, task, context, compiled) => steps.continueCompiledBlock(commands, index, task, context, compiled),
@@ -278,6 +307,7 @@ export class FastPaths {
                 || commands.some(command => isFunctionStatement(command) || isIfStatement(command) || isTryStatement(command))) {
                 let framed = this.framedBodies.get(statement);
                 if (framed === undefined) framed = compileFramedFunction(statement, {
+                    region: (commands, index) => this.scalarRegion(commands, index),
                     prepare: (statements, index) => statements === commands ? prepare(index) : steps.preparedStatement(statements, index),
                     scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
                     direct: expression => this.context.compileDirect(expression),

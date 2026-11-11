@@ -20,6 +20,7 @@ export type CompiledBlock<C> = (context: C, index?: number, previous?: Value) =>
 interface Host<C> {
     readonly source?: Statement;
     prepare(index: number): Step<C>;
+    scalarRegion?(index: number): { length: number; run(): Value } | undefined;
     region?(index: number): { length: number; run(session?: object): Value } | undefined;
     locate(error: unknown, index: number): unknown;
     pause(index: number, task: Execution<Value>, context: C, block: CompiledBlock<C>): Evaluation<Value>;
@@ -45,6 +46,9 @@ function compileBlockBody<C extends Context>(length: number, host: Host<C>): Com
         if (host.executed) host.executed();
         try {
             while (index < length) {
+                const scalar = host.scalarRegion?.(index);
+                const scalarValue = scalar?.run();
+                if (scalarValue !== undefined) { result = scalarValue; index += scalar!.length; continue; }
                 if (context.insideLoop && !context.insideFinally && !context.insideGenerator) {
                     const region = host.region?.(index);
                     const value = region?.run(context.loopControl);

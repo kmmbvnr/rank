@@ -148,6 +148,7 @@ export class RuntimeDiagnostics {
     compiledArrayFunctions = 0;
     compiledFramedFunctions = 0;
     compiledValueBlocks = 0;
+    compiledScalarRegions = 0;
     numericFunctionPreparations = 0;
     numericFunctionPlanHits = 0;
     compiledNumericCallLoops = 0;

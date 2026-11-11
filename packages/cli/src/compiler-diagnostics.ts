@@ -27,6 +27,8 @@ const explanations: Record<string, string> = {
     'array-call-write-region': 'Array-returning calls and writes need an ownership proof this backend lacks.',
     'mutable-array-alias': 'The compiler could not prove safe writes through shared array bindings.',
     'deque-array-write': 'Writes to an array retained in a deque need per-write ownership handling.',
+    'binding-contract': 'This scalar region cannot prove that its delayed stores preserve the binding contracts.',
+    'input-domain': 'A scalar region input is not an already available integer, real or boolean.',
     'binding-type': 'The compiler could not establish a consistent binding type.',
     'return-type': 'The compiler could not establish a consistent result type.',
     'missing-return': 'The function proof did not establish a supported result on all paths.',
@@ -100,7 +102,7 @@ function executionSummary(diagnostics: RuntimeDiagnostics): string[] {
 
 export function compilerDiagnostics(diagnostics: RuntimeDiagnostics): string {
     const lines = ['Compiler diagnostics:', ...executionSummary(diagnostics), '  Execution counters (not whole-program coverage):'];
-    const counters = ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions', 'compiledValueBlocks',
+    const counters = ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions', 'compiledValueBlocks', 'compiledScalarRegions',
         'compiledNumericCallLoops', 'compiledGeneratorLoops', 'compiledTensors', 'numberTensors',
         'fusedArrayRegions', 'fusedArrayRegionCells', 'nativeIntegerSums', 'nativeIntegerJoins'] as const;
     for (const name of counters) lines.push(`  ${name}: ${diagnostics[name]}`);

@@ -27,11 +27,11 @@ describe('large compiled body cost choices', () => {
         expect(traced.outcome).toEqual(reference.outcome);
         expect(compiled.outcome.value).toBe('301');
         expect(compiled.diagnostics.compiledFramedFunctions).toBeGreaterThan(0);
-        expect(compiled.diagnostics.fallbacks['tensor:scalar-destination-cost']).toBe(300);
+        expect(compiled.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
         expect(compiled.diagnostics.fallbacks['tensor:output-shape']).toBeUndefined();
         expect(traced.diagnostics.compiledFramedFunctions).toBe(compiled.diagnostics.compiledFramedFunctions);
-        expect(traced.diagnostics.compilerObservations.some(entry => entry.backend === 'tensor'
-            && entry.outcome === 'declined' && entry.reasons.includes('tensor:scalar-destination-cost'))).toBe(true);
+        expect(traced.diagnostics.compilerObservations.some(entry => entry.backend === 'scalar-region'
+            && entry.outcome === 'selected' && entry.execution?.own === 'compiled')).toBe(true);
     });
     it('rechecks each invocation and still compiles array updates after scalar calls', () => {
         const source = `use io\nuse sequences\nfun N work\n${updates} N print\n return N\nend\nFirst = 1 work\nSecond = (array shape 4096 fill 2) work\nThird = 1.5 work\ntuple First (Second sum) Third`;
@@ -39,7 +39,7 @@ describe('large compiled body cost choices', () => {
         expect(compiled.outcome).toEqual(reference.outcome);
         expect(compiled.outcome.error).toBeUndefined();
         expect(compiled.diagnostics.compiledTensors).toBeGreaterThan(0);
-        expect(compiled.diagnostics.fallbacks['tensor:scalar-destination-cost']).toBeGreaterThanOrEqual(600);
+        expect(compiled.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
     });
     it.each(['9007199254740991', '9223372036854775808'])('keeps exact integer results above %s', input => {
         const source = `use io\nfun N work\n${updates} N print\n return N\nend\n${input} work`;
