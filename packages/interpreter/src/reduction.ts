@@ -1,3 +1,4 @@
+import { windowMedian } from './runtime/window-median.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { registerModularScanCompletion, scanStoredModularCallback, reduceRangeModularCallback } from './jit/modular-callback-scan.js';
 import { expectNumeric } from './modules/shared.js';
@@ -540,6 +541,11 @@ export class ReductionEvaluator {
         if (builtin && operation === 'sum' && axes.length === 1 && !inspectionEnabled() && privateLoopPolling()
             && reducer === this.standardFunctions.get(standardModules.core.sum)) {
             const packed = sumRealAxis(value, axes[0]) ?? sumIntegerAxis(value, axes[0]);
+            if (packed !== undefined) return packed;
+        }
+
+        if (builtin && operation === 'median') {
+            const packed = windowMedian(value, axes);
             if (packed !== undefined) return packed;
         }
 

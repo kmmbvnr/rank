@@ -14,3 +14,9 @@ test "statement values"
   run
   Answer equal "675348207.5"
 end
+
+test "default input"
+  use "593_fleetingmedians"
+  run
+  Answer equal "96632320042.0"
+end

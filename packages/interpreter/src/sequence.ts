@@ -785,6 +785,26 @@ function validateWindowAxes(
     return selected;
 }
 
+interface SlidingWindow {
+    source: RankArray; width: number; count: number;
+    reader: RankArray['itemAt']; inputShape: readonly number[]; outputShape: readonly number[];
+    inputHeader: readonly number[]; outputHeader: readonly number[];
+}
+const slidingWindows = new WeakMap<RankArray, SlidingWindow>();
+
+/** Only unpadded one-dimensional, unit-stride runtime windows qualify.
+ * Changed readers or geometry must keep their ordinary selection behavior. */
+export function slidingWindow(value: RankArray): SlidingWindow | undefined {
+    const plan = slidingWindows.get(value);
+    if (!plan || Object.getOwnPropertyDescriptor(value, 'itemAt')?.value !== plan.reader) return undefined;
+    const same = (array: RankArray, shape: readonly number[], header: readonly number[]) => {
+        const actual = Object.getOwnPropertyDescriptor(array, 'shape')?.value;
+        return actual === header && Array.isArray(actual) && actual.length === shape.length
+            && shape.every((size, axis) => Object.getOwnPropertyDescriptor(actual, String(axis))?.value === size);
+    };
+    return same(value, plan.outputShape, plan.outputHeader) && same(plan.source, plan.inputShape, plan.inputHeader) ? plan : undefined;
+}
+
 type CellFold = (start: number, operation: (a: RankValue, b: RankValue) => RankValue) => RankValue;
 const windowCells = new WeakMap<RankArray, { size: number; fold: CellFold }>();
 
@@ -876,6 +896,11 @@ function arrayWindows(
                 ? offset : ordinaryOffset,
         }) });
         registerTensorResult(result);
+        if (sourceShape.length === 1 && widths.length === 1 && axes[0] === 0 && strides[0] === 1) {
+            slidingWindows.set(result, { source, width: widths[0], count: positionShape[0],
+                reader: result.itemAt, inputShape: [...sourceShape], outputShape: [...resultShape],
+                inputHeader: sourceShape, outputHeader: result.shape });
+        }
     }
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
