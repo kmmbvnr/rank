@@ -3,6 +3,8 @@ rem https://projecteuler.net/problem=585
 
 use numbers
 use sequences
+use algo
+use bits
 use io
 use cli
 
@@ -22,176 +24,325 @@ rem part of a b) fall back to two roots,
 rem and F = C1 + (C2 - C3) / 2. A class
 rem rho has a = r1 u^2, b = r2 v^2 and
 rem r1 r2 = rho.
-Ph = 0 to N array
-for I in 2 to N
-  if Ph I equal I
-    for J in I to N by I
-      Ph J -= (Ph J) // I
-    end
+
+fun Counts expand
+  Ends = Counts scan +
+  Begins = Ends - Counts
+  Size = Counts sum
+  Places = 0 till Size copy
+  Owners = Ends upperindex Places
+  return record
+    .rows = Owners
+    .steps = Places - Begins Owners
   end
 end
-Rr = 0 to N array
-Rr = Rr * 0
-S0 = N isqrt
-for U in 1 to S0
-  for V in 1 till U
-    S = U * U + V * V
-    if S at most N
-      Ga = U
-      Gb = V
-      for Gb greater 0
-        Tg = Ga mod Gb
-        Ga = Gb
-        Gb = Tg
-      end
-      if Ga equal 1
-        Rr S += 1
-      end
+
+rem Sum floor(Bound / t) over keys.
+rem Count thresholds rather than pairs.
+fun Keys pair_sum Query
+  Bounds = Query .bounds
+  Sides = Query .sides
+  First = Query .first
+  Codes = Query .codes
+  Roots = Bounds isqrt
+
+  rem Large thresholds occur once.
+  Counts = Bounds // Sides min Roots
+  Layout = Counts expand
+  Rows = Layout .rows
+  Steps = Layout .steps + 1
+  Limits = Bounds Rows // Steps
+  Targets = Codes Rows + Limits
+  Stops = Keys upperindex Targets
+  Lengths = Stops - First Rows
+  Total = Lengths sum
+
+  rem Small thresholds may repeat.
+  Cut = Bounds // (Roots + 1)
+  Counts = Cut - Sides + 1 max 0
+  Layout = Counts expand
+  Rows = Layout .rows
+  Limits = Sides Rows + Layout .steps
+  Bounds = Bounds Rows
+  Weights = Bounds // Limits
+  Weights -= Bounds // (Limits + 1)
+  Targets = Codes Rows + Limits
+  Stops = Keys upperindex Targets
+  Lengths = Stops - First Rows
+  Terms = Weights * Lengths
+  return Total + (Terms sum)
+end
+
+fun X triangle
+  return X * (X + 1) // 2
+end
+
+memo X phi_sum
+  if X at most 1
+    return X
+  end
+  Root = X isqrt
+  Steps = 1 to Root copy
+  Other = X // Steps
+  Quotients = concat Steps Other
+  Quotients = Quotients unique sort
+  Smaller = Quotients less X
+  Quotients = Quotients Smaller
+  Counts = X // Quotients
+  Counts -= X // (Quotients + 1)
+  Values = Quotients phi_sum rank 0
+  Terms = Counts * Values
+  Subtract = Terms sum
+  Total = X triangle
+  return Total - Subtract
+end
+
+fun Start square_kernels rank 0
+  Last = N isqrt
+  Last += 1
+  Stop = Start + 128 min Last
+  First = Start till Stop copy
+  Counts = N - First * First isqrt
+  Counts = Counts min (First - 1)
+  Layout = Counts expand
+  Left = First (Layout .rows)
+  Right = Layout .steps + 1
+  Good = Left gcd Right equal 1
+  Left = Left Good
+  Right = Right Good
+  Squares = Left * Left + Right * Right
+  return Squares
+end
+
+fun totals
+  Top = N isqrt
+  if N less 5
+    return record
+      .first = (N - 1) * (N - 1) // 4
+      .second = 0
     end
   end
-end
-Pf = Ph * 0
-for S in 3 to N
-  Fs = (Ph S) // 2 - (Rr S)
-  Pf S = (Pf (S - 1)) + Fs
-end
-C1 = 0
-S = 1
-for S at most N
-  Q = N // S
-  Hi = N // Q
-  C1 += ((Pf Hi) - (Pf (S - 1))) * Q
-  S = Hi + 1
-end
-C2 = 0
-S = 1
-for S at most N
-  Q = N // S
-  Hi = N // Q
-  Cm = 0
-  T = 1
-  for T at most Q
-    Q2 = Q // T
-    H2 = Q // Q2
-    Cm += ((Pf H2) - (Pf (T - 1))) * Q2
-    T = H2 + 1
+  Starts' = 2 to Top by 128
+  Parts' = Starts square_kernels
+  SquareKernels = concat unpack Parts
+  SquareKernels = SquareKernels sort
+  Quotients = N // SquareKernels
+  SquareCount = Quotients sum
+  All = (N - 1) * (N - 1) // 4
+  C1 = All - SquareCount
+
+  Steps = 1 to Top copy
+  Other = N // Steps
+  Divisors = concat Steps Other
+  Divisors = Divisors unique sort
+  High = N // Divisors
+  Low = N // (Divisors + 1)
+  Upper = High triangle
+  Lower = Low triangle
+  Weights = Upper - Lower
+  Phi = Divisors phi_sum rank 0
+  Terms = Weights * Phi
+  GcdSum = Terms sum
+  Half = N // 2
+  Quarter = N // 4
+  Adjust = N triangle + (Half triangle)
+  Linear = N + 2 * Half + Quarter
+  Main = GcdSum - 2 * Adjust + Linear
+  Main //= 4
+  Triangles = Quotients triangle
+  SquareTriangles = Triangles sum
+  Halves = N // (2 * SquareKernels) sum
+
+  Count = SquareKernels upperindex Top
+  Small = SquareKernels (0 till Count)
+  Query = record
+    .bounds = N // Small
+    .sides = Small
+    .first = 0 till Count copy
+    .codes = array shape Count fill 0
   end
-  C2 += ((Pf Hi) - (Pf (S - 1))) * Cm
-  S = Hi + 1
-end
-Mx = S0 * S0 // 4 + 10
-Sf = 0 to Mx array
-Sp = 0 to Mx array
-Mr = Mx isqrt
-for P in 2 to Mr
-  Pp = P * P
-  for J in Pp to Mx by Pp
-    for Sf J mod Pp equal 0
-      Sf J = (Sf J) // Pp
-    end
-  end
-  if Sp P equal P
-    for J in P * P to Mx by P
-      if Sp J equal J
-        Sp J = P
-      end
-    end
-  end
-end
-C3 = 0
-Pr = array shape 12 fill 0
-for Sk in 3 to S0
-  for A in 1 to (Sk - 1) // 2
-    Ga = Sk
-    Gb = A
-    for Gb greater 0
-      Tg = Ga mod Gb
-      Ga = Gb
-      Gb = Tg
-    end
-    Rho = Sf (A * (Sk - A))
-    if Ga equal 1 and (Rho greater 1)
-      Np = 0
-      Rm = Rho
-      for Rm greater 1
-        P = Sp Rm
-        Pr Np = P
-        Np += 1
-        for Rm mod P equal 0
-          Rm = Rm // P
-        end
-      end
-      Tm = N // Sk
-      Q0 = 0
-      Q1 = 0
-      Nm = 2 ** Np
-      for Mk in 0 till Nm
-        R1 = 1
-        for I in 0 till Np
-          Bt = Mk // 2 ** I mod 2
-          if Bt equal 1
-            R1 *= Pr I
-          end
-        end
-        R2 = Rho // R1
-        if R1 less R2
-          Aa = 1
-          for R1 * Aa * Aa less Tm
-            Ab = R1 * Aa * Aa
-            Bb = 1
-            T = Ab + R2
-            for T at most Tm
-              if T at least Sk
-                Ok = 1
-                Ga = Aa
-                Gb = Bb
-                for Gb greater 0
-                  Tg = Ga mod Gb
-                  Ga = Gb
-                  Gb = Tg
-                end
-                if Ga not equal 1
-                  Ok = 0
-                end
-                Ga = R1
-                Gb = Bb
-                for Gb greater 0
-                  Tg = Ga mod Gb
-                  Ga = Gb
-                  Gb = Tg
-                end
-                if Ga not equal 1
-                  Ok = 0
-                end
-                Ga = R2
-                Gb = Aa
-                for Gb greater 0
-                  Tg = Ga mod Gb
-                  Ga = Gb
-                  Gb = Tg
-                end
-                if Ga not equal 1
-                  Ok = 0
-                end
-                if Ok equal 1
-                  Qq = N // (Sk * T)
-                  if T equal Sk
-                    Q0 += Qq
-                  else
-                    Q1 += Qq
-                  end
-                end
-              end
-              Bb += 1
-              T = Ab + R2 * Bb * Bb
-            end
-            Aa += 1
-          end
-        end
-      end
-      C3 += 2 * Q1 + Q0
-    end
+  Half = SquareKernels pair_sum Query
+  Squares = Small * Small
+  Diagonal = N // Squares sum
+  Pairs = 2 * Half - Diagonal
+  C2 = Main - SquareTriangles
+  C2 += SquareCount + Halves + Pairs
+  return record
+    .first = C1
+    .second = C2
   end
 end
+Totals = totals
+C1 = Totals .first
+C2 = Totals .second
+
+Top = N isqrt
+Max = Top * Top // 4
+Size = Max + 1
+Free = array shape Size fill true
+Free 0 = false
+Root = Max isqrt
+for Prime in primes to Root
+  Square = Prime * Prime
+  Slots = Square to Max by Square
+  Free Slots = false
+end
+ClassBase = Top + 1
+
+fun Left low_base rank 0
+  if not (Free Left)
+    return array shape 0 fill 0
+  end
+  Right = Left + 1 to Top - Left copy
+  Right = Right (Free Right)
+  Good = Left gcd Right equal 1
+  Right = Right Good
+  Rhos = Left * Right
+  return Rhos * ClassBase + Left copy
+end
+Roots' = 1 to Root
+Parts' = Roots low_base
+Small = concat unpack Parts
+Rhos = Small // ClassBase
+Left = Small - Rhos * ClassBase
+Right = Rhos // Left
+Sums = Left + Right
+Pad = Top + 1
+Mins = (
+  Sums min by Rhos with Pad size Size
+)
+
+fun Left high_base rank 0
+  if not (Free Left)
+    return array shape 0 fill 0
+  end
+  rem Right * 2 sqrt(Left Right) <= N.
+  Cube = N * N // (4 * Left)
+  Bits = Cube binary len
+  Power = (Bits + 2) // 3
+  Cap = Max // Left
+  Limit = 2 ** Power min Cap
+  Right = Left + 1 to Limit copy
+  Right = Right (Free Right)
+  Rhos = Left * Right
+  Bound = N // Mins Rhos
+  Good = Left + Right at most Bound
+  Right = Right Good
+  Rhos = Rhos Good
+  Good = Left gcd Right equal 1
+  Rhos = Rhos Good
+  return Rhos * ClassBase + Left copy
+end
+
+Parts' = Roots high_base
+Splits = concat unpack Parts
+Splits = Splits sort
+SplitRhos = Splits // ClassBase
+Classes = SplitRhos unique
+ClassCount = Classes len
+Width = 512
+ClassRoots = Classes isqrt
+Firsts = SplitRhos lowerindex Classes
+Lasts = SplitRhos upperindex Classes
+Counts = Lasts - Firsts
+Work = N // Mins Classes // ClassRoots
+Work = Work * Counts
+rem Keep each class in one batch.
+rem Group by estimated lattice area.
+Work = Work scan +
+Bins = Work // 32768
+High = Bins (1 till ClassCount)
+Low = Bins (0 till ClassCount - 1)
+Changed = High not equal Low
+Changes = Changed indices
+Changes += 1
+Starts = concat (array 0) Changes
+End = array ClassCount
+Ends = concat Changes End
+ChunkCount = Starts len
+if ClassCount equal 0
+  ChunkCount = 0
+end
+
+fun Chunk kernels rank 0
+  Start = Starts Chunk
+  Stop = Ends Chunk
+  Class = Classes Start
+  rem Local offsets keep keys small.
+  Root = Class isqrt
+  CodeBase = N // (2 * Root) + 1
+  Low = Class * ClassBase
+  High = Classes (Stop - 1) * ClassBase
+  High += ClassBase
+  BeginSlot = Splits lowerindex Low
+  EndSlot = Splits lowerindex High
+  Part = Splits (BeginSlot till EndSlot)
+  Rhos = Part // ClassBase
+  Left = Part - Rhos * ClassBase
+  Right = Rhos // Left
+  Bound = N // Mins Rhos
+  Counts = (Bound - Right) // Left
+  Counts = Counts isqrt
+  Layout = Counts expand
+  Rows = Layout .rows
+  First = Layout .steps + 1
+  Left = Left Rows
+  Right = Right Rows
+  Rhos = Rhos Rows
+  Bound = Bound Rows
+  Good = First gcd Right equal 1
+  Keep = Good indices
+  First = First Keep
+  Left = Left Keep
+  Right = Right Keep
+  Rhos = Rhos Keep
+  Bound = Bound Keep
+  Square = Left * First * First
+  Counts = (Bound - Square) // Right
+  Counts = Counts isqrt
+  Layout = Counts expand
+  Rows = Layout .rows
+  Second = Layout .steps + 1
+  First = First Rows * Left Rows
+  Good = First gcd Second equal 1
+  Keep = Good indices
+  Second = Second Keep
+  Rows = Rows Keep
+  Sums = Square Rows
+  Sums += Right Rows * Second * Second
+  Codes = Rhos Rows - Class
+  Keys = Codes * CodeBase + Sums copy
+  Keys = Keys sort
+  Sums = Keys mod CodeBase
+  Good = Sums at most Top
+  Lows = Good indices
+  LowSums = Sums Lows
+  LowRhos = Keys Lows // CodeBase
+  rem Restore order and count the
+  rem diagonal only once.
+  Squares = LowSums * LowSums
+  Diagonal = N // Squares sum
+  LowCount = Lows len
+  fun Offset collisions rank 0
+    Finish = Offset + Width min LowCount
+    Batch = Offset till Finish copy
+    Sides = LowSums Batch
+    Groups = LowRhos Batch * CodeBase
+    Query = record
+      .bounds = N // Sides
+      .sides = Sides
+      .first = Lows Batch
+      .codes = Groups
+    end
+    return Keys pair_sum Query
+  end
+  Queries' = 0 till LowCount by Width
+  Halves = Queries collisions
+  Half = Halves sum
+  return 2 * Half - Diagonal
+end
+Chunks' = ChunkCount - 1 to 0 by -1
+Parts' = Chunks kernels
+C3 = Parts sum
 Answer = C1 + (C2 - C3) // 2
 Answer print

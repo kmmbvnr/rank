@@ -1,0 +1,845 @@
+{
+  "base": "73fcd234",
+  "runs": {
+    "mac": [
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.4130859375,
+          1.46875,
+          1.27734375
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 5780.680542,
+        "cpu": {
+          "user": 6184800,
+          "system": 29591
+        },
+        "rssMiB": 439.125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.3798828125,
+          1.4609375,
+          1.275390625
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4540.40575,
+        "cpu": {
+          "user": 7555263,
+          "system": 131964
+        },
+        "rssMiB": 713.4375,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          1.50927734375,
+          1.486328125,
+          1.28515625
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4574.865417,
+        "cpu": {
+          "user": 7638445,
+          "system": 124537
+        },
+        "rssMiB": 712.828125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          1.62841796875,
+          1.51123046875,
+          1.294921875
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 5944.668374999999,
+        "cpu": {
+          "user": 6357651,
+          "system": 28692
+        },
+        "rssMiB": 440.671875,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          1.57763671875,
+          1.50244140625,
+          1.29296875
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 5885.969375000001,
+        "cpu": {
+          "user": 6297194,
+          "system": 28315
+        },
+        "rssMiB": 439.703125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          1.53125,
+          1.49365234375,
+          1.291015625
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4451.836082999999,
+        "cpu": {
+          "user": 7400981,
+          "system": 119968
+        },
+        "rssMiB": 698.859375,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.6484375,
+          1.5185546875,
+          1.30078125
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 2407.175709,
+        "cpu": {
+          "user": 2827744,
+          "system": 30472
+        },
+        "rssMiB": 311.046875,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.67626953125,
+          1.5263671875,
+          1.3046875
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 433.9990419999999,
+        "cpu": {
+          "user": 822173,
+          "system": 23848
+        },
+        "rssMiB": 293.328125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          1.67626953125,
+          1.5263671875,
+          1.3046875
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 435.553666,
+        "cpu": {
+          "user": 826347,
+          "system": 23918
+        },
+        "rssMiB": 293.59375,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          1.67626953125,
+          1.5263671875,
+          1.3046875
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 2413.599209,
+        "cpu": {
+          "user": 2833261,
+          "system": 31300
+        },
+        "rssMiB": 313.359375,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          1.6220703125,
+          1.517578125,
+          1.302734375
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 2447.163542,
+        "cpu": {
+          "user": 2865235,
+          "system": 31813
+        },
+        "rssMiB": 312.859375,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          1.6220703125,
+          1.517578125,
+          1.302734375
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 432.706667,
+        "cpu": {
+          "user": 822564,
+          "system": 23409
+        },
+        "rssMiB": 294.03125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          1.6220703125,
+          1.517578125,
+          1.302734375
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4200.413125,
+        "cpu": {
+          "user": 6856693,
+          "system": 112714
+        },
+        "rssMiB": 653.4375,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          1.57177734375,
+          1.5087890625,
+          1.30078125
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4235.841333,
+        "cpu": {
+          "user": 6946172,
+          "system": 113027
+        },
+        "rssMiB": 678.703125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          1.60595703125,
+          1.5166015625,
+          1.3046875
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 4216.91575,
+        "cpu": {
+          "user": 6923946,
+          "system": 115212
+        },
+        "rssMiB": 679,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          1.55712890625,
+          1.5078125,
+          1.302734375
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "timeoutSeconds": 60,
+        "wallSeconds": 60.012484042000004
+      }
+    ],
+    "intel": [
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          3.021484375,
+          2.23779296875,
+          1.93701171875
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 17510.906919,
+        "cpu": {
+          "user": 18560642,
+          "system": 139448
+        },
+        "rssMiB": 408.58203125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          2.8662109375,
+          2.25439453125,
+          1.94970703125
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 15744.127901,
+        "cpu": {
+          "user": 23380887,
+          "system": 381744
+        },
+        "rssMiB": 609.37890625,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          3.07421875,
+          2.32470703125,
+          1.97802734375
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 15886.003580999999,
+        "cpu": {
+          "user": 23599136,
+          "system": 261800
+        },
+        "rssMiB": 609.48828125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          3.42138671875,
+          2.439453125,
+          2.021484375
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 16906.615556,
+        "cpu": {
+          "user": 17914762,
+          "system": 99608
+        },
+        "rssMiB": 411.08203125,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          3.1591796875,
+          2.443359375,
+          2.03125
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 17646.929195,
+        "cpu": {
+          "user": 18766015,
+          "system": 123893
+        },
+        "rssMiB": 432.73046875,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          3.0498046875,
+          2.4541015625,
+          2.04150390625
+        ],
+        "mode": "compiled",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 15497.094484,
+        "cpu": {
+          "user": 23089312,
+          "system": 308827
+        },
+        "rssMiB": 560.24609375,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          2.8994140625,
+          2.45703125,
+          2.05126953125
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 7563.492999,
+        "cpu": {
+          "user": 8586750,
+          "system": 72270
+        },
+        "rssMiB": 298.48828125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          3.14794921875,
+          2.51611328125,
+          2.07275390625
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 1412.531179,
+        "cpu": {
+          "user": 2315133,
+          "system": 135287
+        },
+        "rssMiB": 272.40234375,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          3.0556640625,
+          2.50732421875,
+          2.072265625
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 1436.520568,
+        "cpu": {
+          "user": 2316069,
+          "system": 84099
+        },
+        "rssMiB": 271.55078125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 1,
+        "load": [
+          3.0556640625,
+          2.50732421875,
+          2.072265625
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 7897.986929999999,
+        "cpu": {
+          "user": 8874271,
+          "system": 87965
+        },
+        "rssMiB": 295.78125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 2,
+        "load": [
+          3.5087890625,
+          2.62255859375,
+          2.11474609375
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler585-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "e177dd841698e4e6b44779d9a887ed68b4a686d7cb3ce016f180f000bda27b68",
+        "ms": 8078.558094999999,
+        "cpu": {
+          "user": 9295646,
+          "system": 105303
+        },
+        "rssMiB": 295.95703125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          3.3876953125,
+          2.61181640625,
+          2.11376953125
+        ],
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 1406.988648,
+        "cpu": {
+          "user": 2231751,
+          "system": 116690
+        },
+        "rssMiB": 272.95703125,
+        "values": [
+          "1333490943",
+          "624864969",
+          "1418376606",
+          "1124658"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 0,
+        "load": [
+          3.2763671875,
+          2.6015625,
+          2.11279296875
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 15513.295275999999,
+        "cpu": {
+          "user": 22788921,
+          "system": 340560
+        },
+        "rssMiB": 541.4140625,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 1,
+        "load": [
+          3.146484375,
+          2.60498046875,
+          2.12158203125
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 15268.536983,
+        "cpu": {
+          "user": 22452907,
+          "system": 354503
+        },
+        "rssMiB": 550.44921875,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "after",
+        "repeat": 2,
+        "load": [
+          3.48388671875,
+          2.7060546875,
+          2.16259765625
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "file": "demos/euler/585_nestedsquareroots.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "sourceSha256": "94ebef8a6f513a32c8439ed5a197e8b531cac4a0a4ecafb05c5cbf4045078ae4",
+        "ms": 14781.39467,
+        "cpu": {
+          "user": 21882804,
+          "system": 333981
+        },
+        "rssMiB": 549.171875,
+        "values": [
+          "17714439395932",
+          "6249980999760",
+          "22929380558578",
+          "463766234"
+        ]
+      },
+      {
+        "variant": "before",
+        "repeat": 0,
+        "load": [
+          3.2900390625,
+          2.703125,
+          2.1708984375
+        ],
+        "mode": "reference",
+        "n": "5000000",
+        "timeoutSeconds": 60,
+        "wallSeconds": 60.083856239914894
+      }
+    ]
+  }
+}
