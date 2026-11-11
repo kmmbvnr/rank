@@ -1,6 +1,6 @@
 // Each mode gets a fresh process. Timings never install compiler source hooks.
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -15,7 +15,7 @@ if (action === '--worker') {
     const [root, name, mode] = args;
     const { Interpreter, RuntimeDiagnostics, RankError, parse, formatValue } = await import(pathToFileURL(`${root}/packages/interpreter/out/index.js`));
     const diagnostics = () => mode === 'plain' || mode === 'reference' ? undefined
-        : new RuntimeDiagnostics(128, mode === 'trace', mode === 'profile' || mode === 'trace');
+        : new RuntimeDiagnostics(128, mode === 'trace', mode === 'profile' || mode === 'trace' || mode === 'preparation');
     const program = parse(cases[name]);
     const samples = { fresh: [], prepared: [] };
     let expected;
@@ -44,7 +44,7 @@ if (action === '--worker') {
         if (!isDeepStrictEqual(outcome, expected)) throw new Error('Repeated execution changed observable behavior');
     };
     const prepared = create();
-    for (const kind of ['fresh', 'prepared']) {
+    for (const kind of mode === 'preparation' ? [] : ['fresh', 'prepared']) {
         for (let trial = 0; trial < 7; trial++) {
             const state = kind === 'fresh' ? create() : prepared, stats = diagnostics();
             const start = performance.now();
@@ -78,6 +78,19 @@ if (action === '--worker') {
     probe.runtime.dispose();
     console.log(JSON.stringify({ name, mode, sourceHash: hash(cases[name]), outcome: expected,
         samples, memory, evidence, hookedSources: { count: code.length, hash: hash(code) } }));
+} else if (action === '--preparation') {
+    const [root, path] = args, report = JSON.parse(readFileSync(path, 'utf8'));
+    report.initialPreparation = {};
+    for (const name of [...new Set(report.samples.map(row => row.name))]) {
+        const child = spawnSync(process.execPath, [import.meta.filename, '--worker', resolve(root), name, 'preparation'],
+            { encoding: 'utf8', timeout: 120_000, maxBuffer: 32 * 1024 * 1024 });
+        if (child.error || child.status !== 0) throw new Error(`${name}: ${child.error ?? child.stderr}`);
+        const row = JSON.parse(child.stdout);
+        const reference = report.samples.find(item => item.name === name && item.mode === 'reference');
+        if (row.sourceHash !== reference.sourceHash || !isDeepStrictEqual(row.outcome, reference.outcome)) throw new Error(`${name}: initial preparation workload/outcome changed`);
+        report.initialPreparation[name] = { sourceHash: row.sourceHash, outcome: row.outcome, preparation: row.evidence.preparation };
+        writeFileSync(path, JSON.stringify(report, null, 2) + '\n');
+    }
 } else {
     const root = resolve(action ?? '.'), output = args[0] ?? '/tmp/compiler-evidence.json';
     const pairs = Number(args[1] ?? 3), names = args.slice(2).length ? args.slice(2) : Object.keys(cases);
@@ -97,6 +110,7 @@ if (action === '--worker') {
             group.push(sample); report.samples.push(sample);
         }
         const reference = group.find(row => row.mode === 'reference');
+        if ((name === 'error') !== Boolean(reference.outcome.error)) throw new Error(`${name}: unexpected reference error status`);
         const plain = group.find(row => row.mode === 'plain');
         const counters = group.find(row => row.mode === 'counters');
         const checks = {

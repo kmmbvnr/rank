@@ -4352,3 +4352,71 @@ between traced, untraced and interpreted runs.
 prepared execution, peak process memory, remaining small regressions and
 rejected optimizations on Mac and Intel. Coverage expansion does not imply
 that every case becomes faster or uses less process memory.
+
+### Independent compiler evidence (#565, workstream 12)
+
+`new RuntimeDiagnostics(limit, traceCompiler, profileCompiler)` keeps three
+independent mechanisms. Counters record existing runtime events. Tracing records
+backend execution choices and rejection/guard details. Profiling times observed
+synchronous preparation even when source tracing is disabled. None installs
+compiler source hooks or forces lazy values.
+
+`compilerPreparation` groups calls, inclusive milliseconds, self milliseconds
+and thrown attempts by backend. Self time excludes nested observed preparation,
+so its sum does not double-count nested attempts. It includes cache lookups and
+failed candidates. It is **not** total V8 compilation time, parsing time, or all
+unobserved preparation. Preparation may occur during later execution. Use fresh
+execution and prepared execution measurements alongside it.
+
+`compilerExecution` counts selected, completed, declined and thrown backend
+entries before source-detail truncation. The `own` counts identify a backend's
+own compiled/native/interpreted path; delegation by a parent does not count the
+child again as the parent's own path. Nested backend entries still overlap and
+are not instructions, loop iterations, cells, or a whole-program percentage.
+A generated wrapper may call ordinary runtime handlers. Suspended candidates
+only contribute completed work after completion; merely constructing a generator
+is not completed execution. `compilerObservationsOmitted` remains explicit.
+Known cell, allocation and copy counters retain their individual units; they
+cover instrumented operations, not all heap allocation or retained memory.
+
+Run `node benchmarks/compiler-evidence.mjs ROOT OUTPUT_JSON PAIRS [CASE ...]`
+after building the checkout. It runs reference interpretation, uninstrumented
+compilation, counters, preparation profiling and bounded full tracing in separate
+processes, alternating mode order. Every case compares values, language errors
+and output order. Production counters must agree across instrumented modes.
+A separate source-hook probe checks the same exposed generated sources with and
+without diagnostics. Those hooks can themselves affect admission, so the probe
+is explicitly excluded from timing; it does not prove identity of every backend.
+The executable capability matrix supplies broader traced/untraced path checks.
+
+The runner fails on correctness or admission drift and retains the failed report.
+Each mode's peak RSS is read before the source-hook probe; it includes that mode's
+warmups but no other mode's reference execution. Parsing, interpreter construction
+and disposal are outside execution timers. Fresh timings include lazy preparation;
+prepared timings reuse one interpreter. Parsed syntax and process caches are
+shared between samples; fresh does not mean cold process startup. No runtime or memory speedup is inferred
+from a higher compilation count. Do not time application execution with full
+tracing and call the result ordinary runtime performance.
+
+`compiler-evidence-summary.py OUTPUT_PREFIX MAC_JSON INTEL_JSON` produces separate
+performance and execution-evidence tables and retains the raw measurements.
+Reports compare interpretation/compilation and instrumentation overhead, not two
+revisions; existing paired-revision benchmark tools remain available for changes.
+For an isolated uploaded build, `RANK_EVIDENCE_REVISION` records its source commit.
+The cases include Euler 001, scalar loops, ownership, deferred arguments, protected
+effects/generator suspension, large bodies and a deliberate language error.
+
+Before summarizing, run `node benchmarks/compiler-evidence.mjs --preparation
+ROOT OUTPUT_JSON`. This adds a separate fresh-process first-execution preparation
+probe for every case, checking its source hash and observable outcome against the
+saved reference. Thus reported initial preparation does not accidentally measure
+only cache hits after benchmark warmups. Timing samples still remain independent
+of this extra probe.
+
+`benchmarks/compiler-evidence-results.md` records six process pairs on Mac and
+Intel. It exposes both benefits (scalar loops and array ownership) and cases
+where generated control remains slower than interpretation (the large-body
+example). These observations are performance findings, separate from coverage
+and semantic correctness. The JSON retains all samples and first-execution
+preparation probes; the latter are single observations rather than confidence
+intervals for compilation latency.

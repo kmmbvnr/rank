@@ -17,7 +17,15 @@ def interval(values):
 def summarize(report):
     if not report['checks'] or not all(row['correctness'] and row['hookedAdmission'] and row['counterAdmission'] for row in report['checks']):
         raise ValueError('Correctness/admission checks are missing or failed')
+    if not report.get('initialPreparation'):
+        raise ValueError('Run the separate first-execution preparation probe before summarizing')
     rows = report['samples']
+    if any((row['name'] == 'error') != bool(row['outcome'].get('error')) for row in rows):
+        raise ValueError('Unexpected workload error status')
+    for name, probe in report['initialPreparation'].items():
+        reference = next(row for row in rows if row['name'] == name and row['mode'] == 'reference')
+        if probe['sourceHash'] != reference['sourceHash'] or probe['outcome'] != reference['outcome']:
+            raise ValueError('Initial preparation source/outcome mismatch')
     result = []
     for case in dict.fromkeys(row['name'] for row in rows):
         for mode in ['reference', 'plain', 'counters', 'profile', 'trace']:
@@ -57,14 +65,24 @@ if __name__ == '__main__':
                 text += f"| {row['case']} | {row['mode']} | {row['milliseconds']:.3f} | {ratio:.3f} [{low:.3f}, {high:.3f}] | {row['peakRssKiB']:,.0f} |\n"
             text += '\n'
         text += '### Preparation and executed entries\n\n'
-        text += 'Representative first process pair. Preparation uses profile mode; entries use trace mode.\n'
+        text += 'Preparation uses an additional fresh process and first execution; entries use the first trace pair.\n'
         text += 'Entry counts overlap through nested calls and are not percentages or cell counts.\n\n'
         text += '| Case | Observed preparation self ms | Compiled entries | Native entries | Interpreted entries | Omitted detail occurrences |\n| --- | ---: | ---: | ---: | ---: | ---: |\n'
         for name in dict.fromkeys(row['name'] for row in report['samples']):
             profile = next(row for row in report['samples'] if row['name'] == name and row['mode'] == 'profile')
             trace = next(row for row in report['samples'] if row['name'] == name and row['mode'] == 'trace')['evidence']
-            preparation = sum(row['selfMilliseconds'] for row in profile['evidence']['preparation'].values())
+            preparation = sum(row['selfMilliseconds'] for row in report['initialPreparation'][name]['preparation'].values())
             kinds = [sum(row['own'][kind] for row in trace['execution'].values()) for kind in ['compiled', 'native', 'interpreted']]
             text += f"| {name} | {preparation:.3f} | {' | '.join(map(str, kinds))} | {trace['observationsOmitted']} |\n"
+        text += '\n### Known work and fallback reasons\n\n'
+        text += 'Counters keep their original units and may describe overlapping operations.\n'
+        text += 'Fallbacks are candidate/guard events; another compiled or native path can succeed.\n\n'
+        text += '| Case | COW copied cells | Typed unpacked cells | Computed cells | Most frequent fallback counters |\n| --- | ---: | ---: | ---: | --- |\n'
+        for name in dict.fromkeys(row['name'] for row in report['samples']):
+            evidence = next(row for row in report['samples'] if row['name'] == name and row['mode'] == 'trace')['evidence']
+            counters = evidence['counters']
+            reasons = sorted(evidence['fallbacks'].items(), key=lambda item: (-item[1], item[0]))[:3]
+            formatted = '; '.join(f'`{reason}` × {count}' for reason, count in reasons) or 'none observed'
+            text += f"| {name} | {counters['cowCopiedCells']} | {counters['typedUnpackedCells']} | {counters['cellsComputed']} | {formatted} |\n"
         text += '\nRaw JSON retains backend timing, fallbacks/categories, known allocation/copy/cell work,\nall samples and the explicit language-error/effect outcomes. It does not assert that\na completed backend entry performed every operation itself. Detailed tracing is\nintentionally bounded; aggregate execution counts remain complete for observed backends.\n\n'
     Path(destination + '.md').write_text(text)
