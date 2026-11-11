@@ -1711,7 +1711,7 @@ it('retains excess-address diagnostics for local arrays', () => {
   A 0 0 = 1
 end`);
     expect(result).toHaveProperty('error');
-    expect(result.loops).toBe(0);
+    expect(result.loops).toBe(1);
 });
 
 it('honors the array-write toggle for locally created arrays', () => {

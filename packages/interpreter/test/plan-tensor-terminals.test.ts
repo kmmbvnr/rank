@@ -189,7 +189,7 @@ Inverted' = not Low`);
 
     it.each(['0.0', '0'])('composes guarded arithmetic before a later division failure (threshold %s)', threshold => {
         const { host, entries } = runtime();
-        const expectedEntries = compilation && threshold === '0.0' ? 1 : 0;
+        const expectedEntries = compilation ? 1 : 0;
         host.variables.set('Input', ownedArray([2n, 0n, 4n]));
         try {
             host.execute(`use sequences

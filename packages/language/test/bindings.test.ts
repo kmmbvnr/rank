@@ -452,3 +452,15 @@ it.each([
     expect(expressionFreeReads(statement.value).map(read => read.name)).toEqual(expected);
     expect(analyzeBindings(program).words.map(word => word.name).sort()).toEqual([...expected].sort());
 });
+
+it('selects graph and disjoint-set component result types', async () => {
+    const result = await facts([
+        'use graph', 'use sequences',
+        'Dsu = new dsu (0 to 2)',
+        'Graph = new graph (0 to 2)',
+        'Count = Dsu components',
+        'Parts = Graph components',
+    ]);
+    expect(named(result, 'program', 'Count').types).toEqual(['integer']);
+    expect(named(result, 'program', 'Parts').types).toEqual(['record']);
+});

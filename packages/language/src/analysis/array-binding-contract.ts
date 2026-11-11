@@ -9,6 +9,11 @@ export interface ArrayElementContract {
     readonly fields?: Readonly<Record<string, readonly ArrayElementContract[]>>;
 }
 
+/** Branch joins retain alternatives once, rather than one copy per path. */
+export function uniqueElementContracts(choices: readonly ArrayElementContract[]): ArrayElementContract[] {
+    return [...new Map(choices.map(choice => [JSON.stringify(choice), choice])).values()];
+}
+
 const inhabited = (value: ValueFacts): boolean => !!value.shape?.every(size => size !== null && size > 0);
 
 export function valueElementContracts(value: ValueFacts, cell = false): ArrayElementContract[] {
@@ -28,7 +33,7 @@ export function establishedArrayContract(value: ValueFacts | undefined): ArrayEl
         || !(value.eagerScalarCells || value.positionFacts)) return;
     const elements = value.positionFacts ? value.positionFacts.flatMap(value => valueElementContracts(value, true))
         : value.elements?.filter(type => type !== 'missing').map(type => ({ type: value.infiniteElements ? 'numeric-limit' : type }));
-    return elements?.length ? { type: value.types[0], rank: value.rank, elements } : undefined;
+    return elements?.length ? { type: value.types[0], rank: value.rank, elements: uniqueElementContracts(elements) } : undefined;
 }
 
 export function arrayBindingContract(value: ValueFacts | undefined): ArrayElementContract | undefined {

@@ -2,6 +2,7 @@ rem Tests for ACMP 0972 Geometry
 
 use numbers
 use testing
+use sequences
 use text
 
 test "default 3 segment pairs"

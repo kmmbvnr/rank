@@ -1,5 +1,6 @@
 rem Tests for ACMP 0656: Road Auction
 use testing
+use sequences
 use text
 
 test "ACMP 656: Sample 1 (9 8 4)"

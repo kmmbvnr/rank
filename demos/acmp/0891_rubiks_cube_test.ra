@@ -1,6 +1,7 @@
 rem Tests for ACMP 0891 Rubik's Cube
 
 use testing
+use sequences
 
 test "default: Example 3 -> 9 moves"
   use "0891_rubiks_cube"

@@ -1,5 +1,6 @@
 rem ACMP 0592: Skyscraper tests
 use testing
+use sequences
 
 test "ACMP 592: Sample 1"
   use "0592_skyscraper"

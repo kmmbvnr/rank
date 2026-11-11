@@ -15,7 +15,7 @@ ${Array.from({ length: 64 }, () => ' Values = Values + 1').join('\n')}
 end
 `;
 function run(text: string, compilation: boolean, mode = 'ordinary') {
-    const runtime = new Interpreter(() => {}, { compilation }), diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, compilation }), diagnostics = new RuntimeDiagnostics();
     let value: string | undefined, error: string | undefined;
     try {
         const execute = () => diagnostics.run(() => runtime.execute(text));

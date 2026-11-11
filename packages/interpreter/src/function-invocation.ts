@@ -1003,12 +1003,13 @@ export class FunctionInvocation {
             readOnlyAllowed,
             () => {
                 poll('calling recursive numeric function');
-                if (this.depth >= this.maxDepth) throw numberOverflow;
+                if (this.depth >= this.maxDepth || this.scalarHostDepth >= 128) throw numberOverflow;
                 this.depth++;
+                this.scalarHostDepth++;
                 const diagnostics = currentDiagnostics();
                 if (diagnostics) diagnostics.numberFunctions++;
             },
-            () => { this.depth--; },
+            () => { this.depth--; this.scalarHostDepth--; },
             (error, args) => { this.frames.addCall(error, statement, args.map(BigInt)); },
         ) : undefined;
         const rejectNumber = (reason: string) => rejectCompilerGuard(statement, 'scalar-function-number', reason);

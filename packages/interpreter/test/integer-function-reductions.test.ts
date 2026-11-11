@@ -20,7 +20,7 @@ fun Weights stats Count
 end`;
 function fixture(text = source, compilation = true) {
     const programs: string[] = [], diagnostics = new RuntimeDiagnostics();
-    const runtime = new Interpreter(() => {}, { compilation,
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, compilation,
         onFunctionBodyCompiled: text => { if (text.includes('integer reductions')) programs.push(text); } });
     runtime.execute(text);
     const fn = runtime.variables.get('stats') as NativeFunction;
@@ -310,7 +310,7 @@ fun Values doubled
 end
 A = array shape 64 fill 1.0
 I = 0`;
-        const fast = new Interpreter(), reference = new Interpreter(() => {}, { compilation: false });
+        const fast = new Interpreter(undefined, { scalarEntryCompilation: false }), reference = new Interpreter(() => {}, { scalarEntryCompilation: false, compilation: false });
         const diagnostics = new RuntimeDiagnostics();
         try {
             fast.execute(definitions); reference.execute(definitions);
@@ -339,7 +339,7 @@ for I less 2
  A = A twice
  I += 1
 end`;
-        const fast = new Interpreter(), reference = new Interpreter(() => {}, { compilation: false });
+        const fast = new Interpreter(undefined, { scalarEntryCompilation: false }), reference = new Interpreter(() => {}, { scalarEntryCompilation: false, compilation: false });
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => fast.execute(text)); reference.execute(text);

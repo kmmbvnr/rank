@@ -56,7 +56,7 @@ describe('compiled scalar expressions', () => {
 
     it('reuses generated code while binding separate local closures', () => {
         let compiled = 0, executed = 0;
-        const runtime = new Interpreter(undefined, { onScalarCompiled: () => compiled++, onScalarExecuted: () => executed++ });
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onScalarCompiled: () => compiled++, onScalarExecuted: () => executed++ });
         const value = runtime.execute(`fun A outer
   fun X inner
     return A * 2 + X

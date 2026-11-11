@@ -1,5 +1,5 @@
 import { recordBindingContract } from './return-contract.js';
-import { arrayBindingContract, establishedArrayContract } from './array-binding-contract.js';
+import { arrayBindingContract, establishedArrayContract, uniqueElementContracts } from './array-binding-contract.js';
 import {
     isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, type Expression, type IfStatement, type Statement,
@@ -35,7 +35,7 @@ export function mergeEnvironments(env: Map<string, ValueFacts>, paths: readonly 
                 ? recordBindingContract(joinValueFacts(facts.map(fact => recordBindingContract(fact)!))) : undefined,
             acceptedArrayRank: facts.every(fact => contractRank(fact) === rank) ? rank : undefined,
             acceptedArrayContract: facts.every(fact => arrayBindingContract(fact))
-                ? { type: 'array', rank, elements: facts.flatMap(fact => arrayBindingContract(fact)!.elements ?? []) } : undefined });
+                ? { type: 'array', rank, elements: uniqueElementContracts(facts.flatMap(fact => arrayBindingContract(fact)!.elements ?? [])) } : undefined });
     }
 }
 

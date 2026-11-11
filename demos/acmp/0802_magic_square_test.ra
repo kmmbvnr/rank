@@ -1,6 +1,7 @@
 rem Tests for ACMP 0802: Magic Square
 
 use testing
+use sequences
 
 test "ACMP 802: N=1"
   use "0802_magic_square"

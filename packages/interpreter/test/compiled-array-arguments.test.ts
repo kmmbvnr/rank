@@ -165,7 +165,7 @@ end`;
         } finally { runtime.dispose(); }
     });
     expect(runs[1].values).toEqual(runs[0].values);
-    expect(runs[1].calls).toBeGreaterThanOrEqual(8);
+    expect(runs[1].calls).toBe(6);
 });
 
 it('preserves COW when a linked array result aliases a caller operand', () => {

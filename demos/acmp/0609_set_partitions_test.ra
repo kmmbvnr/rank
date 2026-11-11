@@ -1,6 +1,7 @@
 rem Tests for ACMP 0609 Set Partitions
 
 use testing
+use sequences
 
 test "default N=20 K=2"
   use "0609_set_partitions"

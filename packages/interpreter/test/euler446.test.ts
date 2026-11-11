@@ -48,7 +48,7 @@ it('compiles shrinking prime-power extraction as one fresh-array region', () => 
     try {
         diagnostics.run(() => runtime.execute(source));
         expect(runtime.variables.get('Answer')).toBe(376757876n);
-        expect(diagnostics.numberLoops).toBe(2);
+        expect(diagnostics.numberLoops).toBe(3);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.numberLoopCopyProbes).toBe(0);
     } finally { runtime.dispose(); }

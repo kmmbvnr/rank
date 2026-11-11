@@ -16,7 +16,7 @@ fun N total
  return Total
 end`;
 function run(source: string, options: InterpreterOptions = {}) {
-    const runtime = new Interpreter(() => {}, options), diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, ...options }), diagnostics = new RuntimeDiagnostics();
     try {
         const value = diagnostics.run(() => runtime.execute(source));
         return { diagnostics, observation: { value: value === undefined ? undefined : formatValue(value) } };
@@ -95,7 +95,7 @@ end
     expect(result.diagnostics.numberLoops).toBe(0);
 });
 it('rechecks a demand budget and cancellation after warming the function', () => {
-    const runtime = new Interpreter(() => {});
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
     try {
         runtime.execute(`${helper}\nSaved = 5000 total`);
         expect(() => withDemandBudget(1, () => runtime.execute('Result = 5000 total'))).toThrow('demand budget exhausted');
@@ -126,7 +126,7 @@ it('preserves ordinary demand exhaustion inside an already-warm function', () =>
     for (const budget of [50, 2000, 15000]) {
         const observed: unknown[] = [];
         for (const compilation of [false, true]) {
-            const runtime = new Interpreter(() => {}, { compilation }), diagnostics = new RuntimeDiagnostics();
+            const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, compilation }), diagnostics = new RuntimeDiagnostics();
             try {
                 runtime.execute(`${helper}\nSaved = 5000 total`);
                 let error: string | undefined;
@@ -142,7 +142,7 @@ it('preserves ordinary demand exhaustion inside an already-warm function', () =>
 });
 it('polls cancellation inside a newly compiled pure region and runs caller finally', () => {
     const signal = new Int32Array(new SharedArrayBuffer(4)), diagnostics = new RuntimeDiagnostics();
-    const runtime = new Interpreter(() => {}, { onIntegerLoopCompiled() { Atomics.store(signal, 0, 1); } });
+    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, onIntegerLoopCompiled() { Atomics.store(signal, 0, 1); } });
     try {
         expect(() => withInterrupt(signal, () => diagnostics.run(() => runtime.execute(`${helper}
 Done = 0

@@ -17,7 +17,7 @@ import {
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
-import { mapsScalarCells, modifierResultTypes, resultTypes, wholeMappedScalarTypes, type Types } from './types.js';
+import { mapsScalarCells, modifierResultTypes, resultTypes, unaryResultTypes, wholeMappedScalarTypes, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, isAtom, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 import {
@@ -959,6 +959,8 @@ function transferApplicationFacts(
             if (operation.result === 'record'
                 && (operation.recordFields || operation.recordVertexArrays
                     || operation.recordVertexFields || operation.recordIndexValues)) {
+                const unary = arity === 1 && unaryResultTypes(operation, source.types);
+                if (unary && unary.join() !== 'record') return { types: unary };
                 const fields: Record<string, ValueFacts> = Object.fromEntries(Object.entries(operation.recordFields ?? {})
                     .map(([name, result]) => [name, { types: resultTypes({ result }),
                         ...(['integer', 'real', 'number', 'boolean'].includes(result)

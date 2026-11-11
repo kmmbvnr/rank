@@ -1,4 +1,5 @@
 use testing
+use sequences
 use text
 
 test "sample 1: single road -> 1 color"

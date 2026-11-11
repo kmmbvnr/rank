@@ -1,6 +1,7 @@
 rem Tests for ACMP 0725: Rod
 
 use testing
+use numbers
 
 test "ACMP 725: Sample 1"
   use "0725_lightning_rod"

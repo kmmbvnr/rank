@@ -1,5 +1,6 @@
 rem ACMP 0438: Sochi-2014 tests
 use testing
+use numbers
 
 test "Sample 1: N=2, K=2 yields T=8.8"
   use "0438_sochi_2014"

@@ -189,7 +189,7 @@ describe.each([false, true])('last array use with integer compilation %s', compi
 
     it('preserves aliases created inside the receiving function', () => {
         expect(execute(`fun A change\n Saved = A\n A 0 = 9\n return Saved 0 + A 0\nend\nfun solve\n A = array 1 2 3\n return A change\nend\nsolve`, compiled))
-            .toEqual({ value: 10n, copies: 1 });
+            .toEqual({ value: 10n, copies: compiled ? 0 : 1 });
     });
 
     it('does not consume a local used again on the next loop iteration', () => {

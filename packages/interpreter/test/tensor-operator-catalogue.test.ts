@@ -36,9 +36,10 @@ describe('tensor catalogue overloads', () => {
                 const compiled = run(expression, left, right, signature.result === 'boolean', true);
                 expect(reference).not.toHaveProperty('error');
                 expect({ ...compiled, kernels: 0 }).toEqual(reference);
-                // Boolean inputs use native word reductions instead of emitted
-                // per-cell tensor code. Numeric signatures still compile.
-                expect(compiled.kernels).toBe(signature.inputs.includes('boolean') ? 0 : 1);
+                // Logical operations use native word reductions. Equality
+                // also supports per-cell tensor comparisons.
+                const nativeBoolean = ['and', 'or', 'xor', 'not'].includes(operation.name);
+                expect(compiled.kernels).toBe(nativeBoolean ? 0 : 1);
             });
         }
     }
@@ -56,8 +57,6 @@ describe('tensor catalogue overloads', () => {
     });
 
     it.each([
-        ['A equal B', samples.boolean, samples.boolean, true],
-        ['A less B', samples.integer, samples.real, true],
         ['A // B', samples.real, samples.real, false],
         ['A mod B', samples.real, samples.real, false],
         ['A ** B', samples.integer, 'array -1 -2', false],
@@ -67,4 +66,14 @@ describe('tensor catalogue overloads', () => {
         expect(compiled).toEqual(reference);
         expect(compiled.kernels).toBe(0);
     });
+});
+
+it.each([
+    ['A equal B', samples.boolean, samples.boolean],
+    ['A less B', samples.integer, samples.real],
+])('compiles comparison %s on %s and %s', (expression, left, right) => {
+    const reference = run(expression, left, right, true, false);
+    const compiled = run(expression, left, right, true, true);
+    expect(compiled.value).toBe(reference.value);
+    expect(compiled.kernels).toBe(1);
 });

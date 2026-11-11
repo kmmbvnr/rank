@@ -1,6 +1,7 @@
 rem Tests for ACMP 0632 Segments
 
 use testing
+use sequences
 
 test "default max cuts"
   use "0632_segments"

@@ -98,7 +98,7 @@ describe('retained digit product stages', () => {
     it('broadcasts after a shape change', () => {
         const source = setup.replace('  Flat = Grid reshape #\n  Selected = Flat (Flat band Mask equal 0)\n  return Selected sum',
                 '  Shaped = Grid reshape 3 2\n  Mapped = Shaped + Highs\n  return Mapped copy');
-        expect(compare(source)).toMatchObject({ value: '0 6 1 7 2 8', shape: [3, 2], kernels: 0 });
+        expect(compare(source)).toMatchObject({ value: '0 6 1 7 2 8', shape: [3, 2], kernels: 2 });
     });
 
     it.each(['sum', 'copy'])('handles empty products and rejected values for %s', terminal => {

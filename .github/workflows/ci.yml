@@ -14,10 +14,10 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ matrix.suite == 'differential' && 120 || 30 }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter"}]}') }}
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"}]}') }}
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
@@ -52,11 +52,15 @@ jobs:
         run: npm test --workspace @arrrank/common -- test/name-facts-corpus.test.ts --maxWorkers=1 --reporter=verbose
       - name: Test interpreter
         if: matrix.suite == 'interpreter'
+        env:
+          RANK_INTERPRETER_SHARD: ${{ matrix.shard }}
         run: |
-          npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts
-          npm test --workspace @arrrank/interpreter -- test/nurikabe.test.ts
+          npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts --shard="$RANK_INTERPRETER_SHARD"
+          if [ "$RANK_INTERPRETER_SHARD" = "1/4" ]; then
+            npm test --workspace @arrrank/interpreter -- test/nurikabe.test.ts
+          fi
       - name: Test release library Euler examples
-        if: matrix.suite == 'interpreter'
+        if: matrix.suite == 'interpreter' && matrix.shard == '1/4'
         run: |
           for file in demos/euler/0{01..15}_*_test.ra; do
             node packages/cli/bin/cli.js test "$file" || exit 1

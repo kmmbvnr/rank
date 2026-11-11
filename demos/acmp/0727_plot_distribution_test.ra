@@ -1,4 +1,5 @@
 use testing
+use sequences
 use text
 
 test "sample: 3 companies -> 1 3 2"

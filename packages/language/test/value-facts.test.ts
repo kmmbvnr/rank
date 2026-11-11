@@ -1974,3 +1974,9 @@ it('keeps matrix powers integer only for proven nonnegative exponents', () => {
     expect(power({ ...integer, integer: '2' }, { ...matrix, eagerScalarCells: undefined })
         .callbackFreeScalarCells).not.toBe(true);
 });
+
+it('retains graph and disjoint-set result alternatives for an unknown receiver', () => {
+    expect(facts('Input components').types).toEqual(['record', 'integer']);
+    expect(facts('Input components', new Map([['Input', { types: ['dsu'] }]])))
+        .toEqual({ types: ['integer'], rank: 0, shape: [] });
+});

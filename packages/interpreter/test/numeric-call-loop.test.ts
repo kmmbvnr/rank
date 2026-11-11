@@ -163,7 +163,7 @@ fun X repeated
  ${loop}
  return A
 end`;
-        const runtime = new Interpreter(() => {}), reference = new Interpreter(() => {}, { compilation: false });
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false }), reference = new Interpreter(() => {}, { compilation: false });
         try {
             runtime.execute(source); reference.execute(source);
             const fn = runtime.variables.get('repeated') as NativeFunction, ordinary = reference.variables.get('repeated') as NativeFunction;

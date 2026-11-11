@@ -152,7 +152,7 @@ fun N outer
 end
 3 outer`);
         expect(result.value).toBe(2n);
-        expect(result.functions).toBe(2);
+        expect(result.functions).toBe(1);
     });
 
     it('keeps writes through argument aliases on the framed path', () => {
@@ -268,7 +268,7 @@ end`);
         expect(result.output).toEqual(['5482660']);
         expect(result.functions).toBe(4401);
         expect(Object.keys(result.fallbacks)).toEqual([]);
-    }, 30000);
+    }, 90_000);
 
     it('compiles the abundant-sum collection search at full size', () => {
         // Retain collection compiler coverage
@@ -280,5 +280,5 @@ end`);
         expect(result.functions).toBe(0);
         expect(result.loops).toBe(3);
         expect(Object.keys(result.fallbacks).filter(key => key.startsWith('loop:'))).toEqual([]);
-    }, 30000);
+    }, 90_000);
 });

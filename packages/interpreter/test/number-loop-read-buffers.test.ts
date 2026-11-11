@@ -148,7 +148,8 @@ end`);
         'Alias = A\nA 0 += 10',
     ])('refreshes snapshots after a store or rebinding: %s', between => {
         const { diagnostics } = compare(repeated(between));
-        expect(diagnostics.numberLoopReadBuffers).toBe(4);
+        // Rebound tensor views provide direct reads after the first snapshot.
+        expect(diagnostics.numberLoopReadBuffers).toBe(between === 'A = (A + 1) array' ? 1 : 4);
         expect(diagnostics.numberLoopReadBufferHits).toBe(0);
     });
 

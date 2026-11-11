@@ -351,11 +351,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
         }
         const mappedScalar = arity === 1 && wholeMappedScalarTypes(operation, source);
         if (mappedScalar) return mappedScalar;
-        if (arity === 1 && within(source, NUMBERS)) {
-            const result = inferSignatureResultTypes(operation.signatures ?? [],
-                [{ union: source as readonly SignatureAtom[] }]);
-            if (result) return result;
-        }
+        const unary = arity === 1 && unaryResultTypes(operation, source);
+        if (unary) return unary;
         if ((arity === 1 && mapsScalarCells(operation) || arity === 2 && operation.preservesCollectionElements)
             && !same(source, 'array') && !same(source, 'sequence') && !within(source, NUMBERS)) return UNKNOWN;
         if (arity === 1 && mapsScalarCells(operation)
@@ -396,6 +393,15 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
         return within(operand, NUMBERS) ? ['boolean'] : UNKNOWN;
     }
     return resultTypes(operation);
+}
+
+/** An unresolved receiver retains every declared atomic result alternative. */
+export function unaryResultTypes(operation: Operation, source: Types): Types | undefined {
+    if (!within(source, NUMBERS) && (mapsScalarCells(operation) || !operation.signatures?.some(signature =>
+        signature.inputs.length === 1 && typeof signature.result === 'string'
+        && signature.result !== operation.result))) return;
+    return inferSignatureResultTypes(operation.signatures ?? [],
+        [source.length ? { union: source as readonly SignatureAtom[] } : 'unknown']);
 }
 
 export function resultTypes(operation: Pick<Operation, 'result' | 'nullable'>): Types {

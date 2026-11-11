@@ -49,7 +49,7 @@ solve`)).toEqual({ value: cells.startsWith('1') ? [2n, 2n, 3n] : ['b', 'b', 'c']
  A 0 = 9
  return (A 0) + B 0
 end
-solve`)).toEqual({ value: 10n, copies: 1 });
+solve`)).toEqual({ value: 10n, copies: compiled ? 0 : 1 });
     });
 
     it('releases a returned buffer before the caller writes it', () => {

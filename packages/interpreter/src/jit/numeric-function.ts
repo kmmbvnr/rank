@@ -205,6 +205,9 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
     if (outputs.some(n => !n)) return declineCompiler('unsupported-result-expression', returned);
     if ([...builtins].some(name => parameters.has(name) || assignments.some(a => a.name === name))) return declineCompiler('shadowed-builtin', statement);
     const roots = outputs as NumericNode[];
+    // A bare range returns a sequence, including empty ranges.
+    // This backend publishes stored arrays.
+    if (roots.some(node => node.kind === 'range')) return declineCompiler('sequence-result', returned);
     const reachable = new Set<NumericNode>();
     function visit(node: NumericNode): void {
         if (reachable.has(node)) return; reachable.add(node);
@@ -403,9 +406,10 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                 } else if (!shape.length && a.scalar !== undefined && (!b || b.scalar !== undefined)) {
                     // A safe remainder can still have an unsafe quotient product.
                     const division = node.op === '//' ? floorDivide : node.op === 'mod' ? floorRemainder : undefined;
+                    if (b && ['/', '//', 'mod'].includes(node.op) && b.scalar === 0) return bad();
                     const value = b && division ? Number(division(BigInt(a.scalar!), BigInt(b.scalar!)))
                         : b ? binary(node.op, a.scalar!, b.scalar!) : node.op === '-' ? -a.scalar! : a.scalar!;
-                    if (!Number.isFinite(value) || integer && !safe(value) || b && ['/', '//', 'mod'].includes(node.op) && b.scalar === 0) return bad();
+                    if (!Number.isFinite(value) || integer && !safe(value)) return bad();
                     info.scalar = integer && value === 0 ? 0 : value;
                     if (integer) info.low = info.high = info.scalar;
                 } else if (integer) {

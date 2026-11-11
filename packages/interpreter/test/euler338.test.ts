@@ -30,7 +30,7 @@ describe('Euler 338 hyperbola counting', () => {
         try {
             diagnostics.run(() => runtime.execute(readFileSync(new URL('../../../demos/euler/338_gridpaper.ra', import.meta.url), 'utf8')));
             expect(output.at(-1)).toBe('999999999600010915614292');
-            expect(diagnostics.numberLoops).toBe(1);
+            expect(diagnostics.numberLoops).toBe(2);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.typedArrayPublications).toBe(0);
             expect(kernels.some(code => code.includes('rangeCell'))).toBe(true);

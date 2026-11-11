@@ -14,6 +14,12 @@ const analyze = (source: string, initial = new Map<string, ValueFacts>()) => {
 const messages = (source: string) => analyze(source).diagnostics.map(item => item.message);
 
 describe('array binding element contracts', () => {
+    it('keeps repeated branch joins bounded without losing element checks', () => {
+        const branches = Array.from({ length: 16 }, () => 'if Flag\n A 0 = 3\nend').join('\n');
+        const result = analyze(`A = array 1 2\n${branches}\nA 0 = "bad"`);
+        expect(result.bindings.get('A')?.acceptedArrayContract?.elements).toHaveLength(1);
+        expect(result.diagnostics.some(item => item.message.includes('array elements'))).toBe(true);
+    });
     it.each(['A = array "x" "y"', 'A 0 = "x"', 'A # = "x"', 'A 0 /= 2', 'A = array 3 "x"'])
     ('diagnoses %s', write => {
         expect(messages('A = array 1 2\n' + write).some(message => message.includes('array elements'))).toBe(true);

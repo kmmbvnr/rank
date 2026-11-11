@@ -1,6 +1,7 @@
 rem Tests for ACMP 0591 Transport Reform
 
 use testing
+use sequences
 
 test "default: 10 vertices -> 9 edges"
   use "0591_transport_reform"

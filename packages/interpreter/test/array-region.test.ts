@@ -7,7 +7,7 @@ import { compileArrayRegion } from '../src/jit/array-region.js';
 import { withDemandBudget, DemandBudgetExhausted, withInterrupt, InterruptedError } from '../src/interrupt.js';
 
 function execute(source: string, fusion: boolean) {
-    const r = new Interpreter(() => {}, { tensorFusion: fusion }), d = new RuntimeDiagnostics();
+    const r = new Interpreter(() => {}, { tensorFusion: fusion, numberLoopCompilation: false }), d = new RuntimeDiagnostics();
     try {
         return d.run(() => {
             let error: string | undefined, result: string | undefined;

@@ -98,7 +98,7 @@ for Todo len greater 0
 end
 Total`);
         expect(result.result.value).toBe('6');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('preserves signed cells and operand order in literal arrays', () => {
@@ -135,7 +135,7 @@ end
 Old = Todo pop
 Old 0`);
         expect(result.result.value).toBe('2');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('keeps copy-on-write through a popped frame alias', () => {
@@ -150,7 +150,7 @@ for Todo len greater 0
 end
 Seed 0`);
         expect(result.result.value).toBe('1');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it.each(['A', 'Alias'])('keeps local array snapshots when writing %s', target => {
@@ -163,7 +163,7 @@ for I in 1 to 2
 end
 Total`);
         expect(result.result.value).toBe('2');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('preserves the error and completed stores when a second pop exhausts the stack', () => {
@@ -238,6 +238,6 @@ for I in 1 to 3
 end
 Total`);
         expect(result.result.value).toBe('6');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 });
