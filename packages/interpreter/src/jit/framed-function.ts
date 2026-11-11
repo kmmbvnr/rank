@@ -140,9 +140,16 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
                     ? completed(value) : ${name}(context, value, ${index + 1})`;
                 cases.push(`case ${index}: {
                     location = ${location};
-                    const task = step(${leaf}, context);
-                    if (!('done' in task)) return suspend(task, context, ${next}, location);
-                    value = task.value;
+                    const selected = prepare(${leaf});
+                    const tensorValue = selected.tensor && !context.insideFinally && !context.insideGenerator
+                        ? selected.tensor.run() : undefined;
+                    if (tensorValue !== undefined) value = tensorValue;
+                    else if ('run' in selected) value = selected.run(context);
+                    else {
+                        const task = selected.stream(context);
+                        if (!('done' in task)) return suspend(task, context, ${next}, location);
+                        value = task.value;
+                    }
                     if (context.functionControl?.returned || context.loopControl?.signal) return completed(value);
                 }`);
             }
@@ -201,9 +208,12 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
             return function(context) { executed(); return ${entry}(context); };`;
         const prepared: (PreparedStatement | undefined)[] = [];
         const tests: ((() => RankValue) | null | undefined)[] = [];
-        const step = (index: number, context: ExecutionContext): Evaluation<Value> => {
+        const prepare = (index: number): PreparedStatement => {
             const { statements, index: position } = leaves[index];
-            const selected = prepared[index] ??= host.prepare(statements, position);
+            return prepared[index] ??= host.prepare(statements, position);
+        };
+        const step = (index: number, context: ExecutionContext): Evaluation<Value> => {
+            const selected = prepare(index);
             if (selected.tensor && !context.insideFinally && !context.insideGenerator) {
                 const value = selected.tensor.run();
                 if (value !== undefined) return completed(value);
@@ -227,8 +237,8 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
             } catch (error) { throw host.locate(error, sites[location]); }
         };
         try {
-            const run = new Function('step', 'test', 'scope', 'completed', 'suspend', 'expectBoolean', 'locate', 'executed', source)(
-                step, test, (run: Block, index: number) => {
+            const run = new Function('prepare', 'step', 'test', 'scope', 'completed', 'suspend', 'expectBoolean', 'locate', 'executed', source)(
+                prepare, step, test, (run: Block, index: number) => {
                     const scoped = host.scope(scopes[index].statement, { stream: run });
                     return 'stream' in scoped ? scoped.stream : (context: ExecutionContext) => completed(scoped.run(context));
                 }, completed, suspend, expectBoolean,

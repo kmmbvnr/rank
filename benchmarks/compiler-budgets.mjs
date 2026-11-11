@@ -47,6 +47,17 @@ for I in 1 to ${iterations}
  end
 end
 Total`,
+    polymorphic: `use io
+fun Values measure
+ Count = Values len
+ Count print
+ return Count
+end
+Total = 0
+for I in 1 to ${iterations}
+${Array.from({ length: 40 }, (_, rank) => ` Total += (array shape ${Array(rank + 1).fill('1').join(' ')} fill 3) measure`).join('\n')}
+end
+Total`,
     unique: `Total = 0\nfor I in 1 to ${iterations}\n Total += I * 2\nend\nTotal`,
 };
 const source = cases[name];
