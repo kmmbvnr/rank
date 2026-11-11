@@ -14,8 +14,16 @@ export interface ExecutionCost {
     discardedMilliseconds: number;
 }
 
+export interface CompilerPreparationCost {
+    calls: number;
+    milliseconds: number;
+    selfMilliseconds: number;
+    threw: number;
+}
+
 export type CompilerExecutionKind = 'compiled' | 'native' | 'interpreted';
 export interface CompilerExecution {
+    readonly own?: CompilerExecutionKind;
     readonly kinds: readonly CompilerExecutionKind[];
     readonly paths: readonly string[];
 }
@@ -44,7 +52,7 @@ export interface CompilerAttempt extends Omit<CompilerObservation, 'outcome' | '
 
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
-    constructor(readonly compilerRejectionLimit = 64, readonly traceCompiler = false) {
+    constructor(readonly compilerRejectionLimit = 64, readonly traceCompiler = false, readonly profileCompiler = false) {
         if (compilerRejectionLimit !== Infinity && (!Number.isSafeInteger(compilerRejectionLimit) || compilerRejectionLimit < 0)) {
             throw new RangeError('compilerRejectionLimit must be a nonnegative integer or Infinity');
         }
@@ -189,6 +197,28 @@ export class RuntimeDiagnostics {
         try { return operation(); }
         finally { cost.milliseconds += performance.now() - start; }
     }
+    /** Observed synchronous preparation only; inclusive times overlap.
+     * Self times exclude nested preparation and can be summed. */
+    readonly compilerPreparation: Record<string, CompilerPreparationCost> = Object.create(null);
+    private preparationFrame?: { children: number };
+    measureCompilerPreparation<T>(backend: string, operation: () => T): T {
+        const cost = this.compilerPreparation[backend] ??= {
+            calls: 0, milliseconds: 0, selfMilliseconds: 0, threw: 0,
+        };
+        const previous = this.preparationFrame, frame = { children: 0 };
+        this.preparationFrame = frame;
+        const start = performance.now();
+        cost.calls++;
+        try { return operation(); }
+        catch (error) { cost.threw++; throw error; }
+        finally {
+            const elapsed = performance.now() - start;
+            cost.milliseconds += elapsed;
+            cost.selfMilliseconds += Math.max(0, elapsed - frame.children);
+            if (previous) previous.children += elapsed;
+            this.preparationFrame = previous;
+        }
+    }
     readonly compilerRejections: CompilerRejection[] = [];
     /** Omitted occurrences, not unique sites: keep bounded mode bounded. */
     compilerRejectionsOmitted = 0;
@@ -211,6 +241,12 @@ export class RuntimeDiagnostics {
         this.compilerRejections.push(failure);
     }
 
+    /** Backend entries, not instructions/cells or a whole-program percentage.
+     * Updated before source-detail truncation; delegated parents remain separate. */
+    readonly compilerExecution: Record<string, {
+        selected: number; completed: number; declined: number; threw: number;
+        own: Record<CompilerExecutionKind, number>;
+    }> = Object.create(null);
     readonly compilerObservations: CompilerObservation[] = [];
     compilerObservationsOmitted = 0;
     private readonly compilerObservationKeys = new Map<string, CompilerObservation>();
@@ -233,6 +269,19 @@ export class RuntimeDiagnostics {
     }
     observeCompiler(observation: CompilerObservation): void {
         const { source, backend, phase, provenTypes, reasons, outcome, execution, guard, budget } = observation;
+        if (phase === 'execute') {
+            const total = this.compilerExecution[backend] ??= {
+                selected: 0, completed: 0, declined: 0, threw: 0,
+                own: { compiled: 0, native: 0, interpreted: 0 },
+            };
+            if (outcome === 'selected') total.selected++;
+            if (outcome === 'declined') total.declined++;
+            if (outcome === 'threw') total.threw++;
+            if (execution) {
+                total.completed++;
+                if (execution.own) total.own[execution.own]++;
+            }
+        }
         observation = { source, backend, phase, provenTypes, reasons, outcome, execution, guard, budget };
         const key = JSON.stringify(observation);
         const previous = this.compilerObservationKeys.get(key);

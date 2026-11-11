@@ -33,7 +33,7 @@ function finishExecution(attempt: CompilerAttempt): CompilerObservation['executi
         (attempt.executionPaths ??= new Set()).add(attempt.backend);
     }
     attempt.completed = true;
-    return { kinds: [...attempt.executionKinds ?? []].sort(), paths: [...attempt.executionPaths ?? []].sort() };
+    return { ...(own ? { own } : {}), kinds: [...attempt.executionKinds ?? []].sort(), paths: [...attempt.executionPaths ?? []].sort() };
 }
 
 /** An observation never evaluates a value or installs a compiler hook. */
@@ -42,7 +42,8 @@ export function observeCompiler<T>(
     provenTypes?: Readonly<Record<string, string>>, suspending = false, emptyResult: 'decline' | 'success' = 'decline',
 ): T {
     const diagnostics = currentDiagnostics();
-    if (!diagnostics?.traceCompiler || !site) return run();
+    if (!diagnostics?.traceCompiler || !site) return diagnostics?.profileCompiler && phase === 'prepare'
+        ? diagnostics.measureCompilerPreparation(backend, run) : run();
     const { reason: _reason, ...source } = describeCompilerRejection(backend, site);
     return observeCompilerSource(source, backend, phase, run, provenTypes, suspending, emptyResult);
 }
@@ -52,6 +53,10 @@ export function observeCompilerSource<T>(
     provenTypes?: Readonly<Record<string, string>>, suspending = false, emptyResult: 'decline' | 'success' = 'decline',
 ): T {
     const diagnostics = currentDiagnostics();
+    if (diagnostics?.profileCompiler && phase === 'prepare') {
+        const operation = run;
+        run = () => diagnostics.measureCompilerPreparation(backend, operation);
+    }
     if (!diagnostics?.traceCompiler) return run();
     const attempt: CompilerAttempt = { source, backend, phase, provenTypes, reasons: new Set() };
     return diagnostics.compilerScope(attempt, () => {

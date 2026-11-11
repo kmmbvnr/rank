@@ -102,7 +102,7 @@ describe('compiler admission and execution observations', () => {
         expect(stats.compilerObservations.some(entry => entry.execution)).toBe(false);
         expect(task.next()).toEqual({ done: true, value: 2n });
         expect(stats.compilerObservations).toEqual(expect.arrayContaining([
-            expect.objectContaining({ outcome: 'completed', execution: { kinds: ['compiled'], paths: ['generator-loop'] } }),
+            expect.objectContaining({ outcome: 'completed', execution: { own: 'compiled', kinds: ['compiled'], paths: ['generator-loop'] } }),
         ]));
         task.next();
         expect(stats.compilerObservations.find(entry => entry.outcome === 'completed')?.count).toBe(1);
