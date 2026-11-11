@@ -4149,3 +4149,21 @@ suites, and all 12 CLI diagnostics checks. Constructor tests cover fresh storage
 signed and effectful operands, error order, post-evaluation type validation and
 both sides of the direct-path size limit. Capability snapshots record the new
 native path without changing results or errors. Exhaustive audits were not run.
+
+### Captured numeric array bodies and flat real solves
+
+Numeric array-function lowering now accepts finite numeric scalar captures,
+real comparisons and Boolean-to-integer intermediates without requiring a
+reshape or another structural operation. Entry guards reread captures and
+key cached scalar plans by their current domains and values. Captured arrays,
+unsafe integers, heterogeneous extrema, observable demand and opaque storage
+retain ordinary execution. Euler 589 uses this path to build reduced-system
+coefficients with one broadcast formula.
+
+The linear-algebra `solve` builtin also has a private finite-real flat-buffer
+path with partial pivoting, weak scratch reuse and bounded signalled polling.
+Zero-factor elimination preserves nonfinite propagation by guarding the pivot
+row and right sides. Tests compare against the previous scalar solver, including
+intermediate overflow. Euler 589's full reference is now practical, while its
+full compiled RSS increases; see `benchmarks/euler589.md` for both-host results
+and the explicit memory tradeoff.

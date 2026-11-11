@@ -1,101 +1,102 @@
 rem Poohsticks Marathon
 rem https://projecteuler.net/problem=589
-
 use numbers
 use sequences
+use linalg
+use algo
 use io
 use cli
-
 arg K integer = 100
 arg D integer = 5
 
-rem For times n .. m let u = n + D,
-rem v = m + D, q = m - n + 1. The
-rem expected rest X(r), Y(r) of a race
-rem with gap r in the even and the lead
-rem phase obey a linear system (Xb, Yb
-rem the means over u .. v). Gaussian
-rem elimination without pivoting solves
-rem it (I minus a substochastic matrix);
-rem E follows from the opening times.
-Answer = 0.0
-for M in 2 to K
-  for Nn in 1 till M
-    U = Nn + D
-    V = M + D
-    Q = M - Nn + 1
-    Sz = 2 * V + 2
-    Wx = 2 * V
-    Wy = Wx + 1
-    Wd = Sz + 1
-    Aa = array shape Sz Wd fill 0.0
-    Iq = 1.0 / Q
-    for R in 1 to V
-      Ix = R - 1
-      Iy = V + R - 1
-      Aa Ix Ix = 1.0
-      Aa Iy Iy = 1.0
-      Hi = V min (R - 1)
-      Cs = 0.0
-      for T in U to Hi
-        Cj = V + R - T - 1
-        Aa Ix Cj -= Iq
-        Cs += T
-      end
-      InR = R at least U
-      InR = InR and (R at most V)
-      if InR
-        Aa Ix Wx -= Iq
-        Aa Iy Wy -= Iq
-        Cs += R
-      end
-      Lo = U max (R + 1)
-      for T in Lo to V
-        Cj = V + T - R - 1
-        Aa Ix Cj -= Iq
-        Cj = T - R - 1
-        Aa Iy Cj -= Iq
-        Cs += R
-      end
-      Aa Ix Sz = Cs * Iq
-      Aa Iy Sz = Cs * Iq
-    end
-    Aa Wx Wx = 1.0
-    Aa Wy Wy = 1.0
-    for R in U to V
-      Aa Wx (R - 1) = 0.0 - Iq
-      Aa Wy (V + R - 1) = 0.0 - Iq
-    end
-    for C in 0 till Sz
-      Pv = Aa C C
-      for R in C + 1 till Sz
-        F = (Aa R C) / Pv
-        if F not equal 0.0
-          for J in C to Sz
-            Aa R J -= F * (Aa C J)
-          end
-        end
-      end
-    end
-    Xs = array shape Sz fill 0.0
-    for C in Sz - 1 to 0 by -1
-      S = Aa C Sz
-      for J in C + 1 till Sz
-        S = S - (Aa C J) * (Xs J)
-      end
-      Xs C = S / (Aa C C)
-    end
-    Xb = Xs Wx
-    Ep = 0.0
-    Tot = 0.0
-    for A in Nn to M
-      for B in A + 1 to M
-        Ep += A + Xs (V + B - A - 1)
-      end
-      Tot += A + Xb
-    end
-    Answer += (2 * Ep + Tot) * Iq * Iq
-  end
+rem Sum expected minima without a scan.
+fun X cost_sum U Q
+  Cut = X - U max 0
+  Triangle = X * (X + 1) / 2.0
+  Subtract = Cut * (Cut + 1) * (Cut + 2)
+  return Triangle - Subtract / (6.0 * Q)
 end
+
+rem Eliminate X and both means first.
+rem The remaining system has V rows.
+fun M expectation N rank 0 0
+  V = M + D
+  R = 1 to V copy
+  U = N + D
+  Q = M - N + 1
+  Rate = 1.0 / Q
+  Cube = 2.0 * Rate * Rate * Rate
+  Scale = Cube / (Q - 1)
+  First = U * 1.0
+  Last = V * 1.0
+  Width = Q * 1.0
+  fun Row coefficient Column
+    Small = Row min Column
+    Large = Row max Column
+    LowerBound = First - Small max 1.0
+    End = Last - Large
+    Extent = End - LowerBound + 1.0
+    Overlap = Extent max 0.0
+    Distance = Width - Row
+    Corner = Distance - Column max 0.0
+    Left = Row at least First integer
+    High = Column at least First integer
+    H = Left * High
+    Count = Overlap + Corner + H
+    LeftTail = Distance max 0.0
+    RightTail = Width - Column max 0.0
+    Cross = LeftTail * RightTail
+    Diagonal = Row equal Column integer
+    Scaled = Count * Rate * Rate
+    Correction = Cross * Scale
+    Main = Diagonal - Scaled
+    return Main - Correction
+  end
+  rem Homogeneous real min/max operands.
+  Real = R * 1.0
+  Rows = Real reshape V 1
+  Matrix = Rows coefficient Real
+  Tail = Q - R max 0
+  Cut = R - U max 0
+  Penalty = Cut * (Cut + 1) * Rate
+  Cost = R - Penalty / 2.0
+  Average = Q * (U + V) / 2.0
+  Spread = (Q * Q - 1) / 6.0
+  SumCost = Average - Spread
+  Upper = V - R
+  Lower = U - R - 1 max 0
+  HighCost = Upper cost_sum U Q
+  LowCost = Lower cost_sum U Q
+  Mean = (HighCost - LowCost) * Rate
+  Boost = SumCost * Rate * Rate
+  Extra = Boost / (Q - 1)
+  Right = Cost + Mean + Tail * Extra
+  Lead = Matrix solve Right
+  Dot = Tail matmul Lead
+  Dot *= 2.0 * Rate
+  Even = (SumCost + Dot) / (Q - 1.0)
+  Gaps = 1 till Q copy
+  Early = Lead (0 till Q - 1)
+  Terms = (Q - Gaps) * Early
+  Future = Terms sum
+  Steps = (Q - 1) * (2 * Q - 1)
+  Opening = N + Steps / (6.0 * Q)
+  Rest = 2 * Future + Q * Even
+  return Opening + Rest * Rate * Rate
+end
+
+rem Expand pairs without nested loops.
+High = 2 to K copy
+Lengths = High - 1
+Ends = Lengths scan +
+Starts = Ends - Lengths
+Size = Lengths sum
+Slots = 0 till Size copy
+Owners = Ends upperindex Slots
+Low = Slots - Starts Owners + 1
+High = High Owners
+Values = High expectation Low
+Total = Values sum
+Answer = 0.0 + Total
 Answer = Answer round 2
 Answer print

@@ -10,7 +10,7 @@ const unshape = (node: NumericNode): NumericNode => node.kind === 'reshape' ? un
 export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<NumericNode, NumericBound>, scalarSlots: ReadonlyMap<NumericNode, number>): string | undefined {
     if (roots.every(root => !bound.get(root)!.shape.length)) return emitReductions(roots, bound, scalarSlots);
     if ([...bound.keys()].some(node => !scalarSlots.has(node) && (node.kind === 'choose' || node.kind === 'sum'
-        || node.kind === 'binary' && !['+', '-', '*', '/', '//', 'band', 'bor', 'bxor', 'min', 'max'].includes(node.op)))) return undefined;
+        || node.kind === 'binary' && !['+', '-', '*', '/', '//', 'band', 'bor', 'bxor', 'min', 'max', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(node.op)))) return undefined;
     const sources = roots.map(unshape);
     const first = sources[0], concat = first.kind === 'concat' ? first : undefined;
     const common = concat && sources.every(n => n.kind === 'concat' && n.axis === concat.axis && n.sources.length === concat.sources.length
@@ -60,6 +60,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
             lines.push(`if (${value} < 0) return false;`);
             expression = `isqrt(${value})`;
         }
+        else if (node.kind === 'integer') expression = `Number(${emit(node.source, index)})`;
         else if (node.kind === 'math') expression = `Math.${node.op}(${emit(node.source, index)})`;
         else if (node.kind === 'binary') {
             const a = emit(node.left, broadcast(index, info.shape, bound.get(node.left)!.shape));
@@ -68,7 +69,7 @@ export function emitNumericFunction(roots: NumericNode[], bound: ReadonlyMap<Num
         } else throw new Error('unsupported numeric function node');
         const name = `v${serial++}`;
         let entries = emitted.get(node); if (!entries) emitted.set(node, entries = new Map()); entries.set(index, name);
-        lines.push(`let ${name} = ${expression}; if (!${info.integer ? 'Number.isSafeInteger' : 'Number.isFinite'}(${name})) return false;`);
+        lines.push(`let ${name} = ${expression}; ${info.boolean ? '' : `if (!${info.integer ? 'Number.isSafeInteger' : 'Number.isFinite'}(${name})) return false;`}`);
         if (info.integer) lines.push(`if (${name} === 0) ${name} = 0;`);
         return name;
     }

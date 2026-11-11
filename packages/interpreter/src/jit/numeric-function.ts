@@ -21,7 +21,7 @@ import { emitNumericFunction, type NumericRun } from './numeric-function-codegen
 export type NumericNode = { kind: 'input'; name: string } | { kind: 'constant'; value: number; integer: boolean }
     | { kind: 'unary'; op: string; child: NumericNode }
     | { kind: 'binary'; op: string; left: NumericNode; right: NumericNode }
-    | { kind: 'length'; source: NumericNode } | { kind: 'sqrt'; source: NumericNode } | { kind: 'sum'; source: NumericNode }
+    | { kind: 'integer'; source: NumericNode } | { kind: 'length'; source: NumericNode } | { kind: 'sqrt'; source: NumericNode } | { kind: 'sum'; source: NumericNode }
     | { kind: 'math'; op: 'sqrt' | 'asin' | 'log' | 'exp'; source: NumericNode }
     | { kind: 'choose'; condition: NumericNode; yes: NumericNode; no: NumericNode }
     | { kind: 'range'; start: NumericNode; end: NumericNode; inclusive: boolean }
@@ -100,13 +100,19 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
     if ([...statement.leftBindings, ...statement.rightBindings].some(p => p.deferred || typeof p.name !== 'string')) return declineCompiler('deferred-or-functional-parameter', statement);
     const parameters = new Set(statement.parameters);
     if (parameters.size !== statement.parameters.length) return declineCompiler('duplicate-parameter', statement);
+    const captures = new Set<string>();
     const definitions = new Map<string, NumericNode>(), assignments: { name: string; node: NumericNode }[] = [];
     const builtins = new Set<string>();
-    let structural = false, budget = 512;
+    let budget = 512;
     function parse(expression: Expression): NumericNode | undefined {
         if (--budget < 0) return declineCompiler('expression-budget', expression);
         const e = unwrap(expression);
-        if (isNameExpression(e)) return definitions.get(e.name) ?? (parameters.has(e.name) ? { kind: 'input', name: e.name } : undefined);
+        if (isNameExpression(e)) {
+            const defined = definitions.get(e.name);
+            if (defined) return defined;
+            if (!parameters.has(e.name)) captures.add(e.name);
+            return { kind: 'input', name: e.name };
+        }
         if (isNumberLiteral(e)) {
             const value = Number(e.value), integer = typeof e.value === 'bigint';
             return Number.isFinite(value) && (!integer || safe(value)) ? { kind: 'constant', value, integer } : undefined;
@@ -120,7 +126,6 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
             const left = parse(e.left), right = parse(e.right);
             if (!left || !right) return undefined;
             if (e.operator === 'till' || e.operator === 'to') {
-                structural = true;
                 return { kind: 'range', start: left, end: right, inclusive: e.operator === 'to' };
             }
             if (['+', '-', '*', '/', '//', 'mod', 'equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(e.operator)) return { kind: 'binary', op: e.operator, left, right };
@@ -131,7 +136,7 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                 const source = parse(form.source);
                 const dimensions = form.dimensions.map(part => isAllAxisExpression(part) ? undefined : parse(part));
                 if (!source || dimensions.some((d, i) => !d && !isAllAxisExpression(form.dimensions[i]))) return undefined;
-                builtins.add('reshape'); structural = true;
+                builtins.add('reshape');
                 return { kind: 'reshape', source, dimensions };
             }
             if (form.kind === 'array-combine-constructor' && form.operation === 'concat' && !form.rest.length) {
@@ -139,7 +144,7 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                 if (axis && (!isNumberLiteral(axis) || typeof axis.value !== 'bigint' || axis.value < 0n || axis.value > 15n)) return undefined;
                 const sources = form.items.map(parse);
                 if (!sources.length || sources.some(s => !s)) return undefined;
-                builtins.add('concat'); structural = true;
+                builtins.add('concat');
                 return { kind: 'concat', sources: sources as NumericNode[], axis: axis ? Number(axis.value) : 0 };
             }
             const parts = flattenApplication(e);
@@ -154,19 +159,16 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                 return condition && yes && no ? { kind: 'choose', condition, yes, no } : undefined;
             }
             const tail = e.arguments.length === 1 ? e.arguments[0] : undefined;
-            if (tail && isNameExpression(tail) && ['sum', 'isqrt', 'sqrt', 'asin', 'log', 'exp', 'copy', 'len'].includes(tail.name)) {
+            if (tail && isNameExpression(tail) && ['sum', 'isqrt', 'sqrt', 'asin', 'log', 'exp', 'copy', 'len', 'integer'].includes(tail.name)) {
                 const source = parse(e.head), word = tail.name;
                 builtins.add(word); if (['sqrt', 'asin', 'log', 'exp'].includes(word)) {
-                    structural = true;
                     return source ? { kind: 'math', op: word as 'sqrt' | 'asin' | 'log' | 'exp', source } : undefined;
                 }
-                if (word === 'sum') structural = true;
-                return source && (word === 'copy' ? source : { kind: word === 'isqrt' ? 'sqrt' : word === 'len' ? 'length' : 'sum', source });
+                return source && (word === 'copy' ? source : { kind: word === 'isqrt' ? 'sqrt' : word === 'len' ? 'length' : word === 'integer' ? 'integer' : 'sum', source });
             }
             if (parts.length === 2) {
                 const source = parse(parts[0]), indices = parse(parts[1]);
                 if (!source || !indices) return undefined;
-                structural = true;
                 return { kind: 'gather', source, indices };
             }
         }
@@ -186,7 +188,6 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
             }
             const source = parse(expression);
             if (!source || new Set(command.names).size !== command.names.length) return undefined;
-            structural = true;
             for (const [position, name] of command.names.entries()) if (name !== '#' && !name.includes('.')) {
                 const node: NumericNode = { kind: 'slice', source, axis, position, count: command.names.length };
                 definitions.set(name, node); assignments.push({ name, node });
@@ -200,7 +201,7 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
     const expressions = product || arrayResult ? returned.items.map(item => item.value) : [returned];
     if (!expressions.length || expressions.length > 8) return declineCompiler('result-count-budget', returned);
     const outputs = expressions.map(parse);
-    if (!structural) return declineCompiler('structural-array-operation-required', returned);
+    if (assignments.some(a => captures.has(a.name))) return declineCompiler('unsupported-forward-or-written-capture', statement);
     if (outputs.some(n => !n)) return declineCompiler('unsupported-result-expression', returned);
     if ([...builtins].some(name => parameters.has(name) || assignments.some(a => a.name === name))) return declineCompiler('shadowed-builtin', statement);
     const roots = outputs as NumericNode[];
@@ -226,7 +227,7 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
         else if (node.kind === 'range') { demand(node.start); demand(node.end); }
         else if (node.kind === 'gather') { demand(node.source); demand(node.indices); }
         else if (node.kind === 'choose') { demand(node.condition); demand(node.yes); demand(node.no); }
-        else if (node.kind === 'sum' || node.kind === 'sqrt' || node.kind === 'math') demand(node.source);
+        else if (node.kind === 'sum' || node.kind === 'sqrt' || node.kind === 'math' || node.kind === 'integer') demand(node.source);
         else if (node.kind === 'concat') node.sources.forEach(demand);
         else if (node.kind === 'reshape' || node.kind === 'slice') demand(node.source);
         // len and reshape dimensions demand metadata, not computed source cells.
@@ -259,8 +260,9 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
             if (typeof value === 'bigint' && safe(Number(value))) info = { shape: [], size: 1, integer: true, scalar: Number(value), low: Number(value), high: Number(value) };
             else if (typeof value === 'number' && Number.isFinite(value)) info = { shape: [], size: 1, integer: false, scalar: value };
             else {
+                if (captures.has(name)) return bad('captured-scalar-guard');
                 const input = buffer ?? borrowNumericBuffer(value);
-                if (!input) return bad(`input-storage:${name}`);
+                if (!input) return bad(`input-storage-guard:${name}`);
                 info = { shape: input.shape, size: input.cells.length, integer: input.integer, low: input.low, high: input.high, data: data.length };
                 data.push(input.cells);
             }
@@ -338,6 +340,10 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
             else if (node.kind === 'length') {
                 const source = bind(node.source); if (!source.shape.length) return bad();
                 info = { shape: [], size: 1, integer: true, scalar: source.shape[0], low: source.shape[0], high: source.shape[0] };
+            } else if (node.kind === 'integer') {
+                const source = bind(node.source);
+                if (!source.integer && !source.boolean) return bad();
+                info = { ...source, integer: true, boolean: false, data: undefined };
             } else if (node.kind === 'math') {
                 const source = bind(node.source);
                 if (source.boolean) return bad();
@@ -380,6 +386,7 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                 const shape = b ? broadcastShape(a.shape, b.shape) : a.shape;
                 const comparison = ['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast'].includes(node.op);
                 if (a.boolean || b?.boolean) return bad();
+                if (b && ['min', 'max'].includes(node.op) && a.integer !== b.integer) return bad();
                 const integer = a.integer && (!b || b.integer) && node.op !== '/';
                 info = { shape, size: sizeOf(shape), integer, ...(comparison ? { boolean: true } : {}) };
                 if (b && ['band', 'bor', 'bxor'].includes(node.op)) {
@@ -392,7 +399,6 @@ function compileNumericFunctionObservedImplementation(statement: FunctionStateme
                         : 2 ** Math.ceil(Math.log2(Math.max(a.high!, b.high!) + 1)) - 1;
                     if (!shape.length) info.scalar = binary(node.op, a.scalar!, b.scalar!);
                 } else if (comparison) {
-                    if (!integer) return bad();
                     info.low = 0; info.high = 1;
                 } else if (!shape.length && a.scalar !== undefined && (!b || b.scalar !== undefined)) {
                     // A safe remainder can still have an unsafe quotient product.

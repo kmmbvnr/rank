@@ -7746,12 +7746,12 @@ exports[`executable compiler capability matrix > function/operator 1`] = `
 {
   "boundaries": [
     {
-      "category": "failed-proof",
-      "reason": "numeric-function:structural-array-operation-required",
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-expression",
     },
     {
       "category": "missing-lowering",
-      "reason": "numeric-function:unsupported-expression",
+      "reason": "numeric-function:unsupported-result-expression",
     },
     {
       "category": "failed-proof",
@@ -15635,8 +15635,8 @@ exports[`executable compiler capability matrix > values/text-queue 1`] = `
 {
   "boundaries": [
     {
-      "category": "failed-proof",
-      "reason": "numeric-function:structural-array-operation-required",
+      "category": "runtime-guard",
+      "reason": "numeric-function:input-storage-guard:Store",
     },
     {
       "category": "missing-lowering",
@@ -15700,6 +15700,10 @@ exports[`executable compiler capability matrix > values/text-queue 1`] = `
 exports[`executable compiler capability matrix > values/tuple-result 1`] = `
 {
   "boundaries": [
+    {
+      "category": "runtime-guard",
+      "reason": "numeric-function:captured-scalar-guard",
+    },
     {
       "category": "failed-proof",
       "reason": "scalar-entry:function-proof-unavailable",

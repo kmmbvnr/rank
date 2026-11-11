@@ -1,3 +1,4 @@
+import { solveStoredReals } from '../runtime/real-linear-solve.js';
 import { resolveAxis } from '../tensor-index.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { copyArrayStorage } from '../array-copy.js';
@@ -383,6 +384,8 @@ export function solveLinearSystem(coefficients: RankValue, right: RankValue): Ra
             'DimensionMismatch',
         );
     }
+    const direct = solveStoredReals(coefficients, right);
+    if (direct) return direct;
     const columns = right.shape.length === 1 ? 1 : right.shape[1];
     const matrix = numericRows(coefficients, size, size, 'coefficient');
     const values = numericRows(right, size, columns, 'right-side');

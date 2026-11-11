@@ -1,0 +1,1016 @@
+{
+  "base": "e397b730025316bae9a443463dc395389104998f",
+  "date": "2026-11-11",
+  "method": "Three alternating fresh-process old/new source pairs per lane; runtime controls are single samples; captured-array controls are three alternating pairs. No other test/build/Node work ran on the same benchmark host.",
+  "hosts": {
+    "mac": {
+      "primary": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 3247.701125,
+          "cpu": {
+            "user": 3458472,
+            "system": 22814
+          },
+          "rssMiB": 214.984375,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "old",
+          "load": [
+            1.3212890625,
+            1.392578125,
+            1.81640625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 2402.572583,
+          "cpu": {
+            "user": 3741518,
+            "system": 55828
+          },
+          "rssMiB": 541.671875,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            1.53564453125,
+            1.435546875,
+            1.8291015625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 3264.947791,
+          "cpu": {
+            "user": 3423971,
+            "system": 21474
+          },
+          "rssMiB": 202.40625,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "old",
+          "load": [
+            1.65283203125,
+            1.46142578125,
+            1.8359375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 2416.3205000000003,
+          "cpu": {
+            "user": 3767307,
+            "system": 57024
+          },
+          "rssMiB": 548.40625,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            1.65283203125,
+            1.46142578125,
+            1.8359375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 3324.8117500000003,
+          "cpu": {
+            "user": 3500792,
+            "system": 22071
+          },
+          "rssMiB": 213.109375,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "old",
+          "load": [
+            1.76025390625,
+            1.48681640625,
+            1.84228515625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 2431.720084,
+          "cpu": {
+            "user": 3799334,
+            "system": 55628
+          },
+          "rssMiB": 549.78125,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            1.69921875,
+            1.478515625,
+            1.8369140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 2953.604584,
+          "cpu": {
+            "user": 3279425,
+            "system": 29786
+          },
+          "rssMiB": 308.59375,
+          "answer": "402964.24",
+          "trial": 0,
+          "label": "old",
+          "load": [
+            1.69921875,
+            1.478515625,
+            1.8369140625
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 293.81208300000003,
+          "cpu": {
+            "user": 593287,
+            "system": 15010
+          },
+          "rssMiB": 247.828125,
+          "answer": "402964.24",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            1.72314453125,
+            1.48681640625,
+            1.83740234375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 2938.265833,
+          "cpu": {
+            "user": 3263565,
+            "system": 28732
+          },
+          "rssMiB": 304.171875,
+          "answer": "402964.24",
+          "trial": 1,
+          "label": "old",
+          "load": [
+            1.72314453125,
+            1.48681640625,
+            1.83740234375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 298.009041,
+          "cpu": {
+            "user": 600375,
+            "system": 15175
+          },
+          "rssMiB": 252.234375,
+          "answer": "402964.24",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            1.72314453125,
+            1.48681640625,
+            1.83740234375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 2918.778292,
+          "cpu": {
+            "user": 3247901,
+            "system": 30339
+          },
+          "rssMiB": 309.203125,
+          "answer": "402964.24",
+          "trial": 2,
+          "label": "old",
+          "load": [
+            1.6650390625,
+            1.478515625,
+            1.83203125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 297.051667,
+          "cpu": {
+            "user": 602544,
+            "system": 14712
+          },
+          "rssMiB": 248.328125,
+          "answer": "402964.24",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            1.6650390625,
+            1.478515625,
+            1.83203125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 5298.67825,
+          "cpu": {
+            "user": 7648821,
+            "system": 128691
+          },
+          "rssMiB": 803.515625,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            1.6650390625,
+            1.478515625,
+            1.83203125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 5280.666667,
+          "cpu": {
+            "user": 7564412,
+            "system": 111163
+          },
+          "rssMiB": 787.6875,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            1.69140625,
+            1.48681640625,
+            1.8330078125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 5443.347084,
+          "cpu": {
+            "user": 7866322,
+            "system": 120763
+          },
+          "rssMiB": 790.96875,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            1.9560546875,
+            1.544921875,
+            1.8515625
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 7199.542333,
+          "cpu": {
+            "user": 10383701,
+            "system": 136894
+          },
+          "rssMiB": 765.140625,
+          "answer": "131776959.25",
+          "label": "old-runtime",
+          "section": "same-new-source",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/euler447-delivery/.bench-runtime/euler589-before",
+          "ms": 97.94187499999998,
+          "rssMiB": 250.4375,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "current",
+          "ms": 41.89716699999997,
+          "rssMiB": 189.515625,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/euler447-delivery/.bench-runtime/euler589-before",
+          "ms": 97.83095800000004,
+          "rssMiB": 268.78125,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "current",
+          "ms": 40.406667,
+          "rssMiB": 196.359375,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/euler447-delivery/.bench-runtime/euler589-before",
+          "ms": 97.40604200000001,
+          "rssMiB": 269.234375,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "runtime": "current",
+          "ms": 41.56595899999999,
+          "rssMiB": 196.65625,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            2.98046875,
+            1.7939453125,
+            1.9345703125
+          ]
+        }
+      ],
+      "delivery_smoke": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 2396.4977089999998,
+          "cpu": {
+            "user": 3749010,
+            "system": 63948
+          },
+          "rssMiB": 548.75,
+          "answer": "131776959.25"
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "arm64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 5322.098999999999,
+          "cpu": {
+            "user": 7572523,
+            "system": 136466
+          },
+          "rssMiB": 803.171875,
+          "answer": "131776959.25"
+        }
+      ]
+    },
+    "intel": {
+      "primary": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 7545.645652,
+          "cpu": {
+            "user": 7929860,
+            "system": 26183
+          },
+          "rssMiB": 198.37890625,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "old",
+          "load": [
+            0.10009765625,
+            0.2470703125,
+            1.03857421875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 7656.704059000001,
+          "cpu": {
+            "user": 10800089,
+            "system": 277061
+          },
+          "rssMiB": 502.52734375,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            0.23876953125,
+            0.2724609375,
+            1.03759765625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 7662.641649,
+          "cpu": {
+            "user": 7981639,
+            "system": 60428
+          },
+          "rssMiB": 210.6484375,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "old",
+          "load": [
+            0.35595703125,
+            0.296875,
+            1.03662109375
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 7702.513838,
+          "cpu": {
+            "user": 10950390,
+            "system": 212575
+          },
+          "rssMiB": 498.765625,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            0.40771484375,
+            0.30859375,
+            1.0361328125
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 8078.765410999999,
+          "cpu": {
+            "user": 8418555,
+            "system": 67106
+          },
+          "rssMiB": 198.59765625,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "old",
+          "load": [
+            0.5732421875,
+            0.34814453125,
+            1.041015625
+          ]
+        },
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 7585.4020470000005,
+          "cpu": {
+            "user": 10719260,
+            "system": 168903
+          },
+          "rssMiB": 484.41796875,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            0.607421875,
+            0.359375,
+            1.04052734375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 10171.332222,
+          "cpu": {
+            "user": 10804401,
+            "system": 113169
+          },
+          "rssMiB": 282.45703125,
+          "answer": "402964.24",
+          "trial": 0,
+          "label": "old",
+          "load": [
+            0.66845703125,
+            0.380859375,
+            1.03955078125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 888.5427000000001,
+          "cpu": {
+            "user": 1483908,
+            "system": 52313
+          },
+          "rssMiB": 222.09765625,
+          "answer": "402964.24",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            0.7197265625,
+            0.40185546875,
+            1.03857421875
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 11732.592327999999,
+          "cpu": {
+            "user": 12392417,
+            "system": 111728
+          },
+          "rssMiB": 282.25390625,
+          "answer": "402964.24",
+          "trial": 1,
+          "label": "old",
+          "load": [
+            0.7197265625,
+            0.40185546875,
+            1.03857421875
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 893.264181,
+          "cpu": {
+            "user": 1494961,
+            "system": 71307
+          },
+          "rssMiB": 223.71484375,
+          "answer": "402964.24",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            0.7822265625,
+            0.431640625,
+            1.037109375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "benchmarks/fixtures/euler589-original.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "27432d269ad0dcb80bee10e52f61291bcc2cdafa340bf37a05c76e892c589f95",
+          "ms": 10166.219969,
+          "cpu": {
+            "user": 10829331,
+            "system": 107035
+          },
+          "rssMiB": 286.62890625,
+          "answer": "402964.24",
+          "trial": 2,
+          "label": "old",
+          "load": [
+            0.7822265625,
+            0.431640625,
+            1.037109375
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "20",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 871.065908,
+          "cpu": {
+            "user": 1460340,
+            "system": 69392
+          },
+          "rssMiB": 224.73828125,
+          "answer": "402964.24",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            0.81591796875,
+            0.45068359375,
+            1.0361328125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 16025.321614999999,
+          "cpu": {
+            "user": 21766375,
+            "system": 154805
+          },
+          "rssMiB": 374.85546875,
+          "answer": "131776959.25",
+          "trial": 0,
+          "label": "new",
+          "load": [
+            0.81591796875,
+            0.45068359375,
+            1.0361328125
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 15901.309342999999,
+          "cpu": {
+            "user": 21682952,
+            "system": 185514
+          },
+          "rssMiB": 371.640625,
+          "answer": "131776959.25",
+          "trial": 1,
+          "label": "new",
+          "load": [
+            0.869140625,
+            0.4873046875,
+            1.0341796875
+          ]
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 16225.517154,
+          "cpu": {
+            "user": 21884955,
+            "system": 214380
+          },
+          "rssMiB": 374.0546875,
+          "answer": "131776959.25",
+          "trial": 2,
+          "label": "new",
+          "load": [
+            1.119140625,
+            0.5625,
+            1.04931640625
+          ]
+        }
+      ],
+      "controls": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 18697.320411,
+          "cpu": {
+            "user": 25413797,
+            "system": 199612
+          },
+          "rssMiB": 368.83203125,
+          "answer": "131776959.25",
+          "label": "old-runtime",
+          "section": "same-new-source",
+          "load": [
+            1.45458984375,
+            0.69482421875,
+            1.07373046875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "/root/rank578-bench/.bench-runtime/euler589-before",
+          "ms": 262.07134299999996,
+          "rssMiB": 234.30078125,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.45458984375,
+            0.69482421875,
+            1.07373046875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "current",
+          "ms": 127.23979699999995,
+          "rssMiB": 168.88671875,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.41796875,
+            0.7001953125,
+            1.0732421875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "/root/rank578-bench/.bench-runtime/euler589-before",
+          "ms": 262.80887499999994,
+          "rssMiB": 233.1171875,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.41796875,
+            0.7001953125,
+            1.0732421875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "current",
+          "ms": 127.27177699999993,
+          "rssMiB": 176.59765625,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.41796875,
+            0.7001953125,
+            1.0732421875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "/root/rank578-bench/.bench-runtime/euler589-before",
+          "ms": 262.69881,
+          "rssMiB": 235.93359375,
+          "label": "old-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.41796875,
+            0.7001953125,
+            1.0732421875
+          ]
+        },
+        {
+          "mode": "compiled",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "runtime": "current",
+          "ms": 126.01559400000008,
+          "rssMiB": 168.22265625,
+          "label": "new-runtime",
+          "section": "captured-array-functions",
+          "load": [
+            1.41796875,
+            0.7001953125,
+            1.0732421875
+          ]
+        }
+      ],
+      "delivery_smoke": [
+        {
+          "mode": "compiled",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 7625.294611,
+          "cpu": {
+            "user": 10844887,
+            "system": 174959
+          },
+          "rssMiB": 503.7109375,
+          "answer": "131776959.25"
+        },
+        {
+          "mode": "reference",
+          "k": "100",
+          "d": "5",
+          "file": "demos/euler/589_poohsticks.ra",
+          "node": "v24.15.0",
+          "arch": "x64",
+          "sourceSha256": "eea46ef3f8fe49760408983dd7f8ec902fd1c83af25d410139aa29eba8d1fb52",
+          "ms": 15548.390647999999,
+          "cpu": {
+            "user": 21215130,
+            "system": 202065
+          },
+          "rssMiB": 369.91015625,
+          "answer": "131776959.25"
+        }
+      ]
+    }
+  },
+  "runtime_sha256": {
+    "jit/numeric-function.js": "2ae543b170f002258b5750a3c7f9c65d239eb8daffd15cfb39642c6294b6ef95",
+    "runtime/real-linear-solve.js": "70c0328ae2adf6e1fb90c8d3bae70ea4e36ff0cb6cfed41f5a00c1aceb934616"
+  },
+  "delivery_changes_after_measurement": [
+    "Integrated c57fc859 synchronous array constructors",
+    "Optional weak scratch reuse disabled when WeakRef is unavailable"
+  ],
+  "delivery_base": "c57fc859ecadf0b4365f985887288088989ba0cd",
+  "delivery_runtime_sha256": {
+    "jit/numeric-function.js": "2ae543b170f002258b5750a3c7f9c65d239eb8daffd15cfb39642c6294b6ef95",
+    "runtime/real-linear-solve.js": "84af5671ec819caa3c1940c2badde8b4e96e7e0f2db4d1fb430ede3a2300e094"
+  }
+}
