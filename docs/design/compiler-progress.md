@@ -4420,3 +4420,70 @@ example). These observations are performance findings, separate from coverage
 and semantic correctness. The JSON retains all samples and first-execution
 preparation probes; the latter are single observations rather than confidence
 intervals for compilation latency.
+
+### Generated composition (#565, workstream 11)
+
+The ordinary interpreter suite includes `generated-composition.test.ts`: 64
+bounded programs from seed 565, plus generator/reducer self-tests. The typed
+recursive grammar lives in `test/generated-composition/grammar.ts`. Integer
+expressions compose array ranks 1–3, empty cells, reductions, ranked helpers,
+records, queues, copy-on-write snapshots, deferred rebinding, direct/higher-order
+calls, lexical captures, branches, bounded loops with break/continue, protected
+returns/effects and generator suspension. Record results also carry boolean and
+text fields. Safe-integer boundary literals allow generated arithmetic to cross
+Number's exactness boundary without making inputs unbounded.
+
+Each program is checked against interpretation in ordinary and traced compiled
+execution. Snapshots preserve array shape, value domain, record fields and queue
+contents, and comparisons include output order and errors. A reference error is
+an invalid-generator failure, never a silently accepted or skipped program.
+Deliberate type-changing assignment errors have a separate regression check.
+Tracing must also preserve runtime counters. Executed compiler counters are
+reported separately from syntactic feature and feature-pair coverage; the latter
+does not prove that every branch or operation ran through generated code.
+
+Two metamorphic variants extract a pure scalar subtree into a helper with an
+explicit input, or introduce a local binding. Both variants must preserve the
+reference outcome in all three modes. Generated functions are declared in legal
+scopes, and lazy plans are rebound without mutating a source they keep read-only.
+The grammar is deterministic for a seed and has bounded depth, shapes and loop
+counts. It does not cover all Rank syntax, arbitrary host I/O, recursive graphs,
+all numeric/container domains or all combinations; future productions can extend
+it without claiming exhaustive language coverage.
+
+After building language dependencies, run:
+
+```sh
+npm run test:generated -- --seed 565 --count 64
+npm run test:generated -- --seed 1 --count 256 \
+  --report /tmp/generated.json \
+  --failures /tmp/rank-generated
+npm run test:generated -- --seed 1 --case 17
+```
+
+The dedicated command uses the package's ordinary test runner and enforces a
+120-second process-tree deadline (override with `--timeout`, at most ten minutes).
+The normal CI suite already picks up the small default file; larger searches are
+explicit and separate from demo-wide differential/type audits. The report lists
+verified cases, grammar combinations, feature pairs and observed compiled entries.
+A nonzero process exit remains authoritative; a partial report is not a pass.
+
+On a mismatch, up to 100 domain-preserving reduction attempts remove wrappers,
+subexpressions or queue entries and reduce literals/shapes/loop counts. A candidate
+must retain the original mismatch category; a parser/type error cannot replace a
+compiler/value/effect failure. Both the reduced reference and failing sources,
+original/minimized trees, seed, case index and outcomes are saved. The reducer
+self-test injects a compiler-only extra effect and proves it is detected and
+reduced; that injected fault is not reported as a real compiler defect. Real
+findings should be checked in as reduced regressions before the corresponding
+compiler fix is considered complete.
+
+Validation evidence is in `benchmarks/generated-composition-results.json`, with
+source hashes and reproducible seeds. Four streams (565, 1, 4294967295, 20261111)
+passed 256 programs each: 1,024 programs and 9,216 variant/mode checks plus baseline
+reference executions. The 64-case default is a subset, not an additional 64 unique
+programs. The dedicated replay command passed for seed 1, case 17. An intentional
+one-second timeout returned failure and left no process in its test process group.
+The final quick suite passed 69 tests; the six existing compiler/effect/budget
+suites passed another 509 tests. TypeScript build passed. No real compiler
+mismatch was found in these runs, and exhaustive demo audits were not run.

@@ -29,7 +29,8 @@
         "bench:tables": "npm run build && node benchmarks/year-tables.mjs",
         "rank": "node packages/cli/bin/cli.js",
         "verify:rust": "node rust/euler/verify.mjs",
-        "test:capabilities": "node packages/interpreter/scripts/capability-matrix.mjs"
+        "test:capabilities": "node packages/interpreter/scripts/capability-matrix.mjs",
+        "test:generated": "node packages/interpreter/scripts/generated-composition.mjs"
     },
     "devDependencies": {
         "@types/node": "~20.19.42",
