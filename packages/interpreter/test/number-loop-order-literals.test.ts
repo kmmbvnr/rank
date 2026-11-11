@@ -53,7 +53,7 @@ it('sorts a private arithmetic stage and preserves the source', () => {
 it('orders empty completed arrays', () => {
     expect(compare(`use sequences\nInput = array shape 0 fill 0\nfor I in 1 to 3\n Order = Input argsort\nend`, 1).state.error).toBeUndefined();
 });
-it.each(['infinity 0.0 -infinity infinity', 'nan 0.0 1.0', '9007199254740993 9007199254740992 1'])('retains the native ordering path for %s', items => {
+it.each(['inf 0.0 -inf inf', 'nan 0.0 1.0', '9007199254740993 9007199254740992 1'])('retains the native ordering path for %s', items => {
     expect(compare(`use numbers\nuse sequences\nInput = array ${items}\nfor I in 1 to 3\n Order = Input argsort\nend`).state.error).toBeUndefined();
 });
 it('completes all sort keys before sorting', () => {

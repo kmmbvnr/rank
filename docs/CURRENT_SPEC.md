@@ -909,13 +909,17 @@ NegativePage = -5 // 2
 rem 2.5, 2, -3
 ```
 
-`infinity` and `-infinity` are real values provided by `use numbers`. They are
-valid for comparisons and arithmetic, but decimal input declarations accept
-only finite real values.
+`inf` and `-inf` are real literals for positive and negative infinity. They
+need no `use`. `-inf` is one literal, so it needs no brackets where a negative
+number would: `Values max by Keys with -inf`, `Grid F 1 -inf` and `-inf relu`
+read it as `(-inf)`, and so does `X-inf`. Only a separate sign, as in
+`X - inf`, subtracts. Printed values use the same spellings. They are valid
+for comparisons and arithmetic, but decimal input declarations accept only
+finite real values.
 
 `nan` from `use numbers` is the IEEE not-a-number real value. It marks a real
 with no numeric value, such as an unknown parameter, and arises from undefined
-real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
+real arithmetic like `inf - inf`. `nan` is unordered: `less`,
 `greater`, `at most`, `at least` and `equal` with it are false, so it does not
 equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
 over arrays and sequences like `even`, and `Params isnan find true` gives its
@@ -3053,7 +3057,7 @@ Prefix = Down till less -10
 rem 0 -1 ... -10
 ```
 
-Numeric `infinity` is not a range endpoint. Elsewhere `#` keeps its existing
+Numeric `inf` is not a range endpoint. Elsewhere `#` keeps its existing
 meanings of whole-axis selection and discarded bindings.
 
 ### Open slice selectors
@@ -4425,7 +4429,7 @@ and `skewness` (`skew`), with their usual module imports. `quantile` and
 
 ```rank
 Values sum by Keys
-Values max by Keys with -infinity
+Values max by Keys with -inf
 use stats
 Values median by Keys
 Values quantile 0.25 by Keys
@@ -5716,7 +5720,7 @@ weights and rejects a negative edge. All three return a record with three fields
 ```rank
 Result = Graph dijkstra Start
 Distance = Result .distance
-Answer = Distance Target default infinity
+Answer = Distance Target default inf
 ```
 
 `Graph components` accepts an undirected graph and returns `.count`, a
@@ -7096,7 +7100,6 @@ factorsieve
 divisors
 min
 max
-infinity
 ```
 
 `mod` with `equal 0` is an elementwise divisibility test and returns a boolean value
@@ -7349,8 +7352,8 @@ maximum. Parenthesize arithmetic operands, as in `0 max (Limit - Used)`.
 A direct alias (`operation = max`) uses `A operation B`, and `max` can still
 be passed to `outer`, `scan`, or `reduce`.
 
-`infinity` is the positive infinite `real` value. Unary negation produces
-`-infinity`.
+Positive and negative infinity are the `inf` and `-inf` literals, which need
+no `use`.
 
 `nan` is the real not-a-number value, printed as `nan`. Every ordering
 comparison and `equal` with it is false. `Value isnan` is a boolean mask over
@@ -9701,7 +9704,7 @@ The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
 Python-style `//`, real `/`, and the binary forms `A min B` and
 `A max B`. Array boundaries are handled explicitly, so the algorithm does not
-need sentinel infinities even though `use numbers` provides `infinity`.
+need the `inf` and `-inf` sentinels.
 
 ## 5. Longest Palindromic Substring
 

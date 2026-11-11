@@ -115,7 +115,7 @@ export class BuiltinRegistry {
             .map(([module]) => `use ${module}`);
         const hint = providers.length > 0
             ? `; did you forget ${providers.map(provider => `\`${provider}\``).join(' or ')}?`
-            : '';
+            : name === 'infinity' ? '; write `inf` or `-inf`' : '';
         return new RankError(name === 'scan' && !hint
             ? 'scan needs an operator, e.g. Range scan + with 0'
             : `unknown name: ${name}${hint}`);

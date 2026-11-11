@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1671
 use algo
 use graph
 use io
-use numbers
 use sequences
 
 NodeCount = stdin .integer
@@ -26,7 +25,7 @@ Distances print
 rem Find distances from node one.
 fun Graph shortest NodeCount
   Size = NodeCount + 1
-  Dist = array shape Size fill infinity
+  Dist = array shape Size fill inf
   Dist 1 = 0
   Pending = new heap
   Item = array 1 0

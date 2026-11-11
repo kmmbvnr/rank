@@ -42,7 +42,7 @@ fun X Y Classifiers adaboost_fit
       .feature = 0
       .alpha = 0.0
     end
-    MinError = infinity
+    MinError = inf
 
     for Feature in 0 till Features
       Column' = X # Feature

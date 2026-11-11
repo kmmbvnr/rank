@@ -379,8 +379,8 @@ Graph add 1 3 5
 Graph add 2 3 (-2)
 Result = Graph bellmanford 1
 Distance = Result .distance
-tuple (Distance 3) ((Result .negative) len) (Distance 4 default infinity)
-`)).toBe('2 0 infinity');
+tuple (Distance 3) ((Result .negative) len) (Distance 4 default inf)
+`)).toBe('2 0 inf');
     });
 
     it('marks vertices after reachable negative cycles', () => {
@@ -493,8 +493,8 @@ Graph add 2 3 (-2)
 Graph add 1 3 9
 Result = Graph floyd
 Distance = Result .distance
-tuple (Distance 1 3) (Distance 3 1 default infinity) ((Result .negative) len)
-`)).toBe('3 infinity 0');
+tuple (Distance 1 3) (Distance 3 1 default inf) ((Result .negative) len)
+`)).toBe('3 inf 0');
     });
 
     it('builds a minimum spanning tree', () => {

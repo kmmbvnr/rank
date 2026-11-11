@@ -40,7 +40,7 @@ describe('integer floor and ceil', () => {
         expect(run('use numbers\nuse sequences\n((1 to 3) / 2.0) floor copy')).toBe('0 1 1');
         expect(run('use numbers\nuse sequences\n(array 1.2 2.3 3.4 4.5 shape 2 2) ceil shape')).toBe('2 2');
     });
-    it.each(['infinity floor', 'nan ceil', '"x" floor'])('rejects %s', source => {
+    it.each(['inf floor', 'nan ceil', '"x" floor'])('rejects %s', source => {
         expect(() => run(`use numbers\n${source}`)).toThrow();
     });
 });

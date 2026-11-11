@@ -79,7 +79,7 @@ end`).state.error).toBeUndefined();
 it('retains real bit values and nonfinite cells', () => {
     expect(compare(`use numbers
 use sequences
-Input = (array -0.0 0.0 nan infinity) reshape 2 2
+Input = (array -0.0 0.0 nan inf) reshape 2 2
 for I in 0 to 1
  Row = Input I
 end`).state.error).toBeUndefined();

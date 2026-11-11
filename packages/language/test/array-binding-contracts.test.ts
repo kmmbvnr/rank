@@ -63,8 +63,8 @@ describe('array binding element contracts', () => {
 });
 
 it('settles infinity array seeds from finite writes without permitting a later numeric change', () => {
-    expect(messages('use numbers\nA = array infinity infinity\nA 0 = 1\nA 1 = infinity')).toEqual([]);
-    expect(messages('use numbers\nA = array infinity infinity\nA 0 = 1\nA 1 = 2.0')
+    expect(messages('use numbers\nA = array inf inf\nA 0 = 1\nA 1 = inf')).toEqual([]);
+    expect(messages('use numbers\nA = array inf inf\nA 0 = 1\nA 1 = 2.0')
         .some(message => message.includes('array elements'))).toBe(true);
 });
 

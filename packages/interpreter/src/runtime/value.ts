@@ -404,7 +404,7 @@ export function checkCollectionElementType(
 
 function describeElementType(value: CollectionElementType, depth = 0): string {
     if (depth > 6) return value.type + ' …';
-    return (value.type === 'numeric-limit' ? 'infinity' : value.type) + (value.rank === undefined ? '' : ` rank ${value.rank}`)
+    return (value.type === 'numeric-limit' ? 'inf' : value.type) + (value.rank === undefined ? '' : ` rank ${value.rank}`)
         + (value.elements?.length ? ` of ${value.elements.map(cell => describeElementType(cell, depth + 1)).join(' or ')}` : '')
         + (value.fields ? ` {${[...value.fields].map(([name, field]) => `.${name}: ${describeElementType(field, depth + 1)}`).join(', ')}}` : '');
 }
@@ -719,8 +719,8 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return value.toString();
     }
     if (typeof value === 'number') {
-        if (value === Number.POSITIVE_INFINITY) return 'infinity';
-        if (value === Number.NEGATIVE_INFINITY) return '-infinity';
+        if (value === Number.POSITIVE_INFINITY) return 'inf';
+        if (value === Number.NEGATIVE_INFINITY) return '-inf';
         if (Number.isNaN(value)) return 'nan';
         return Object.is(value, -0) ? '0' : value.toString();
     }

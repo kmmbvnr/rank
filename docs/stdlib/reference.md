@@ -391,7 +391,6 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |
 | `Limit factorsieve` | array | unary all | Smallest prime factors from 0 through Limit (at most 1048575); entries 0 and 1 are zero. |
 | `A gcd B` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
-| `infinity` | real | source/value | The positive infinite real value. |
 | `Value isnan` | boolean | unary all | True for the real value nan; it does not equal itself. |
 | `Value isqrt` | integer | unary 0 | Exact integer floor of the square root, verified with integer arithmetic. |
 | `A lcm B` | integer | unary all; binary 0 / 0 | Least common multiple, also a reduction over one finite collection. |

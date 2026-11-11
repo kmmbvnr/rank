@@ -147,11 +147,10 @@ Integer and real are separate domains. Infinity is a numeric sentinel; an
 infinity-only array defers its finite numeric domain:
 
 ```rank
-use numbers
-Dist = array shape 3 fill infinity
+Dist = array shape 3 fill inf
 Dist 0 = 0            rem Settles finite cells to integer.
 Dist 1 = 12           rem Exact integer distance.
-Dist 2 = infinity     rem The sentinel remains allowed.
+Dist 2 = inf          rem The sentinel remains allowed.
 Dist 1 = 12.5         rem Rejected: finite real in integer domain.
 ```
 
@@ -365,7 +364,7 @@ Implementation evidence:
 No new annotation syntax is required by #153. A fill is evaluated once, even
 when its resulting array has zero cells. Its type provides construction evidence;
 this does not authorize evaluating unread nested lazy cells to discover a type.
-`fill infinity` remains a numeric sentinel that can settle to integer or real.
+`fill inf` remains a numeric sentinel that can settle to integer or real.
 `fill .NA` and plain empty arrays leave the concrete domain unresolved.
 
 To migrate an old placeholder, use the intended type:

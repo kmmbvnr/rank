@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1202
 use algo
 use graph
 use io
-use numbers
 use sequences
 
 N = stdin .integer
@@ -21,7 +20,7 @@ rem Describe all cheapest routes to N.
 fun Graph investigate N
   Modulus = 1000000007
   Size = N + 1
-  Dist = array shape Size fill infinity
+  Dist = array shape Size fill inf
   Ways = array shape Size fill 0
   MinFlights = array shape Size fill 0
   MaxFlights = array shape Size fill 0

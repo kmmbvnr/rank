@@ -51,10 +51,10 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
     });
     it('distinguishes numeric domains, including infinity', () => {
         const r = runtime();
-        r.execute('use numbers\nA = array infinity');
+        r.execute('use numbers\nA = array inf');
         r.execute('A 0 = 1');
         expect(() => r.execute('A 0 = 1.0')).toThrow(/array elements/);
-        r.execute('A 0 = infinity\nA 0 = 2');
+        r.execute('A 0 = inf\nA 0 = 2');
         expect(() => r.execute('B = array 1 2.0')).toThrow(/one element type/);
     });
     it('checks parameters passed to nested helpers and resets contracts on each invocation', () => {

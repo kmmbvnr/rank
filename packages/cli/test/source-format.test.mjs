@@ -178,7 +178,7 @@ test('preserves keyed fold modifiers and computed keys when formatting', () => {
     for (const expression of [
         'ValuesWithLongName reduce + by KeysWithLongName size 3 with 100',
         'ValuesWithLongName scan + by KeysWithLongName with 100',
-        'ValuesWithLongName max by KeysWithLongName size 3 with -infinity',
+        'ValuesWithLongName max by KeysWithLongName size 3 with -inf',
         'ValuesWithLongName mean by KeysWithLongName',
         'ValuesWithLongName quantile 0.25 by KeysWithLongName',
     ]) {

@@ -451,7 +451,7 @@ Dijkstra.
 ```rank
 Result = Graph dijkstra Start
 Distance = Result .distance
-Answer = Distance Target default infinity
+Answer = Distance Target default inf
 ```
 
 `Graph components` accepts an undirected graph and returns `.count`, a

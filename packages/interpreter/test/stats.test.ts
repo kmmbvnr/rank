@@ -89,7 +89,7 @@ describe('Rank statistics', () => {
         ].join('\n'))).toThrowError('std requires at least one value');
         expect(() => run('use stats\n(array "bad" "bad") std'))
             .toThrowError('expected numeric input');
-        expect(() => run('use numbers\nuse stats\n(array 1 infinity) std'))
+        expect(() => run('use numbers\nuse stats\n(array 1 inf) std'))
             .toThrowError('std expects finite values');
         expect(() => run('(array 1 2) std'))
             .toThrowError('unknown name: std');

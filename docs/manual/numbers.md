@@ -577,34 +577,6 @@ negative.
 
 lcm, divisors
 
-## infinity
-
-A real number larger than every other
-number.
-
-```rank
-use numbers
-infinity
-```
-
-```result
-infinity
-```
-
-### Usage
-
-```text
-infinity
-```
-
-A constant; it takes no input. Handy as
-a starting value when searching for a
-minimum.
-
-### See also
-
-nan
-
 ## isnan
 
 Check whether a value is nan, the "not a
@@ -633,7 +605,7 @@ false. Use isnan to test for it.
 
 ### See also
 
-nan, infinity
+nan, inf
 
 ## isqrt
 
@@ -751,7 +723,7 @@ itself. Test for it with isnan.
 
 ### See also
 
-isnan, infinity
+isnan, inf
 
 ## odd
 

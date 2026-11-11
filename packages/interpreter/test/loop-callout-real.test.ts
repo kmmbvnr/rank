@@ -115,7 +115,7 @@ Total`, number);
         expect(result.loops).toBe(1);
         expect(result.numberLoops).toBe(Number(number));
     });
-    it.each(['0', '-1', '0.0', '-0.0', '-1.5', 'nan', 'infinity', '10 ** 400'])('preserves the log domain error for %s', value => {
+    it.each(['0', '-1', '0.0', '-0.0', '-1.5', 'nan', 'inf', '10 ** 400'])('preserves the log domain error for %s', value => {
         const source = `use numbers\nBefore = 0\nfor I in 1 to 3\n Before = I\n X = (${value}) log\nend`;
         expect(compare(source).error).toContain('log input is outside its domain');
         expect(compare(source, false).error).toContain('log input is outside its domain');

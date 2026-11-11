@@ -53,7 +53,6 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ...(builtin.valueCallbackFree ? { callbackFreeScalarCells: true as const } : {}),
                     ...(builtin.result === 'sequence' ? { rank: 1, shape: [null] } : {}),
                     ...(builtin.result === 'real' ? { rank: 0, shape: [] } : {}),
-                    ...(builtin.name === 'infinity' ? { infinite: true as const } : {}),
                 } : builtin ? { types: [], builtinOperation: builtin.name } : UNKNOWN_VALUE);
     }
     if (isNewStructureExpression(expression)) {
@@ -64,6 +63,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
         ...(typeof expression.value === 'bigint' ? { integer: String(expression.value) } : {}),
+        ...(expression.value === Infinity || expression.value === -Infinity ? { infinite: true as const } : {}),
     };
     if (isLabelLiteral(expression)) return { types: [expression.name === 'NA' ? 'missing' : 'symbol'], rank: 0, shape: [] };
     if (isStdinExpression(expression)) {

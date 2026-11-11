@@ -73,7 +73,7 @@ B 1 = 8`);
         expect(() => runtime().execute(source)).toThrow(/one element type|cannot receive/);
     });
     it('allows missing and integer infinity sentinels', () => {
-        expect(formatValue(runtime().execute('use numbers\nA = array infinity .NA\nA 0 = 1\nA 1 = infinity\nA')!)).toBe('1 infinity');
+        expect(formatValue(runtime().execute('use numbers\nA = array inf .NA\nA 0 = 1\nA 1 = inf\nA')!)).toBe('1 inf');
     });
 });
 

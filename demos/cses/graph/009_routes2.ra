@@ -3,7 +3,6 @@ rem https://cses.fi/problemset/task/1672
 
 use graph
 use io
-use numbers
 use sequences
 
 NodeCount = stdin .integer
@@ -23,7 +22,7 @@ Distances = Graph all_pairs NodeCount
 for i in 1 to QueryCount
   A = stdin .integer
   B = stdin .integer
-  if Distances A B equal infinity
+  if Distances A B equal inf
     -1 print
   else
     Distances A B print
@@ -34,7 +33,7 @@ end
 rem Floyd-Warshall with an outer sum.
 fun Graph all_pairs NodeCount
   N = NodeCount + 1
-  Dist = array shape N N fill infinity
+  Dist = array shape N N fill inf
 
   for Node in 1 to NodeCount
     Dist Node Node = 0

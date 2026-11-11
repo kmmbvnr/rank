@@ -61,7 +61,7 @@ export interface ValueFacts {
     readonly dim?: Dim;
     readonly boolean?: boolean;
     /**
-     * The real is `infinity` or `-infinity`. Such a seed has not committed to reals: the first
+     * The real is `inf` or `-inf`. Such a seed has not committed to reals: the first
      * integer written to the binding replaces it (ADR-0100), so the binding accepts both.
      */
     readonly infinite?: true;

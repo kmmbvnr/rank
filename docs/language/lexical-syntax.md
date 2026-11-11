@@ -774,16 +774,20 @@ NegativePage = -5 // 2
 rem 2.5, 2, -3
 ```
 
-`infinity` and `-infinity` are real values provided by `use numbers`. They are
-valid for comparisons and arithmetic, but decimal input declarations accept
-only finite real values.
+`inf` and `-inf` are real literals for positive and negative infinity. They
+need no `use`. `-inf` is one literal, so it needs no brackets where a negative
+number would: `Values max by Keys with -inf`, `Grid F 1 -inf` and `-inf relu`
+read it as `(-inf)`, and so does `X-inf`. Only a separate sign, as in
+`X - inf`, subtracts. Printed values use the same spellings. They are valid
+for comparisons and arithmetic, but decimal input declarations accept only
+finite real values.
 
-A binding that still holds `infinity` or `-infinity` has not yet committed to
+A binding that still holds `inf` or `-inf` has not yet committed to
 real values, so its first integer replaces it and the binding settles on
 `integer`. This keeps exact minima and maxima over integers:
 
 ```rank
-Best = infinity
+Best = inf
 for Candidate in Candidates
   Best = Best min Candidate
 end
@@ -794,7 +798,7 @@ A binding that has held any finite real keeps `real`, as in ADR-0100.
 
 `nan` from `use numbers` is the IEEE not-a-number real value. It marks a real
 with no numeric value, such as an unknown parameter, and arises from undefined
-real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
+real arithmetic like `inf - inf`. `nan` is unordered: `less`,
 `greater`, `at most`, `at least` and `equal` with it are false, so it does not
 equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
 over arrays and sequences like `even`, and `Params isnan find true` gives its

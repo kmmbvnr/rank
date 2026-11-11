@@ -122,7 +122,7 @@ The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
 Python-style `//`, real `/`, and the binary forms `A min B` and
 `A max B`. Array boundaries are handled explicitly, so the algorithm does not
-need sentinel infinities even though `use numbers` provides `infinity`.
+need the `inf` and `-inf` sentinels.
 
 ## 5. Longest Palindromic Substring
 

@@ -13,7 +13,7 @@ export function registerIntegerBufferSummary(value: RankArray, cells: ArrayLike<
 export function summarizeValue(value: RankValue, depth = 0): string {
     if (typeof value === 'string') return JSON.stringify(value.slice(0, 80)) + (value.length > 80 ? '…' : '');
     if (typeof value === 'number' && !Number.isFinite(value)) {
-        return Number.isNaN(value) ? 'nan' : value > 0 ? 'infinity' : '-infinity';
+        return Number.isNaN(value) ? 'nan' : value > 0 ? 'inf' : '-inf';
     }
     if (typeof value !== 'object') return String(value);
     if (value.kind === 'array' || value.kind === 'bytes') {

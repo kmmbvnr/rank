@@ -104,7 +104,7 @@ Prefix = Down till less -10
 rem 0 -1 ... -10
 ```
 
-Numeric `infinity` is not a range endpoint. Elsewhere `#` keeps its existing
+Numeric `inf` is not a range endpoint. Elsewhere `#` keeps its existing
 meanings of whole-axis selection and discarded bindings.
 
 ### Open slice selectors
@@ -535,8 +535,8 @@ border can be neutral for the reduction that follows. A negative value needs no
 parentheses:
 
 ```rank
-Above = M window WindowShape padding 1 with -infinity
-Below = M window WindowShape padding 1 with infinity
+Above = M window WindowShape padding 1 with -inf
+Below = M window WindowShape padding 1 with inf
 ```
 
 `with` is valid only directly after `padding`, and `axis` follows it.
@@ -1913,7 +1913,7 @@ and `skewness` (`skew`), with their usual module imports. `quantile` and
 
 ```rank
 Values sum by Keys
-Values max by Keys with -infinity
+Values max by Keys with -inf
 use stats
 Values median by Keys
 Values quantile 0.25 by Keys

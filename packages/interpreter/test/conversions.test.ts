@@ -57,7 +57,7 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         expect(r.execute('true integer')).toBe(1n);
         expect(r.execute('false integer')).toBe(0n);
         expect(() => r.execute('false real')).toThrow('real expects');
-        expect(() => r.execute('use numbers\ninfinity integer')).toThrow('finite real');
+        expect(() => r.execute('use numbers\ninf integer')).toThrow('finite real');
         expect(() => r.execute('"1e999" real')).toThrow('finite range');
         expect(() => r.execute('(10 ** 400) real')).toThrow('finite range');
         // Precision loss is part of an explicit binary64 conversion, never an assignment coercion.

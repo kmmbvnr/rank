@@ -615,6 +615,37 @@ instead.
 
 use, as
 
+## inf
+
+A real number larger than every other
+number. -inf is smaller than every
+other number.
+
+```rank
+3 max -inf
+```
+
+```result
+3
+```
+
+### Usage
+
+```text
+inf
+-inf
+```
+
+Literals; they need no use. -inf is one
+word, so it needs no brackets:
+`A F -inf` passes -inf to F. Handy as a
+starting value when searching for a
+minimum or maximum.
+
+### See also
+
+nan, isnan, min, max
+
 ## true
 
 The boolean value true.

@@ -1,5 +1,6 @@
 import { type Module, type AstNode, type CstNode, type GrammarAST, type ValueType, type ParserOptions, DefaultTokenBuilder, GrammarUtils, DefaultValueConverter, inject, createLangiumParser, createCompletionParser } from 'langium';
 import { LLStarLookaheadStrategy } from 'chevrotain-allstar';
+import type { TokenType } from 'chevrotain';
 import { ErrorLookaheadStrategy } from './error-lookahead.js';
 import { groupExpressions, type GroupingOptions } from './expression-grouping.js';
 import { SignatureLexer } from './signature-lexer.js';
@@ -21,13 +22,26 @@ class RankTokenBuilder extends DefaultTokenBuilder {
             token.LINE_BREAKS = false;
             token.START_CHARS_HINT = ['r'];
         }
+        if (terminal.name === 'INF') {
+            token.PATTERN = this.regexPatternFunction(GrammarUtils.terminalRegex(terminal));
+            token.LINE_BREAKS = false;
+            token.START_CHARS_HINT = ['-', 'i'];
+        }
         return token;
+    }
+
+    /** `-inf` must win over the `-` keyword and `inf` over `WORD`. */
+    override buildTokens(grammar: GrammarAST.Grammar, options?: { caseInsensitive?: boolean }) {
+        const tokens = super.buildTokens(grammar, options) as TokenType[];
+        const infinity = tokens.filter(token => token.name === 'INF');
+        return [...infinity, ...tokens.filter(token => token.name !== 'INF')];
     }
 }
 
 /** An integer written with an exponent (`4e6`, `2E+3`) is the digits followed by that many zeros. */
 class RankValueConverter extends DefaultValueConverter {
     protected override runConverter(rule: GrammarAST.AbstractRule, input: string, cstNode: CstNode): ValueType {
+        if (rule.name === 'INF') return input.startsWith('-') ? -Infinity : Infinity;
         const exponent = rule.name === 'INTEGER' ? /^([0-9]+)[eE]\+?([0-9]+)$/.exec(input) : undefined;
         if (exponent) {
             if (Number(exponent[2]) > 10_000) throw new Error('Integer exponent is too large');

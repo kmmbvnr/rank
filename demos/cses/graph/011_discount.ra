@@ -4,7 +4,6 @@ rem https://cses.fi/problemset/task/1195
 use algo
 use graph
 use io
-use numbers
 use sequences
 
 N = stdin .integer
@@ -34,7 +33,7 @@ fun Edges flight_discount N
     unpack From To Cost = Edge
     Left = FromStart From
     Right = ToEnd To
-    if Left equal infinity or Right equal infinity
+    if Left equal inf or Right equal inf
       continue
     end
 
@@ -50,7 +49,7 @@ end
 rem Dijkstra distances from one start.
 fun Graph N Start distances
   Size = N + 1
-  Dist = array shape Size fill infinity
+  Dist = array shape Size fill inf
   Dist Start = 0
   Pending = new heap
   Item = array Start 0

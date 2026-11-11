@@ -48,7 +48,7 @@ end`, 1).state.error).toBeUndefined();
 it('preserves signed zeros and nonfinite real values', () => {
     expect(compare(`use numbers
 use sequences
-Input = array -0.0 0.0 infinity nan
+Input = array -0.0 0.0 inf nan
 for I in 1 to 2
  Reversed = Input reverse
 end`).state.error).toBeUndefined();

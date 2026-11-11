@@ -974,8 +974,6 @@ export const operations: readonly Operation[] = [
         scalarNoCallback: 'integer',
         dyadicRanks: [0, 0],
         summary: 'Greatest common divisor, always nonnegative.' },
-    { name: 'infinity', module: 'numbers', arities: [], form: 'infinity', result: 'real',
-        summary: 'The positive infinite real value.' },
     { name: 'isnan', module: 'numbers', arities: [1], form: 'Value isnan', result: 'boolean',
         signatures: mappingSignatures(numericCells, 'boolean'),
         scalarNoCallback: 'number', summary: 'True for the real value nan; it does not equal itself.' },

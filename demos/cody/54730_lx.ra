@@ -2,14 +2,13 @@ rem Cody 54730: local grid extrema
 rem Tied values are not extrema.
 
 use sequences
-use numbers
 
 
 rem Keep strict eight-neighbor extrema.
 fun Grid local_extrema
   Size = array 3 3
-  Above' = Grid window Size padding 1 with -infinity
-  Below' = Grid window Size padding 1 with infinity
+  Above' = Grid window Size padding 1 with -inf
+  Below' = Grid window Size padding 1 with inf
   Peaks' = Above peak rank 2
   Valleys' = Below valley rank 2
   Marks' = Peaks max Valleys

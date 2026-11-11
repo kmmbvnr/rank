@@ -601,7 +601,7 @@ NewStructureExpression:
     'new' structure=(WORD | 'index');
 
 NumberLiteral:
-    value=(REAL | INTEGER);
+    value=(REAL | INTEGER | INF);
 
 StringLiteral:
     value=STRING;
@@ -650,6 +650,8 @@ ReferenceName returns string:
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
+// `inf` and `-inf` are real literals; a leading `-` always belongs to the literal.
+terminal INF returns number: /-?(?<![A-Za-z0-9_.])inf(?![A-Za-z0-9_])/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;

@@ -76,7 +76,7 @@ Result copy`;
     expect(values[1]).toBe(values[0]);
     expect(values[1]).toBe(Array(100).fill('5e-19').join(' '));
 });
-it.each(['array 1000 -1000', 'array nan 0.0', 'array infinity -infinity'])('keeps exceptional real values in an array map: %s', input => {
+it.each(['array 1000 -1000', 'array nan 0.0', 'array inf -inf'])('keeps exceptional real values in an array map: %s', input => {
     const values: string[] = [];
     for (const compilation of [false, true]) {
         const r = new Interpreter(() => {}, { compilation });

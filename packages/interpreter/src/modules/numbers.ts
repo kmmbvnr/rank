@@ -120,7 +120,6 @@ export const numbersModule: RuntimeModule = {
     fromDigits: () => native('fromDigits', 2, args => fromRadixDigits(args[0], args[1])),
     round: () => native('round', 2, arguments_ =>
         roundValue(arguments_[0], arguments_[1])),
-    infinity: () => Number.POSITIVE_INFINITY,
     nan: () => Number.NaN,
     gcd: () => withNumberCalls(native('gcd', 2, arguments_ =>
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))), {

@@ -29,7 +29,7 @@ use io
         expect(formattedText(1e-7, '.8f')).toBe('0.00000010');
         expect(formattedText(-1e22, '.0f')).toBe('-10000000000000000000000');
         expect(formattedText(900719925474099312345n, '.2f')).toBe('900719925474099312345.00');
-        expect(formattedText(Infinity, '.2f')).toBe('infinity');
+        expect(formattedText(Infinity, '.2f')).toBe('inf');
         expect(formattedText(-0, '.2f')).toBe('0.00');
     });
 

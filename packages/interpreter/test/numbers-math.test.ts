@@ -6,7 +6,7 @@ import { demandValue } from '../src/plan.js';
 describe('Rank mathematical functions', () => {
     it('marks and detects nan, which is unordered and unequal to itself', () => {
         expect(run('use numbers\nnan')).toBe('nan');
-        expect(run('use numbers\ninfinity - infinity isnan')).toBe('true');
+        expect(run('use numbers\ninf - inf isnan')).toBe('true');
         expect(run('use numbers\n(array 1.0 nan 3.0) isnan')).toBe('false true false');
         expect(run('use numbers\nuse sequences\n(array 1.0 nan 3.0) isnan find true')).toBe('1');
         expect(run('use numbers\nuse sequences\n(1 to 3) isnan copy')).toBe('false false false');
@@ -16,13 +16,25 @@ describe('Rank mathematical functions', () => {
         expect(() => run('use numbers\n"x" isnan')).toThrowError();
     });
 
+    it('reads inf and -inf as literals that need no use or brackets', () => {
+        expect(run('array inf -inf')).toBe('inf -inf');
+        expect(run('3 max -inf')).toBe('3');
+        expect(run('fun A pick B\n  return B\nend\n2 pick -inf')).toBe('-inf');
+        expect(run('fun A same\n  return A\nend\n-inf same')).toBe('-inf');
+        expect(run('X = 3\narray X-inf')).toBe('3 -inf');
+        expect(run('X = 3\nX - inf')).toBe('-inf');
+        expect(run('-inf ** 2')).toBe('inf');
+        expect(run('.inf')).toBe('.inf');
+        expect(() => run('infinity')).toThrowError('write `inf` or `-inf`');
+    });
+
     it('lets an infinite accumulator seed settle on its first integer', () => {
         const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = ${pick === 'max' ? 'Best max Item' : 'Best min Item'}\nend\nBest`;
-        expect(run(fold('Best = infinity', 'min'))).toBe('3');
-        expect(run(fold('Best = -infinity', 'max'))).toBe('8');
-        expect(run(`${fold('Best = infinity', 'min')} type`)).toBe('.integer');
-        expect(run('use numbers\nBest = infinity\nBest = Best min 2.5\nBest type')).toBe('.real');
-        expect(() => run('use numbers\nBest = infinity\nBest = 3\nBest = 2.5'))
+        expect(run(fold('Best = inf', 'min'))).toBe('3');
+        expect(run(fold('Best = -inf', 'max'))).toBe('8');
+        expect(run(`${fold('Best = inf', 'min')} type`)).toBe('.integer');
+        expect(run('use numbers\nBest = inf\nBest = Best min 2.5\nBest type')).toBe('.real');
+        expect(() => run('use numbers\nBest = inf\nBest = 3\nBest = 2.5'))
             .toThrowError('Best has type integer and cannot receive real');
         expect(() => run('use numbers\nBest = 2.5\nBest = 3')).toThrowError('Best has type real and cannot receive integer');
     });
@@ -161,9 +173,9 @@ describe('Rank mathematical functions', () => {
             "Powers' = Values exp",
             'Powers 0',
         ].join('\n'))).toBe('1');
-        expect(run('use numbers\n(-infinity) exp')).toBe('0');
-        expect(run('use numbers\ninfinity exp')).toBe('infinity');
-        expect(run('use numbers\n1000 exp')).toBe('infinity');
+        expect(run('use numbers\n(-inf) exp')).toBe('0');
+        expect(run('use numbers\ninf exp')).toBe('inf');
+        expect(run('use numbers\n1000 exp')).toBe('inf');
     });
 
     it('maps trigonometric functions lazily while preserving tensor shape', () => {
@@ -230,11 +242,11 @@ describe('Rank mathematical functions', () => {
             .toThrowError('acosh input is outside its domain');
         expect(() => run('use numbers\n1 atanh'))
             .toThrowError('atanh input is outside its domain');
-        expect(() => run('use numbers\ninfinity sin'))
+        expect(() => run('use numbers\ninf sin'))
             .toThrowError('sin input is outside its domain');
         expect(() => run('use numbers\n0 log'))
             .toThrowError('log input is outside its domain');
-        expect(() => run('use numbers\ninfinity log'))
+        expect(() => run('use numbers\ninf log'))
             .toThrowError('log input is outside its domain');
         expect(() => run('use numbers\n"x" log'))
             .toThrowError('log expects numeric input');

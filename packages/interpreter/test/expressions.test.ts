@@ -490,7 +490,7 @@ Result`)).toBe('itb');
             'use sequences',
             'use numbers',
             'A = array 1 2 3',
-            'B = A window 3 padding 1 with -infinity',
+            'B = A window 3 padding 1 with -inf',
             'B max rank 1',
         ].join('\n'))).toBe('2 3 3');
         expect(() => run([

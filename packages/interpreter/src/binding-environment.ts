@@ -252,7 +252,7 @@ export class BindingEnvironment {
     }
 }
 
-/** A real binding that still holds `infinity` or `-infinity` has not yet committed to reals over integers. */
+/** A real binding that still holds `inf` or `-inf` has not yet committed to reals over integers. */
 function holdsInfiniteLimit(recorded: ReadonlySet<string>, held: RankValue | undefined): boolean {
     return recorded.size === 1 && recorded.has('real') && typeof held === 'number' && !Number.isFinite(held) && !Number.isNaN(held);
 }

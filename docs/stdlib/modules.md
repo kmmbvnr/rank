@@ -104,7 +104,6 @@ binomialmod
 factors
 factorsieve
 divisors
-infinity
 nan
 isnan
 ```
@@ -347,8 +346,8 @@ maximum. Parenthesize arithmetic operands, as in `0 max (Limit - Used)`.
 A direct alias (`operation = max`) uses `A operation B`, and `max` can still
 be passed to `outer`, `scan`, or `reduce`.
 
-`infinity` is the positive infinite `real` value. Unary negation produces
-`-infinity`.
+Positive and negative infinity are the `inf` and `-inf` literals, which need
+no `use`.
 
 `nan` is the real not-a-number value, printed as `nan`. Every ordering
 comparison and `equal` with it is false. `Value isnan` is a boolean mask over

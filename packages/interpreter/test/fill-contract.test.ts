@@ -22,7 +22,7 @@ for (const compiled of [true, false]) describe(`fill contracts (compiled ${compi
     });
     it('leaves missing and numeric infinity seeds open', () => {
         const r = runtime();
-        r.execute('use numbers\nA = array shape 0 fill .NA\nA = array "x"\nB = array shape 0 fill infinity\nB = array 1');
+        r.execute('use numbers\nA = array shape 0 fill .NA\nA = array "x"\nB = array shape 0 fill inf\nB = array 1');
         expect(() => r.execute('B = array 1.0')).toThrow(/array elements/);
     });
     it('retains filled empty result contracts in either call order', () => {

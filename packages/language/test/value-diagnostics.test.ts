@@ -485,8 +485,8 @@ it('narrows type guards in reachable branches without changing a parameter contr
 });
 
 it('lets an infinity-seeded accumulator hold the integers it settles on', () => {
-    const body = (tail: string) => `use numbers\nfun Xs smallest\n Best = infinity\n for X in Xs\n  Best = Best min X\n end\n${tail}\nend\n`;
-    expect(messages(body(' if Best equal infinity\n  return -1\n end\n return Best'))).toEqual([]);
+    const body = (tail: string) => `use numbers\nfun Xs smallest\n Best = inf\n for X in Xs\n  Best = Best min X\n end\n${tail}\nend\n`;
+    expect(messages(body(' if Best equal inf\n  return -1\n end\n return Best'))).toEqual([]);
     expect(messages(body(' Best = 3\n return Best'))).toEqual([]);
     expect(messages('use numbers\nBest = 2.5\nBest = 3')).toEqual(['Best has type real and cannot receive integer']);
 });
@@ -1851,7 +1851,7 @@ it('keeps numeric matrix cells only when loop rebindings are closed', () => {
 });
 
 it('settles infinity seeds while retaining the sentinel as a possible real value', () => {
-    const source = 'fun Size build_matrix\n M = array shape Size Size fill infinity\n'
+    const source = 'fun Size build_matrix\n M = array shape Size Size fill inf\n'
         + ' for I in 0 till Size\n  M I I = 0\n end\n return M 0 0\nend\nA = 2 build_matrix';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source + '\n');
     expect(parsed.parserErrors).toEqual([]);
