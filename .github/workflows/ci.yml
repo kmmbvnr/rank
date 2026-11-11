@@ -1,7 +1,8 @@
 name: CI
 
-# Actions minutes are metered: PRs run the light suites only,
-# the sharded audits run on manual dispatch; Rust verification is paused.
+# Actions minutes are metered. PRs retain package/interpreter checks,
+# including full-scale goldens; corpus audits run on manual dispatch.
+# Rust verification is paused.
 on:
   pull_request:
     branches: [main]
@@ -14,10 +15,10 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ matrix.suite == 'differential' && 120 || 30 }}
+    timeout-minutes: ${{ matrix.suite == 'differential' && 120 || matrix.suite == 'full-scale' && 60 || 30 }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"},{"suite":"name-facts","shard":0},{"suite":"name-facts","shard":1},{"suite":"name-facts","shard":2},{"suite":"name-facts","shard":3},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"differential","shard":4},{"suite":"differential","shard":5},{"suite":"differential","shard":6},{"suite":"differential","shard":7},{"suite":"differential","shard":8},{"suite":"differential","shard":9},{"suite":"differential","shard":10},{"suite":"differential","shard":11},{"suite":"differential","shard":12},{"suite":"differential","shard":13},{"suite":"differential","shard":14},{"suite":"differential","shard":15}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"}]}') }}
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"full-scale"},{"suite":"cli"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"},{"suite":"name-facts","shard":0},{"suite":"name-facts","shard":1},{"suite":"name-facts","shard":2},{"suite":"name-facts","shard":3},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"differential","shard":4},{"suite":"differential","shard":5},{"suite":"differential","shard":6},{"suite":"differential","shard":7},{"suite":"differential","shard":8},{"suite":"differential","shard":9},{"suite":"differential","shard":10},{"suite":"differential","shard":11},{"suite":"differential","shard":12},{"suite":"differential","shard":13},{"suite":"differential","shard":14},{"suite":"differential","shard":15}]}' || '{"include":[{"suite":"packages"},{"suite":"full-scale"},{"suite":"interpreter","shard":"1/4"},{"suite":"interpreter","shard":"2/4"},{"suite":"interpreter","shard":"3/4"},{"suite":"interpreter","shard":"4/4"}]}') }}
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
@@ -64,10 +65,13 @@ jobs:
         env:
           RANK_INTERPRETER_SHARD: ${{ matrix.shard }}
         run: |
-          npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts --shard="$RANK_INTERPRETER_SHARD"
+          npm test --workspace @arrrank/interpreter -- --exclude test/types.test.ts --exclude test/differential.test.ts --exclude test/nurikabe.test.ts --exclude test/full-scale-demos.test.ts --shard="$RANK_INTERPRETER_SHARD"
           if [ "$RANK_INTERPRETER_SHARD" = "1/4" ]; then
             npm test --workspace @arrrank/interpreter -- test/nurikabe.test.ts
           fi
+      - name: Test full-scale demos
+        if: matrix.suite == 'full-scale'
+        run: npm test --workspace @arrrank/interpreter -- test/full-scale-demos.test.ts --reporter=verbose
       - name: Test release library Euler examples
         if: matrix.suite == 'interpreter' && matrix.shard == '1/4'
         run: |

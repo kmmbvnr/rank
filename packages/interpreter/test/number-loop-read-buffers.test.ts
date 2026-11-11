@@ -1,9 +1,26 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue } from '../src/index.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
 import { maskedArray, ownedArray, typedArray } from '../src/array-storage.js';
 import type { RankArray } from '../src/value.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
+
+it('keeps nested borrowed-real loops when outer row stores need ownership fallback', () => {
+    const source = readFileSync(new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url), 'utf8');
+    const run = (compilation: boolean) => {
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--grid=4', '--rounds=1'] });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            return { answer: runtime.variables.get('Answer'), diagnostics };
+        } finally { runtime.dispose(); }
+    };
+    const compiled = run(true);
+    expect(compiled.answer).toBe(run(false).answer);
+    expect(compiled.diagnostics.numberLoops).toBe(4);
+    expect(compiled.diagnostics.numberLoopReadBufferCells).toBe(0);
+});
 
 function execute(source: string, options: InterpreterOptions = {}, input?: () => RankArray) {
     const diagnostics = new RuntimeDiagnostics();

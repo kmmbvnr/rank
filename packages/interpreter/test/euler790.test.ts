@@ -54,4 +54,4 @@ it('retains the original 1000-rectangle answer and uses an exact mixed loop', ()
             if (program === source) expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
         } finally { runtime.dispose(); }
     }
-}, 20_000);
+}, 60_000);

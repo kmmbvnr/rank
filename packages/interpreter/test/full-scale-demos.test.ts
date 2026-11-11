@@ -95,7 +95,8 @@ for (const [file, expected] of [
             if (file === '310_nimsquare.ra') expect(diagnostics.numberLoops).toBe(3);
             const nativeScan = ['720_unpredictablepermutations.ra', '726_fallingbottles.ra'].includes(file);
             if (nativeScan) {
-                expect(diagnostics.modularCallbackScans).toBe(1);
+                // Falling Bottles computes three prefix products.
+                expect(diagnostics.modularCallbackScans).toBe(file === '726_fallingbottles.ra' ? 3 : 1);
             }
             if (file === '729_periodicrange.ra') expect(diagnostics.compiledTensors).toBeGreaterThan(0);
             if (file === '735_divisorsoftwo.ra') expect(diagnostics.numberTensors).toBeGreaterThan(0);
@@ -138,9 +139,9 @@ for (const [file, expected] of [
                 expect(diagnostics.numberTensors).toBe(5000);
                 expect(diagnostics.cellsComputed).toBe(0);
             }
-            // These programs replay one speculative Number loop before
-            // retaining exact wide scalar intermediates/accumulators.
-            expect(diagnostics.numberLoopOverflows).toBe(['739_summationofsummations.ra', '790_clockgrid.ra'].includes(file) ? 1 : 0);
+            // Euler 739 replays once; Clock Grid selects its exact wide output
+            // region before speculative Number execution.
+            expect(diagnostics.numberLoopOverflows).toBe(file === '739_summationofsummations.ra' ? 1 : 0);
         } finally { runtime.dispose(); }
     }, timeout);
 }
@@ -389,8 +390,8 @@ it.each([4641589, 1])('checks the full Euler 388 wide sum with bounded tables (C
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
         // Below the cap, the small-cutoff sieve retains its bounded probe.
         expect(diagnostics.numberLoopCopyProbes).toBe(cut === 1 ? 1 : 0);
-        // Wide intermediates reject both narrower speculative tiers.
-        expect(diagnostics.numberLoopOverflows).toBe(2);
+        // Wide intermediates reject the narrower speculative entries.
+        expect(diagnostics.numberLoopOverflows).toBe(3);
     } finally { runtime.dispose(); }
 }, 30_000);
 

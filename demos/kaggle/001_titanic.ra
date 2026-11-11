@@ -24,12 +24,20 @@ rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
 fun Train prepare_features Test
   Age = Train .Age median
-  Train .Age = Train .Age default Age real
-  Test .Age = Test .Age default Age real
+  Train .Age = (
+    Train .Age real rank 0
+  ) default Age
+  Test .Age = (
+    Test .Age real rank 0
+  ) default Age
 
   Fare = Train .Fare median
-  Train .Fare = Train .Fare default Fare real
-  Test .Fare = Test .Fare default Fare real
+  Train .Fare = (
+    Train .Fare real rank 0
+  ) default Fare
+  Test .Fare = (
+    Test .Fare real rank 0
+  ) default Fare
 
   Train .Female = (Train .Sex equal "female") binary
   Test .Female = (Test .Sex equal "female") binary

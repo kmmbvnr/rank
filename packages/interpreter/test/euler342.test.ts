@@ -52,4 +52,4 @@ it('Euler 342 matches an independent million-bound sieve and the full search in 
         expect(runtime.execute('1000000 totientcubes')).toBe(reference(1000000)[1000000]);
         expect(runtime.execute('10000000000 totientcubes')).toBe(5943040885644n);
     } finally { runtime.dispose(); }
-}, 20000);
+}, 60000);

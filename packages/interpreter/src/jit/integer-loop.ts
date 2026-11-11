@@ -145,6 +145,14 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     // Replay-safe vector regions may have no publishing exact plan. They still
     // need one bounded copy-cost probe; overflow falls back to interpretation.
     const numberPlan = numberVariant ? lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true) : undefined;
+    // A boxed ownership region must not swallow nested borrowed-real loops
+    // when it has no Number specialization of its own.
+    if (plan?.statementOwnership && !numberPlan && numberVariant
+        && [...plan.arrays.values()].some(array => array.type === 'real')
+        && plan.locations.some(isForStatement)) {
+        recordFallback('loop:nested-number-region-preferred', 'cost');
+        return undefined;
+    }
     const region = plan ?? numberPlan;
     const copiesTrees = region && [...region.containers.values()].some(info => info.kind === 'fenwick');
     const feedback: LoopWorkFeedback | undefined = numberVariant && (region?.destinations.size || copiesTrees)

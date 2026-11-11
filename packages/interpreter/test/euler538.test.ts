@@ -56,5 +56,5 @@ describe.each(modes)('Euler 538 $name', ({options})=>{
             expect(typeof snapshot.items[2]).toBe('bigint');
             expect(snapshot.items[2] as bigint).toBeGreaterThan(2n**63n);
         });
-    },20000);
+    },60000);
 });

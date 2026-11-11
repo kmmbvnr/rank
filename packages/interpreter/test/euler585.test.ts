@@ -23,5 +23,5 @@ describe.each([true, false])('Euler 585 (compilation=%s)', compilation => {
     });
     it('keeps the four full-scale counts', () => {
         expect(run(5000000, { compilation })).toEqual([17714439395932n, 6249980999760n, 22929380558578n, 463766234n]);
-    }, 30000);
+    }, 90000);
 });

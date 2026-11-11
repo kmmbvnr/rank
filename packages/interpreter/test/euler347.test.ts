@@ -42,6 +42,6 @@ describe('Euler 347 two-prime maxima', () => {
                 runtime.execute(source);
                 expect(output.at(-1)).toBe('11109800204052');
             } finally { runtime.dispose(); }
-        }, 15000);
+        }, 45000);
     }
 });

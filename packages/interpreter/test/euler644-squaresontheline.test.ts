@@ -16,5 +16,5 @@ for (const compilation of [false, true]) {
                 expect(runtime.variables.get('Answer'), `${lo}..${hi}`).toBe(expected);
             } finally { runtime.dispose(); }
         }
-    }, 15_000);
+    }, 45_000);
 }

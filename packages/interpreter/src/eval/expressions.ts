@@ -91,6 +91,7 @@ export interface ExpressionContext {
 export class ExpressionEvaluator {
     private readonly prepared = new WeakMap<Expression, () => Evaluation<RankValue>>();
     private readonly returnNames = new WeakMap<Expression, readonly string[]>();
+    private directPreparation?: WeakMap<Expression, (() => RankValue) | null>;
 
     private readonly plans: PlanConstruction;
 
@@ -179,6 +180,21 @@ export class ExpressionEvaluator {
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     compileDirect(expression: Expression): (() => RankValue) | undefined {
+        const outer = this.directPreparation === undefined;
+        const prepared = this.directPreparation ??= new WeakMap();
+        try {
+            if (prepared.has(expression)) return prepared.get(expression) ?? undefined;
+            const run = this.compileDirectCandidate(expression);
+            prepared.set(expression, run ?? null);
+            return run;
+        } finally {
+            // Failed scalar subtrees recur through several fallback routes.
+            // Share preparation work, but recheck bindings on the next entry.
+            if (outer) this.directPreparation = undefined;
+        }
+    }
+
+    private compileDirectCandidate(expression: Expression): (() => RankValue) | undefined {
         if (this.plans.isReference(expression) && isNameExpression(expression)) {
             return () => demandValue(this.context.resolve(expression.name));
         }
