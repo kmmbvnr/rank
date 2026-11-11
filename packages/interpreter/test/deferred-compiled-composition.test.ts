@@ -105,6 +105,14 @@ for I in 1 to 3
  Total += Value
 end
 Total`, '9'],
+    ['captured scalar rebinding', `Total = 0
+for I in 1 to 3
+ Source = I
+ Value' = Source * 2
+ Source = 100
+ Total += Value
+end
+Total`, '12'],
     ['unused failing recipe', `Total = 0
 for I in 1 to 3
  Unused' = I // 0
@@ -114,6 +122,18 @@ Total`, '6'],
 ] as const;
 
 describe('compiled deferred composition', () => {
+    it('rejects changing an established deferred result type', () => {
+        const source = `for I in 1 to 3
+ Value' = I * 2
+ First = Value
+ Value' = true
+ Last = Value
+end`;
+        const result = run(source, true);
+        expect(result.observation).toEqual(run(source, false).observation);
+        expect(result.observation.error).toBeDefined();
+    });
+
     it('preserves the error for compound assignment to a plan', () => {
         const source = `for I in 1 to 3
  Value' = I * 2

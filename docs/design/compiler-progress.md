@@ -4205,3 +4205,46 @@ execution for the new cases. They cover slices, masks, index lists, matrix axes,
 accumulating duplicate indices, permutations, container extraction, captures,
 wide integers and exits. Performance and validation details are recorded in
 `benchmarks/array-ownership-composition-results.md`.
+
+### Deferred bindings and composition (#565, workstream 8)
+
+Exact scalar loops now retain deferred bindings in registers as plans rather
+than evaluating their expressions at assignment. Lowering establishes result
+types and entry guards; the ordinary assignment contract constructs the plan,
+protects captures and enforces binding invariants. A read demands its current
+plan and checks the scalar domain. Rebinding between compatible deferred and
+stored values, branch-local plans, plan chains, break/continue and exact wide
+integers keep generated loop control. An unused failing recipe stays unused.
+
+A return is not a completion boundary. Loop returns delegate to the existing
+return evaluator, preserving escaped plans and expressions built from them.
+The existing `RankPlan` representation retains captured dependencies, so this
+change does not invent a second capture or lifetime model. Calls that execute
+during construction still execute then; repeated demands do not cache values,
+failures or effects. Ordinary bindings still complete their results.
+
+Deferred bindings also qualify function and loop bodies for the existing
+framed-function/value-block compiler. This keeps generated control around
+checked calls, array/container values and deferred parameters when the scalar
+register proof is unavailable. It does not claim that boxed callouts or plan
+arithmetic themselves are all lowered into a numeric kernel. Existing
+specialized plan consumers and direct array functions remain available.
+
+Plan demand now consumes completed chains synchronously. A suspended evaluation
+continues on the execution driver without repeating its completed prefix.
+Nested synchronous demands hand back to the driver after 32 levels to bound
+the JavaScript stack; this is not a language recursion limit. Tests cover
+10,000 validation wrappers, repeated effects, failures and cancellation/retry.
+
+The exact register path remains conservative about mixed deferred bindings and
+calls, arrays or containers; these combinations use generated boxed control.
+A possibly deferred compound target retains the ordinary assignment contract,
+including its existing error. This work does not extend tail recursion,
+generator/protected-control admission or every higher-order numeric proof.
+Those boundaries are reported separately from the selected execution path.
+
+Seven capability rows distinguish exact deferred loops, framed escaped plans,
+boxed helper calls and the existing direct array-function path. Instrumented
+and uninstrumented runs must agree, including framed/value-block counters.
+`benchmarks/deferred-composition-results.md` records both-host measurements,
+preparation costs, memory and validation limits.
