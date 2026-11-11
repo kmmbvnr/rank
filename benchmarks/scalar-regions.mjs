@@ -28,7 +28,7 @@ const cases = {
     arithmetic: body(' N = (N * 3 + 7) mod 1000000007\n'.repeat(300)),
     mixed: body(' N *= 2\n N -= 1\n N += 3\n'.repeat(100)),
     branches: body(' if N mod 2 equal 0\n  N += 1\n else\n  N += 2\n end\n'.repeat(100)),
-    real: body(' N = N * 1.0001 + 0.25\n'.repeat(300), iterations, 'I / 2'),
+    real: body(' N = N * 1.0001 + 0.25\n'.repeat(300), iterations, '(I / 2)').replace('Total = 0', 'Total = 0.0'),
     variables: body(' Carry = N + 1\n' + ' N += Carry\n Carry = (N * 3 + 7) mod 1000000007\n'.repeat(150)),
     boundaries: body((' N += 1\n'.repeat(10) + ' N print\n').repeat(30)),
     arrays: body(' N += 1\n'.repeat(300), Math.max(1, Math.floor(iterations / 50)), '(array shape 4096 fill I)', 'use sequences\n'),

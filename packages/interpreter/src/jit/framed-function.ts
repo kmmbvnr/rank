@@ -134,7 +134,7 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
                 catch (error) { throw locate(error, ${location}); } }`);
             return name;
         }
-        function linearBlock(commands: Statement[]): string {
+        function linearBlock(commands: Statement[], first?: ScalarRegion): string {
             const name = `node${serial++}`, cases: string[] = [];
             let regionEnd = 0;
             for (let index = 0; index < commands.length; index++) {
@@ -143,7 +143,7 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
                 const leaf = leaves.push({ statements: commands, index }) - 1;
                 const next = `(context, value) => context.functionControl?.returned || context.loopControl?.signal
                     ? completed(value) : ${name}(context, value, ${index + 1})`;
-                const region = index >= regionEnd ? host.region?.(commands, index) : undefined;
+                const region = index >= regionEnd ? index === 0 && first ? first : host.region?.(commands, index) : undefined;
                 let fused = '';
                 if (region) {
                     regionEnd = index + region.length;
@@ -170,7 +170,11 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
             return name;
         }
         function block(commands: Statement[], depth = 0): string {
-            if (commands.length >= 16 && commands.every(command => !isIfStatement(command))) return linearBlock(commands);
+            if (commands.every(command => !isIfStatement(command))) {
+                if (commands.length >= 16) return linearBlock(commands);
+                const first = commands.length >= 4 ? host.region?.(commands, 0) : undefined;
+                if (first) return linearBlock(commands, first);
+            }
             let next = 'end';
             for (let index = commands.length - 1; index >= 0; index--) {
                 if (--budget < 0) throw new Error('budget');

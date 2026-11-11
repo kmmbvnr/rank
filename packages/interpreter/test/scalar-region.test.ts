@@ -1,3 +1,4 @@
+import { LocalFrame } from '../src/frame.js';
 import { BindingEnvironment } from '../src/binding-environment.js';
 import { compileScalarRegion } from '../src/jit/scalar-region.js';
 import { describe, expect, it } from 'vitest';
@@ -33,6 +34,9 @@ describe('scalar regions in framed bodies', () => {
     it.each(['1', '1.5', '9007199254740993', '9223372036854775808'])('keeps live numeric domains for %s', input => {
         const result = compare(helper(updates(), input));
         expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
+    });
+    it('compiles short arithmetic runs inside effectful helpers', () => {
+        expect(compare(helper(updates(8))).diagnostics.compiledScalarRegions).toBeGreaterThan(0);
     });
     it('publishes values before and after output boundaries', () => {
         const result = compare(helper(updates() + ' N print\n' + updates()));
@@ -96,6 +100,49 @@ describe('scalar regions in framed bodies', () => {
     });
     it('keeps signed division and remainder semantics', () => {
         const result = compare(helper(' N = (N - 10) mod -3\n N = (N * 7) // -2\n'.repeat(12)));
+        expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
+    });
+    it.each(Array.from({ length: 12 }, (_, seed) => seed + 1))('matches varied scalar composition for seed %s', seed => {
+        let state = seed;
+        const next = () => state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        const real = seed % 2 === 0;
+        const lines = [real ? ' Carry = 2.5' : ' Carry = 2', ' Flag = false'];
+        for (let index = 0; index < 64; index++) {
+            const constant = next() % 11 + 1;
+            const operator = (real ? ['+', '-', '*'] : ['+', '-', '*', '//', 'mod'])[next() % (real ? 3 : 5)];
+            const target = next() % 2 ? 'N' : 'Carry';
+            const other = target === 'N' ? 'Carry' : 'N';
+            lines.push(` ${target} = (${other} + ${constant}) ${operator} ${constant}`);
+            if (index % 8 === 0) lines.push(' Flag = N less Carry');
+        }
+        lines.push(' Carry print', ' Flag print');
+        const result = compare(helper(lines.join('\n') + '\n', real ? '1.5' : '9007199254740993'));
+        expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
+    });
+    it('bounds specializations while retaining checked fallback', () => {
+        const bindings = new BindingEnvironment(new Map(), new Set(['core']));
+        const commands = parse('Total = First + Second\nLeft = Total + Third\nRight = First + Third\nTotal = Left + Right').statements;
+        const diagnostics = new RuntimeDiagnostics();
+        const region = compileScalarRegion(commands, 0, {
+            bindings, writer: name => bindings.compileAssign(name),
+            check: statement => bindings.checkMutable((statement as { name: string }).name),
+            binary: () => { throw new Error('unexpected operator fallback'); }, locate: error => error,
+        })!;
+        diagnostics.run(() => {
+            for (let mask = 0; mask < 8; mask++) {
+                bindings.current = new LocalFrame(undefined);
+                ['First', 'Second', 'Third'].forEach((name, bit) => bindings.assign(name, mask & (1 << bit) ? 2.5 : 2n));
+                if (mask < 4) expect(region.run()).toBeDefined();
+                else expect(region.run()).toBeUndefined();
+            }
+        });
+        expect(diagnostics.compiledScalarRegions).toBe(4);
+        expect(diagnostics.fallbacks['scalar-region:specialization-budget:4']).toBe(4);
+    });
+    it('publishes before suspension and reads live values after resuming', () => {
+        const source = `fun values\n N = 1\n${updates()} yield N\n${updates()} yield N\nend\nvalues array`;
+        const result = compare(source);
+        expect(result.outcome.value).toBe('25 49');
         expect(result.diagnostics.compiledScalarRegions).toBeGreaterThan(0);
     });
     it('disables register publication when a host can observe polling', () => {
