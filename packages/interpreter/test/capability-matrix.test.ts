@@ -47,7 +47,7 @@ function summarize(row: CapabilityCase, diagnostics: RuntimeDiagnostics, outcome
         boundaries: reasons.map(reason => ({ reason,
             category: /budget|cost|limit/.test(reason) ? 'cost-limit'
                 : /guard|^tensor:binding:/.test(reason) ? 'runtime-guard'
-                : /unsupported-|generator-function|deferred-binding/.test(reason) ? 'missing-lowering'
+                : /unsupported-|generator-function|deferred-binding|container-push|container-write/.test(reason) ? 'missing-lowering'
                 : /proof|callee-binding|required|scalar-evaluation-timing|output-shape|no-wide|no-direct/.test(reason) ? 'failed-proof'
                 : /too-small|no-fusible-operation/.test(reason) ? 'cost-limit'
                 : 'unclassified' })),
@@ -74,7 +74,7 @@ describe('executable compiler capability matrix', () => {
         expect(observable(traced)).toEqual(observable(reference));
         if (row.error) expect(traced.error).toBeDefined();
         else expect(traced.error).toBeUndefined();
-        for (const counter of ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions',
+        for (const counter of ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions', 'compiledValueBlocks',
             'compiledNumericCallLoops', 'compiledGeneratorLoops', 'compiledTensors', 'numberTensors',
             'fusedArrayRegions', 'compiledEffectCalls'] as const) {
             expect(traced.diagnostics[counter], counter).toBe(plain.diagnostics[counter]);

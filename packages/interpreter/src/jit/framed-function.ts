@@ -21,7 +21,17 @@ interface Host {
 /** Compile control flow while keeping runtime frames, contracts and resumable callouts.
  * No return-type assumption or call-graph expansion is needed at a call boundary. */
 export function compileFramedFunction(statement: FunctionStatement, host: Host): CompiledBlock<ExecutionContext> | undefined {
-    return observeCompiler(statement, 'framed-function', 'prepare', () => {
+    return compileFramedBody(statement.statements, statement, host, 'framed-function', true);
+}
+
+/** A general loop's body can retain generated control around structured callouts. */
+export function compileValueBlock(statements: Statement[], host: Host): CompiledBlock<ExecutionContext> | undefined {
+    if (!statements.length) return undefined;
+    return compileFramedBody(statements, statements[0], host, 'value-block', false);
+}
+
+function compileFramedBody(commands: Statement[], statement: Statement, host: Host, backend: string, requireReturn: boolean): CompiledBlock<ExecutionContext> | undefined {
+    return observeCompiler(statement, backend, 'prepare', () => {
         if (inspectionEnabled()) return declineCompiler('inspection-enabled', statement);
         const sites: Statement[] = [], leaves: { statements: Statement[]; index: number }[] = [];
         const conditions: Expression[] = [], scopes: { statement: Statement; entry: string }[] = [];
@@ -71,13 +81,13 @@ export function compileFramedFunction(statement: FunctionStatement, host: Host):
             return next;
         }
         let entry: string;
-        try { entry = block(statement.statements); }
+        try { entry = block(commands); }
         catch { return declineCompiler('statement-budget', statement); }
         // Code generation already bounded the tree; this check cannot walk an unbounded graph.
         const returns = (commands: readonly Statement[]): boolean => commands.some(command => isReturnStatement(command)
             || isIfStatement(command) && returns(command.thenStatements) && returns(command.elseStatements)
                 && command.elifClauses.every(clause => returns(clause.statements)));
-        if (!returns(statement.statements)) return declineCompiler('terminal-return-required', statement);
+        if (requireReturn && !returns(commands)) return declineCompiler('terminal-return-required', statement);
         const source = `"use strict"; ${functions.join('\n')}
             function end(context, value) { return completed(value); }
             const scoped = [${scopes.map(scope => scope.entry).join(',')}].map(scope);
@@ -114,7 +124,7 @@ export function compileFramedFunction(statement: FunctionStatement, host: Host):
                 (error: unknown, index: number) => host.locate(error, sites[index]), () => host.executed?.(),
             ) as CompiledBlock<ExecutionContext>;
             host.compiled?.(source);
-            return observedRun(statement, 'framed-function', run, undefined, true);
+            return observedRun(statement, backend, run, undefined, true);
         } catch { return declineCompiler('dynamic-code-unavailable', statement); }
     });
 }

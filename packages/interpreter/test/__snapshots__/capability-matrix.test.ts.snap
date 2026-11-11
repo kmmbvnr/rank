@@ -7821,8 +7821,8 @@ exports[`executable compiler capability matrix > function/operator 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, host-call, interpreted-expression, native-operator",
-    "1:1 block-dispatch: direct-expression, host-call, interpreted-expression, native-operator, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, host-call, interpreted-expression, native-operator, statement-dispatch",
+    "1:1 framed-function: direct-expression, framed-function, host-call, interpreted-expression, native-operator",
     "1:1 native-operator: native-operator",
     "1:1 statement-dispatch: statement-dispatch",
     "2:10 direct-expression: direct-expression",
@@ -7834,9 +7834,9 @@ exports[`executable compiler capability matrix > function/operator 1`] = `
     "2:20 direct-expression: direct-expression",
     "2:9 direct-expression: direct-expression",
     "4:1 direct-expression: direct-expression",
-    "4:1 interpreted-expression: direct-expression, host-call, interpreted-expression, native-operator",
-    "4:1 statement-dispatch: direct-expression, host-call, interpreted-expression, native-operator",
-    "4:1 user-call: direct-expression, host-call, interpreted-expression, native-operator",
+    "4:1 interpreted-expression: direct-expression, framed-function, host-call, interpreted-expression, native-operator",
+    "4:1 statement-dispatch: direct-expression, framed-function, host-call, interpreted-expression, native-operator",
+    "4:1 user-call: direct-expression, framed-function, host-call, interpreted-expression, native-operator",
     "4:10 direct-expression: direct-expression",
     "4:17 direct-expression: direct-expression",
     "4:3 direct-expression: direct-expression",
@@ -11728,17 +11728,15 @@ exports[`executable compiler capability matrix > record/update 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, interpreted-expression, native-operator",
-    "1:1 statement-dispatch: direct-expression",
-    "1:9 interpreted-expression: direct-expression",
-    "2:11 direct-expression: direct-expression",
-    "4:1 statement-dispatch: direct-expression, native-operator",
-    "4:8 direct-expression: direct-expression",
-    "4:8 interpreted-expression: direct-expression, native-operator",
+    "1:1 block-dispatch: native-operator, native-value-selection, value-expression",
+    "1:1 statement-dispatch: value-expression",
+    "1:9 value-expression: value-expression",
+    "4:1 statement-dispatch: native-operator, value-expression",
     "4:8 native-operator: native-operator",
-    "5:12 direct-expression: direct-expression",
-    "7:1 interpreted-expression: interpreted-expression",
-    "7:1 statement-dispatch: interpreted-expression",
+    "4:8 value-expression: native-operator, value-expression",
+    "7:1 native-value-selection: native-value-selection",
+    "7:1 statement-dispatch: native-value-selection, value-expression",
+    "7:1 value-expression: native-value-selection, value-expression",
   ],
   "result": "5",
 }
@@ -12201,7 +12199,7 @@ exports[`executable compiler capability matrix > table/filter-select 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, interpreted-expression, native-array-map, native-call, native-operator, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, interpreted-expression, native-array-map, native-call, native-operator, native-value-selection, statement-dispatch, value-expression",
     "1:1 statement-dispatch: statement-dispatch",
     "2:1 statement-dispatch: statement-dispatch",
     "3:1 statement-dispatch: statement-dispatch",
@@ -12222,8 +12220,9 @@ exports[`executable compiler capability matrix > table/filter-select 1`] = `
     "6:11 native-operator: native-array-map, native-operator",
     "6:20 direct-expression: direct-expression",
     "7:11 direct-expression: direct-expression",
-    "9:1 interpreted-expression: interpreted-expression",
-    "9:1 statement-dispatch: interpreted-expression",
+    "9:1 native-value-selection: native-value-selection",
+    "9:1 statement-dispatch: native-value-selection, value-expression",
+    "9:1 value-expression: native-value-selection, value-expression",
     "undefined:undefined interpreted-expression: direct-expression, interpreted-expression",
     "undefined:undefined interpreted-expression: interpreted-expression",
   ],
@@ -12258,7 +12257,7 @@ exports[`executable compiler capability matrix > table/group 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, interpreted-expression, native-call, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, native-call, native-value-selection, statement-dispatch, value-expression",
     "1:1 statement-dispatch: statement-dispatch",
     "2:1 statement-dispatch: statement-dispatch",
     "3:1 statement-dispatch: statement-dispatch",
@@ -12271,8 +12270,9 @@ exports[`executable compiler capability matrix > table/group 1`] = `
     "6:1 statement-dispatch: direct-expression",
     "6:10 direct-expression: direct-expression",
     "6:10 interpreted-expression: direct-expression",
-    "9:1 interpreted-expression: interpreted-expression",
-    "9:1 statement-dispatch: interpreted-expression",
+    "9:1 native-value-selection: native-value-selection",
+    "9:1 statement-dispatch: native-value-selection, value-expression",
+    "9:1 value-expression: native-value-selection, value-expression",
   ],
   "result": "10 20",
 }
@@ -12305,7 +12305,7 @@ exports[`executable compiler capability matrix > table/join 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, interpreted-expression, native-call, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, native-call, native-value-selection, statement-dispatch, value-expression",
     "1:1 statement-dispatch: statement-dispatch",
     "2:1 statement-dispatch: statement-dispatch",
     "3:1 statement-dispatch: statement-dispatch",
@@ -12319,8 +12319,9 @@ exports[`executable compiler capability matrix > table/join 1`] = `
     "6:10 direct-expression: direct-expression",
     "6:10 interpreted-expression: direct-expression",
     "6:15 direct-expression: direct-expression",
-    "7:1 interpreted-expression: interpreted-expression",
-    "7:1 statement-dispatch: interpreted-expression",
+    "7:1 native-value-selection: native-value-selection",
+    "7:1 statement-dispatch: native-value-selection, value-expression",
+    "7:1 value-expression: native-value-selection, value-expression",
   ],
   "result": "1 2",
 }
@@ -12349,7 +12350,7 @@ exports[`executable compiler capability matrix > table/sort 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, interpreted-expression, native-call, statement-dispatch",
+    "1:1 block-dispatch: direct-expression, native-call, native-value-selection, statement-dispatch, value-expression",
     "1:1 statement-dispatch: statement-dispatch",
     "2:1 statement-dispatch: statement-dispatch",
     "3:1 statement-dispatch: statement-dispatch",
@@ -12359,8 +12360,9 @@ exports[`executable compiler capability matrix > table/sort 1`] = `
     "5:1 statement-dispatch: direct-expression",
     "5:10 direct-expression: direct-expression",
     "5:10 interpreted-expression: direct-expression",
-    "6:1 interpreted-expression: interpreted-expression",
-    "6:1 statement-dispatch: interpreted-expression",
+    "6:1 native-value-selection: native-value-selection",
+    "6:1 statement-dispatch: native-value-selection, value-expression",
+    "6:1 value-expression: native-value-selection, value-expression",
   ],
   "result": "2 1",
 }
@@ -14999,15 +15001,482 @@ exports[`executable compiler capability matrix > tuple/unpack 1`] = `
   "error": undefined,
   "output": [],
   "regions": [
-    "1:1 block-dispatch: direct-expression, statement-dispatch",
-    "1:1 statement-dispatch: direct-expression",
-    "1:14 direct-expression: direct-expression",
-    "1:16 direct-expression: direct-expression",
-    "1:8 interpreted-expression: direct-expression",
-    "2:1 statement-dispatch: direct-expression",
-    "2:21 direct-expression: direct-expression",
+    "1:1 block-dispatch: statement-dispatch, value-expression",
+    "1:1 statement-dispatch: value-expression",
+    "1:8 value-expression: value-expression",
+    "2:1 statement-dispatch: statement-dispatch",
     "3:1 statement-dispatch: statement-dispatch",
   ],
   "result": "5",
+}
+`;
+
+exports[`executable compiler capability matrix > values/mixed-index 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "computed-array-update:unsupported-assignment:=",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:container-write:ArrayAssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "value-expression:resumable-operand-required",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: direct-expression, framed-function, interpreted-expression, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:18 direct-expression: direct-expression",
+    "3:2 statement-dispatch: direct-expression",
+    "4:17 direct-expression: direct-expression",
+    "4:2 statement-dispatch: direct-expression",
+    "7:1 statement-dispatch: statement-dispatch",
+    "8:1 statement-dispatch: direct-expression, framed-function",
+    "8:9 interpreted-expression: direct-expression, framed-function",
+    "8:9 user-call: direct-expression, framed-function",
+    "9:1 interpreted-expression: interpreted-expression",
+    "9:1 statement-dispatch: interpreted-expression",
+    "9:23 interpreted-expression: interpreted-expression",
+    "9:24 interpreted-expression: interpreted-expression",
+    "9:7 interpreted-expression: interpreted-expression",
+    "9:8 interpreted-expression: interpreted-expression",
+  ],
+  "result": "3 Ada",
+}
+`;
+
+exports[`executable compiler capability matrix > values/nested-fields 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:LabelLiteral",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-op:State",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-expression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-function:callee-binding:ApplicationExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:LabelLiteral",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "11:1 interpreted-expression: direct-expression, framed-function, native-operator, native-value-selection, value-expression",
+    "11:1 statement-dispatch: direct-expression, framed-function, native-operator, native-value-selection, value-expression",
+    "11:1 user-call: direct-expression, framed-function, native-operator, native-value-selection, value-expression",
+    "1:1 block-dispatch: direct-expression, framed-function, native-operator, native-value-selection, statement-dispatch, value-expression",
+    "1:1 framed-function: direct-expression, framed-function, native-operator, native-value-selection, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:10 native-value-selection: native-value-selection",
+    "2:10 value-expression: native-value-selection, value-expression",
+    "2:2 statement-dispatch: native-value-selection, value-expression",
+    "3:18 direct-expression: direct-expression",
+    "3:2 native-operator: native-operator",
+    "3:2 statement-dispatch: direct-expression, native-operator",
+    "4:9 direct-expression: native-value-selection, value-expression",
+    "4:9 native-value-selection: native-value-selection",
+    "4:9 value-expression: native-value-selection, value-expression",
+    "6:1 statement-dispatch: value-expression",
+    "6:9 value-expression: value-expression",
+    "7:11 value-expression: value-expression",
+  ],
+  "result": "3",
+}
+`;
+
+exports[`executable compiler capability matrix > values/record-helper 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-expression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-node:RecordUpdateExpression",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordUpdateExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: framed-function, native-operator, value-expression",
+    "10:8 interpreted-expression: framed-function, native-operator, value-expression",
+    "10:8 user-call: framed-function, native-operator, value-expression",
+    "11:1 statement-dispatch: native-value-selection, value-expression",
+    "11:1 value-expression: native-value-selection, value-expression",
+    "11:23 native-value-selection: native-value-selection",
+    "11:23 value-expression: native-value-selection, value-expression",
+    "11:8 native-value-selection: native-value-selection",
+    "11:8 value-expression: native-value-selection, value-expression",
+    "1:1 block-dispatch: framed-function, native-operator, native-value-selection, statement-dispatch, value-expression",
+    "1:1 framed-function: framed-function, native-operator, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:2 statement-dispatch: native-operator, value-expression",
+    "2:9 native-operator: native-operator",
+    "2:9 value-expression: native-operator, value-expression",
+    "7:1 statement-dispatch: value-expression",
+    "7:9 value-expression: value-expression",
+  ],
+  "result": "2 3",
+}
+`;
+
+exports[`executable compiler capability matrix > values/record-loop 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "array-region:too-small",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "generator-loop:no-direct-suspension",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:ArrayAssignmentStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:LabelLiteral",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:LabelLiteral",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-expression:unsupported-op:to",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: direct-expression, interpreted-loop, native-operator, native-range, native-value-selection, value-block, value-expression",
+    "1:1 statement-dispatch: value-expression",
+    "1:9 value-expression: value-expression",
+    "4:1 interpreted-loop: direct-expression, interpreted-loop, native-operator, native-range, value-block",
+    "4:1 statement-dispatch: direct-expression, interpreted-loop, native-operator, native-range, value-block",
+    "4:10 direct-expression: native-operator, native-range",
+    "4:10 native-operator: native-operator, native-range",
+    "5:18 direct-expression: direct-expression",
+    "5:2 native-operator: native-operator",
+    "5:2 statement-dispatch: direct-expression, native-operator",
+    "5:2 value-block: direct-expression, native-operator, value-block",
+    "7:1 native-value-selection: native-value-selection",
+    "7:1 statement-dispatch: native-value-selection, value-expression",
+    "7:1 value-expression: native-value-selection, value-expression",
+  ],
+  "result": "6",
+}
+`;
+
+exports[`executable compiler capability matrix > values/record-set 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:add",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: direct-expression, framed-function",
+    "10:9 interpreted-expression: direct-expression, framed-function",
+    "10:9 user-call: direct-expression, framed-function",
+    "11:1 interpreted-expression: native-call",
+    "11:1 native-call: native-call",
+    "11:1 statement-dispatch: native-call",
+    "1:1 block-dispatch: direct-expression, framed-function, native-call, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:12 direct-expression: direct-expression",
+    "3:2 direct-expression: direct-expression",
+    "3:2 statement-dispatch: direct-expression",
+    "6:1 statement-dispatch: statement-dispatch",
+    "7:1 statement-dispatch: value-expression",
+    "7:9 value-expression: value-expression",
+  ],
+  "result": "1",
+}
+`;
+
+exports[`executable compiler capability matrix > values/record-type-error 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:RecordExpression",
+    },
+  ],
+  "error": "RankError [Runtime]: record field .count has type integer and cannot receive text
+  at values/record-type-error.ra:4:1
+4 | State .count = "bad"
+    ^",
+  "output": [],
+  "regions": [
+    "1:1 statement-dispatch: value-expression",
+    "1:9 value-expression: value-expression",
+    "4:16 direct-expression: direct-expression",
+  ],
+  "result": undefined,
+}
+`;
+
+exports[`executable compiler capability matrix > values/text-queue 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "numeric-function:structural-array-operation-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:container-push:PushStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:pop",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:NewStructureExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 statement-dispatch: direct-expression, framed-function",
+    "10:22 direct-expression: direct-expression",
+    "10:9 interpreted-expression: direct-expression, framed-function",
+    "10:9 user-call: direct-expression, framed-function",
+    "11:1 interpreted-expression: framed-function, native-call",
+    "11:1 statement-dispatch: framed-function, native-call",
+    "11:1 user-call: framed-function, native-call",
+    "1:1 block-dispatch: direct-expression, framed-function, native-call, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:13 direct-expression: direct-expression",
+    "3:2 direct-expression: direct-expression",
+    "3:2 statement-dispatch: direct-expression",
+    "6:1 framed-function: framed-function, native-call",
+    "6:1 native-call: native-call",
+    "6:1 statement-dispatch: statement-dispatch",
+    "9:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "hello",
+}
+`;
+
+exports[`executable compiler capability matrix > values/tuple-result 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-node:TupleExpression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:pair",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-expression",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "tensor:unsupported-node:TupleExpression",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "1:1 block-dispatch: direct-expression, framed-function, statement-dispatch, value-expression",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:9 direct-expression: value-expression",
+    "2:9 value-expression: value-expression",
+    "4:1 framed-function: framed-function, value-expression",
+    "4:1 statement-dispatch: statement-dispatch",
+    "5:2 statement-dispatch: value-expression",
+    "5:22 interpreted-expression: value-expression",
+    "5:22 user-call: value-expression",
+    "6:9 direct-expression: value-expression",
+    "6:9 value-expression: value-expression",
+    "8:1 direct-expression: direct-expression",
+    "8:1 interpreted-expression: direct-expression, framed-function, value-expression",
+    "8:1 statement-dispatch: direct-expression, framed-function, value-expression",
+    "8:1 user-call: framed-function, value-expression",
+  ],
+  "result": "3 ok",
 }
 `;

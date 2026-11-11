@@ -1,3 +1,4 @@
+import { compileValueExpression } from './jit/value-expression.js';
 import { withCompilerSource, observeCompiler, declineCompiler } from './compiler-observation.js';
 import { prepareNativeIntegerSum } from './native-integer-sum.js';
 import { compileRealArrayFunction, type RealArrayArgument } from './jit/real-array-function.js';
@@ -16,9 +17,10 @@ import { AstUtils, type AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
+    isLabelLiteral, isStringLiteral, isRecordExpression, isRecordUpdateExpression, isTupleExpression, isUnpackStatement, isPushStatement,
     isIfStatement, isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
-import { compileFramedFunction } from './jit/framed-function.js';
+import { compileFramedFunction, compileValueBlock } from './jit/framed-function.js';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
 import { compileTensorRegion } from './jit/tensor-region.js';
 import { compileNumericFunction } from './jit/numeric-function.js';
@@ -102,6 +104,10 @@ export interface BlockSteps {
 export class FastPaths {
     private readonly tensorPlanCode = new WeakMap<Expression, TensorCodeCache>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
+    private readonly valueBlocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
+    private readonly framedBodies = new WeakMap<FunctionStatement, CompiledBlock<ExecutionContext> | null>();
+    private readonly valueExpressions = new WeakMap<Expression, (() => RankValue) | null>();
+    private readonly valueBodies = new WeakMap<FunctionStatement, boolean>();
     private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
     constructor(private readonly context: FastPathContext) {}
@@ -110,12 +116,48 @@ export class FastPaths {
         return this.context.compiler ? this.context.compiler() : resolveCompilerCapabilities(this.context.options());
     }
 
+    valueExpression(expression: Expression, direct: (expression: Expression) => (() => RankValue) | undefined,
+        select: (values: RankValue[]) => RankValue) {
+        if (!this.compiler.scalars.expressions) return undefined;
+        let run = this.valueExpressions.get(expression);
+        if (run === undefined) {
+            run = compileValueExpression(expression, { direct, operators: this.context.operators, select }) ?? null;
+            this.valueExpressions.set(expression, run);
+        }
+        return run ?? undefined;
+    }
+
     /** A block of 2 to 64 statements compiled to one closure that steps through them. */
     block(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
         return observeCompiler(statements[0], 'block-routing', 'prepare', () => this.blockCandidate(statements, steps));
     }
 
     private blockCandidate(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
+        if (this.compiler.blocks.blocks && statements.length && isForStatement(statements[0].$container)) {
+            let block = this.valueBlocks.get(statements);
+            if (block === undefined) {
+                const structured = (node: AstNode) => isRecordExpression(node) || isRecordUpdateExpression(node)
+                    || isTupleExpression(node) || isUnpackStatement(node) || isPushStatement(node)
+                    || isArrayAssignmentStatement(node) && node.indices.some(index => isLabelLiteral(index.value) || isStringLiteral(index.value))
+                    || isAssignmentStatement(node) && node.name.includes('.');
+                const structural = statements.some(statement => structured(statement) || AstUtils.streamAllContents(statement).some(structured));
+                block = structural ? compileValueBlock(statements, {
+                    prepare: (commands, index) => steps.preparedStatement(commands, index),
+                    scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
+                    direct: expression => this.context.compileDirect(expression),
+                    evaluate: expression => this.context.evaluate(expression),
+                    locate: (error, statement) => this.context.locate(error, statement),
+                    compiled: this.compiler.hooks.onBlockCompiled,
+                    executed: () => {
+                        this.compiler.hooks.onBlockExecuted?.();
+                        const diagnostics = currentDiagnostics();
+                        if (diagnostics) diagnostics.compiledValueBlocks++;
+                    },
+                }) ?? null : null;
+                this.valueBlocks.set(statements, block);
+            }
+            if (block) return block;
+        }
         if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
@@ -195,8 +237,19 @@ export class FastPaths {
                 compiled: this.compiler.hooks.onFunctionBodyCompiled,
                 executed: this.compiler.hooks.onFunctionBodyExecuted,
             }) ?? null : null;
-            if (commands.some(command => isFunctionStatement(command) || isIfStatement(command))) {
-                const framed = compileFramedFunction(statement, {
+            let values = this.valueBodies.get(statement);
+            if (values === undefined) {
+                values = AstUtils.streamAllContents(statement).some(node => isRecordExpression(node)
+                    || isRecordUpdateExpression(node) || isTupleExpression(node) || isUnpackStatement(node)
+                    || isPushStatement(node) || isAssignmentStatement(node) && node.name.includes('.'));
+                this.valueBodies.set(statement, values);
+            }
+            // Generic frame code is independent of element/field domains. It
+            // carries boxed values through normal contracts, never integer registers.
+            if (values || arguments_.some(value => typeof value === 'object')
+                || commands.some(command => isFunctionStatement(command) || isIfStatement(command))) {
+                let framed = this.framedBodies.get(statement);
+                if (framed === undefined) framed = compileFramedFunction(statement, {
                     prepare: (statements, index) => statements === commands ? prepare(index) : steps.preparedStatement(statements, index),
                     scope: (statement, prepared) => steps.scopeStatement(statement, prepared),
                     direct: expression => this.context.compileDirect(expression),
@@ -208,8 +261,10 @@ export class FastPaths {
                         const diagnostics = currentDiagnostics();
                         if (diagnostics) diagnostics.compiledFramedFunctions++;
                     },
-                });
+                }) ?? null;
+                this.framedBodies.set(statement, framed);
                 if (framed) {
+                    const run = framed;
                     let ordinary: CompiledBlock<ExecutionContext> | null | undefined;
                     body = (context, index = 0, previous) => {
                         if (index) {
@@ -217,7 +272,7 @@ export class FastPaths {
                             return ordinary ? ordinary(context, index, previous)
                                 : steps.executeIn(commands.slice(index), context);
                         }
-                        return framed(context);
+                        return run(context);
                     };
                 }
             }

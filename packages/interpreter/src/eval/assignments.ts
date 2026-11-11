@@ -94,8 +94,7 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
     const writes = statement.names.map(name =>
         name === '#' ? undefined : host.compileAssign(name));
     const { source, axis } = unpackSource(statement.value);
-    return { stream: function* (): Execution<RankValue | undefined> {
-        const result = (yield* resume(host.evaluate(source)));
+    const unpack = (result: RankValue): RankValue => {
         const unpacked = unpackApplicationItems(result, axis);
         if (unpacked.length !== statement.names.length) {
             throw new RankError(`unpack expects ${statement.names.length} values, got ${unpacked.length}`);
@@ -103,7 +102,10 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
         const values = unpacked.map((value, index) => writes[index] ? materializeValue(value) : value);
         for (let index = 0; index < writes.length; index += 1) writes[index]?.(values[index]);
         return result;
-    } };
+    };
+    const direct = host.compileDirect(source);
+    return direct ? { run: () => unpack(direct()) }
+        : { stream: () => mapResult(host.evaluate(source), unpack) };
 }
 
 /** Region operands are already lowered; reuse the ordinary write contract

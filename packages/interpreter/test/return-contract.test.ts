@@ -50,15 +50,15 @@ it('allows rank-changing recursion to use distinct argument specializations', ()
     const runtime = new Interpreter(() => {});
     expect(runtime.execute('fun X scalar\n if X is .array\n return (X 0) scalar\n end\n return X\nend\n(array 7) scalar')).toBe(7n);
 });
-it('reuses a prepared body for equal input ranks with different lengths', () => {
+it('reuses generic framed code across input ranks and lengths', () => {
     let compiled = 0;
     const runtime = new Interpreter(() => {}, { scalarFunctionCompilation: false, onFunctionBodyCompiled: () => compiled++ });
     runtime.execute('fun X identity\n Y = X\n return Y\nend\n(array 1) identity\n(array 1 2) identity');
     expect(compiled).toBe(1);
     runtime.execute('(array 1 2 3 4 shape 2 2) identity');
-    expect(compiled).toBe(2);
+    expect(compiled).toBe(1);
     runtime.execute('(array 1 2 3) identity');
-    expect(compiled).toBe(2);
+    expect(compiled).toBe(1);
 });
 it('allows empty results and changes of axis lengths within one rank', () => {
     const runtime = new Interpreter(() => {});

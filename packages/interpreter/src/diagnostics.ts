@@ -137,6 +137,7 @@ export class RuntimeDiagnostics {
     tensorMapPreparations = 0;
     compiledArrayFunctions = 0;
     compiledFramedFunctions = 0;
+    compiledValueBlocks = 0;
     numericFunctionPreparations = 0;
     numericFunctionPlanHits = 0;
     compiledNumericCallLoops = 0;

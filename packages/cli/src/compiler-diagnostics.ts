@@ -9,6 +9,9 @@ const explanations: Record<string, string> = {
     'unsupported-op': 'This backend cannot lower the operation in this context.',
     'unsupported-node': 'This backend cannot lower this syntax in this context.',
     'unsupported-type': 'This backend does not admit this value type.',
+    'resumable-operand-required': 'This synchronous constructor needs a resumable operand; its surrounding body can still compile.',
+    'container-push': 'This specialized container path cannot lower a push with the proven operand types.',
+    'container-write': 'This specialized container path cannot lower a write with the proven operand types.',
     'binding': 'Runtime inputs could not be bound to this specialized kernel.',
     'operator-guard': 'Runtime operands did not satisfy the specialized operator guard.',
     'unbound-name': 'The compiler could not prove a binding for this name.',
@@ -89,7 +92,7 @@ function executionSummary(diagnostics: RuntimeDiagnostics): string[] {
 
 export function compilerDiagnostics(diagnostics: RuntimeDiagnostics): string {
     const lines = ['Compiler diagnostics:', ...executionSummary(diagnostics), '  Execution counters (not whole-program coverage):'];
-    const counters = ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions',
+    const counters = ['compiledLoops', 'numberLoops', 'numberFunctions', 'compiledArrayFunctions', 'compiledFramedFunctions', 'compiledValueBlocks',
         'compiledNumericCallLoops', 'compiledGeneratorLoops', 'compiledTensors', 'numberTensors',
         'fusedArrayRegions', 'fusedArrayRegionCells', 'nativeIntegerSums', 'nativeIntegerJoins'] as const;
     for (const name of counters) lines.push(`  ${name}: ${diagnostics[name]}`);

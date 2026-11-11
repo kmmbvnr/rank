@@ -3931,3 +3931,76 @@ direct terminal completion and lazy dispatcher preparation removed those costs.
 The final mutual-tail workload still took about 4–5% longer, and short Intel
 measurements varied between runs. This remaining overhead is recorded separately
 from the functional coverage gain.
+
+### Structured values and container boundaries
+
+`value-expression` generates record construction, record `with` updates, tuples
+and named field-selection chains. Generated constructors share resource tracking,
+materialization, field initialization and copy/update helpers with reference
+execution. Duplicate fields still fail before their RHS runs. Field reads call
+the normal selection adapter, including module checks and host accessors;
+diagnostics report `native-value-selection` alongside the generated expression.
+The synchronous backend admits at most 64 fields/items/selectors. Suspended
+operands retain the resumable evaluator, with an admission reason where this
+backend is attempted. No constructor or selector forces operands during
+preparation to discover their types.
+
+Function bodies containing structured syntax, or receiving boxed arguments, can
+use `framed-function` after specialized entries decline. Records, tuples, arrays
+and general containers cross that boundary through existing runtime argument and
+return contracts. The generated frame code is cached per declaration and reused
+across argument schemas and ranks; it contains no schema-specific field offsets
+or scalar assumptions. Existing `CollectionElementType`, record field contracts
+and tuple-position contracts supply structural validation. Linked numeric kernels
+keep their narrower operand proofs and priority. This expands compiled boundaries
+without introducing a second structural type system or admitting boxed values
+into integer registers.
+
+General `for` bodies containing structural construction, unpacking, pushes or
+field/key writes can use `value-block`. The existing loop driver still owns
+iteration, scope and polling; generated body control uses prepared operations and
+resumes pending calls. Numeric whole-loop specializations retain first choice.
+`compiledValueBlocks` counts body entries, not compiled iterations of the entire
+loop. The shared body generator retains its 256-statement budget. Plain array
+selection and ownership extensions remain separate workstreams.
+
+Unpacking shares one runtime adapter for direct and suspended operands, retaining
+arity checks, materialization before writes, ignored targets and evaluation order.
+General framed calls support the language's non-integer queue, stack, deque and
+set elements, including records and arrays, and heterogeneous index values with
+text keys. `groups` remains an integer-only language construct. Variable/field
+and homogeneous-container type changes remain errors. Field writes, aliases,
+copy-on-write, resource retention and return contracts use their existing runtime
+rules rather than bypassing checks in generated code.
+
+`structured-values.test.ts` checks generated execution paths and differential
+values, errors and output, including mixed tuple results, nested record writes,
+ranked record results, container element domains, captured array snapshots,
+contract failures, duplicate-field timing, host accessors, code-size limits,
+blocked dynamic JavaScript and cancellation. The capability matrix adds eight
+cases (391 checks including the catalogue inventory); CLI tests identify the
+expression/body backends and delegated selection. Existing record, collection,
+resource, capability-switch and function-control suites cover the shared adapters.
+
+`benchmarks/structured-values.mjs` compares baseline `f52b3076` against this
+implementation with 2,000 iterations per workload. Each of three alternating
+process pairs has a cold run and five warm runs, all with fresh interpreters.
+Times include parsing and preparation; peak RSS includes module loading. Raw
+samples are in `benchmarks/structured-values-results.json`.
+
+Median warm times across processes (milliseconds, before → after):
+
+| Workload | Mac | Intel |
+| --- | ---: | ---: |
+| record helper and copy/update | 22.95 → 20.53 | 78.91 → 69.96 |
+| tuple helper and unpack | 18.10 → 13.49 | 67.87 → 45.63 |
+| text queue across helpers | 33.27 → 33.67 | 119.70 → 113.90 |
+| record-field update loop | 4.00 → 3.93 | 12.74 → 12.74 |
+| scalar helper control | 1.96 → 1.97 | 5.76 → 5.79 |
+
+Median cold time for the record workload changed from 117.61 → 117.16 ms on Mac
+and 330.95 → 311.38 ms on Intel; tuple/unpack changed from 110.48 → 105.04 ms
+and 306.75 → 282.36 ms. Tuple/unpack median peak RSS fell from 263,024 →
+211,552 KiB on Mac and 248,356 → 196,228 KiB on Intel. Queue, field and scalar
+controls do not establish a general speedup; their raw cold and RSS measurements
+are retained alongside the faster cases.

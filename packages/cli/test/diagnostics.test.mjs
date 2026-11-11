@@ -174,3 +174,27 @@ Result print`);
     const summary = result.stderr.split('Execution counters')[0];
     assert.match(summary, /framed-function/);
 });
+
+test('diagnostics distinguishes structured constructors, loop bodies and runtime selection', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-values-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'program.ra');
+    writeFileSync(file, `use io
+State = record
+ .count = 0
+end
+for I in 1 to 3
+ State .count += I
+end
+Result = State .count
+Result print`);
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, '6\n');
+    assert.match(result.stderr, /compiledValueBlocks: 3/);
+    assert.match(result.stderr, /value-expression execute: selected/);
+    assert.match(result.stderr, /value-block execute: selected/);
+    const summary = result.stderr.split('Execution counters')[0];
+    assert.match(summary, /native-value-selection/);
+    assert.match(summary, /mixed \(compiled \+ native\)/);
+});

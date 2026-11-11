@@ -1,3 +1,4 @@
+import { createRecord, copyRecordForUpdate, checkNewRecordField, initializeRecordField } from '../record-construction.js';
 import { observedRun } from '../compiler-observation.js';
 import { AstUtils } from 'langium';
 import { integer32Cells } from '../array-storage.js';
@@ -5,7 +6,6 @@ import { modularProduct } from '../modular-fold.js';
 import { demandBudgetEnabled, privateLoopPolling } from '../interrupt.js';
 import { PlanConstruction } from './plan-construction.js';
 import { demand, demandValue } from '../plan.js';
-import { materializeValue } from '../materialize.js';
 import { checkedArrayDimension, safeDimension } from '../tensor-index.js';
 import { integerLiteral } from './application.js';
 import { convolveExact, convolveModular } from '../convolution.js';
@@ -49,15 +49,14 @@ import { expectInteger, Operators } from '../operators.js';
 import { recordContract } from '../record-contract.js';
 import { assignRecordField } from '../record-write.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
-import { ResourceMap } from '../resource-summary.js';
 import { ALL_AXIS } from '../selectors.js';
 import { materializeSequence, sequence, stackItems } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
     isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence,
-    MISSING, typeName,
-    type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
+    MISSING,
+    type NativeFunction, type RankArray, type RankSequence, type RankValue,
 } from '../value.js';
 import type { ApplicationEvaluator } from './application.js';
 import { isNamed } from './application.js';
@@ -199,6 +198,8 @@ export class ExpressionEvaluator {
     }
 
     private compileDirectValue(expression: Expression): (() => RankValue) | undefined {
+        const structural = this.context.fastPaths.valueExpression(expression, leaf => this.compileDirect(leaf), values => this.context.select(values));
+        if (structural) return structural;
         const compiled = this.context.fastPaths.scalarExpression(expression, leaf => this.compileDirect(leaf));
         if (compiled) return compiled;
         if (isFunctionOperator(expression)) {
@@ -474,19 +475,10 @@ export class ExpressionEvaluator {
         if (clause) return clause;
         if (isRecordExpression(expression)) {
             return function* (): Execution<RankValue> {
-                const entries = new ResourceMap<RankValue>(value => value);
-                const record: RankRecord = entries.resources.track({
-                    kind: 'record',
-                    entries,
-                    types: new Map(),
-                });
+                const record = createRecord();
                 for (const field of expression.fields) {
-                    if (record.entries.has(field.name)) {
-                        throw new RankError(`duplicate record field: .${field.name}`);
-                    }
-                    const value = materializeValue(yield* resume(expressions.evaluate(field.value)));
-                    record.entries.set(field.name, value);
-                    record.types.set(field.name, typeName(value));
+                    checkNewRecordField(record, field.name);
+                    initializeRecordField(record, field.name, yield* resume(expressions.evaluate(field.value)));
                 }
                 recordContract(record);
                 return record;
@@ -495,15 +487,7 @@ export class ExpressionEvaluator {
         if (isRecordUpdateExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = yield* resume(expressions.evaluate(expression.source));
-                if (!isRankRecord(source)) throw new RankError('with expects a record', 'TypeError');
-                const entries = new ResourceMap<RankValue>(value => value);
-                const record: RankRecord = entries.resources.track({
-                    kind: 'record',
-                    entries,
-                    types: new Map(source.types),
-                    fieldContracts: new Map(recordContract(source).fields),
-                });
-                for (const [name, value] of source.entries) entries.set(name, value);
+                const record = copyRecordForUpdate(source);
                 const changed = new Set<string>();
                 for (const field of expression.fields) {
                     if (changed.has(field.name)) throw new RankError(`duplicate record field: .${field.name}`);
