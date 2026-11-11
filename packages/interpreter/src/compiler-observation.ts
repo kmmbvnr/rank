@@ -1,8 +1,16 @@
+import { ReturnSignal, TailCallSignal, BreakSignal, ContinueSignal } from './control-signals.js';
 import type { Expression, Statement } from '@arrrank/language';
 import { currentDiagnostics, type CompilerObservation, type CompilerAttempt, type CompilerExecutionKind } from './diagnostics.js';
 import { describeCompilerRejection } from './compiler-rejection.js';
 
 type Site = Expression | Statement;
+
+// Protected returns and jumps unwind normally through JavaScript exceptions.
+// They are successful control transfers, unlike a failed operand guard.
+function controlTransfer(error: unknown): boolean {
+    return error instanceof ReturnSignal || error instanceof TailCallSignal
+        || error instanceof BreakSignal || error instanceof ContinueSignal;
+}
 
 const compiledBackends = new Set([
     'scalar-expression', 'resumable-scalar-expression', 'scalar-function', 'scalar-function-direct',
@@ -73,7 +81,8 @@ export function observeCompilerSource<T>(
                                 }
                                 return next;
                             } catch (error) {
-                                diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: 'threw' });
+                                diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: controlTransfer(error) ? 'completed' : 'threw',
+                                    execution: root && controlTransfer(error) ? finishExecution(attempt) : undefined });
                                 throw error;
                             }
                         }));
@@ -90,7 +99,8 @@ export function observeCompilerSource<T>(
                 execution: phase === 'execute' && outcome === 'selected' ? finishExecution(attempt) : undefined });
             return result;
         } catch (error) {
-            diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: 'threw' });
+            diagnostics.observeCompiler({ ...attempt, reasons: [...attempt.reasons], outcome: controlTransfer(error) ? 'completed' : 'threw',
+                execution: phase === 'execute' && controlTransfer(error) ? finishExecution(attempt) : undefined });
             throw error;
         }
     });

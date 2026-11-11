@@ -19,7 +19,7 @@ import {
     forAxes, findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement, isArrayAssignmentStatement,
     type ApplicationForm, type Operation, type ArrayAssignmentStatement, isAssignmentStatement,
     isRecordExpression, isRecordUpdateExpression, isTupleExpression, isUnpackStatement, isPushStatement,
-    isIfStatement, isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
+    isDeclaredCallExpression, isStdinExpression, isIfStatement, isTryStatement, isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileFramedFunction, compileValueBlock } from './jit/framed-function.js';
 import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
@@ -54,6 +54,15 @@ import { preparePositionalBuiltin } from './jit/typed-native.js';
 import { textAt } from './text-storage.js';
 import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankArray, type RankValue } from './value.js';
 import type { ReductionEvaluator } from './reduction.js';
+
+/** Admission hint only: these sites retain ordinary checked calls and live
+ * bindings. It is never used as a purity or operand-domain proof. */
+function hasCallBoundary(node: AstNode): boolean {
+    if (isTryStatement(node) || isStdinExpression(node) || isDeclaredCallExpression(node)) return true;
+    if (!isNameExpression(node) || !/^[a-z]/.test(node.name)) return false;
+    const operation = findOperation(node.name);
+    return !operation || !!operation.effects?.length;
+}
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
 
@@ -143,7 +152,7 @@ export class FastPaths {
         if (this.compiler.blocks.blocks && statements.length && isForStatement(statements[0].$container)) {
             let block = this.valueBlocks.get(statements);
             if (block === undefined) {
-                const structured = (node: AstNode) => isRecordExpression(node) || isRecordUpdateExpression(node)
+                const structured = (node: AstNode) => hasCallBoundary(node) || isRecordExpression(node) || isRecordUpdateExpression(node)
                     || isTupleExpression(node) || isUnpackStatement(node) || isPushStatement(node)
                     || isArrayAssignmentStatement(node)
                     || isAssignmentStatement(node) && (node.deferred || node.name.includes('.'));
@@ -249,7 +258,7 @@ export class FastPaths {
             }) ?? null : null;
             let values = this.valueBodies.get(statement);
             if (values === undefined) {
-                values = AstUtils.streamAllContents(statement).some(node => isRecordExpression(node)
+                values = AstUtils.streamAllContents(statement).some(node => hasCallBoundary(node) || isRecordExpression(node)
                     || isRecordUpdateExpression(node) || isTupleExpression(node) || isUnpackStatement(node)
                     || isPushStatement(node) || isArrayAssignmentStatement(node)
                     || isAssignmentStatement(node) && (node.deferred || node.name.includes('.')));
@@ -258,7 +267,7 @@ export class FastPaths {
             // Generic frame code is independent of element/field domains. It
             // carries boxed values through normal contracts, never integer registers.
             if (values || arguments_.some(value => typeof value === 'object')
-                || commands.some(command => isFunctionStatement(command) || isIfStatement(command))) {
+                || commands.some(command => isFunctionStatement(command) || isIfStatement(command) || isTryStatement(command))) {
                 let framed = this.framedBodies.get(statement);
                 if (framed === undefined) framed = compileFramedFunction(statement, {
                     prepare: (statements, index) => statements === commands ? prepare(index) : steps.preparedStatement(statements, index),

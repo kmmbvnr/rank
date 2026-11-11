@@ -88,6 +88,9 @@ describe('executable compiler capability matrix', () => {
         if (row.id === 'deferred-composition/helper') expect(summary.paths).toContain('value-block');
         if (row.id === 'deferred-composition/escape') expect(summary.paths).toContain('framed-function');
         if (row.id === 'deferred-composition/array') expect(summary.paths).toContain('scalar-function-direct');
+        if (row.id === 'effect-boundary/protected-generator') expect(summary.paths).toContain('generator-loop');
+        if (row.id === 'effect-boundary/protected-return') expect(summary.paths).toContain('framed-function');
+        if (row.id === 'effect-boundary/helper-loop') expect(summary.paths).toContain('value-block');
         if (row.operator) expect(summary.paths.some(path => path === 'number-loop' || path === 'exact-loop')).toBe(true);
         const demo = demos.find(([name]) => row.id === `euler/${name}`);
         if (demo) expect(traced.output.join('\n').trim()).toBe(demo[1]);

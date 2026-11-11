@@ -85,7 +85,11 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         ? binding.names.slice(1).map(name =>
             name === '#' ? undefined : loop.compileAssign(name))
         : [];
-    const generator = binding && loop.options().compilation !== false && loop.options().generatorLoopCompilation !== false
+    let generator: ReturnType<typeof compileGeneratorLoop> | null;
+    // Specialized loops may consume the generator without entering this path.
+    // Build the resumable body only when execution actually needs it.
+    const prepareGenerator = () => generator !== undefined ? generator : generator =
+        binding && loop.options().compilation !== false && loop.options().generatorLoopCompilation !== false
         ? compileGeneratorLoop(statement.statements, {
             source: statement,
             evaluate: expression => loop.evaluate(expression),
@@ -94,7 +98,7 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
             locate: (error, statement) => loop.locate(error, statement),
             compiled: loop.options().onGeneratorLoopCompiled,
             executed: loop.options().onGeneratorLoopExecuted,
-        }) : undefined;
+        }) ?? null : null;
     const reference: PreparedStatement = { stream: function* (context) {
         let awaitingTurbo = inspectionEnabled();
         // Each loop owns its jumps. Branches share this carrier, while
@@ -109,8 +113,10 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                 && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
             const entries = flat ? iterationAtoms(loop.bindings, binding, iterable)
                 : forEntries(loop.bindings, binding, iterable, loop.options().tensorCellCompilation !== false);
-            if (generator && flat && context.insideGenerator && !context.insideFinally && !inspectionEnabled()) {
-                return yield* resume(generator(entries as Iterable<RankValue>, (value, ordinal) => {
+            const suspending = flat && context.insideGenerator && !context.insideFinally && !inspectionEnabled()
+                ? prepareGenerator() : undefined;
+            if (suspending) {
+                return yield* resume(suspending(entries as Iterable<RankValue>, (value, ordinal) => {
                     bindValue?.(value);
                     bindIndex[0]?.(ordinal);
                 }, context));

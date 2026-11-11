@@ -1,4 +1,4 @@
-import { isIfStatement, isReturnStatement, type Expression, type FunctionStatement, type Statement } from '@arrrank/language';
+import { isIfStatement, isReturnStatement, isTryStatement, type Expression, type FunctionStatement, type Statement } from '@arrrank/language';
 import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
 import { completed, type Evaluation, type Execution } from '../execution.js';
 import { inspectionEnabled } from '../interrupt.js';
@@ -83,10 +83,12 @@ function compileFramedBody(commands: Statement[], statement: Statement, host: Ho
         let entry: string;
         try { entry = block(commands); }
         catch { return declineCompiler('statement-budget', statement); }
-        // Code generation already bounded the tree; this check cannot walk an unbounded graph.
-        const returns = (commands: readonly Statement[]): boolean => commands.some(command => isReturnStatement(command)
-            || isIfStatement(command) && returns(command.thenStatements) && returns(command.elseStatements)
-                && command.elifClauses.every(clause => returns(clause.statements)));
+        // Protected bodies delegate their own preparation; bound return-proof nesting too.
+        const returns = (commands: readonly Statement[], depth = 0): boolean => depth <= 16 && commands.some(command => isReturnStatement(command)
+            || isIfStatement(command) && returns(command.thenStatements, depth + 1) && returns(command.elseStatements, depth + 1)
+                && command.elifClauses.every(clause => returns(clause.statements, depth + 1))
+            || isTryStatement(command) && returns(command.statements, depth + 1)
+                && command.catches.every(clause => returns(clause.statements, depth + 1)));
         if (requireReturn && !returns(commands)) return declineCompiler('terminal-return-required', statement);
         const source = `"use strict"; ${functions.join('\n')}
             function end(context, value) { return completed(value); }

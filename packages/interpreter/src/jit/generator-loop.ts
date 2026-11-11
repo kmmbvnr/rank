@@ -1,5 +1,5 @@
 import { observeCompiler, observedRun, declineCompiler } from '../compiler-observation.js';
-import { isIfStatement, isYieldStatement, type Expression, type Statement } from '@arrrank/language';
+import { isForStatement, isIfStatement, isTryStatement, isYieldStatement, type Expression, type Statement } from '@arrrank/language';
 import { BreakSignal, ContinueSignal } from '../control-signals.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import type { Evaluation, Execution } from '../execution.js';
@@ -36,7 +36,10 @@ export function compileGeneratorLoop(statements: Statement[], host: Host): Gener
 function compileGeneratorBody(statements: Statement[], host: Host): GeneratorLoop | undefined {
     const suspends = (commands: Statement[], depth = 0): boolean => depth <= 16 && commands.some(command => isYieldStatement(command)
         || isIfStatement(command) && [command.thenStatements, command.elseStatements,
-            ...command.elifClauses.map(branch => branch.statements)].some(branch => suspends(branch, depth + 1)));
+            ...command.elifClauses.map(branch => branch.statements)].some(branch => suspends(branch, depth + 1))
+        || isForStatement(command) && suspends(command.statements, depth + 1)
+        || isTryStatement(command) && [command.statements, command.finallyStatements,
+            ...command.catches.map(clause => clause.statements)].some(branch => suspends(branch, depth + 1)));
     if (!suspends(statements)) return declineCompiler('no-direct-suspension');
     const sites: Statement[] = [];
     const readers: (() => Evaluation<RankValue>)[] = [];

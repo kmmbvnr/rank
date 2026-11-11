@@ -243,3 +243,36 @@ Alias 0 = 9
 First = Result
 Second = Result
 tuple (First 0) (Second 0) (Alias 0)`, ['integer[]'], 'tuple', [1], 'deferred array snapshot', ['mutates']);
+
+add('effect-boundary/protected-generator', `fun values
+ for N in 1 to 2
+  try
+   yield N
+  finally
+   yield N + 10
+  end
+ end
+end
+values array`, ['integer'], 'integer[]', [1], 'generator', ['suspends']);
+add('effect-boundary/protected-return', `use io
+fun N work
+ try
+  N print
+  return N * 2
+ finally
+  "closed" print
+ end
+end
+3 work`, ['integer'], 'integer', [0], 'scalar', ['io']);
+add('effect-boundary/helper-loop', `use io
+fun N report
+ N print
+ return N + 1
+end
+Total = 0
+for I in 1 to 3
+ Before = I * I + 1
+ Current = I report
+ Total += Before + Current
+end
+Total`, ['integer'], 'integer', [0], 'scalar', ['io']);

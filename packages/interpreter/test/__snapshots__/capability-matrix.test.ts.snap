@@ -496,10 +496,6 @@ exports[`executable compiler capability matrix > builtin/abs/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -532,10 +528,6 @@ exports[`executable compiler capability matrix > builtin/abs/1/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -574,10 +566,6 @@ exports[`executable compiler capability matrix > builtin/acos/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -610,10 +598,6 @@ exports[`executable compiler capability matrix > builtin/acos/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -652,10 +636,6 @@ exports[`executable compiler capability matrix > builtin/acosh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -688,10 +668,6 @@ exports[`executable compiler capability matrix > builtin/acosh/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -730,10 +706,6 @@ exports[`executable compiler capability matrix > builtin/asin/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -766,10 +738,6 @@ exports[`executable compiler capability matrix > builtin/asin/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -808,10 +776,6 @@ exports[`executable compiler capability matrix > builtin/asinh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -844,10 +808,6 @@ exports[`executable compiler capability matrix > builtin/asinh/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -886,10 +846,6 @@ exports[`executable compiler capability matrix > builtin/atan/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -922,10 +878,6 @@ exports[`executable compiler capability matrix > builtin/atan/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -964,10 +916,6 @@ exports[`executable compiler capability matrix > builtin/atan2/0/integer,integer
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1000,10 +948,6 @@ exports[`executable compiler capability matrix > builtin/atan2/0/integer,real 1`
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1042,10 +986,6 @@ exports[`executable compiler capability matrix > builtin/atan2/0/real,integer 1`
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1078,10 +1018,6 @@ exports[`executable compiler capability matrix > builtin/atan2/0/real,real 1`] =
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1120,10 +1056,6 @@ exports[`executable compiler capability matrix > builtin/atanh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1156,10 +1088,6 @@ exports[`executable compiler capability matrix > builtin/atanh/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1198,10 +1126,6 @@ exports[`executable compiler capability matrix > builtin/band/0/integer,integer 
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1234,10 +1158,6 @@ exports[`executable compiler capability matrix > builtin/binary/0/integer 1`] = 
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1284,10 +1204,6 @@ exports[`executable compiler capability matrix > builtin/binomial/0/integer,inte
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1320,10 +1236,6 @@ exports[`executable compiler capability matrix > builtin/bit/0/integer,integer 1
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1362,10 +1274,6 @@ exports[`executable compiler capability matrix > builtin/bnot/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1398,10 +1306,6 @@ exports[`executable compiler capability matrix > builtin/bor/0/integer,integer 1
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1440,10 +1344,6 @@ exports[`executable compiler capability matrix > builtin/bxor/0/integer,integer 
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1476,10 +1376,6 @@ exports[`executable compiler capability matrix > builtin/bytes/0/bytes 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1531,10 +1427,6 @@ exports[`executable compiler capability matrix > builtin/bytes/0/text 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -1583,10 +1475,6 @@ exports[`executable compiler capability matrix > builtin/ceil/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1622,10 +1510,6 @@ exports[`executable compiler capability matrix > builtin/ceil/0/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1658,10 +1542,6 @@ exports[`executable compiler capability matrix > builtin/character/0/integer 1`]
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1705,10 +1585,6 @@ exports[`executable compiler capability matrix > builtin/codepoint/0/text 1`] = 
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1759,10 +1635,6 @@ exports[`executable compiler capability matrix > builtin/cos/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1795,10 +1667,6 @@ exports[`executable compiler capability matrix > builtin/cos/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1837,10 +1705,6 @@ exports[`executable compiler capability matrix > builtin/cosh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1873,10 +1737,6 @@ exports[`executable compiler capability matrix > builtin/cosh/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1915,10 +1775,6 @@ exports[`executable compiler capability matrix > builtin/exp/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -1951,10 +1807,6 @@ exports[`executable compiler capability matrix > builtin/exp/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -1993,10 +1845,6 @@ exports[`executable compiler capability matrix > builtin/expm1/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2032,10 +1880,6 @@ exports[`executable compiler capability matrix > builtin/expm1/0/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2068,10 +1912,6 @@ exports[`executable compiler capability matrix > builtin/find/0/text,text 1`] = 
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -2122,10 +1962,6 @@ exports[`executable compiler capability matrix > builtin/floor/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2158,10 +1994,6 @@ exports[`executable compiler capability matrix > builtin/floor/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -2200,10 +2032,6 @@ exports[`executable compiler capability matrix > builtin/gcd/0/integer,integer 1
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2236,10 +2064,6 @@ exports[`executable compiler capability matrix > builtin/integer/0/boolean 1`] =
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -2277,10 +2101,6 @@ exports[`executable compiler capability matrix > builtin/integer/1/boolean 1`] =
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2312,10 +2132,6 @@ exports[`executable compiler capability matrix > builtin/integer/1/integer 1`] =
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -2365,10 +2181,6 @@ exports[`executable compiler capability matrix > builtin/integer/1/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "number-loop:call-number-result-proof",
     },
     {
@@ -2412,10 +2224,6 @@ exports[`executable compiler capability matrix > builtin/integer/1/text 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -2465,10 +2273,6 @@ exports[`executable compiler capability matrix > builtin/isqrt/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2505,10 +2309,6 @@ exports[`executable compiler capability matrix > builtin/join/0/text-array,text 
     {
       "category": "cost-limit",
       "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -2580,10 +2380,6 @@ exports[`executable compiler capability matrix > builtin/lcm/0/integer,integer 1
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2620,10 +2416,6 @@ exports[`executable compiler capability matrix > builtin/len/0/integer-array 1`]
     {
       "category": "cost-limit",
       "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -2702,10 +2494,6 @@ exports[`executable compiler capability matrix > builtin/len/0/text 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -2741,10 +2529,6 @@ exports[`executable compiler capability matrix > builtin/len/0/text-array 1`] = 
     {
       "category": "cost-limit",
       "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -2823,10 +2607,6 @@ exports[`executable compiler capability matrix > builtin/lower/0/text 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -2875,10 +2655,6 @@ exports[`executable compiler capability matrix > builtin/lowerindex/0/integer-ar
     {
       "category": "cost-limit",
       "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -2950,10 +2726,6 @@ exports[`executable compiler capability matrix > builtin/md5/0/bytes 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -3000,10 +2772,6 @@ exports[`executable compiler capability matrix > builtin/md5/0/text 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3056,10 +2824,6 @@ exports[`executable compiler capability matrix > builtin/popcount/0/integer 1`] 
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3095,10 +2859,6 @@ exports[`executable compiler capability matrix > builtin/powmod/0/integer,intege
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3131,10 +2891,6 @@ exports[`executable compiler capability matrix > builtin/reverse/0/text 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3185,10 +2941,6 @@ exports[`executable compiler capability matrix > builtin/shl/0/integer,integer 1
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3221,10 +2973,6 @@ exports[`executable compiler capability matrix > builtin/shr/0/integer,integer 1
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3263,10 +3011,6 @@ exports[`executable compiler capability matrix > builtin/sin/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3299,10 +3043,6 @@ exports[`executable compiler capability matrix > builtin/sin/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3341,10 +3081,6 @@ exports[`executable compiler capability matrix > builtin/sinh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3377,10 +3113,6 @@ exports[`executable compiler capability matrix > builtin/sinh/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3419,10 +3151,6 @@ exports[`executable compiler capability matrix > builtin/sqrt/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3458,10 +3186,6 @@ exports[`executable compiler capability matrix > builtin/sqrt/0/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3494,10 +3218,6 @@ exports[`executable compiler capability matrix > builtin/startswith/0/bytes,byte
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3548,10 +3268,6 @@ exports[`executable compiler capability matrix > builtin/startswith/0/text,text 
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -3599,10 +3315,6 @@ exports[`executable compiler capability matrix > builtin/tan/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3635,10 +3347,6 @@ exports[`executable compiler capability matrix > builtin/tan/0/real 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3677,10 +3385,6 @@ exports[`executable compiler capability matrix > builtin/tanh/0/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3716,10 +3420,6 @@ exports[`executable compiler capability matrix > builtin/tanh/0/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -3752,10 +3452,6 @@ exports[`executable compiler capability matrix > builtin/text/0/integer 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -3802,10 +3498,6 @@ exports[`executable compiler capability matrix > builtin/upperindex/0/integer-ar
     {
       "category": "cost-limit",
       "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -4646,10 +4338,6 @@ exports[`executable compiler capability matrix > cost/statements 1`] = `
       "reason": "block-routing:statement-budget",
     },
     {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
       "category": "cost-limit",
       "reason": "loop:statement-budget:AssignmentStatement",
     },
@@ -5080,10 +4768,6 @@ exports[`executable compiler capability matrix > deferred-composition/helper 1`]
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "loop:deferred-region-effects:ForStatement",
     },
     {
@@ -5149,10 +4833,6 @@ exports[`executable compiler capability matrix > deferred-loop/chain 1`] = `
       "reason": "array-region:private-assignment-chain-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
       "category": "missing-lowering",
       "reason": "number-loop:deferred-binding:AssignmentStatement",
     },
@@ -5189,10 +4869,6 @@ exports[`executable compiler capability matrix > deferred-loop/rebind 1`] = `
     {
       "category": "failed-proof",
       "reason": "array-region:private-assignment-chain-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",
@@ -5233,10 +4909,6 @@ exports[`executable compiler capability matrix > deferred-loop/scalar 1`] = `
       "reason": "array-region:private-assignment-chain-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
       "category": "missing-lowering",
       "reason": "number-loop:deferred-binding:AssignmentStatement",
     },
@@ -5275,10 +4947,6 @@ exports[`executable compiler capability matrix > deferred-loop/unused 1`] = `
       "reason": "array-region:private-assignment-chain-required",
     },
     {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
       "category": "missing-lowering",
       "reason": "number-loop:deferred-binding:AssignmentStatement",
     },
@@ -5304,6 +4972,217 @@ exports[`executable compiler capability matrix > deferred-loop/unused 1`] = `
     "2:1 loop-dispatch: exact-loop",
     "2:1 statement-dispatch: exact-loop",
     "6:1 statement-dispatch: statement-dispatch",
+  ],
+  "result": "6",
+}
+`;
+
+exports[`executable compiler capability matrix > effect-boundary/helper-loop 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "bounded-tensor:array-input-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:AssignmentStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "numeric-function:unsupported-statement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-expression:unsupported-op:to",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-op:print",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:output-shape",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [
+    "1",
+    "2",
+    "3",
+  ],
+  "regions": [
+    "10:2 native-operator: native-operator",
+    "10:2 statement-dispatch: native-operator",
+    "12:1 statement-dispatch: statement-dispatch",
+    "1:1 block-dispatch: direct-expression, framed-function, interpreted-loop, native-call, native-operator, native-range, scalar-expression, statement-dispatch, value-block",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function, native-call",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:2 interpreted-expression: native-call",
+    "3:2 native-call: native-call",
+    "3:2 statement-dispatch: native-call",
+    "4:9 direct-expression: direct-expression",
+    "6:1 statement-dispatch: statement-dispatch",
+    "7:1 interpreted-loop: direct-expression, framed-function, interpreted-loop, native-call, native-operator, native-range, scalar-expression, value-block",
+    "7:1 statement-dispatch: direct-expression, framed-function, interpreted-loop, native-call, native-operator, native-range, scalar-expression, value-block",
+    "7:10 direct-expression: native-operator, native-range",
+    "7:10 native-operator: native-operator, native-range",
+    "8:11 scalar-expression: scalar-expression",
+    "8:2 statement-dispatch: scalar-expression",
+    "8:2 value-block: direct-expression, framed-function, native-call, native-operator, scalar-expression, value-block",
+    "9:12 interpreted-expression: direct-expression, framed-function, native-call",
+    "9:12 user-call: direct-expression, framed-function, native-call",
+    "9:2 statement-dispatch: direct-expression, framed-function, native-call",
+  ],
+  "result": "26",
+}
+`;
+
+exports[`executable compiler capability matrix > effect-boundary/protected-generator 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "failed-proof",
+      "reason": "array-region:private-assignment-chain-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "block-routing:statement-budget",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "loop:unsupported-node:TryStatement",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "number-loop:unsupported-node:TryStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-call-loop:comparison-loop-condition-required",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-entry:generator-function",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-expression:unsupported-op:to",
+    },
+  ],
+  "error": undefined,
+  "output": [],
+  "regions": [
+    "10:1 host-call: host-call",
+    "10:1 interpreted-expression: direct-expression, generator-loop, host-call, interpreted-loop, native-operator, native-range",
+    "10:1 interpreted-expression: host-call",
+    "10:1 statement-dispatch: direct-expression, generator-loop, host-call, interpreted-loop, native-operator, native-range",
+    "1:1 block-dispatch: direct-expression, generator-loop, host-call, interpreted-loop, native-operator, native-range, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:11 direct-expression: native-operator, native-range",
+    "2:11 native-operator: native-operator, native-range",
+    "2:2 generator-loop: direct-expression, generator-loop",
+    "2:2 interpreted-loop: direct-expression, generator-loop, interpreted-loop, native-operator, native-range",
+    "2:2 statement-dispatch: direct-expression, generator-loop, interpreted-loop, native-operator, native-range",
+    "3:3 statement-dispatch: direct-expression",
+    "4:10 direct-expression: direct-expression",
+    "4:4 statement-dispatch: direct-expression",
+    "6:10 direct-expression: direct-expression",
+    "6:4 statement-dispatch: direct-expression",
+  ],
+  "result": "1 11 2 12",
+}
+`;
+
+exports[`executable compiler capability matrix > effect-boundary/protected-return 1`] = `
+{
+  "boundaries": [
+    {
+      "category": "cost-limit",
+      "reason": "block-routing:statement-budget",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "numeric-function:terminal-return-required",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "scalar-entry:function-proof-unavailable",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "scalar-expression:too-small",
+    },
+    {
+      "category": "missing-lowering",
+      "reason": "scalar-function:unsupported-node:TryStatement",
+    },
+    {
+      "category": "failed-proof",
+      "reason": "tensor:reduction-or-copy-terminal-required",
+    },
+    {
+      "category": "cost-limit",
+      "reason": "tensor:too-small",
+    },
+  ],
+  "error": undefined,
+  "output": [
+    "3",
+    "closed",
+  ],
+  "regions": [
+    "10:1 direct-expression: direct-expression",
+    "10:1 interpreted-expression: direct-expression, framed-function, native-call",
+    "10:1 statement-dispatch: direct-expression, framed-function, native-call",
+    "10:1 user-call: direct-expression, framed-function, native-call",
+    "1:1 block-dispatch: direct-expression, framed-function, native-call, statement-dispatch",
+    "1:1 statement-dispatch: statement-dispatch",
+    "2:1 framed-function: direct-expression, framed-function, native-call",
+    "2:1 statement-dispatch: statement-dispatch",
+    "3:2 statement-dispatch: direct-expression, native-call",
+    "4:3 block-dispatch: direct-expression, native-call",
+    "4:3 interpreted-expression: native-call",
+    "4:3 native-call: native-call",
+    "4:3 statement-dispatch: native-call",
+    "5:10 direct-expression: direct-expression",
+    "5:3 statement-dispatch: direct-expression",
+    "7:3 interpreted-expression: native-call",
+    "7:3 native-call: native-call",
+    "7:3 statement-dispatch: native-call",
   ],
   "result": "6",
 }
@@ -5352,10 +5231,6 @@ exports[`executable compiler capability matrix > effects/graph 1`] = `
     {
       "category": "failed-proof",
       "reason": "fused-sum:inline-arithmetic-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -5413,14 +5288,6 @@ exports[`executable compiler capability matrix > effects/print 1`] = `
       "reason": "array-region:private-assignment-chain-required",
     },
     {
-      "category": "cost-limit",
-      "reason": "block-routing:statement-budget",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
       "category": "missing-lowering",
       "reason": "loop:unsupported-op:print",
     },
@@ -5444,15 +5311,16 @@ exports[`executable compiler capability matrix > effects/print 1`] = `
     "3",
   ],
   "regions": [
-    "1:1 block-dispatch: interpreted-loop, native-call, native-operator, native-range, statement-dispatch",
+    "1:1 block-dispatch: interpreted-loop, native-call, native-operator, native-range, statement-dispatch, value-block",
     "1:1 statement-dispatch: statement-dispatch",
-    "2:1 interpreted-loop: interpreted-loop, native-call, native-operator, native-range",
-    "2:1 statement-dispatch: interpreted-loop, native-call, native-operator, native-range",
+    "2:1 interpreted-loop: interpreted-loop, native-call, native-operator, native-range, value-block",
+    "2:1 statement-dispatch: interpreted-loop, native-call, native-operator, native-range, value-block",
     "2:10 direct-expression: native-operator, native-range",
     "2:10 native-operator: native-operator, native-range",
     "3:2 interpreted-expression: native-call",
     "3:2 native-call: native-call",
     "3:2 statement-dispatch: native-call",
+    "3:2 value-block: native-call, value-block",
     "5:1 statement-dispatch: statement-dispatch",
   ],
   "result": "7",
@@ -5465,10 +5333,6 @@ exports[`executable compiler capability matrix > effects/set/boolean 1`] = `
     {
       "category": "failed-proof",
       "reason": "array-region:private-assignment-chain-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -5521,10 +5385,6 @@ exports[`executable compiler capability matrix > effects/set/integer 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -5574,10 +5434,6 @@ exports[`executable compiler capability matrix > effects/set/real 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "mixed-loop:no-wide-scalar-candidate",
     },
     {
@@ -5624,10 +5480,6 @@ exports[`executable compiler capability matrix > effects/set/text 1`] = `
     {
       "category": "failed-proof",
       "reason": "array-region:private-assignment-chain-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -9712,10 +9564,6 @@ exports[`executable compiler capability matrix > loop/control 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -9790,10 +9638,6 @@ exports[`executable compiler capability matrix > operator/**/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -9825,10 +9669,6 @@ exports[`executable compiler capability matrix > operator/**/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -9866,10 +9706,6 @@ exports[`executable compiler capability matrix > operator/**/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -9901,10 +9737,6 @@ exports[`executable compiler capability matrix > operator/**/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -9942,10 +9774,6 @@ exports[`executable compiler capability matrix > operator/*/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -9977,10 +9805,6 @@ exports[`executable compiler capability matrix > operator/*/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10018,10 +9842,6 @@ exports[`executable compiler capability matrix > operator/*/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10053,10 +9873,6 @@ exports[`executable compiler capability matrix > operator/*/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10094,10 +9910,6 @@ exports[`executable compiler capability matrix > operator/+/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10129,10 +9941,6 @@ exports[`executable compiler capability matrix > operator/+/1 1`] = `
     {
       "category": "failed-proof",
       "reason": "array-region:array-write-consumer-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10170,10 +9978,6 @@ exports[`executable compiler capability matrix > operator/+/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10205,10 +10009,6 @@ exports[`executable compiler capability matrix > operator/+/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10246,10 +10046,6 @@ exports[`executable compiler capability matrix > operator/+/4 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10284,10 +10080,6 @@ exports[`executable compiler capability matrix > operator/+/5 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10319,10 +10111,6 @@ exports[`executable compiler capability matrix > operator/+/6 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10368,10 +10156,6 @@ exports[`executable compiler capability matrix > operator////0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10403,10 +10187,6 @@ exports[`executable compiler capability matrix > operator///0 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10444,10 +10224,6 @@ exports[`executable compiler capability matrix > operator///1 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10479,10 +10255,6 @@ exports[`executable compiler capability matrix > operator///2 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10520,10 +10292,6 @@ exports[`executable compiler capability matrix > operator///3 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10555,10 +10323,6 @@ exports[`executable compiler capability matrix > operator/-/0 1`] = `
     {
       "category": "failed-proof",
       "reason": "array-region:array-write-consumer-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10596,10 +10360,6 @@ exports[`executable compiler capability matrix > operator/-/1 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10631,10 +10391,6 @@ exports[`executable compiler capability matrix > operator/-/2 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10672,10 +10428,6 @@ exports[`executable compiler capability matrix > operator/-/3 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10707,10 +10459,6 @@ exports[`executable compiler capability matrix > operator/-/4 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10748,10 +10496,6 @@ exports[`executable compiler capability matrix > operator/-/5 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10783,10 +10527,6 @@ exports[`executable compiler capability matrix > operator/and/0 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10824,10 +10564,6 @@ exports[`executable compiler capability matrix > operator/atleast/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10859,10 +10595,6 @@ exports[`executable compiler capability matrix > operator/atleast/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10900,10 +10632,6 @@ exports[`executable compiler capability matrix > operator/atleast/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -10935,10 +10663,6 @@ exports[`executable compiler capability matrix > operator/atleast/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -10976,10 +10700,6 @@ exports[`executable compiler capability matrix > operator/atmost/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11011,10 +10731,6 @@ exports[`executable compiler capability matrix > operator/atmost/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11052,10 +10768,6 @@ exports[`executable compiler capability matrix > operator/atmost/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11087,10 +10799,6 @@ exports[`executable compiler capability matrix > operator/atmost/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11128,10 +10836,6 @@ exports[`executable compiler capability matrix > operator/equal/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11163,10 +10867,6 @@ exports[`executable compiler capability matrix > operator/equal/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11204,10 +10904,6 @@ exports[`executable compiler capability matrix > operator/equal/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11239,10 +10935,6 @@ exports[`executable compiler capability matrix > operator/equal/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11280,10 +10972,6 @@ exports[`executable compiler capability matrix > operator/equal/4 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11315,10 +11003,6 @@ exports[`executable compiler capability matrix > operator/equal/5 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11356,10 +11040,6 @@ exports[`executable compiler capability matrix > operator/greater/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11391,10 +11071,6 @@ exports[`executable compiler capability matrix > operator/greater/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11432,10 +11108,6 @@ exports[`executable compiler capability matrix > operator/greater/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11467,10 +11139,6 @@ exports[`executable compiler capability matrix > operator/greater/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11508,10 +11176,6 @@ exports[`executable compiler capability matrix > operator/less/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11543,10 +11207,6 @@ exports[`executable compiler capability matrix > operator/less/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11584,10 +11244,6 @@ exports[`executable compiler capability matrix > operator/less/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11619,10 +11275,6 @@ exports[`executable compiler capability matrix > operator/less/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11660,10 +11312,6 @@ exports[`executable compiler capability matrix > operator/mod/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11695,10 +11343,6 @@ exports[`executable compiler capability matrix > operator/not/0 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11736,10 +11380,6 @@ exports[`executable compiler capability matrix > operator/notequal/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11771,10 +11411,6 @@ exports[`executable compiler capability matrix > operator/notequal/1 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11812,10 +11448,6 @@ exports[`executable compiler capability matrix > operator/notequal/2 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11847,10 +11479,6 @@ exports[`executable compiler capability matrix > operator/notequal/3 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11888,10 +11516,6 @@ exports[`executable compiler capability matrix > operator/notequal/4 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11923,10 +11547,6 @@ exports[`executable compiler capability matrix > operator/notequal/5 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -11964,10 +11584,6 @@ exports[`executable compiler capability matrix > operator/or/0 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "numeric-call-loop:comparison-loop-condition-required",
     },
     {
@@ -11999,10 +11615,6 @@ exports[`executable compiler capability matrix > operator/xor/0 1`] = `
     {
       "category": "missing-lowering",
       "reason": "array-region:unsupported-expression",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -12041,10 +11653,6 @@ exports[`executable compiler capability matrix > ownership/captured-array 1`] = 
     {
       "category": "failed-proof",
       "reason": "computed-array-update-binding:unique-linear-selection-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -12125,10 +11733,6 @@ exports[`executable compiler capability matrix > ownership/deque 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "loop:deque-array-write:ForStatement",
     },
     {
@@ -12204,10 +11808,6 @@ exports[`executable compiler capability matrix > ownership/early-exit 1`] = `
     {
       "category": "failed-proof",
       "reason": "computed-array-update-binding:unique-linear-selection-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -12295,10 +11895,6 @@ exports[`executable compiler capability matrix > ownership/mask 1`] = `
     {
       "category": "failed-proof",
       "reason": "computed-array-update-binding:unique-linear-selection-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -12397,10 +11993,6 @@ exports[`executable compiler capability matrix > ownership/permutation 1`] = `
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "integer-array-function:fresh-array-result-required",
     },
     {
@@ -12492,10 +12084,6 @@ exports[`executable compiler capability matrix > ownership/retained-slice 1`] = 
     },
     {
       "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
-    {
-      "category": "failed-proof",
       "reason": "integer-array-function:fresh-array-result-required",
     },
     {
@@ -12584,10 +12172,6 @@ exports[`executable compiler capability matrix > ownership/returned-alias 1`] = 
     {
       "category": "failed-proof",
       "reason": "computed-array-update-binding:unique-linear-selection-required",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "failed-proof",
@@ -12925,10 +12509,6 @@ exports[`executable compiler capability matrix > selection/paired-gather 1`] = `
 exports[`executable compiler capability matrix > selection/partial-axis-control 1`] = `
 {
   "boundaries": [
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
-    },
     {
       "category": "missing-lowering",
       "reason": "loop:unsupported-axis-traversal:ForStatement",
@@ -16473,10 +16053,6 @@ exports[`executable compiler capability matrix > values/record-loop 1`] = `
     {
       "category": "cost-limit",
       "reason": "array-region:too-small",
-    },
-    {
-      "category": "failed-proof",
-      "reason": "generator-loop:no-direct-suspension",
     },
     {
       "category": "missing-lowering",

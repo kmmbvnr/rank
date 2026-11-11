@@ -4248,3 +4248,45 @@ boxed helper calls and the existing direct array-function path. Instrumented
 and uninstrumented runs must agree, including framed/value-block counters.
 `benchmarks/deferred-composition-results.md` records both-host measurements,
 preparation costs, memory and validation limits.
+
+
+### Effect and suspension boundaries (#565, workstream 9)
+
+Calls and protected statements now qualify scalar loop and function bodies for
+framed-function/value-block compilation, without requiring a record, container
+or deferred binding as an admission hint. Declared calls, unknown callable
+names, effectful builtins, stdin and protected control are conservative hints.
+They do not certify purity: existing numeric effect proofs remain responsible
+for private register execution, while these general regions keep values in
+live Rank bindings and delegate checked calls through prepared statements.
+
+Pure arithmetic can retain its specialized kernel. Mutable reads and writes
+use the ordinary binding and array contracts; unknown callbacks keep a checked
+call boundary. The surrounding generated control resumes after that call, so
+it does not replay completed output, arguments or mutations. This path makes no
+speculative Number assumption and retains exact wide integers. Callouts also
+retain array snapshots, deferred capture restrictions and invalid-type errors.
+There is no second register cache to publish or invalidate across these calls.
+
+Generator admission follows yields through nested loops and try/catch/finally,
+but does not enter nested function declarations. Protected statements and
+nested loops remain prepared callouts with their existing scope, execution
+driver, cleanup and iterator ownership. Partial consumption, errors, return,
+break/continue and cancellation therefore unwind the same owners. The compiler
+prepares this generator alternative only when the runtime selects it; an
+existing specialized consumer does not pay for unused resumable code.
+
+Framed functions accept terminal returns inside protected bodies when the try
+body and every catch path return. Existing statement and nesting limits remain;
+this does not prove every possible return path or lower finally into a numeric
+kernel. Compiler observations recognize internal return/tail/jump signals as
+completed control transfers, preserving the executed region in the report.
+Actual errors and failed operand guards retain their separate diagnostics.
+
+Capability rows assert protected generator, protected function and effectful
+helper-loop paths and compare traced, untraced and interpreted execution.
+`effect-boundaries.test.ts` adds focused value, output order, exact integer,
+callback, array snapshot, capture-error, cleanup and cancellation checks.
+`benchmarks/effect-boundaries-results.md` records time, preparation-inclusive
+execution and process memory on Mac and Intel. Compilation coverage, correctness
+and measured performance remain separate claims.
