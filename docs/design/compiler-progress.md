@@ -4487,3 +4487,20 @@ one-second timeout returned failure and left no process in its test process grou
 The final quick suite passed 69 tests; the six existing compiler/effect/budget
 suites passed another 509 tests. TypeScript build passed. No real compiler
 mismatch was found in these runs, and exhaustive demo audits were not run.
+
+## Large-body runtime cost follow-up
+
+Scalar destinations now bypass pointwise tensor graph binding on each execution,
+while compiled framed fragments remain active. The guard reads the current
+binding without forcing deferred inputs; array calls still take the tensor path.
+Explicit reductions/copies and normal mutation/type checks are preserved. The
+observable cost choice is `tensor:scalar-destination-cost`.
+
+Six alternating process pairs on Mac ARM64 and Intel x64 show large linear bodies
+about 2.1–2.7 times faster than the previous compiler. Simple increment bodies
+still trail interpretation by about 17–22%; compound arithmetic and the array
+control beat interpretation. Compiler budgets are unchanged. Full results,
+RSS caveats, reproduction commands and focused verification are in
+[`large-bodies-results.md`](../../benchmarks/large-bodies-results.md), with raw
+samples in the adjacent JSON report. These measurements do not establish a
+speedup for every compiled program.
