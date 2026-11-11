@@ -166,7 +166,19 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 if (!selector) return undefined;
                 selectors.push(selector.code);
             }
-            const rhs = expressions.emitValue(assignment.value, rhsLines);
+            // An escaping self-selection must follow the published binding,
+            // including the write's COW detachment and subsequent cell stores.
+            let value = assignment.value;
+            while (isParenthesizedExpression(value)) value = value.value;
+            const parts = isApplicationExpression(value) ? flattenApplication(value) : [];
+            let rhs: ReturnType<typeof expressions.emitValue>;
+            if (!state.resultDiscarded(assignment) && parts.length === 2
+                && isNameExpression(parts[0]) && parts[0].name === assignment.name) {
+                const selector = expressions.emitValue(parts[1], rhsLines);
+                const type = expressions.arrayType(assignment.value);
+                if (!selector || !type) return undefined;
+                rhs = { code: `arrayValues.selectBinding(${JSON.stringify(assignment.name)}, ${selector.code})`, type };
+            } else rhs = expressions.emitValue(assignment.value, rhsLines);
             if (!rhs) return undefined;
             const slot = expressions.slot(assignment.name), result = `store${state.serial++}`;
             const type = shape.element as LoopTerm['type'];

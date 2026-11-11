@@ -64,6 +64,7 @@ export interface LoopHost {
     readonly arrayValues?: {
         range(start: bigint, end: bigint, inclusive: boolean, step?: bigint): RankValue;
         select(source: RankValue, selector: RankValue): RankArray;
+        selectBinding(name: string, selector: RankValue): RankValue;
         copy(value: RankValue): RankArray;
         call(name: string, operands: RankValue[]): RankValue;
         binary(operator: string, left: RankValue, right: RankValue): RankValue;

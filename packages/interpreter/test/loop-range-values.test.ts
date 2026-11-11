@@ -55,8 +55,8 @@ describe('range values in compiled loops (#432)', () => {
         compare(body);
     });
 
-    // A loop can publish its last assignment's live self-selection. Keep
-    // that result on the ordinary backend; an extra statement discards it.
+    // Publishing stores preserve the final live self-selection through COW,
+    // while discarded operands can retain their ordinary snapshot reader.
     const liveSelfSlices = [
         'A (1 to 3) = A (1 to 2)',
         'A (3 till 3) = A (1 to 2)',
@@ -64,7 +64,7 @@ describe('range values in compiled loops (#432)', () => {
         'Result = A (1 to 6 by 2)\n Result (0 to 2) += Result (2 to 0 by -1)',
     ];
     it.each(liveSelfSlices)('preserves escaping self-slice results: %s', body => {
-        compare(body, undefined, 0);
+        compare(body);
     });
     it.each(liveSelfSlices)('compiles discarded self-slice results: %s', body => {
         compare(`${body}\n Done = K`);

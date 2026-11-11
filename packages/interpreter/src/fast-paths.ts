@@ -484,6 +484,7 @@ export class FastPaths {
                 },
                 range: (start, end, inclusive, step) => this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end, step),
                 select: (source, selector) => copyArray(selectValues(this.context.modules, [source, selector]), false),
+                selectBinding: (name, selector) => selectValues(this.context.modules, [this.context.resolve(name), selector]),
                 copy: source => copyArray(source, false),
                 binary: (operator, left, right) => this.context.operators.evaluateBinary(operator, left, right),
                 reduceAxis: (operation, source, axes) => copyArray(
