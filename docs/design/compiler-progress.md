@@ -4319,6 +4319,9 @@ the remaining statements use shared checked dispatch rather than cyclic code
 cache eviction. That tail is a deliberate boundary, not a claim that every
 statement in an arbitrarily large body becomes generated JavaScript.
 
+Straight-line fragments use a single generated switch with explicit resume
+positions, avoiding a JavaScript call per command continuation.
+
 Framed bodies qualify for large scalar functions/loop bodies even without a
 structural value or effectful call. Over-budget branches keep a prepared
 callout instead of causing the surrounding generated region to fail. Numeric
@@ -4334,7 +4337,9 @@ and confirm that framed calls remain available.
 
 Tensor cell copies above rank sixteen use loops over the captured axis route
 and current dimensions instead of producing a larger unrolled offset formula.
-Both forms retain getter order, independent output storage and cancellation
+Generic cells smaller than 32 elements retain ordinary copying: invocation
+overhead outweighed useful work in the tiny-cell benchmark. Both forms retain
+getter order, independent output storage and cancellation
 checks. Shared kernel caching is bounded; guards remain valid after eviction.
 
 Compiler observations now include a separate budget decision: kind, limit,

@@ -1886,7 +1886,7 @@ exports[`executable compiler capability matrix > budgets/tensor-rank 1`] = `
     "1:52 direct-expression: direct-expression",
     "1:54 direct-expression: direct-expression",
     "1:56 direct-expression: direct-expression",
-    "1:63 direct-expression: direct-expression",
+    "1:64 direct-expression: direct-expression",
     "2:1 statement-dispatch: statement-dispatch",
     "3:1 interpreted-loop: direct-expression, interpreted-loop, native-call, native-operator, tensor-cell-copy, value-block",
     "3:1 statement-dispatch: direct-expression, interpreted-loop, native-call, native-operator, tensor-cell-copy, value-block",
@@ -1901,7 +1901,7 @@ exports[`executable compiler capability matrix > budgets/tensor-rank 1`] = `
     "4:2 value-block: direct-expression, native-call, native-operator, value-block",
     "6:1 statement-dispatch: statement-dispatch",
   ],
-  "result": "6",
+  "result": "192",
 }
 `;
 

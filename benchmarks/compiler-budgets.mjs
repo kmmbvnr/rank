@@ -20,7 +20,7 @@ Total`;
 }
 const chain = Array.from({ length: 24 }, (_, index) => `fun N helper${index}
  return ${index < 23 ? `((N + 1) helper${index + 1}) + 1` : 'N + 1'}
-end`).join('\n');
+end`).reverse().join('\n');
 const cases = {
     small: updates(8),
     large: updates(300),
@@ -39,6 +39,14 @@ for I in 1 to ${iterations}
  end
 end
 Total`,
+    'rank-large': `Values = array shape ${Array(17).fill('1').join(' ')} 64 fill 3
+Total = 0
+for I in 1 to ${iterations}
+ for Cell in Values
+  Total += Cell sum
+ end
+end
+Total`,
     unique: `Total = 0\nfor I in 1 to ${iterations}\n Total += I * 2\nend\nTotal`,
 };
 const source = cases[name];
@@ -48,7 +56,7 @@ function run(runtime) { return formatValue(runtime.executeProgram(program)); }
 const reference = new Interpreter(() => {}, { compilation: false, scalarEntryCompilation: false });
 let expected;
 try { expected = run(reference); } finally { reference.dispose(); }
-const options = { scalarEntryCompilation: false };
+const options = { scalarEntryCompilation: name === 'chain' };
 function check(actual) { if (actual !== expected) throw new Error(`${name}: ${actual} != ${expected}`); }
 const fresh = [];
 for (let trial = 0; trial < 8; trial++) {

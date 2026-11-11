@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 import { isFunctionStatement } from '@arrrank/language';
 import { scalarFunctionResult } from '../src/jit/scalar-function-proof.js';
-import { Interpreter, RuntimeDiagnostics, RankError, formatValue, parse } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, RankError, formatValue, parse, type InterpreterOptions } from '../src/index.js';
 
-function run(source: string, compilation: boolean) {
+function run(source: string, compilation: boolean, options: InterpreterOptions = {}) {
     const diagnostics = new RuntimeDiagnostics(Infinity, true);
     const output: string[] = [], generated: string[] = [];
     const runtime = new Interpreter(line => output.push(line), {
-        compilation, scalarEntryCompilation: false,
+        scalarEntryCompilation: false, ...options, compilation,
         onFunctionBodyCompiled: source => generated.push(source),
         onBlockCompiled: source => generated.push(source),
     });
@@ -23,9 +23,9 @@ function run(source: string, compilation: boolean) {
         return { observation: { value, error, output }, diagnostics, generated };
     } finally { runtime.dispose(); }
 }
-function compare(source: string) {
-    const result = run(source, true);
-    expect(result.observation).toEqual(run(source, false).observation);
+function compare(source: string, options: InterpreterOptions = {}) {
+    const result = run(source, true, options);
+    expect(result.observation).toEqual(run(source, false, options).observation);
     expect(result.observation.error).toBeUndefined();
     return result;
 }
@@ -93,10 +93,14 @@ end
     it.each([15, 16, 17, 32])('keeps checked compiled calls across a chain of %s helpers', length => {
         const declarations = Array.from({ length }, (_, index) => `fun N helper${index}
  return ${index + 1 < length ? `((N + 1) helper${index + 1}) + 1` : 'N + 1'}
-end`).join('\n');
-        const result = compare(`${declarations}\n3 helper0`);
+end`).reverse().join('\n');
+        const result = compare(`${declarations}\n3 helper0`, { scalarEntryCompilation: true });
         expect(result.observation.value).toBe(String(3 + length * 2 - 1));
-        expect(result.diagnostics.compiledFramedFunctions).toBeGreaterThan(0);
+        expect(result.diagnostics.compilerObservations.some(entry => entry.execution?.kinds.includes('compiled'))).toBe(true);
+        if (length > 16) {
+            expect(result.diagnostics.compiledFramedFunctions).toBeGreaterThan(0);
+            expect(result.diagnostics.compilerObservations.some(entry => entry.budget?.kind === 'scalar call graph depth')).toBe(true);
+        }
     });
 
     it('uses a shared compiled body after exhausting argument specializations', () => {
@@ -245,6 +249,16 @@ ${input(40)} kind`;
         expect(result.observation).toEqual(run(source, false).observation);
         expect(result.observation.error).toBeDefined();
         expect(result.diagnostics.compilerObservations.some(entry => entry.budget?.kind === 'function body specializations')).toBe(true);
+    });
+
+    it('retains checked compiled calls when expanded call count exceeds its budget', () => {
+        const declarations = Array.from({ length: 8 }, (_, index) => `fun N branch${index}
+ return ${index < 7 ? `(N branch${index + 1}) + (N branch${index + 1})` : 'N + 1'}
+end`).reverse().join('\n');
+        const result = compare(`${declarations}\n1 branch0`, { scalarEntryCompilation: true });
+        expect(result.observation.value).toBe('256');
+        expect(result.diagnostics.compiledFramedFunctions).toBeGreaterThan(0);
+        expect(result.diagnostics.compilerObservations.some(entry => entry.budget?.kind === 'expanded scalar calls')).toBe(true);
     });
 
 });

@@ -335,7 +335,9 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[], compile
     const producer = arrayCells(source) ? tensorCells(source, frameAxes) : undefined;
     let frameIndex = 0;
     const copy = compiled && cellAxes.length > 0 && !('itemAt' in source)
-        ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes) : undefined;
+        ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes,
+            frameAxes.length + cellAxes.length > 16
+                ? cellShape.reduce((product, dimension) => product * dimension, 1) : undefined) : undefined;
 
     for (const frameCoordinates of coordinates(frameShape)) {
         if (producer) {

@@ -7,14 +7,18 @@ type Copy = (source: RankArray, coordinates: number[], shape: readonly number[])
 const kernels = new Map<string, Copy>();
 
 /** Specialize axis routing, never dimensions, storage or element values. */
-export function compileTensorCellCopy(rank: number, axes: readonly number[]): Copy | undefined {
+export function compileTensorCellCopy(rank: number, axes: readonly number[], size?: number): Copy | undefined {
     const sourceSite = compilerSource();
     const provenTypes = { rank: String(rank), axes: axes.join(', ') };
-    return observeCompilerSource(sourceSite, 'tensor-cell-copy', 'prepare', () => compileTensorCellCopyObservedImplementation(rank, axes), provenTypes);
+    return observeCompilerSource(sourceSite, 'tensor-cell-copy', 'prepare', () => compileTensorCellCopyObservedImplementation(rank, axes, size), provenTypes);
 }
 
-function compileTensorCellCopyObservedImplementation(rank: number, axes: readonly number[]): Copy | undefined {
+function compileTensorCellCopyObservedImplementation(rank: number, axes: readonly number[], size?: number): Copy | undefined {
     const generic = rank > 16;
+    if (generic && size !== undefined && size < 32) {
+        currentDiagnostics()?.compilerBudget('minimum generic copy cells', 32, size, 'ordinary copy for a small cell');
+        return declineCompiler('copy-size-budget');
+    }
     if (generic) currentDiagnostics()?.compilerBudget('unrolled tensor rank', 16, rank, 'generated axis loop');
     const interruptible = interruptsEnabled();
     const key = `${interruptible}:${rank}:${axes.join(',')}`;

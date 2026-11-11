@@ -282,6 +282,20 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
     const lexical = functionScope(statement);
     const scope = lexical?.scope;
     let callDepth = 1, callCount = 0, recursive = false, observableCaptures = false;
+    function fitsCallGraph(proof: ScalarFunctionProof): boolean {
+        if (proof.callDepth >= 16) {
+            currentDiagnostics()?.compilerBudget('scalar call graph depth', 16, proof.callDepth + 1, 'checked function calls');
+            recordFallback('scalar-function:call-graph-depth-limit');
+            return false;
+        }
+        const expanded = callCount + proof.callCount + 1;
+        if (expanded > 64) {
+            currentDiagnostics()?.compilerBudget('expanded scalar calls', 64, expanded, 'checked function calls');
+            recordFallback('scalar-function:call-graph-count-limit', 'cost');
+            return false;
+        }
+        return true;
+    }
     const modules = new Set<string>();
     const arrayWrites = new Set<Statement>();
     const containerWrites = new Set<string>();
@@ -372,7 +386,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                 const proof = scalarFunctionResult(callee, true, [element], true, [...path, statement], captures);
                 if (!proof || typeof proof.type !== 'string' || proof.planReturn
                     || (proof.containers || proof.arrayWrites.size) && !privateScalarFunction(proof)
-                    || proof.nonnegative.length || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
+                    || proof.nonnegative.length || !fitsCallGraph(proof)) return undefined;
                 callDepth = Math.max(callDepth, proof.callDepth + 1);
                 callCount += proof.callCount + 1;
                 observableCaptures ||= proof.observableCaptures;
@@ -429,7 +443,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
         const callCaptures = callable?.captures ?? captures;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], callCaptures);
         if (!proof || !proof.localArrayWrites
-            || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
+            || !fitsCallGraph(proof)) return undefined;
         if (proof.planReturn && (!consumerRoot || unwrap(consumerRoot) !== source)) return undefined;
         if (proof.nonnegative.some(index => !nonnegative(arguments_[index]))) return undefined;
         callDepth = Math.max(callDepth, proof.callDepth + 1);
@@ -575,7 +589,7 @@ function scalarFunctionResultObservedImplementation(statement: FunctionStatement
                             if (proof && (!proof.planReturn || typeof proof.type !== 'string') && !proof.recursive && !proof.nonnegative.length
                                 && effects && !effects.unknown && !effects.parameters.size
                                 && sameCompiledCalleeType(seed, proof.type)
-                                && proof.callDepth < 16 && callCount + proof.callCount + 1 <= 64) {
+                                && fitsCallGraph(proof)) {
                                 callDepth = Math.max(callDepth, proof.callDepth + 1); callCount += proof.callCount + 1;
                                 dependencies.add(form.operation.name);
                                 for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);

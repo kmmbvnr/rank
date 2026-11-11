@@ -289,7 +289,7 @@ for I in 1 to 2
 ${' Total += I\n'.repeat(300)} Total print
 end
 Total`, ['integer'], 'integer', [0], 'scalar', ['io']);
-add('budgets/tensor-rank', `Values = array shape ${Array(17).fill('1').join(' ')} 2 fill 3
+add('budgets/tensor-rank', `Values = array shape ${Array(17).fill('1').join(' ')} 64 fill 3
 Total = 0
 for Cell in Values
  Total += Cell sum

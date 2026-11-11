@@ -80,4 +80,9 @@ describe('compiled tensor cell copying', () => {
         expect(compileTensorCellCopy(rank, [])!(source, coordinates, [])).toEqual(['text']);
     });
 
+    it('uses ordinary copying for a tiny high-rank cell', () => {
+        expect(compileTensorCellCopy(18, [17], 2)).toBeUndefined();
+        expect(compileTensorCellCopy(18, [17], 32)).toBeTypeOf('function');
+    });
+
 });
