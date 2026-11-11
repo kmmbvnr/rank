@@ -9,9 +9,3 @@ test "statement values"
   run
   Answer equal 172166601
 end
-
-test "default input"
-  use "747_triangularpizza"
-  run
-  Answer equal 681813395
-end

@@ -46,6 +46,7 @@ for (const [file, expected] of [
     ['310_nimsquare.ra', 2586528661783n],
     ['426_boxball.ra', 31591886008n],
     ['468_smoothbinomial.ra', 852950321n],
+    ['693_finitesequence.ra', 699161n],
     ['705_inversioncount.ra', 480440153n],
     ['714_duodigits.ra', '2.452767775565e20'],
     ['715_sextupletnorms.ra', 883188017n],
@@ -73,7 +74,7 @@ for (const [file, expected] of [
     // Euler 468 source-level verification takes about five minutes on Intel.
     const timeout = file === '468_smoothbinomial.ra' ? 360_000
         : ['715_sextupletnorms.ra', '729_periodicrange.ra', '749_nearpowersums.ra'].includes(file) ? 240_000
-        : ['275_balancedsculptures.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra', '739_summationofsummations.ra', '790_clockgrid.ra'].includes(file) ? 120_000 : 60_000;
+        : ['275_balancedsculptures.ra', '693_finitesequence.ra', '714_duodigits.ra', '719_numbersplitting.ra', '735_divisorsoftwo.ra', '737_coinloops.ra', '739_summationofsummations.ra', '790_clockgrid.ra'].includes(file) ? 120_000 : 60_000;
     it(`checks the full compiled answer for ${file}`, () => {
         const url = new URL(`../../../demos/euler/${file}`, import.meta.url);
         const diagnostics = new RuntimeDiagnostics();
