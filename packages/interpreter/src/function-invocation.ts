@@ -1,3 +1,4 @@
+import { recursiveScalarBridge } from './jit/recursive-scalar-bridge.js';
 import { rejectCompilerGuard, compilerSource, observeCompilerSource } from './compiler-observation.js';
 import { registerModularCallbackScan } from './jit/modular-callback-scan.js';
 import { summarizeIntegerBuffer } from './value-summary.js';
@@ -1094,7 +1095,12 @@ export class FunctionInvocation {
                     numberDelay = numberBackoff;
                     return rejectNumber('safe-integer-arguments-required');
                 };
-                const tryNumber = (arguments_: RankValue[]): RankValue | undefined => {
+                const numberBoundary = kernel.returnType !== 'integer' && !kernel.numberReadOnly
+                    ? 'integer-result-or-readonly-specialization-required'
+                    : kernel.plans ? 'nested-plan-boundary'
+                    : kernel.numberStorage ? 'nested-storage-boundary'
+                    : kernel.memberships.length ? 'nested-membership-boundary' : undefined;
+                const numberAllowed = () => {
                     // Private callees can replay their local work
                     // exactly after a failed numeric guard.
                     const probeNumber = numberDelay === 0;
@@ -1104,28 +1110,31 @@ export class FunctionInvocation {
                         if (diagnostics) diagnostics.numberFunctionSkips++;
                         rejectNumber('overflow-backoff');
                     }
-                    if (probeNumber && rawNumber && (!this.compiler.hooks.onScalarFunctionExecuted || rejectNumber('observable-function-hook'))
-                        && (kernel.returnType === 'integer' || kernel.numberReadOnly || rejectNumber('integer-result-or-readonly-specialization-required'))
-                        && (!kernel.plans || rejectNumber('nested-plan-boundary'))
-                        && (!kernel.numberStorage || rejectNumber('nested-storage-boundary'))
-                        && (!kernel.memberships.length || rejectNumber('nested-membership-boundary'))
+                    return !!(probeNumber && rawNumber && (!this.compiler.hooks.onScalarFunctionExecuted || rejectNumber('observable-function-hook'))
+                        && (!numberBoundary || rejectNumber(numberBoundary))
                         && (!kernel.scalarCaptures.length || kernel.numberReadOnly && readOnlyAllowed() || rejectNumber('read-only-capture-guard'))
                         && (privateLoopPolling() || rejectNumber('observable-polling'))
-                        && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled'))
+                        && (!demandBudgetEnabled() || rejectNumber('demand-budget-enabled')));
+                };
+                const numberFailed = () => {
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.numberFunctionFallbacks++;
+                    rejectNumber('number-runtime-guard');
+                    numberBackoff = Math.min(255, numberBackoff * 2 + 1);
+                    numberDelay = numberBackoff;
+                };
+                const tryNumber = (arguments_: RankValue[]): RankValue | undefined => {
+                    if (numberAllowed()
                         && (arguments_.every(a => typeof a === 'bigint' && Number.isSafeInteger(Number(a))) || rejectArguments())) {
                         try {
                             const diagnostics = currentDiagnostics();
                             if (diagnostics) diagnostics.numberFunctions++;
-                            const value = rawNumber(...arguments_.map(Number) as never[]);
+                            const value = rawNumber!(...arguments_.map(Number) as never[]);
                             numberBackoff = 0;
                             return kernel.returnType === 'integer' ? BigInt(value as number) : value;
                         } catch (error) {
                             if (error !== numberOverflow) throw error;
-                            const diagnostics = currentDiagnostics();
-                            if (diagnostics) diagnostics.numberFunctionFallbacks++;
-                            rejectNumber('number-runtime-guard');
-                            numberBackoff = Math.min(255, numberBackoff * 2 + 1);
-                            numberDelay = numberBackoff;
+                            numberFailed();
                         }
                     }
                     return undefined;
@@ -1164,6 +1173,34 @@ export class FunctionInvocation {
                         this.depth -= 1;
                     }
                 };
+                if (rawNumber) directFn = recursiveScalarBridge(statement.parameters.length, {
+                    enter: () => {
+                        if (this.depth >= this.maxDepth) {
+                            throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                        }
+                        this.depth++;
+                        this.scalarHostDepth++;
+                    },
+                    leave: () => { this.scalarHostDepth--; this.depth--; },
+                    hook: () => { this.compiler.hooks.onScalarFunctionExecuted?.(); },
+                    allowed: numberAllowed,
+                    rejectArguments,
+                    succeeded: () => { numberBackoff = 0; },
+                    failed: numberFailed,
+                    number: rawNumber,
+                    exact: kernelDirect,
+                    integerResult: kernel.returnType === 'integer',
+                    recover: (error, arguments_) => {
+                        if (error instanceof FunctionPlanDemandError) throw error.error;
+                        if (error instanceof TailCallSignal && error.compiled === run) return { tail: error.arguments_ };
+                        if (error instanceof TailCallSignal && error.compiled) {
+                            const contract = error.definition.specialization(error.arguments_);
+                            return { result: contract.check(error.compiled(error.arguments_, true)) };
+                        }
+                        if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                        throw error;
+                    },
+                }) ?? directFn;
             }
         }
         const run: PreparedScalarCall = (arguments_, tail = false) => {
