@@ -1,87 +1,146 @@
 rem Sets with a Given LCM
 rem https://projecteuler.net/problem=590
-
 use numbers
+use algo
+use bits
 use sequences
 use io
 use cli
-
 arg N integer = 50000
+Mod = 1000000000
+Order = 1562500
+PrimeMod = 1953125
+Primes = primes till N + 1 copy
 
-rem H(n) = sum over subsets S of the
-rem primes of (-1)^|S| 2^M, M the
-rem divisor count of n with p in S
-rem lowered by one exponent. For
-rem n = lcm(1 .. N) only d = e + 1
-rem matters, so primes with equal d
-rem form a group of c, of which i are
-rem picked: (-1)^i C(c, i) and a factor
-rem (d-1)^i d^(c-i) in M. M is kept
-rem mod the order of 2 mod 5^9 and
-rem capped at 9; the d = 2 group is
-rem the outer loop, 2^M mod 10^9 by CRT.
-Md = 1000000000
-Lc = 1562500
-F5 = 1953125
-Ps = primes till N + 1 array
-Cu = Ps
-Ex = Ps * 0
-Lv = Cu at most N integer
-for Lv sum greater 0
-  Ex += Lv
-  Cu = Cu * Ps
-  Lv = Cu at most N integer
+rem Count each prime's allowed powers.
+fun Counts deepen Level
+  Powers = Primes ** Level
+  Alive = Powers at most N integer
+  return Counts + Alive
 end
-Dv = Ex + 1
-Cf = array 1
-Em = array 1
-Ec = array 1
-for U in Dv unique
-  C = (Dv equal U integer) sum
-  if U not equal 2
-    I = 0 to C array
-    Bn = C binomial I
-    Bn = Bn mod Md
-    Sg = 1 - 2 * (I mod 2)
-    Cg = (Bn * Sg + Md) mod Md
-    Fx = (U - 1) ** I * U ** (C - I)
-    Nn = Cf len
-    Mm = C + 1
-    Tm = (Cf reshape Nn 1) * Cg
-    Tm = Tm mod Md
-    Cf = Tm reshape (Nn * Mm)
-    Fm = Fx mod Lc
-    Tm = (Em reshape Nn 1) * Fm
-    Tm = Tm mod Lc
-    Em = Tm reshape (Nn * Mm)
-    Fc = Fx min 9
-    Tm = (Ec reshape Nn 1) * Fc
-    Tm = Tm min 9
-    Ec = Tm reshape (Nn * Mm)
+Levels = N binary len
+Zeros = Primes * 0
+Steps = 1 to Levels
+Counts = Steps reduce deepen with Zeros
+Degrees = Counts + 1
+Minimum = Counts reduce * with 1
+Saturated = Minimum at least 9
+WeightMod = PrimeMod
+if not Saturated
+  WeightMod = Mod
+end
+
+rem Group equal prime exponents in the
+rem inclusion-exclusion divisor count.
+fun State expand Degree
+  Matches = Degrees equal Degree integer
+  Count = Matches sum
+  I = 0 to Count copy
+  Choose = Count binomial I
+  Choose = Choose mod WeightMod
+  Signs = 1 - 2 * (I mod 2)
+  Choose = Choose * Signs mod WeightMod
+  Factors = (Degree - 1) ** I
+  Factors *= Degree ** (Count - I)
+  Weights = State .weights
+  Residues = State .residues
+  Caps = State .caps
+  Size = Weights len
+  Length = Size * (Count + 1)
+  Products = Weights reshape Size 1
+  Products *= Choose
+  Products = Products mod WeightMod
+  Weights = Products reshape Length
+  FactorsMod = Factors mod Order
+  Products = Residues reshape Size 1
+  Products *= FactorsMod
+  Products = Products mod Order
+  Residues = Products reshape Length
+  if not Saturated
+    Products = Caps reshape Size 1
+    Products *= Factors min 9
+    Products = Products min 9
+    Caps = Products reshape Length
+  end
+  return record
+    .weights = Weights
+    .residues = Residues
+    .caps = Caps
   end
 end
-C2 = (Dv equal 2 integer) sum
-Kt = 0 till Lc array
-T5 = 2 Kt F5 powmod
-Iv = 512 (Lc - 1) F5 powmod
-Bc = 1
-Answer = 0
-for I in 0 to C2
-  Fi = 2 ** (C2 - I)
-  Fm = Fi mod Lc
-  E = Em * Fm mod Lc
-  Fc = Fi min 9
-  Ecp = Ec * Fc min 9
-  Tv = (T5 E) * Iv
-  Vx = 512 * (Tv mod F5)
-  Sm = 2 ** Ecp
-  Val = Ecp equal 9 choose Vx Sm
-  Pv = Cf * Val mod Md
-  Sv = Pv sum mod Md
-  Sg = 1 - 2 * (I mod 2)
-  Bm = Bc mod Md
-  Answer += Sg * (Bm * Sv mod Md)
-  Bc = Bc * (C2 - I) // (I + 1)
+Groups = Degrees unique
+Groups = Groups (Groups not equal 2)
+Seed = record
+  .weights = array 1
+  .residues = array 1
+  .caps = array 1
 end
-Answer = Answer mod Md
+State = Groups reduce expand with Seed
+Weights = State .weights
+Residues = State .residues
+Caps = State .caps
+
+rem All powers vanish modulo 512 once
+rem their minimum exponent reaches 9.
+if Saturated
+  Keys = Residues unique sort .ascending
+  Owners = Keys lowerindex Residues
+  Weights = Weights reduce + by Owners
+  Weights = Weights mod PrimeMod
+  Residues = Keys copy
+end
+Matches = Degrees equal 2 integer
+Singles = Matches sum
+Maximum = Degrees reduce * with 1
+Limit = Maximum min (Order - 1)
+Slots' = 0 till Limit
+Twos' = Slots * 0 + 2
+Powers = Twos scan * with 1 mod PrimeMod
+Reduced = Order - 1
+Inverse = 512 Reduced PrimeMod powmod
+fun Weight advance I
+  return Weight * (Singles - I + 1) // I
+end
+Choices = 1 to Singles
+Choose = Choices scan advance with 1
+Size = Weights len
+Column = Weights reshape Size 1
+ResidueColumn = Residues reshape Size 1
+CapColumn = Caps reshape (Caps len) 1
+Answer5 = 0
+Answer2 = 0
+
+rem Bound temporary tensors per batch.
+for Start in 0 to Singles by 64
+  Last = Start + 63 min Singles
+  I = Start to Last copy
+  Factors = 2 ** (Singles - I)
+  FactorsMod = Factors mod Order
+  Indices = ResidueColumn * FactorsMod
+  Indices = Indices mod Order
+  Products = Column * Powers Indices
+  Products = Products mod PrimeMod
+  Totals = Products sum axis 0
+  Signs = 1 - 2 * (I mod 2)
+  Binomial = Choose I
+  Coefficients = Binomial mod PrimeMod
+  Terms = Coefficients * Totals
+  Terms = Terms mod PrimeMod
+  Answer5 += Signs * Terms sum
+  if not Saturated
+    Small = CapColumn * (Factors min 9)
+    Small = Small min 9
+    Small = 2 ** Small mod 512
+    Products = Column * Small mod 512
+    Totals = Products sum axis 0
+    Coefficients = Binomial mod 512
+    Terms = Coefficients * Totals
+    Terms = Terms mod 512
+    Answer2 += Signs * Terms sum
+  end
+end
+Low = Answer2 mod 512
+Delta = Answer5 - Low
+Delta = Delta * Inverse mod PrimeMod
+Answer = Low + 512 * Delta
 Answer print

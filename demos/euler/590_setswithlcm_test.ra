@@ -15,3 +15,9 @@ test "statement and brute-force values"
   run
   Answer equal 265773312
 end
+
+test "default input"
+  use "590_setswithlcm"
+  run
+  Answer equal 834171904
+end

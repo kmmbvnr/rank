@@ -11,7 +11,7 @@ import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
-import { arithmeticRange, registerRangePlan, registerModularRange } from './range-plan.js';
+import { arithmeticRange, registerRangePlan, registerModularRange, registerAffineRange } from './range-plan.js';
 import { registerSequenceCompletion } from './sequence-completion.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
@@ -811,12 +811,14 @@ function mapBinary(
         const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
             item => scalarOperation(item, right), right), left, item => scalarOperation(item, right));
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
+        registerAffineRange(mapped.plan, left.plan, right, name, false);
         completeRangeMap(mapped, left, right, name, scalarOperation, false);
         return mapped;
     }
     if (isRankSequence(right)) {
         const mapped = withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
             item => scalarOperation(left, item), left), right, item => scalarOperation(left, item));
+        registerAffineRange(mapped.plan, right.plan, left, name, true);
         completeRangeMap(mapped, right, left, name, scalarOperation, true);
         return mapped;
     }

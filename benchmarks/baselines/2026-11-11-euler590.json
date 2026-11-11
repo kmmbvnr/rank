@@ -1,0 +1,711 @@
+{
+  "baselineRevision": "bcb76db94ec042a1bc3f9c739c674f497b4cf7b1",
+  "deliveryParent": "c238ddc53f7836ed0b7691d4142fd9d89203e28f",
+  "method": "Three alternating fresh-process old/new pairs per mode and host; parsing included, module import excluded. No concurrent task-owned Node/build/test work on the same host in primary samples.",
+  "runtimeManifestSha256": {
+    "old": "5913ce826a71a069f30182151fc2eb120ff33c4371fedce87dc19603400cd115",
+    "new": "20f00709f175da47203d63f60b0e82d1c25e006aa5b0713836d64dc844b2e2cc"
+  },
+  "runtimeModuleSha256": {
+    "old": {
+      "index.js": "9d0b0db71153fa47935ecf1c49d43e7d2d67c5f0c547f2f86f258c24f8399391",
+      "operators.js": "bf9a9eb1c3eabcbf4391b2a75b2ba30e15a4f380a060e7168f02c7ddb15bc796",
+      "range-plan.js": "e0be31781bea961fc2ded28c105223adae79e59269a08957e224f4ea193f511a",
+      "fast-paths.js": "9ab2c2016026739349f81a53fd7f6358fbf62e47a6aca0ef85986b53f4dd0c08",
+      "jit/integer-loop-writes.js": "c28a5b643a862b0a0d33faa11ba76f002dab171effad97a26198d584f20f962d",
+      "runtime/modular-fold.js": "1931dbecf1c75fc838d01d73fec821d3b5eb9daf90bcb4689e073828a39d956d"
+    },
+    "new": {
+      "index.js": "9d0b0db71153fa47935ecf1c49d43e7d2d67c5f0c547f2f86f258c24f8399391",
+      "operators.js": "1df147c1addc5fd83006e621fa94d39b4b175082a48465d0ba14068170ace665",
+      "range-plan.js": "3220893013e0189d3a7f94b49751a40bb727a09d4fe89ab588143ca39b728121",
+      "fast-paths.js": "d7dfcaa508d30bdb7df4435218b408bb3344f84a5a402bf56bdedd3468cbf537",
+      "jit/integer-loop-writes.js": "f70a7996975523bc9548adf1fd59644cfabaa86411fd19f2ecd0f4e1aa0f0078",
+      "runtime/modular-fold.js": "1931dbecf1c75fc838d01d73fec821d3b5eb9daf90bcb4689e073828a39d956d"
+    }
+  },
+  "samples": {
+    "Mac": [
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.8544921875,
+          1.412109375,
+          1.3349609375
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3680.479917,
+        "cpu": {
+          "user": 5226935,
+          "system": 83089
+        },
+        "rssMiB": 307.859375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.78564453125,
+          1.40478515625,
+          1.33251953125
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 964.511209,
+        "cpu": {
+          "user": 1405329,
+          "system": 24803
+        },
+        "rssMiB": 278.78125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.78564453125,
+          1.40478515625,
+          1.33251953125
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 968.6537920000001,
+        "cpu": {
+          "user": 1408157,
+          "system": 23101
+        },
+        "rssMiB": 282.53125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.72265625,
+          1.39794921875,
+          1.33056640625
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3695.161792,
+        "cpu": {
+          "user": 5275083,
+          "system": 81125
+        },
+        "rssMiB": 306.359375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.72265625,
+          1.39794921875,
+          1.33056640625
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3702.4362499999997,
+        "cpu": {
+          "user": 5246877,
+          "system": 78648
+        },
+        "rssMiB": 304.859375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.66455078125,
+          1.39111328125,
+          1.32861328125
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 972.3958749999999,
+        "cpu": {
+          "user": 1438047,
+          "system": 23384
+        },
+        "rssMiB": 279.765625,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.66455078125,
+          1.39111328125,
+          1.32861328125
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3600.986209,
+        "cpu": {
+          "user": 5130405,
+          "system": 67752
+        },
+        "rssMiB": 337.828125,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.8515625,
+          1.43408203125,
+          1.34423828125
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 1000.230791,
+        "cpu": {
+          "user": 1481142,
+          "system": 26705
+        },
+        "rssMiB": 282.453125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.8515625,
+          1.43408203125,
+          1.34423828125
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 992.729875,
+        "cpu": {
+          "user": 1473370,
+          "system": 23937
+        },
+        "rssMiB": 280.1875,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.8515625,
+          1.43408203125,
+          1.34423828125
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3636.32225,
+        "cpu": {
+          "user": 5187478,
+          "system": 67274
+        },
+        "rssMiB": 337.9375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.943359375,
+          1.4599609375,
+          1.353515625
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 3628.572125,
+        "cpu": {
+          "user": 5164504,
+          "system": 70183
+        },
+        "rssMiB": 337.390625,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "processor": "Apple M5",
+        "load": [
+          1.86767578125,
+          1.4521484375,
+          1.35107421875
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 1004.2968750000001,
+        "cpu": {
+          "user": 1494743,
+          "system": 24341
+        },
+        "rssMiB": 280.375,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 2
+      }
+    ],
+    "Intel": [
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          0.81,
+          0.44,
+          0.3
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 9700.832213,
+        "cpu": {
+          "user": 13255107,
+          "system": 247661
+        },
+        "rssMiB": 274.57421875,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.16,
+          0.52,
+          0.33
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2408.643647,
+        "cpu": {
+          "user": 3515812,
+          "system": 60019
+        },
+        "rssMiB": 268.39453125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.16,
+          0.52,
+          0.33
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2430.931406,
+        "cpu": {
+          "user": 3457901,
+          "system": 89636
+        },
+        "rssMiB": 272.453125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.15,
+          0.53,
+          0.33
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 9647.177642,
+        "cpu": {
+          "user": 13213366,
+          "system": 251044
+        },
+        "rssMiB": 274.4765625,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.13,
+          0.55,
+          0.34
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 9832.897023000001,
+        "cpu": {
+          "user": 13184493,
+          "system": 200803
+        },
+        "rssMiB": 270.30859375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "mode": "reference",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.11,
+          0.56,
+          0.35
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2326.8285100000003,
+        "cpu": {
+          "user": 3326144,
+          "system": 96587
+        },
+        "rssMiB": 274.578125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.11,
+          0.56,
+          0.35
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 8140.828075000001,
+        "cpu": {
+          "user": 11974230,
+          "system": 193704
+        },
+        "rssMiB": 255.3046875,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.09,
+          0.58,
+          0.35
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2454.534138,
+        "cpu": {
+          "user": 3545063,
+          "system": 77505
+        },
+        "rssMiB": 269.54296875,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.4,
+          0.65,
+          0.38
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2674.732027,
+        "cpu": {
+          "user": 3929666,
+          "system": 70387
+        },
+        "rssMiB": 265.23828125,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.4,
+          0.65,
+          0.38
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 7920.539353,
+        "cpu": {
+          "user": 11752146,
+          "system": 214010
+        },
+        "rssMiB": 252.16015625,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "benchmarks/fixtures/euler590-original.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.79,
+          0.76,
+          0.42
+        ],
+        "sourceSha256": "792839a1b821c30ae3bda5fdcead99466daf649dbf9f8b1f156181512624d913",
+        "ms": 8186.920993,
+        "cpu": {
+          "user": 11994369,
+          "system": 167354
+        },
+        "rssMiB": 315.34375,
+        "answer": "834171904",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "mode": "compiled",
+        "n": "50000",
+        "file": "demos/euler/590_setswithlcm.ra",
+        "node": "v24.15.0",
+        "arch": "x64",
+        "processor": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+        "load": [
+          1.99,
+          0.84,
+          0.45
+        ],
+        "sourceSha256": "47040ce19d0b600355040a558c87158efd8982bb0320803fbfa28b5a756ad127",
+        "ms": 2560.316267,
+        "cpu": {
+          "user": 3572099,
+          "system": 110808
+        },
+        "rssMiB": 269.13671875,
+        "answer": "834171904",
+        "version": "new",
+        "pair": 2
+      }
+    ]
+  },
+  "affineSequenceFold": {
+    "Mac": [
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 350.60970799999996,
+        "rssMiB": 176.921875,
+        "answer": "406736",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 79.52208300000001,
+        "rssMiB": 165.9375,
+        "answer": "406736",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 346.53945899999997,
+        "rssMiB": 174.765625,
+        "answer": "406736",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 77.52695799999998,
+        "rssMiB": 143.59375,
+        "answer": "406736",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 352.31287499999996,
+        "rssMiB": 173.75,
+        "answer": "406736",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "arm64",
+        "ms": 78.365959,
+        "rssMiB": 143.9375,
+        "answer": "406736",
+        "version": "new",
+        "pair": 2
+      }
+    ],
+    "Intel": [
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 889.160674,
+        "rssMiB": 158.76171875,
+        "answer": "406736",
+        "version": "old",
+        "pair": 0
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 195.77004099999994,
+        "rssMiB": 132.98828125,
+        "answer": "406736",
+        "version": "new",
+        "pair": 0
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 888.438157,
+        "rssMiB": 158.23828125,
+        "answer": "406736",
+        "version": "old",
+        "pair": 1
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 192.06912500000004,
+        "rssMiB": 130.55859375,
+        "answer": "406736",
+        "version": "new",
+        "pair": 1
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 879.7694690000001,
+        "rssMiB": 162.5078125,
+        "answer": "406736",
+        "version": "old",
+        "pair": 2
+      },
+      {
+        "n": 65536,
+        "node": "v24.15.0",
+        "arch": "x64",
+        "ms": 192.68911999999995,
+        "rssMiB": 132.328125,
+        "answer": "406736",
+        "version": "new",
+        "pair": 2
+      }
+    ]
+  }
+}
