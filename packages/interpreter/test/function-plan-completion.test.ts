@@ -151,3 +151,20 @@ it('retains product shape errors before resolving a deferred modulus', () => {
     expect(() => fusedModularProduct(a, b, () => { loaded = true; return 7n; }, binary)).toThrow();
     expect(loaded).toBe(false);
 });
+
+it('keeps materialized modular products compact inside scalar function loops', () => {
+    const runtime = new Interpreter();
+    try {
+        runtime.variables.set('Input', typedArray(Int32Array.of(-2147483648, 2147483647)));
+        const value = runtime.execute(`use sequences
+fun Values helper Modulus
+ for Pass in 1 to 2
+  Values = Values * Values mod Modulus copy
+ end
+ return Values
+end
+Input helper 1000000007`);
+        expect(integer32Cells(value as any)).toBeDefined();
+        expect(cells(value)).toEqual([-2147483648n, 2147483647n].map(n => n ** 4n % 1000000007n));
+    } finally { runtime.dispose(); }
+});

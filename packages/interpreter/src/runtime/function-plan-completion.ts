@@ -1,4 +1,4 @@
-import { hasStoredInt32View } from './modular-fold.js';
+import { hasStoredInt32View, modularProduct } from './modular-fold.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { materializeValue } from '../materialize.js';
 import { checkpoint } from '../interrupt.js';
@@ -35,4 +35,11 @@ export function sumStoredInteger(value: RankValue): bigint | undefined {
         total += BigInt(sum);
     }
     return total;
+}
+
+/** Preserve compact residues when completing a named multiply/mod stage. */
+export function completeStoredModularProduct(left: RankValue, right: RankValue, modulus: RankValue): RankValue | undefined {
+    if (!isRankArray(left) || !isRankArray(right) || typeof modulus !== 'bigint'
+        || !hasStoredInt32View(left) || !hasStoredInt32View(right)) return undefined;
+    return modularProduct(left, right, modulus);
 }

@@ -158,10 +158,14 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     const feedback: LoopWorkFeedback | undefined = numberVariant && (region?.destinations.size || copiesTrees)
         ? { cells: 0, allow: true } : undefined;
     const compileExactCounted = feedback ? () => lowerTypedLoop(statement, plan?.statementOwnership ? { ...host, statementOwnership: true } : host, iteration, textSources, textArrays, () => {}, false, new Set(), true) : undefined;
-    const exact = plan && prepareIntegerLoop(plan, host, () => {
+    // After a numeric overflow, let nested loops retain their own exact
+    // kernels instead of routing every cell store through boxed ownership.
+    const nestedOwnership = numberVariant && plan?.statementOwnership
+        && plan.locations.some(isForStatement);
+    const exact = plan && !nestedOwnership ? prepareIntegerLoop(plan, host, () => {
         failed(compilerRejection('loop', statement, 'code-generation'));
         return undefined;
-    }, feedback, compileExactCounted);
+    }, feedback, compileExactCounted) : undefined;
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const compileFastCounted = feedback ? () => lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, new Set(), true) : undefined;

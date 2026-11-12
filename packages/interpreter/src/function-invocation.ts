@@ -999,7 +999,9 @@ export class FunctionInvocation {
             readOnlyAllowed,
             () => {
                 poll('calling recursive numeric function');
-                if (this.depth >= this.maxDepth || this.scalarHostDepth >= 128) throw numberOverflow;
+                // Direct numeric self calls use a smaller host frame than the
+                // boxed call bridge. Keep a separate bounded fast-path budget.
+                if (this.depth >= this.maxDepth || this.scalarHostDepth >= 512) throw numberOverflow;
                 this.depth++;
                 this.scalarHostDepth++;
                 const diagnostics = currentDiagnostics();

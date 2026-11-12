@@ -24,20 +24,12 @@ rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
 fun Train prepare_features Test
   Age = Train .Age median
-  Train .Age = (
-    Train .Age real rank 0
-  ) default Age
-  Test .Age = (
-    Test .Age real rank 0
-  ) default Age
+  Train .Age = Train .Age fill_real Age
+  Test .Age = Test .Age fill_real Age
 
   Fare = Train .Fare median
-  Train .Fare = (
-    Train .Fare real rank 0
-  ) default Fare
-  Test .Fare = (
-    Test .Fare real rank 0
-  ) default Fare
+  Train .Fare = Train .Fare fill_real Fare
+  Test .Fare = Test .Fare fill_real Fare
 
   Train .Female = (Train .Sex equal "female") binary
   Test .Female = (Test .Sex equal "female") binary
@@ -117,4 +109,9 @@ fun Train Test Rate Steps predictall
   Model = X Y Rate Steps logistic
   Test .Survived = Xtest logistic_predict Model
   return Test (array .PassengerId .Survived)
+end
+
+rem Fill missing cells before conversion.
+fun Value fill_real Fallback rank 0 0
+  return (Value default Fallback) real
 end

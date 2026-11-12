@@ -70,6 +70,21 @@ describe('ownership-only nested arithmetic loops', () => {
         expect(result.observation.values).toContainEqual(['Alias', '0 0 0']);
         expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
     });
+    it('retains nested exact loops after wide array overflow', () => {
+        const source = `Data = array 1
+for Pass in 1 to 20
+ Next = array shape 1 fill 0
+ for I in 0 till 1
+  Next I = Data I * 10
+ end
+ Data = Next
+end
+Data`;
+        const result = compare(source);
+        expect(result.observation.error).toBeUndefined();
+        expect(result.observation.value).toBe('100000000000000000000');
+        expect(result.diagnostics.compiledLoops).toBeGreaterThan(1);
+    });
     it('retains persistent traversals for native calls', () => {
         const result = compare(`use numbers
 A = array 0 0 0

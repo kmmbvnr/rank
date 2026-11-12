@@ -1,4 +1,4 @@
-import { completeStoredBinary, sumStoredInteger } from '../runtime/function-plan-completion.js';
+import { completeStoredBinary, completeStoredModularProduct, sumStoredInteger } from '../runtime/function-plan-completion.js';
 import { fusedModularProduct } from '../modular-fold.js';
 import { rejectCompilerGuard, observeCompiler, observedRun, observedPositionalRun, withCompilerMethods } from '../compiler-observation.js';
 import type { CapturedIntegerReader } from './scalar-selection.js';
@@ -874,6 +874,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
         return emitFunctionPlan(consumer, lines, {
             variable: () => `v${serial++}`, slot, binary,
             completeBinary: (op, left, right) => `completeStoredBinary(${JSON.stringify(op)}, ${left}, ${right}, arrayBinary)`,
+            completeModularProduct: (left, right, modulus) => `completeStoredModularProduct(${left}, ${right}, ${modulus})`,
             completeSum: value => `sumStoredInteger(${value})`,
             arrayBinary: (operation, left, right, body) => {
                 const result = `v${serial++}`;
@@ -1524,7 +1525,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
         membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
         prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
         textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt,
-        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy, materializeArray, reshapeWithDimensions, makeRange, arrayBinary, arrayModularProduct, completeStoredBinary, sumStoredInteger, stackValues, tensorCells, noteFold,
+        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems, concatValues, concatCopy, materializeArray, reshapeWithDimensions, makeRange, arrayBinary, arrayModularProduct, completeStoredBinary, completeStoredModularProduct, sumStoredInteger, stackValues, tensorCells, noteFold,
     ];
     const kernelParameterNames = [
         'completeArgument', 'derivedArray', 'deferredArrayInputs', 'returnedArrayPlan', 'arrayBindings', 'loopValues', 'RankError', 'scalarSelection', 'noteArrayBinding', 'kernelCheckpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
@@ -1532,7 +1533,7 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
         'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
         'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',
         'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt',
-        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy', 'materializeArray', 'reshapeWithDimensions', 'makeRange', 'arrayBinary', 'arrayModularProduct', 'completeStoredBinary', 'sumStoredInteger', 'stackValues', 'tensorCells', 'noteFold',
+        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', 'concatValues', 'concatCopy', 'materializeArray', 'reshapeWithDimensions', 'makeRange', 'arrayBinary', 'arrayModularProduct', 'completeStoredBinary', 'completeStoredModularProduct', 'sumStoredInteger', 'stackValues', 'tensorCells', 'noteFold',
     ];
     try {
         const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];

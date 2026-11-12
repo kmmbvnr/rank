@@ -206,6 +206,7 @@ interface PlanEmitter {
     readonly number?: boolean;
     completeBinary?(operation: string, left: string, right: string): string;
     completeSum?(value: string): string;
+    completeModularProduct?(left: string, right: string, modulus: string): string;
     arrayBinary?(operation: string, left: string, right: string, lines: string[]): string;
     check?(value: string, type: CompiledScalarType): string;
     array?(name: string, domain: FunctionPlanDomain): PreparedTensor;
@@ -237,6 +238,14 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
         && stage.type.element === 'integer' && host.completeBinary) {
         const left = direct(stage.left), right = direct(stage.right);
         if (left !== undefined && right !== undefined) candidate = host.completeBinary(stage.operation.name, left, right);
+        let product = stage.left;
+        while (product.kind === 'group') product = product.operand;
+        if (stage.operation.name === 'mod' && product.kind === 'binary'
+            && product.operation.name === '*' && right !== undefined && host.completeModularProduct) {
+            const first = direct(product.left), second = direct(product.right);
+            if (first !== undefined && second !== undefined)
+                candidate = host.completeModularProduct(first, second, right);
+        }
     } else if (!host.number && consumer.terminal === 'sum' && stage.type.rank === 1
         && stage.type.element === 'integer' && host.completeSum) {
         const value = direct(stage);
@@ -244,7 +253,7 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     }
     if (candidate !== undefined) {
         const result = host.variable(), fallback: string[] = [];
-        const ordinary = emitFunctionPlan(consumer, fallback, { ...host, completeBinary: undefined, completeSum: undefined });
+        const ordinary = emitFunctionPlan(consumer, fallback, { ...host, completeBinary: undefined, completeSum: undefined, completeModularProduct: undefined });
         lines.push(`let ${result} = ${candidate};`);
         lines.push(`if (${result} === undefined) { ${fallback.join('\n')} ${result} = ${ordinary}; } else { planConsumed?.(); }`);
         return result;

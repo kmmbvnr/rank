@@ -280,3 +280,21 @@ end`);
         expect(numeric.numberFunctions).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 });
+
+it('keeps moderate direct numeric recursion compiled and bounds deeper calls', () => {
+    const source = `fun N total
+ if N equal 0
+  return 1
+ end
+ Next = (N - 1) total
+ return Next + 1
+end
+`;
+    const moderate = run(source + '300 total');
+    expect(moderate.observation).toEqual({ value: '301', error: undefined });
+    expect(moderate.diagnostics.numberFunctions).toBeGreaterThan(300);
+    expect(moderate.diagnostics.numberFunctionFallbacks).toBe(0);
+    const deep = run(source + '2000 total');
+    expect(deep.observation).toEqual({ value: '2001', error: undefined });
+    expect(deep.diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
+});
