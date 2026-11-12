@@ -23,6 +23,8 @@ export interface FunctionCallSignature {
     readonly rightParameters: readonly CallParameter[];
     readonly words: readonly CallWord[];
     readonly dataParameters: readonly number[];
+    /** Right operands from this index on may be left out of a call, as for a file function. */
+    readonly optionalFrom?: number;
 }
 
 const signatures = new WeakMap<FunctionStatement, FunctionCallSignature>();

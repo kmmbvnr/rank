@@ -52,6 +52,7 @@ export * from './analysis/lazy-function.js';
 export * from './analysis/function-mutations.js';
 export * from './analysis/function-scope-diagnostics.js';
 export * from './analysis/function-arg-contracts.js';
+export * from './file-function.js';
 
 export * from './analysis/deferred-bindings.js';
 

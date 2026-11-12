@@ -8,6 +8,7 @@ import { prepareFunctionDeclarations } from './function-declaration.js';
 import { normalizePrimaryApplications, normalizeModularAssignments } from './primary-applications.js';
 import { functionCallSignature } from './function-call-signature.js';
 import { functionBindingPlan } from './function-binding.js';
+import { fileCallArities, fileCallName, fileCallSignature, isFileFunction } from './file-function.js';
 import { isFunctionStatement, isFunctionBindingStatement, isProgram } from './generated/ast.js';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { RankGeneratedModule, RankGeneratedSharedModule } from './generated/module.js';
@@ -118,6 +119,11 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                             const target = functionBindingPlan(statement).alias;
                             const signature = target && exported.get(target);
                             if (signature) exported.set(statement.name, signature);
+                        }
+                        const fileName = isFileFunction(module) ? fileCallName(entry.path, entry.alias) : undefined;
+                        if (fileName) {
+                            signatures.set(fileName, fileCallSignature(module));
+                            bindings.set(fileName, fileCallArities(module));
                         }
                         for (const [name, signature] of exported) {
                             const qualified = entry.alias ? `${entry.alias}.${name}` : name;

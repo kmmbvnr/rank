@@ -3,6 +3,7 @@ import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
     functionScopeDiagnostics, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
+    fileCallArities, fileCallName, fileCallSignature, fileFunctionInputs, isFileFunction,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { BindingEnvironment } from './binding-environment.js';
@@ -10,6 +11,7 @@ import { MutationGuards } from './mutation-guards.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
+import { ReturnSignal } from './control-signals.js';
 import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
@@ -40,7 +42,7 @@ import { ResourceOwnership } from './resource-ownership.js';
 import { locateError, planBindingNote, registerSource, scopeDiagnosticMessage, sourceIdOf } from './source-location.js';
 import { selectValues } from './value-selection.js';
 import { withoutAmbientTensorPlan } from './tensor-map.js';
-import { isNativeFunction, type RankValue } from './value.js';
+import { isNativeFunction, MISSING, type NativeFunction, type RankValue } from './value.js';
 
 type Output = (text: string) => void;
 
@@ -327,7 +329,16 @@ export class Interpreter {
             : this.inEnvironment(run);
     }
 
-    private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
+    /** Runs a file as a function body: only an explicit `return` gives a result. */
+    private callProgram(program: Program): RankValue | undefined {
+        const run = () => this.executeProgramBody(program, [], false, true);
+        const diagnostics = currentDiagnostics();
+        return diagnostics
+            ? diagnostics.measure('program.execute', () => this.inEnvironment(run))
+            : this.inEnvironment(run);
+    }
+
+    private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean, returnOnly = false): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         const scopeError = functionScopeDiagnostics(program)[0];
         if (scopeError) throw this.locateError(new RankError(scopeDiagnosticMessage(scopeError, this.options.sourceId ?? '<input>'), 'Scope'), scopeError.node);
@@ -351,7 +362,14 @@ export class Interpreter {
             evaluate: expression => this.evaluate(expression),
             locate: (error, node) => this.locateError(error, node),
         });
-        return this.blocks.run(program.statements, assertBooleanExpressions);
+        try {
+            const value = this.blocks.run(program.statements, assertBooleanExpressions);
+            return returnOnly ? undefined : value;
+        } catch (error) {
+            // A top-level `return` unwinds to here with its value.
+            if (error instanceof ReturnSignal) return error.value;
+            throw error;
+        }
     }
 
     /** Register notebook function cells without executing any statements or bodies. */
@@ -643,7 +661,47 @@ export class Interpreter {
             }
             this.currentRunTarget = loaded;
         }
+        if (isFileFunction(loaded.program)) this.bindFileFunction(loaded, specifier, alias);
         return loaded;
+    }
+
+    /** A file with a top-level `return` is also callable: `X name` or `name`. */
+    private bindFileFunction(loaded: LoadedProgram, specifier: string, alias?: string): void {
+        const name = fileCallName(specifier, alias);
+        if (!name) {
+            throw new RankError(`${specifier} returns a value; import it under a lowercase name: use "${specifier}" as name`);
+        }
+        const { left, right } = fileFunctionInputs(loaded.program);
+        const names = [...left, ...right].map(input => input.name);
+        const fn: NativeFunction = {
+            kind: 'function', name, arities: fileCallArities(loaded.program),
+            callSignature: fileCallSignature(loaded.program), monadicRank: 'all', arrayCells: true,
+            call: arguments_ => this.callFile(loaded, name, left.length, names, arguments_),
+        };
+        this.assign(name, fn);
+    }
+
+    /** Each call runs the file in a fresh interpreter, so its top-level names stay private. */
+    private callFile(loaded: LoadedProgram, name: string, required: number, names: readonly string[],
+        arguments_: readonly RankValue[]): RankValue {
+        if (arguments_.length < required || arguments_.length > names.length) {
+            throw new RankError(`${name} expects ${required === names.length ? required : `${required} to ${names.length}`} arguments, got ${arguments_.length}`);
+        }
+        const child = new Interpreter(this.output, {
+            ...moduleOptions(this.options),
+            random: this.random,
+            maxCallDepth: this.functions.maxDepth,
+            sourceId: loaded.id,
+        });
+        child.loadedProgram = loaded;
+        for (const [key, value] of this.openPrograms) child.openPrograms.set(key, value);
+        child.prepareModule(loaded.program);
+        // An omitted right operand arrives as `.NA`; its `arg` default applies.
+        arguments_.forEach((value, index) => { if (value !== MISSING) child.variables.set(names[index], value); });
+        const result = child.resources.withResourceScope(() => child.callProgram(loaded.program));
+        if (result === undefined) throw new RankError(`${name} reached end without return`);
+        this.resources.ownFiles(result);
+        return result;
     }
 
     private prepareModule(program: Program): void {

@@ -133,9 +133,8 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             if (insideFinally) {
                 throw new RankError('return is not valid inside finally');
             }
-            if (!host.bindings.insideFunction) {
-                throw new RankError('return is only valid inside a function');
-            }
+            // A program's top-level `return` ends the program with its value;
+            // a file with one is called as a function.
             if (insideGenerator && statement.value !== undefined) {
                 throw new RankError('a generator cannot return a value');
             }

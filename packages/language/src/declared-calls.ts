@@ -34,12 +34,15 @@ export function groupDeclaredCalls(
             const tail = result.splice(result.length - signature.leftCount + 1);
             arguments_.push(applicationExpression(result.splice(0)), ...tail);
         }
-        for (const parameter of signature.rightParameters) {
+        for (const [position, parameter] of signature.rightParameters.entries()) {
             const next = parts[cursor + 1];
             const word = isNameExpression(next) && next.name;
             if (!next || word && (signature.words.some(group => group.word === word) || word === 'rank' || word === 'axis')
                 || parameter.kind === 'data' && callable(next)) {
-                report(callee, `${name} is missing right parameter ${parameter.name}`);
+                // An omitted optional operand is `.NA`: the callee uses its default.
+                if (signature.optionalFrom === undefined || position < signature.optionalFrom) {
+                    report(callee, `${name} is missing right parameter ${parameter.name}`);
+                }
                 arguments_.push({ $type: 'LabelLiteral', name: 'NA' } as Expression);
             } else {
                 const addressed = [next];
