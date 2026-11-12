@@ -174,6 +174,21 @@ describe('names read by deferred bindings', () => {
         }
     });
 
+    it.each(['+=', '-=', '*=', '**=', '/=', '//=', 'mod=', 'and=', 'or=', 'xor='])(
+        "parses a deferred compound assignment with %s", operator => {
+            const parsed = parser.parse<Program>(`Plan' ${operator} A\nB = 1`, { rule: 'Program' });
+            expect(parsed.parserErrors).toEqual([]);
+            const assignment = parsed.value.statements[0];
+            expect(isAssignmentStatement(assignment) && assignment.deferred).toBe(true);
+            expect(isAssignmentStatement(assignment) && assignment.operator).toBe(operator);
+        });
+
+    it('protects names read by a deferred compound assignment', () => {
+        const source = "A = array 1 2\nPlan = A\nPlan' += A\nA 0 = 9";
+        expect(diagnostics(source).errors.map(error => error.message))
+            .toEqual(['A is read-only because plan Plan reads it; copy it before mutation.']);
+    });
+
     it('preserves the old behavior for programs without deferred bindings', () => {
         expect(diagnostics('A = array 1 2\nB = A * 2\nA 0 = 9\nA += 1').errors).toEqual([]);
     });

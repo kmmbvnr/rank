@@ -55,11 +55,16 @@ describe('binding evaluation modes', () => {
     });
 
     it.each([
-        "A = B'", "A' += 1", "A' 0 = 1", "A 0' = 1", "A'' = 1", "'A = 1",
+        "A = B'", "A' 0 = 1", "A 0' = 1", "A'' = 1", "'A = 1",
         "fun X'' f = X", "fun X f = X'",
     ])('rejects apostrophes outside binding sites: %s', source => {
         const result = parser.parse<Program>(source);
         expect(result.lexerErrors.length + result.parserErrors.length).toBeGreaterThan(0);
+    });
+
+    it("accepts a compound operator after a deferred binding name", () => {
+        const result = parser.parse<Program>("A' += 1");
+        expect(result.lexerErrors.length + result.parserErrors.length).toBe(0);
     });
 
     it('carries mixed left, right and group parameter modes into call signatures', () => {

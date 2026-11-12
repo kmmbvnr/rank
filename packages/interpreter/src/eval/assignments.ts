@@ -554,6 +554,13 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
     const direct = statement.deferred ? undefined : host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
     const protectedNames = statement.deferred ? deferredBindingReferences(statement).map(read => read.name) : [];
+    // `X' op= E` defers `X op E`, so the plan captures the previous X.
+    // Build the node once: plan caches key on the expression identity.
+    const deferredValue: Expression = statement.deferred && operator !== undefined
+        ? { $type: 'BinaryExpression', operator, $container: statement, $cstNode: statement.$cstNode,
+            left: { $type: 'NameExpression', name: statement.name, $cstNode: statement.$cstNode },
+            right: statement.value } as unknown as Expression
+        : statement.value;
     const stored = (value: RankValue): RankValue => {
         return statement.deferred ? value : materializeValue(value);
     };
@@ -581,9 +588,9 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
                 parts.length === 3 && isLabelLiteral(parts[2]) && parts[2].name === 'descending');
             if (sorted) { write(sorted); return completed(sorted); }
         }
-        const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
-        return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
-            const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
+        const previous = operator === undefined || statement.deferred ? undefined : host.resolveVariable(statement.name);
+        return mapResult(statement.deferred ? host.defer(deferredValue) : host.evaluate(statement.value), value => {
+            const result = stored(operator === undefined || statement.deferred ? value : host.operators.evaluateBinary(operator, previous!, value));
             const protect = statement.deferred ? host.protect(protectedNames, statement) : undefined;
             write(result);
             protect?.();

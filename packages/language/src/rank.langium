@@ -253,7 +253,7 @@ ArrayAssignmentStatement returns ArrayAssignmentStatement:
     operator=AssignmentOperator value=Expression;
 
 AssignmentStatement returns AssignmentStatement:
-    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression;
+    name=AssignableName (deferred?="'")? operator=AssignmentOperator value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' |
