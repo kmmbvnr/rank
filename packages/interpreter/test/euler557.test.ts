@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions, type RankArray } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { fullScale } from './full-scale.js';
 const source = readFileSync(new URL('../../../demos/euler/557_cuttingtriangles.ra', import.meta.url), 'utf8');
 
 // Enumerate piece areas, without reciprocal keys, sorting or group ranks.
@@ -28,7 +29,7 @@ describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('E
         const text = source.replace(/Block = \d+/, `Block = ${block}`).replace('Window = 1000000', `Window = ${window}`);
         expect(solve(n, options, text)).toBe(oracle(n));
     });
-    it('matches the independent full discriminant search', () => {
+    fullScale('matches the independent full discriminant search', () => {
         expect(solve(10000, options)).toBe(2699929328n);
     }, 30000);
 });
