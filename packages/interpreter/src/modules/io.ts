@@ -18,13 +18,16 @@ import type { RuntimeModule } from './types.js';
 
 const encoder = new TextEncoder();
 
+/** The text `print` shows for a value; a host prints a file's returned value the same way. */
+export function printedText(value: RankValue): string {
+    const shown = isRankSqliteTable(value) ? materializeSqlite(value)
+        : isRankSqliteExpression(value) ? materializeSqliteExpression(value) : value;
+    return formatValue(shown);
+}
+
 export const ioModule: RuntimeModule = {
     print: context => native('print', 1, arguments_ => {
-        const value = isRankSqliteTable(arguments_[0])
-            ? materializeSqlite(arguments_[0])
-            : isRankSqliteExpression(arguments_[0])
-                ? materializeSqliteExpression(arguments_[0]) : arguments_[0];
-        context.output(formatValue(value));
+        context.output(printedText(arguments_[0]));
         return arguments_[0];
     }),
     read: context => native('read', 1, arguments_ => {

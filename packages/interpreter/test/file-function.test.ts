@@ -108,3 +108,11 @@ describe.each([false, true])('files as functions (compilation=%s)', compilation 
         expect(call('use "plain.ra"\n3 twice')).toBe('6');
     });
 });
+
+describe('top-level return completes lazy values', () => {
+    it('returns a finished value from a deferred expression', () => {
+        const source = "use numbers\nN = 1 till 11\nMask' = N mod 2 equal 0\nreturn N Mask sum";
+        expect(run(source)).toBe('30');
+        expect(run(source, false)).toBe('30');
+    });
+});

@@ -10,6 +10,7 @@ export * from './wavelet.js';
 export * from './value.js';
 export { createArraySnapshot } from './array-storage.js';
 export { standardModules } from './modules/index.js';
+export { printedText } from './modules/io.js';
 
 export { RuntimeDiagnostics, type CompilerPreparationCost, type ExecutionCost, type FallbackCategory, type CompilerObservation } from './diagnostics.js';
 

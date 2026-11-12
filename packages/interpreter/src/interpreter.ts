@@ -12,6 +12,7 @@ import { hasNativeImplementation } from './native-implementation.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
 import { ReturnSignal } from './control-signals.js';
+import { demandValue } from './plan.js';
 import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
@@ -367,7 +368,8 @@ export class Interpreter {
             return returnOnly ? undefined : value;
         } catch (error) {
             // A top-level `return` unwinds to here with its value.
-            if (error instanceof ReturnSignal) return error.value;
+            // Like a function result, a lazy value is completed on the way out.
+            if (error instanceof ReturnSignal) return error.value === undefined ? undefined : demandValue(error.value);
             throw error;
         }
     }

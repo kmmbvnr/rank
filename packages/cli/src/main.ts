@@ -1,5 +1,6 @@
 import { runProgram } from '@arrrank/common';
-import { Interpreter, RankError, RuntimeDiagnostics, parse, type RankTestResult } from '@arrrank/interpreter';
+import { Interpreter, RankError, RuntimeDiagnostics, parse, printedText, type RankTestResult } from '@arrrank/interpreter';
+import { isFileFunction } from '@arrrank/language';
 import {
     analyzeValues, analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
@@ -70,15 +71,19 @@ async function dispatch(): Promise<void> {
 async function runFile(file: string, args: readonly string[], diagnostic?: number): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
-    const run = () => runProgram(source, console.log, {
-        environment: nodeEnvironment(),
-        args,
-        input: new NodeInput(),
-        io: nodeIo,
-        md5: nodeMd5,
-        sourceId,
-        loadModule,
-    });
+    const run = () => {
+        const result = runProgram(source, console.log, {
+            environment: nodeEnvironment(),
+            args,
+            input: new NodeInput(),
+            io: nodeIo,
+            md5: nodeMd5,
+            sourceId,
+            loadModule,
+        });
+        // A file that returns a value is a function; the host shows its result.
+        if (result !== undefined && isFileFunction(parse(source, sourceId))) console.log(printedText(result));
+    };
     if (diagnostic === undefined) { run(); return; }
     const diagnostics = new RuntimeDiagnostics(diagnostic, true);
     try { diagnostics.run(run); }
