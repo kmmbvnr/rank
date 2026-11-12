@@ -92,3 +92,54 @@ tuple X Y`;
         expect(run(source,true).kernels).toBe(2);
     });
 });
+
+describe('compound tensor masks', () => {
+    const base = `use sequences
+use numbers
+N = 1 to 1000 array
+Mask = N mod 3 equal 0
+`;
+    it.each(['and=', 'or=', 'xor='])('compiles %s with a pointwise comparison', op => {
+        const source = `${base}Mask ${op} N mod 5 equal 0\nMask sum2`.replace('Mask sum2', '(N Mask) sum');
+        const reference = run(source, false), fused = run(source, true);
+        expect(fused.value).toBe(reference.value);
+        expect(fused.kernels).toBeGreaterThan(reference.kernels);
+    });
+
+    const outcome = (source: string, tensorFusion: boolean) => {
+        try { return run(source, tensorFusion).value; }
+        catch (error) { return String(error instanceof Error ? error.message : error); }
+    };
+
+    it('fails like the reference path', () => {
+        const source = `${base}Mask or= N mod (N - 5) equal 0\nMask sum`;
+        expect(outcome(source, true)).toBe(outcome(source, false));
+        expect(outcome(source, true)).toContain('zero');
+    });
+
+    it.each([
+        'Mask or= N mod 5 equal 0 and N greater 3',
+        'Mask or= array true false',
+        'Mask or= true',
+    ])('matches the reference path for %s', line => {
+        const source = `${base}${line}\n(N Mask) sum`;
+        expect(outcome(source, true)).toBe(outcome(source, false));
+    });
+
+    it('compiles without importing the copy word', () => {
+        const source = 'use numbers\nN = 1 to 1000 array\nMask = N mod 3 equal 0\nMask or= N mod 5 equal 0\n(N Mask) sum';
+        const reference = run(source, false), fused = run(source, true);
+        expect(fused.value).toBe(reference.value);
+        expect(fused.kernels).toBeGreaterThan(reference.kernels);
+    });
+
+    it('fails on an empty mask like the reference path', () => {
+        const source = 'use sequences\nuse numbers\nN = array shape 0 fill 1\nMask = N mod 3 equal 0\nMask or= N mod 0 equal 0\nMask len';
+        expect(outcome(source, true)).toBe(outcome(source, false));
+    });
+
+    it('handles empty masks', () => {
+        const source = 'use sequences\nuse numbers\nN = array shape 0 fill 1\nMask = N mod 3 equal 0\nMask or= N mod 5 equal 0\nMask len';
+        expect(run(source, true).value).toBe(run(source, false).value);
+    });
+});

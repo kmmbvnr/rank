@@ -315,24 +315,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         if (!statement.value) return undefined;
         const root = parse(statement.value);
         let operations = 0;
-        const arithmetic = (node: TensorNode): boolean => {
-            if (node.kind === 'input') return true;
-            if (node.kind === 'select') return arithmetic(node.source) && arithmetic(node.selector);
-            if (node.kind === 'unary' && ['+', '-', 'not'].includes(node.op)) {
-                operations++;
-                return arithmetic(node.operand);
-            }
-            // Comparisons complete both operands, like arithmetic. Logical
-            // and/or retain their ordinary short-circuit boundary. Native
-            // bitwise nodes keep their builtin identity and domain guards.
-            if (node.kind === 'binary' && (node.native && bitwise(node.native)
-                || !node.native && (['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op)
-                    || ['===', '!==', '<', '<=', '>', '>='].includes(findCompiledOperator(node.op)?.binary ?? '')))) {
-                operations++;
-                return arithmetic(node.left) && arithmetic(node.right);
-            }
-            return false;
-        };
+        const arithmetic = pointwiseExpression(() => operations++);
         if (!root) return declineCompiler('unsupported-expression', statement.value);
         if (!arithmetic(root)) return declineCompiler('pointwise-arithmetic-required', statement.value);
         if (operations < 2) return declineCompiler('too-small', statement.value);
@@ -340,9 +323,12 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const kernel = build(root, 'copy', host, domains, true, undefined, false, undefined, undefined, undefined, destinationName);
         return kernel && Object.assign(kernel, { scalarDestination: destinationName });
     }
-    if (isAssignmentStatement(statement) && ['+=', '-=', '*='].includes(statement.operator) && !statement.name.includes('.')) {
+    if (isAssignmentStatement(statement) && ['+=', '-=', '*=', 'and=', 'or=', 'xor='].includes(statement.operator) && !statement.name.includes('.')) {
         const right = parse(statement.value);
-        const arithmetic = (node: TensorNode): boolean => node.kind === 'input'
+        // Logical updates take any pointwise right side: a mask is built
+        // from comparisons, so `Mask or= N mod 5 equal 0` is one pass.
+        const arithmetic = statement.operator.length > 2 ? pointwiseExpression()
+            : (node: TensorNode): boolean => node.kind === 'input'
             || node.kind === 'unary' && ['+', '-'].includes(node.op) && arithmetic(node.operand)
             || node.kind === 'binary' && ['+', '-', '*'].includes(node.op) && arithmetic(node.left) && arithmetic(node.right);
         if (!right || !arithmetic(right)) return declineCompiler('compound-arithmetic-required', statement.value);
@@ -351,7 +337,10 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
         if (!matched) return declineCompiler('operator-domain', statement.value);
         const destinationName = statement.name;
-        const kernel = build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
+        // The source never names `copy`, so a logical update must not need
+        // that word imported. Implicit builds keep the empty-array and
+        // failing-scalar guards of the single-expression copy.
+        const kernel = build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, statement.operator.length > 2, undefined, false, undefined, undefined, undefined, destinationName);
         return kernel && Object.assign(kernel, { scalarDestination: destinationName });
     }
     // An ordinary assignment completes its result before the next statement.
@@ -374,6 +363,28 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
     if (root.kind === 'input') return declineCompiler('no-fusible-operation', statement.value);
     const destinationName = assignment && last.name === 'copy' ? statement.name : undefined;
     return build(root, last.name as Terminal, host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
+}
+
+/** Pointwise nodes that complete every operand: arithmetic, comparisons,
+ * `not` and native bitwise words. Logical and/or keep their short-circuit
+ * boundary and never enter. */
+function pointwiseExpression(onOperation: () => void = () => {}): (node: TensorNode) => boolean {
+    const accepts = (node: TensorNode): boolean => {
+        if (node.kind === 'input') return true;
+        if (node.kind === 'select') return accepts(node.source) && accepts(node.selector);
+        if (node.kind === 'unary' && ['+', '-', 'not'].includes(node.op)) {
+            onOperation();
+            return accepts(node.operand);
+        }
+        if (node.kind === 'binary' && (node.native && bitwise(node.native)
+            || !node.native && (['+', '-', '*', '/', '//', 'mod', '**'].includes(node.op)
+                || ['===', '!==', '<', '<=', '>', '>='].includes(findCompiledOperator(node.op)?.binary ?? '')))) {
+            onOperation();
+            return accepts(node.left) && accepts(node.right);
+        }
+        return false;
+    };
+    return accepts;
 }
 
 function containsNodeInput(node: TensorNode, name: string): boolean {
