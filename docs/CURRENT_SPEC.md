@@ -2409,6 +2409,36 @@ An omitted seed starts from the first item;
 an explicit seed processes every item. Empty input requires a seed and returns
 it unchanged.
 
+### Parameter contracts with arg
+
+Leading `arg` lines in a function body state the type, and optionally the
+exact shape, of header parameters. They use the same notation as a program's
+top-level `arg`:
+
+```rank
+use numbers
+fun X scale Factor
+  arg X real shape 2 3
+  arg Factor real
+  return X * Factor
+end
+```
+
+The contracts are checked in order on every call, before the rest of the body
+runs, and an error names the parameter:
+`X expects real array shape 2 3, got array shape 3`. A shape clause means the
+type is the element type of an array with exactly those dimensions; it checks
+dimensions and never reshapes. `integer array` accepts an array of any shape.
+A bare `integer` accepts only a scalar.
+
+A parameter with no `arg` line keeps accepting any type and shape on every
+call. Declarations are optional per parameter, must name a header parameter
+once, and must come before every other statement of the body, not inside a
+block. A declaration cannot carry `= Default`: give a missing argument its
+default with a call group (`.by Factor = 2`). Values are not converted;
+passing an integer where `real` is declared is an error. Inside a function
+`arg` does not need `use cli`.
+
 ### Return contracts and argument ranks
 
 Each function specialization has one return type and one return rank. Calls with

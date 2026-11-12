@@ -1,10 +1,11 @@
 import {
-    INPUT_TYPES, isArgStatement, isUseStatement,
+    isArgStatement, isUseStatement,
     type Expression, type Program, type Statement,
 } from '@arrrank/language';
 import { ownedArray } from './array-storage.js';
 import { RankError } from './errors.js';
-import { isRankArray, typeName, type RankValue } from './value.js';
+import { validateInputValue } from './input-contract.js';
+import { isRankArray, type RankValue } from './value.js';
 
 export interface ParsedArguments {
     readonly options: Map<string, string[]>;
@@ -64,17 +65,6 @@ function parseInputValue(valueType: string, value: string): RankValue {
         throw new RankError(`expected boolean input, got: ${value}`);
     }
     throw new RankError(`unknown input type: ${valueType}`);
-}
-
-export function validateInputValue(name: string, valueType: string, value: RankValue): void {
-    if (valueType === 'integer' && typeof value === 'bigint') return;
-    if (valueType === 'real' && typeof value === 'number') return;
-    if ((valueType === 'text' || valueType === 'path') && typeof value === 'string') return;
-    if (valueType === 'boolean' && typeof value === 'boolean') return;
-    if (!INPUT_TYPES.includes(valueType)) {
-        throw new RankError(`unknown input type: ${valueType}`);
-    }
-    throw new RankError(`${name} expects ${valueType}, got ${typeName(value)}`);
 }
 
 export function kebabCase(name: string): string {

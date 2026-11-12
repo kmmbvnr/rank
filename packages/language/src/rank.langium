@@ -135,6 +135,7 @@ RunStatement:
 
 ArgStatement:
     'arg' name=VARIABLE valueType=TypeName (many?='array')?
+    ('shape' dimensions+=NumberLiteral+)?
     ('=' defaultValue=Expression)?;
 
 ArgsStatement:

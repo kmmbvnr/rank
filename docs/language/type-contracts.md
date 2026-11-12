@@ -63,6 +63,13 @@ Their actual supported argument combinations remain in the full contracts. Known
 arguments preserve their element types and proven dimensions; value-dependent
 results can still retain more than one alternative.
 
+## Parameter contracts
+
+A function states the type and shape of its parameters with leading `arg`
+lines (`arg X real shape 2 3`); see Parameter contracts with arg in the
+function chapter. The check runs at each call and rejects a mismatch with an
+error that names the parameter. Unannotated parameters stay unconstrained.
+
 ## Record bindings
 
 An ordinary record binding retains its field names and recursive field types

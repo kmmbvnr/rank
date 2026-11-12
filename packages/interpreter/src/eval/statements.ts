@@ -34,6 +34,8 @@ export interface ProgramControl {
 }
 
 /** What preparing a statement needs beyond the loop and write owners. */
+import { checkInputContract } from '../input-contract.js';
+
 export interface StatementContext {
     readonly bindings: BindingEnvironment;
     evaluate(expression: Expression): Evaluation<RankValue>;
@@ -81,6 +83,13 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
     }
     if (isArgStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> {
+            // Inside a function the line is a contract on a header parameter.
+            if (host.bindings.insideFunction) {
+                checkInputContract({ name: statement.name, valueType: statement.valueType, array: statement.many === true,
+                    ...(statement.dimensions.length ? { shape: statement.dimensions.map(item => Number(item.value)) } : {}) },
+                    host.resolve(statement.name));
+                return undefined;
+            }
             host.requireModule('cli', 'arg');
             return undefined;
         } };
