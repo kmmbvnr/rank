@@ -10,7 +10,7 @@ import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, prepareIntegerRange, storedSelectorKind, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { materializeTensorMap } from './tensor-map.js';
+import { isTensorRecipe, materializeTensorMap } from './tensor-map.js';
 import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, booleanCells, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, knownStoredScalarKind, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint, demandBudgetEnabled, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -658,6 +658,11 @@ export function isCollectionSelector(value: RankValue): boolean {
     return isRankArray(value) || isRankQueue(value) || isRankSequence(value);
 }
 
+/** The element type a deferred recipe has proven, without reading any cell. */
+export function provenScalarType(value: RankArray): string | undefined {
+    return value.shape.includes(0) || !isTensorRecipe(value) ? undefined : semanticArrayType(value).scalar;
+}
+
 export function isIntegerCollectionSelector(value: RankValue): boolean {
     if (isRankSequence(value)) return true;
     if (!isRankArray(value) && !isRankQueue(value)) return false;
@@ -670,6 +675,11 @@ export function isIntegerCollectionSelector(value: RankValue): boolean {
         if (kinds) return kinds.every(kind => kind === 'integer');
         const viewKind = value.shape.includes(0) ? undefined : storedSelectorKind(value);
         if (viewKind) return viewKind === 'integer';
+        // A deferred recipe has proven its element type; reading the cells
+        // would compute the whole mask before the fused consumer starts.
+        const proven = provenScalarType(value);
+        if (proven === 'boolean') return false;
+        if (proven === 'integer') return true;
     }
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     return stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'bigint')

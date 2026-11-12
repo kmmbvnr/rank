@@ -65,6 +65,30 @@ Answer = Values filter Mask`, true);
         expect(result.diagnostics.cellsComputed).toBeLessThan(10);
     });
 
+    it.each([
+        "N = 1 till 1000 array\nMask' = N mod 3 equal 0\nAnswer = N Mask sum",
+        "N = 1 till 1000 array\nMask' = N mod 3 equal 0\nMask' = Mask or N mod 5 equal 0\nAnswer = N Mask sum",
+        "N = 1 till 1000 array\nMask' = N mod 3 equal 0\nPicked' = N Mask\nAnswer = Picked sum",
+        "N = 1 till 1000\nMask' = N mod 3 equal 0\nMask' = Mask or N mod 5 equal 0\nAnswer = N Mask sum",
+    ])('applies a deferred mask by juxtaposition without reading its cells: %s', source => {
+        const result = observe(source, true);
+        expect(result.error).toBeUndefined();
+        expect(result.answer).toBe(observe(source, false).answer);
+        expect(result.diagnostics.numberTensors).toBeGreaterThan(0);
+        expect(result.diagnostics.cellsComputed).toBeLessThan(10);
+    });
+
+    it.each([
+        "N = array shape 0 fill 1\nMask' = N mod 3 equal 0\nAnswer = N Mask sum",
+        "N = array 1 2 3\nM = array 1 2\nMask' = M mod 2 equal 0\nAnswer = N Mask sum",
+        "N = array 1 2 3\nMask' = N mod 0 equal 0\nAnswer = N Mask sum",
+        "N = array 1 2 3\nKeys' = N - 1\nAnswer = N Keys sum",
+    ])('keeps juxtaposed deferred selector values and errors: %s', source => {
+        const actual = observe(source, true), expected = observe(source, false);
+        expect({ answer: actual.answer, error: actual.error })
+            .toEqual({ answer: expected.answer, error: expected.error });
+    });
+
     it('does not inspect arbitrary host plan expressions or demand them ahead', () => {
         const execute = (compilation: boolean) => {
             let calls = 0;

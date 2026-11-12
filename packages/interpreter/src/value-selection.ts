@@ -19,7 +19,7 @@ import {
 import { projectAliasedField, projectField, projectFields } from './modules/tables.js';
 import { arraySize, rangeBounds } from './operators.js';
 import {
-    atArray, isCollectionSelector, isIntegerCollectionSelector, isTensorAddress, selectAxis, sliceArray,
+    atArray, isCollectionSelector, isIntegerCollectionSelector, isTensorAddress, provenScalarType, selectAxis, sliceArray,
     tensorSelection,
 } from './selectors.js';
 import { atSequence, filterSequence, isPositionalMask, positionalSelection, sequence } from './sequence.js';
@@ -516,8 +516,9 @@ export function canApplySelectors(values: RankValue[]): boolean {
         return isTableFieldList(values[1])
             || isIntegerCollectionSelector(values[1])
             || (sameShape(values[0].shape, values[1].shape)
-                && (stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'boolean')
-                    : values[1].items.every(item => typeof item === 'boolean')));
+                && (provenScalarType(values[1]) === 'boolean'
+                    || (stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'boolean')
+                        : values[1].items.every(item => typeof item === 'boolean'))));
     }
     if (values.length === 2 && isRankArray(values[0])
         && (typeof values[1] === 'string' || isRankLabel(values[1]))) return true;
@@ -588,6 +589,8 @@ function isTableFieldList(value: RankValue, includeEmpty = true): boolean {
     const kinds = storedScalarKinds(value);
     if (kinds) return (includeEmpty && kinds.length === 0) || kinds.includes('text');
     if (value.shape[0] !== 0 && storedSelectorKind(value)) return false;
+    const proven = provenScalarType(value);
+    if (proven === 'integer' || proven === 'real' || proven === 'boolean') return false;
     const stored = denseScalarItems(value);
     if (stored) return (includeEmpty && stored.length === 0)
         || Array.prototype.some.call(stored, (item: RankValue) => typeof item === 'string' || isRankLabel(item));

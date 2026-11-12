@@ -38,6 +38,11 @@ export function registerTensorScalarMap(value: RankArray, source: RankArray, cal
 const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
 const selections = new WeakMap<RankArray, { source: RankArray; selector: RankArray; reader: RankArray['itemAt']; shape: readonly number[] }>();
 /** The pure deferred frontend owns both operands; no selector callback is run. */
+/** A native recipe, or a checked view of one, owned by a plan scope. */
+export function isTensorRecipe(value: RankArray): boolean {
+    return mapScope(value) !== undefined;
+}
+
 export function registerTensorSelection(value: RankArray, source: RankArray, selector: RankArray): RankArray {
     selections.set(value, { source, selector, reader: value.itemAt, shape: [...value.shape] });
     if (active?.enabled()) owners.set(value, active);
