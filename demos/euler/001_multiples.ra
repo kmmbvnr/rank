@@ -11,8 +11,8 @@ arg Limit integer = 1000
 
 N = 1 till Limit
 
-Mask = N mod 3 equal 0
-Mask or= N mod 5 equal 0
+Mask' = N mod 3 equal 0
+Mask' or= N mod 5 equal 0
 
 Answer = N Mask sum
 Answer print

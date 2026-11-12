@@ -324,6 +324,9 @@ Mask xor= Changed
 The current compound assignment operators are `+=`, `-=`, `*=`, `**=`, `/=`,
 `//=`, `mod=`, `and=`, `or=` and `xor=`.
 
+Write the apostrophe before the operator to defer the update
+(`Mask' or= Other`); see [Naming a lazy result](#naming-a-lazy-result).
+
 The same operators may update an addressed material-array selection:
 
 ```rank
@@ -1512,6 +1515,21 @@ Saved = Plan
 `Saved` holds that completed result. Rebinding `A` does not retarget the plan.
 Repeated reads of `Saved` use its stored cells; repeated demands of `Plan`
 compute again, including any effects of its expression.
+
+A compound operator after the apostrophe defers the updated value.
+`Mask' or= Other` means `Mask' = Mask or Other`: the plan captures the
+previous `Mask` and `Other`, and nothing is computed until a consumer demands
+it. A chain of such lines is one expression, so a consumer can read the
+chain in a single pass:
+
+```rank
+Mask' = N mod 3 equal 0
+Mask' or= N mod 5 equal 0
+Answer = N Mask sum
+```
+
+Every compound operator accepts the apostrophe. `and=`, `or=` and `xor=`
+still evaluate both sides.
 
 A name captured by an apostrophe binding is read-only for the rest of its
 scope. A later indexed or field write through that name is rejected, while
