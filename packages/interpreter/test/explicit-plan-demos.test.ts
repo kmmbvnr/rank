@@ -1189,6 +1189,18 @@ end`);
         } finally { runtime.dispose(); }
     });
 
+    it('keeps the Euler 001 mask deferred so the sum is one pass', () => {
+        const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            expect(runtime.variables.get('Answer')).toBe(233168n);
+            expect(isRankPlan(runtime.variables.get('Mask')!)).toBe(true);
+            if (compilation) expect(diagnostics.cellsComputed).toBeLessThan(10);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains the single-pass Fibonacci generator for both consumers', () => {
         const source = readFileSync(new URL('../../../demos/euler/002_evenfib.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
@@ -1201,7 +1213,6 @@ end`);
     });
 
     it.each([
-        ['001_multiples', 1000, 'Mask', 'Mask 0 = true', 233168n],
         ['014_collatz', 14, 'Lengths', 'Lengths 0 = 999', 9n],
         ['127_abchits', 1000, 'Rad', 'Rad 0 = 999', 12523n],
         ['159_digitalrootsums', 100, 'Best', 'Best 0 = 999', 856n],
