@@ -978,7 +978,11 @@ export class FunctionInvocation {
             work.value += amount;
             checkpoint(activity, amount, details);
         } : checkpoint;
-        const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls, poll);
+        // Deep self calls can fall back to framed execution, whose hooks may
+        // mutate bindings still visible to their compiled parents.
+        const stableCaptureHooks = !Object.values(this.compiler.hooks).some(Boolean);
+        const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls, poll,
+            () => stableCaptureHooks && !inspectionEnabled() && privateLoopPolling());
         const readOnlyAllowed = () => !this.compiler.hooks.onScalarFunctionExecuted
             && !inspectionEnabled() && privateLoopPolling() && !demandBudgetEnabled();
         const rawNumber = kernel.numberDirect ? kernel.numberDirect(

@@ -77,7 +77,8 @@ interface Kernel {
         captures?: readonly CapturedIntegerReader[],
         scalars?: readonly (() => RankValue)[],
         planConsumed?: () => void,
-        rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[], poll?: typeof checkpoint) => LoopCallable;
+        rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[], poll?: typeof checkpoint,
+        stableCaptureReads?: () => boolean) => LoopCallable;
     readonly numberReadOnly?: boolean;
     readonly numberStorage?: 'arrays' | 'queues';
     readonly numberArrayArguments: readonly number[];
@@ -834,6 +835,17 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
         && ![...expressions.values()].some(expression => expression.kind === 'call'
             || expression.kind === 'binary' && typeof expression.signature.result !== 'string'
             || expression.kind === 'input' && ['materialize-iterable', 'array-native', 'reshape', 'range-array'].includes(expression.input.operation ?? ''));
+    // A closed scalar self-call graph cannot change captured bindings.
+    // Runtime hooks and observable polling still require live reads.
+    const recursiveStableCaptures = proof.recursive && !proof.observableCaptures
+        && [...expressions.values()].every(expression => {
+            if (typeof expression.type !== 'string' || !['integer', 'real', 'boolean'].includes(expression.type)) return false;
+            if (expression.kind === 'call') return false;
+            if (expression.kind !== 'input') return true;
+            return !expression.input.indices && !expression.input.operation
+                || expression.input.operation === 'captured-scalar'
+                || expression.input.operation === 'self-call';
+        });
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
         if (!slots.has(name)) slots.set(name, slots.size);
@@ -1086,7 +1098,9 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
                 let index = scalarCaptures.findIndex(capture => capture.name === expression.input.name);
                 if (index < 0) index = scalarCaptures.push({ name: expression.input.name, type: expression.type as CompiledFunctionType }) - 1;
                 const result = `v${serial++}`;
-                lines.push(`const ${result} = ${stableCaptures ? `scalarValues[${index}]` : `scalars[${index}]()`};`);
+                lines.push(`const ${result} = ${stableCaptures ? `scalarValues[${index}]`
+                    : recursiveStableCaptures ? `captureCached ? capture${index} : scalars[${index}]()`
+                    : `scalars[${index}]()`};`);
                 return result;
             }
             if (operation === 'captured-read') {
@@ -1446,10 +1460,15 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
+    const recursiveCaptureLocals = (direct: boolean) => recursiveStableCaptures && scalarCaptures.length
+        ? `const captureCached = ${direct ? 'stableCaptureReads?.() === true' : 'false'};
+            ${scalarCaptures.map((_, index) => `const capture${index} = captureCached ? scalars[${index}]() : undefined;`).join('\n')}`
+        : '';
     const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars, planConsumed, rankedCalls, poll) {
         const checkpoint = poll ?? kernelCheckpoint;
         ${proof.planCalls.length ? 'const mappedCalls = [];' : ''}
         ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
+        ${recursiveCaptureLocals(false)}
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
         ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
@@ -1461,11 +1480,12 @@ function compileScalarFunctionObservedImplementation(statement: FunctionStatemen
     };`;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
-    const directSource = `"use strict"; return function(locate, calls, userCalls, memberships, captures, scalars, planConsumed, rankedCalls, poll) {
+    const directSource = `"use strict"; return function(locate, calls, userCalls, memberships, captures, scalars, planConsumed, rankedCalls, poll, stableCaptureReads) {
         const checkpoint = poll ?? kernelCheckpoint;
         return function(${paramNames.join(',')}) {
             ${proof.planCalls.length ? 'const mappedCalls = [];' : ''}
             ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
+            ${recursiveCaptureLocals(true)}
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
             ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
