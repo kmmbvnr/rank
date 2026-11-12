@@ -130,6 +130,33 @@ describe('binding facts', () => {
         expect(named(result, 'program', 'I').kind).toBe('loop');
     });
 
+    it.each(['1 to Limit', '(Limit till -1 by -2)', '1 to #'])(
+        'retains integer cells of a numeric loop range: %s', async range => {
+            const result = await facts([
+                'arg Limit integer = 3',
+                `for I in ${range}`, '  Next = I + 1', 'end',
+            ]);
+            expect(named(result, 'program', 'I').types).toEqual(['integer']);
+            expect(named(result, 'program', 'Next').types).toEqual(['integer']);
+        },
+    );
+
+    it('does not treat bounded collection cells as range integers', async () => {
+        const result = await facts([
+            'Values = array "a" "b"',
+            'for Item in Values to 1', '  Copy = Item', 'end',
+        ]);
+        expect(named(result, 'program', 'Item').types).toEqual([]);
+        expect(named(result, 'program', 'Copy').types).toEqual([]);
+    });
+
+    it('widens a numeric loop binding when its body changes the type', async () => {
+        const result = await facts([
+            'for I in 1 to 3', '  I = "changed"', 'end',
+        ]);
+        expect(named(result, 'program', 'I').types).toEqual(['integer', 'text']);
+    });
+
     it('reads a name the source binds further down the same loop', async () => {
         const result = await facts([
 

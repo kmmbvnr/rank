@@ -450,7 +450,15 @@ class Analyzer {
         const iteration = forIteration(condition);
         if (iteration) {
             this.expression(iteration.iterable);
-            for (const name of iteration.names) if (name !== '#') this.bind(name, 'loop', condition!);
+            let source = iteration.iterable;
+            while (isParenthesizedExpression(source)) source = source.value;
+            // Numeric ranges yield integers; collection bounds retain their cells.
+            const integerRange = isBinaryExpression(source)
+                && (source.operator === 'to' || source.operator === 'till')
+                && this.typeOf(source.left).length === 1 && this.typeOf(source.left)[0] === 'integer';
+            for (const [index, name] of iteration.names.entries()) {
+                if (name !== '#') this.bind(name, 'loop', condition!, index === 0 && integerRange ? ['integer'] : UNKNOWN);
+            }
         } else if (condition !== undefined) {
             this.expression(condition);
         }
