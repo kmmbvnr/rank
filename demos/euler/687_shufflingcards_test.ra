@@ -1,5 +1,15 @@
 use testing
 
+test "two ranks alternate"
+  use "687_shufflingcards"
+  Nr = 1
+  run
+  Answer equal "0.0000000000"
+  Nr = 2
+  run
+  Answer equal "0.0285714286"
+end
+
 test "default input"
   use "687_shufflingcards"
   run

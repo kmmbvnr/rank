@@ -21,7 +21,8 @@ Np = Pr len
 F1 = (0 to (Np - 1)) * 0
 F2 = F1 * 1
 F3 = F1 * 1
-Wc = 4000000
+rem Small inputs need no padded block.
+Wc = 4000000 min (3 * L + 1)
 Fk = 1
 for A in 0 to 3 * L by Wc
   Fh = (0 to (Wc - 1)) * 0

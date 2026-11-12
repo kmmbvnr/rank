@@ -26,3 +26,15 @@ one worker per 2 GiB of RAM. Set `RANK_DEMO_WORKERS=4` to choose the count, or
 retain their current execution path. Each shard uses one Vitest worker; failures
 keep their logs in the temporary directory printed by the runner. Corpus coverage
 is checked after all shards finish.
+
+Ordinary CI jobs have a 15-minute deadline. Corpus execution uses the bounded
+arguments and test selections in `scripts/demo-audit-inputs.json`; published
+demo defaults and their full-size assertions stay unchanged. Both execution
+modes receive the same inputs. Static source checks still cover every demo.
+Each bounded audit case has a 60-second deadline.
+
+To run published inputs and the separate full-scale golden checks on GitHub,
+dispatch CI with `full_scale=true`. Locally, `RANK_DEMO_AUDIT_SCALE=full` selects
+the original corpus inputs; `RANK_FULL_SCALE=1` enables the expensive golden
+checks inside ordinary interpreter test files. Run `full-scale-demos.test.ts`
+and `euler-neighbours-full.test.ts` explicitly for the standalone full-scale suites.

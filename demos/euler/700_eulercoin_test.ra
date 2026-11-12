@@ -1,5 +1,18 @@
 use testing
 
+test "small coprime coins"
+  use "700_eulercoin"
+  Aa = 3
+  Mm = 7
+  Cut = 2
+  run
+  Answer equal 6
+  Aa = 5
+  Mm = 13
+  run
+  Answer equal 8
+end
+
 test "default input"
   use "700_eulercoin"
   run

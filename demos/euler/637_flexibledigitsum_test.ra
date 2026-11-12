@@ -12,6 +12,10 @@ test "brute force"
   N = 1000
   run
   Answer equal 422582
+end
+
+test "full-scale checkpoint"
+  use "637_flexibledigitsum"
   N = 100000
   run
   Answer equal 4727592381

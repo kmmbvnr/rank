@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -32,7 +33,7 @@ describe.each([{}, { compilation: false }, { scalarFunctionCompilation: false, n
 it.each([100, 1000000, 1000000000])('matches the original independent prime-count search through %s', n => {
     expect(run(n)).toBe(run(n, {}, original));
 }, 60000);
-it('retains the full default golden with compiled read-only recursion', () => {
+fullScale('retains the full default golden with compiled read-only recursion', () => {
     expect(run(10000000000000)).toBe(9219696799346n);
 }, 360000);
 it.each([0, 25, 100])('keeps the cache cutoff %s separate from mathematical bounds', cut => {

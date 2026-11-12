@@ -1,5 +1,13 @@
 use testing
 
+test "repeated bit masks"
+  use "238_infinitestring"
+  1 2 8 rep equal 85
+  3 4 8 rep equal 51
+  15 8 16 rep equal 3855
+  1 1 1 rep equal 1
+end
+
 test "default input"
   use "238_infinitestring"
   run

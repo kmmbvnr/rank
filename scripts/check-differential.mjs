@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import assert from 'node:assert/strict';
+import { auditEligible } from './demo-audit-inputs.mjs';
 
 const demos = resolve(import.meta.dirname, '../demos');
 function programs(directory) {
@@ -17,7 +18,7 @@ assert.ok(Number.isSafeInteger(count) && count > 0, 'invalid differential shard 
 const summaries = args.map(file => JSON.parse(readFileSync(file, 'utf8')));
 assert.deepEqual(summaries.map(result => result.shard).sort((a, b) => a - b), Array.from({ length: count }, (_, shard) => shard), 'all shards must report');
 assert.ok(summaries.every(result => result.count === count), 'shard counts must agree');
-assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !executionExclusions.has(file)).sort(),
+assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !executionExclusions.has(file) && auditEligible(file)).sort(),
     'every eligible demo and Rank test file must be compared exactly once');
 const totals = summaries.reduce((sum, result) => ({ completed: sum.completed + result.completed,
     tests: sum.tests + result.tests, entries: sum.entries + result.entries,

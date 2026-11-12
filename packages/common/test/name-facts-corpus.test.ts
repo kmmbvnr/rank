@@ -11,6 +11,7 @@ import {
 } from '@arrrank/language';
 import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '@arrrank/interpreter';
 import { nameFactsIn } from '../src/name-facts.js';
+import { auditArguments, auditEligible, auditScale, auditSource } from '../../../scripts/demo-audit-inputs.mjs';
 
 const executionTimeouts: Record<string, number> = JSON.parse(fs.readFileSync(
     new URL('../../../scripts/demo-execution-timeouts.json', import.meta.url), 'utf8'));
@@ -59,7 +60,7 @@ describe('facts at a name against the values a run produced', () => {
     if (!Number.isInteger(count) || count < 1 || !Number.isInteger(shard) || shard < 0 || shard >= count) {
         throw new Error('Invalid name facts shard');
     }
-    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file))).filter(file =>
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file)) && auditEligible(path.relative(demos, file))).filter(file =>
         createHash('sha256').update(path.relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let ran = 0;
     let asked = 0;
@@ -75,8 +76,8 @@ describe('facts at a name against the values a run produced', () => {
             const source = fs.readFileSync(file, 'utf8');
             let program: Program;
             try { program = parse(source, file); } catch { return context.skip(); }
-            const interpreter = new Interpreter(() => undefined, { sourceId: file, testing: true });
-            try { interpreter.execute(source); } catch { return context.skip(); } finally { interpreter.dispose(); }
+            const interpreter = new Interpreter(() => undefined, { sourceId: file, testing: true, args: auditArguments(path.relative(demos, file)) });
+            try { interpreter.execute(auditSource(path.relative(demos, file), source, program)); } catch { return context.skip(); } finally { interpreter.dispose(); }
             ran += 1;
 
             const lookup = nameFactsIn(source);
@@ -111,7 +112,7 @@ describe('facts at a name against the values a run produced', () => {
             }
             expect(contradictions).toEqual([]);
         // Bound each program, rather than giving the growing corpus one deadline.
-        }, executionTimeouts[path.relative(demos, file)] ?? 300_000);
+        }, auditScale === 'small' ? 60_000 : executionTimeouts[path.relative(demos, file)] ?? 300_000);
     }
 
     afterAll(() => {

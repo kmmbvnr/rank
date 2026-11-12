@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -30,11 +31,11 @@ describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('E
     it.each(cases)('matches exhaustive integers for base $base, count $count', ({ base, count, expected }) => {
         expect(run(base, count, options)).toBe(expected);
     }, 60000);
-    it('retains both base-10 statement values', () => {
+    fullScale('retains both base-10 statement values', () => {
         expect(run(10, 1, options)).toBe(1093265784n);
         expect(run(10, 10, options)).toBe(20319792309n);
     }, 120000);
 });
-it('retains the full base-12 result', () => {
+fullScale('retains the full base-12 result', () => {
     expect(run(12, 10, {})).toBe(30510390701978n);
 }, 360000);

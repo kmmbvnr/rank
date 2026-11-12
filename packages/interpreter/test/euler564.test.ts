@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions } from '../src/index.js';
@@ -5,7 +6,6 @@ import { readArrayItem } from '../src/array-storage.js';
 const source = readFileSync(new URL('../../../demos/euler/564_maximalpolygons.ra', import.meta.url), 'utf8');
 const { compositions, partitions } = await import(new URL('../../../benchmarks/euler564-oracle.mjs', import.meta.url).href);
 const small = Array.from({ length: 8 }, (_, i) => compositions(i + 3));
-const reference = partitions(50);
 function run(k: number, options: InterpreterOptions = {}) {
     const r = new Interpreter(() => {}, { ...options, args: [`--k=${k}`] });
     try {
@@ -26,7 +26,8 @@ for (const options of [{}, { compilation: false }, { numberLoopCompilation: fals
         expect(actual.answer).toBe(Number(sum.toFixed(6)));
         actual.means.forEach((mean, i) => expect(Math.abs(mean - expected[i])).toBeLessThan(2e-9));
     });
-    it('matches every full-scale prefix with exact multinomial reference weights', () => {
+    fullScale('matches every full-scale prefix with exact multinomial reference weights', () => {
+        const reference = partitions(50);
         const actual = run(50, options);
         expect(actual.answer).toBe(12363.69885);
         expect(actual.means).toHaveLength(48);

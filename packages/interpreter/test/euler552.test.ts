@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -27,5 +28,5 @@ describe.each(modes)('Euler 552 $name', ({ options }) => {
         expect(solve(limit, options)).toBe(literal(limit));
     });
     it('matches the existing fixture beyond a prefix trim', () => expect(solve(10000, options)).toBe(741693n));
-    it('matches the full answer', () => expect(solve(300000, options)).toBe(326227335n), 180000);
+    fullScale('matches the full answer', () => expect(solve(300000, options)).toBe(326227335n), 180000);
 });

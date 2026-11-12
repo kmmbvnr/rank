@@ -7,6 +7,8 @@ use io
 use cli
 
 arg Cut integer = 20000000
+arg Aa integer = 1504170715041707
+arg Mm integer = 4503599627370517
 
 rem The terms r(k) = A k mod M, for
 rem coprime A and M, hit every value
@@ -17,8 +19,6 @@ rem Small ones are the values v below
 rem that record whose index
 rem k(v) = v / A mod M is a new
 rem minimum as v grows.
-Aa = 1504170715041707
-Mm = 4503599627370517
 Answer = 0
 Bt = Mm
 Rr = 0

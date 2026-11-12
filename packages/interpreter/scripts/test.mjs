@@ -8,7 +8,8 @@ const requested = process.argv.slice(2);
 // shards in separate processes; CI supplies its existing shard settings.
 const audits = ['test/types.test.ts', 'test/differential.test.ts', 'test/nurikabe.test.ts'];
 const runs = requested.length ? [requested]
-    : [audits.flatMap(file => ['--exclude', file]), ...audits.map(file => [file])];
+    : [[...audits, 'test/full-scale-demos.test.ts', 'test/euler-neighbours-full.test.ts']
+        .flatMap(file => ['--exclude', file]), ...audits.map(file => [file])];
 
 for (const args of runs) {
     const kind = args[0] === audits[0] ? 'types' : args[0] === audits[1] ? 'differential' : undefined;

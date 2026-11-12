@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '../src/index.js';
+import { auditArguments, auditEligible, auditScale, auditSource } from '../../../scripts/demo-audit-inputs.mjs';
 
 // Full-scale combinatorial workloads retain their assertions with a larger deadline.
 const executionTimeouts: Record<string, number> = JSON.parse(fs.readFileSync(
@@ -54,9 +55,9 @@ function audit(file: string): Audit {
     } catch {
         return unobserved; // `rank check` owns parse failures.
     }
-    const interpreter = new Interpreter(() => undefined, { sourceId: file, testing: true });
+    const interpreter = new Interpreter(() => undefined, { sourceId: file, testing: true, args: auditArguments(path.relative(demos, file)) });
     try {
-        interpreter.execute(source);
+        interpreter.execute(auditSource(path.relative(demos, file), source, parse(source, file)));
     } catch {
         return unobserved; // A program that needs a host cannot be observed here.
     } finally {
@@ -109,7 +110,7 @@ describe('inferred types against the values a run produced', () => {
     if (!Number.isInteger(shardCount) || shardCount < 1 || !Number.isInteger(shard) || shard < 0 || shard >= shardCount) {
         throw new Error('Invalid type audit shard');
     }
-    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file))).filter(file =>
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file)) && auditEligible(path.relative(demos, file))).filter(file =>
         createHash('sha256').update(path.relative(demos, file)).digest().readUInt32BE(0) % shardCount === shard);
     const results = new Map<string, Audit>();
     for (const file of files) {
@@ -122,7 +123,7 @@ describe('inferred types against the values a run produced', () => {
             if (!result.ran) context.skip();
             expect(result.contradictions).toEqual([]);
         // Bound each program, rather than giving the growing corpus one deadline.
-        }, executionTimeouts[path.relative(demos, file)] ?? 300_000);
+        }, auditScale === 'small' ? 60_000 : executionTimeouts[path.relative(demos, file)] ?? 300_000);
     }
 
     afterAll(() => {

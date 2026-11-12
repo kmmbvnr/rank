@@ -23,7 +23,7 @@
         "clean": "shx rm -fr *.tsbuildinfo out native/build",
         "build": "node scripts/build-sqlite-interrupt.mjs",
         "build:clean": "npm run clean && npm run build",
-        "test": "node --test test/*.test.mjs",
+        "test": "node scripts/test.mjs",
         "install": "node scripts/build-sqlite-interrupt.mjs"
     },
     "dependencies": {

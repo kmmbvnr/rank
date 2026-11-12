@@ -4,7 +4,8 @@ import { resolve, dirname, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
 import { afterAll, describe, expect, it } from 'vitest';
-import { Interpreter, RankError, RuntimeDiagnostics, type RankFileMode, type RankValue } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics, parse, type RankFileMode, type RankValue } from '../src/index.js';
+import { auditArguments, auditEligible, auditScale, auditSource } from '../../../scripts/demo-audit-inputs.mjs';
 import { MemoryIo, TokenInput } from './support.js';
 
 const executionTimeouts: Record<string, number> = JSON.parse(readFileSync(
@@ -88,7 +89,7 @@ function run(file: string, compilation: boolean, recordProgress = true) {
     let seed = 12345;
     const diagnostics = new RuntimeDiagnostics();
     const runtime = new Interpreter(text => output.push(text), {
-        compilation, sourceId: file, testing: true, io, input,
+        compilation, sourceId: file, testing: true, io, input, args: auditArguments(relative(demos, file)),
         environment: { get: name => environment.get(name), set: (name, value) => {
             if (value === undefined) environment.delete(name); else environment.set(name, value);
         } },
@@ -101,7 +102,11 @@ function run(file: string, compilation: boolean, recordProgress = true) {
         },
     });
     let value: unknown, error: string | undefined;
-    try { value = snapshot(diagnostics.run(() => runtime.execute(sources.get(file)!))); }
+    try {
+        const source = sources.get(file)!;
+        const selected = auditSource(relative(demos, file), source, parse(source, file));
+        value = snapshot(diagnostics.run(() => runtime.execute(selected)));
+    }
     catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
     finally { runtime.dispose(); }
     const elapsedMs = performance.now() - start;
@@ -121,12 +126,13 @@ function run(file: string, compilation: boolean, recordProgress = true) {
 describe('compiled and reference demo execution', () => {
     const count = Number(process.env.RANK_DIFFERENTIAL_SHARDS ?? 1);
     const shard = Number(process.env.RANK_DIFFERENTIAL_SHARD ?? 0);
-    const timeout = Number(process.env.RANK_DIFFERENTIAL_TIMEOUT_MS ?? 300_000);
+    const timeout = Number(process.env.RANK_DIFFERENTIAL_TIMEOUT_MS ?? (auditScale === 'small' ? 60_000 : 300_000));
     if (!Number.isInteger(count) || count < 1 || !Number.isInteger(shard) || shard < 0 || shard >= count) {
         throw new Error('Invalid differential shard');
     }
     if (!Number.isSafeInteger(timeout) || timeout < 1) throw new Error('Invalid differential timeout');
-    const files = [...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file))).filter(file =>
+    const eligible = [...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file)) && auditEligible(relative(demos, file)));
+    const files = eligible.filter(file =>
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0, numberEntries = 0;
     const failures: { file: string; error?: string; tests: { name: string; error?: string }[] }[] = [];
@@ -140,6 +146,9 @@ describe('compiled and reference demo execution', () => {
         expect(compiled.observation).toEqual(reference.observation);
         // Matching failures are not a passing embedded test file.
         if (file.endsWith('_test.ra')) expect(compiled.observation.error, relative(demos, file)).toBeUndefined();
+        if (auditArguments(relative(demos, file)).length) {
+            expect(compiled.observation.error, relative(demos, file)).toBeUndefined();
+        }
         const failedTests = compiled.observation.tests.filter(result => !result.passed)
             .map(({ name, error }) => ({ name, error }));
         expect(failedTests, relative(demos, file)).toEqual([]);
@@ -156,7 +165,7 @@ describe('compiled and reference demo execution', () => {
         tests += compiled.observation.tests.length;
         entries += compiled.entries;
         numberEntries += compiled.numberEntries;
-    }, process.env.RANK_DIFFERENTIAL_TIMEOUT_MS !== undefined ? timeout
+    }, auditScale === 'small' || process.env.RANK_DIFFERENTIAL_TIMEOUT_MS !== undefined ? timeout
         : executionTimeouts[relative(demos, file)] ? executionTimeouts[relative(demos, file)] * 2 : timeout);
     afterAll(() => {
         console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} passive compiled entries, ${numberEntries} Number loop entries`);
@@ -166,7 +175,7 @@ describe('compiled and reference demo execution', () => {
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
-            expect(compared).toBe([...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file))).length);
+            expect(compared).toBe(eligible.length);
             expect(completed).toBeGreaterThan(400);
             expect(tests).toBeGreaterThan(100);
             expect(numberEntries).toBeGreaterThan(0);

@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import assert from 'node:assert/strict';
+import { auditEligible } from './demo-audit-inputs.mjs';
 
 const args = process.argv.slice(2);
 const count = args[0] === '--shards' ? Number(args.splice(0, 2)[1]) : 4;
@@ -16,7 +17,7 @@ function programs(directory) {
         return entry.isDirectory() ? programs(file) : file.endsWith('.ra') ? [relative(demos, file)] : [];
     });
 }
-assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !exclusions.has(file)).sort(), 'every eligible demo must be audited exactly once');
+assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !exclusions.has(file) && auditEligible(file)).sort(), 'every eligible demo must be audited exactly once');
 const totals = summaries.reduce((sum, result) => ({ ran: sum.ran + result.ran,
     asked: sum.asked + result.asked, known: sum.known + result.known,
     plans: sum.plans + result.plans }), { ran: 0, asked: 0, known: 0, plans: 0 });

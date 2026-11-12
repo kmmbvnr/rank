@@ -8,6 +8,10 @@ test "statement values"
   Nn = 100
   run
   Answer equal 23238
+end
+
+test "full-scale checkpoint"
+  use "681_maximalarea"
   Nn = 100000
   run
   Answer equal 26927556378

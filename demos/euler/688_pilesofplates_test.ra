@@ -8,6 +8,10 @@ test "statement values"
   Nn = 100
   run
   Answer equal 12656
+end
+
+test "full-scale checkpoint"
+  use "688_pilesofplates"
   Nn = 1000000000000000
   run
   Answer equal 20039017

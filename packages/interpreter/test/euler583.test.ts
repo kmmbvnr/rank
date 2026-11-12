@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -34,7 +35,7 @@ describe.each(modes)('Euler 583 %j', options => {
     it.each([-1, 0, 1, 7, 64, 4096])('keeps the result independent of batch size %s', batch => {
         expect(run(first + 1, options, batch)).toBe(BigInt(prefix[first + 1]));
     });
-    it('retains the exact full default', () => expect(run(10000000, options)).toBe(1174137929000n), 180000);
+    fullScale('retains the exact full default', () => expect(run(10000000, options)).toBe(1174137929000n), 180000);
 });
 it.each([10000, 100000, 1000000])('matches the old independent rectangle/flap search at perimeter %s', p => {
     expect(run(p)).toBe(run(p, {}, undefined, original));

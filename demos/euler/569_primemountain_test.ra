@@ -5,6 +5,10 @@ test "statement values"
   N = 100
   run
   Answer equal 227
+end
+
+test "full-scale checkpoint"
+  use "569_primemountain"
   N = 100000
   run
   Answer equal 650364

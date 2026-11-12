@@ -8,13 +8,17 @@ test "statement values"
   Limit = 100
   run
   Answer equal 37018
-  Limit = 100000000
-  run
-  Answer equal 478653324
 end
 
 test "default input"
   use "712_exponentdifference"
   run
   Answer equal 413876461
+end
+
+test "full-scale checkpoint"
+  use "712_exponentdifference"
+  Limit = 100000000
+  run
+  Answer equal 478653324
 end

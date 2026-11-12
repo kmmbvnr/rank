@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -25,7 +26,7 @@ describe.each(modes)('Euler 580 %j', options => {
         expect(run(n, options)).toBe(BigInt(prefix[n]));
     });
     it('retains the statement checkpoint', () => expect(run(9999999, options)).toBe(2327192n));
-    it('retains the exact full default', () => expect(run(9999999999999999n, options)).toBe(2327213148095366n), 60000);
+    fullScale('retains the exact full default', () => expect(run(9999999999999999n, options)).toBe(2327213148095366n), 60000);
     it.each([-1, 0, 1, 2, 7, 13, 100])('keeps arithmetic independent of batch size %s', batch => {
         expect(run(10000, options, batch)).toBe(BigInt(prefix[10000]));
     });

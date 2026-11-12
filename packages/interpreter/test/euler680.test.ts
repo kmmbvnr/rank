@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
@@ -32,6 +33,6 @@ it('keeps the published reduced examples and the huge unreversed sum exact', () 
     const n = 1000000000000000000n;
     expect(run(n, 0)).toBe(n * (n - 1n) * (2n * n - 1n) / 6n % 1000000000n);
 });
-it('keeps the full Euler 680 answer', () => {
+fullScale('keeps the full Euler 680 answer', () => {
     expect(run(1000000000000000000n, 1000000)).toBe(563917241n);
 }, 180_000);

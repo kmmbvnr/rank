@@ -13,10 +13,6 @@ test "fewer turns"
   run
 
   Answer equal 0
-  Turns = 20
-  run
-
-  Answer equal 0.79884191
 end
 
 test "exact rounding after 22 turns"
@@ -41,4 +37,12 @@ test "empty and first differing scores"
   run
 
   Answer equal 0.012096
+end
+
+test "full-scale checkpoint"
+  use "298_selectiveamnesia"
+  Turns = 20
+  run
+
+  Answer equal 0.79884191
 end

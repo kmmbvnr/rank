@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
@@ -23,5 +24,5 @@ describe.each(modes)('Euler 549 $name', ({ options }) => {
     it.each([0, 1, 2, 3, 4, 7, 8, 9, 15, 16, 24, 25, 26, 27, 31, 32, 48, 49, 50, 63, 64, 100, 1000, 2000])
         ('matches factorial residues through %s', n => expect(solve(n, options)).toBe(sums[n]));
     it.each([1, 7, 16, 64])('matches independent residues across blocks of %s', block => expect(solve(1000, options, block)).toBe(sums[1000]));
-    it('matches the full sum', () => expect(solve(100000000, options)).toBe(476001479068717n), 120000);
+    fullScale('matches the full sum', () => expect(solve(100000000, options)).toBe(476001479068717n), 120000);
 });

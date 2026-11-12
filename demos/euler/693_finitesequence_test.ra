@@ -5,6 +5,10 @@ test "statement values"
   Nn = 100
   run
   Answer equal 145
+end
+
+test "full-scale checkpoint"
+  use "693_finitesequence"
   Nn = 10000
   run
   Answer equal 8824
