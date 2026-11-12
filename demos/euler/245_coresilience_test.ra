@@ -8,14 +8,6 @@ test "small limits"
   run
 
   Answer equal 595394
-  Limit = 10000000
-  run
-
-  Answer equal 275069018
-  Limit = 1000000000
-  run
-
-  Answer equal 145645009845
 end
 
 test "semiprime boundaries"
@@ -36,4 +28,16 @@ test "semiprime boundaries"
   run
 
   Answer equal 100
+end
+
+test "full-scale checkpoint"
+  use "245_coresilience"
+  Limit = 10000000
+  run
+
+  Answer equal 275069018
+  Limit = 1000000000
+  run
+
+  Answer equal 145645009845
 end

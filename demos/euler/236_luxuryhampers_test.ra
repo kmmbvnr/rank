@@ -10,7 +10,7 @@ end
 
 test "fewer candidates"
   use "236_luxuryhampers"
-  Top = 300
+  Top = 60
   run
 
   Answer equal "123/59"

@@ -11,6 +11,10 @@ test "statement values"
   Loops = 10
   run
   Answer equal 6947
+end
+
+test "full-scale checkpoint"
+  use "737_coinloops"
   Loops = 200
   run
   Answer equal 5440625

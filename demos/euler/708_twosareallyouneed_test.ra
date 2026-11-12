@@ -8,13 +8,17 @@ test "statement values"
   Limit = 1000
   run
   Answer equal 15301
-  Limit = 100000000
-  run
-  Answer equal 9613563919
 end
 
 test "default input"
   use "708_twosareallyouneed"
   run
   Answer equal 28874142998632109
+end
+
+test "full-scale checkpoint"
+  use "708_twosareallyouneed"
+  Limit = 100000000
+  run
+  Answer equal 9613563919
 end

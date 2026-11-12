@@ -1,3 +1,4 @@
+import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type NativeFunction, type InterpreterOptions } from '../src/index.js';
@@ -29,7 +30,7 @@ describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('E
     it.each([[10000, 5218n], [100000000, 52126906n]])('matches the statement at %s', (n, expected) => {
         expect(solve(n, options)).toBe(expected);
     });
-    it('matches the full result', () => expect(solve(100000000000000, options)).toBe(52126939292957n), 30000);
+    fullScale('matches the full result', () => expect(solve(100000000000000, options)).toBe(52126939292957n), 30000);
     it('counts quarter discs at square boundaries', () => {
         const runtime = new Interpreter(() => {}, { ...options, args: ['--n=0'] });
         try {

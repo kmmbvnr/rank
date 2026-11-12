@@ -22,6 +22,7 @@ test "brute force"
   use "615_millionthnumber"
   Om = 10
   Cn = 1000
+  Bound = 1000
   run
   Answer equal 167936
   Om = 12

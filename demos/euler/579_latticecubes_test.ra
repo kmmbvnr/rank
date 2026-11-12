@@ -17,6 +17,10 @@ test "statement values"
   N = 10
   run
   Answer equal 387003
+end
+
+test "full-scale checkpoint"
+  use "579_latticecubes"
   N = 50
   run
   Answer equal 948928129
