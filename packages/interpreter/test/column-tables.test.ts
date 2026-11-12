@@ -50,9 +50,9 @@ describe('column tables', () => {
         const { show, runtime } = session();
         try {
             show('fun Value fill_real Fallback rank 0 0\n return (Value default Fallback) real\nend');
-            expect(show('Age = Data .Age median\nData .Age = Data .Age fill_real Age\nData .Age'))
+            expect(show('Age = Data .Age median\nData .Age = (Data .Age default .NA) fill_real Age\nData .Age'))
                 .toBe('22 26 26 35');
-            expect(show('Fare = Data .Fare median\nData .Fare = Data .Fare fill_real Fare\nData .Fare'))
+            expect(show('Fare = Data .Fare median\nData .Fare = (Data .Fare default .NA) fill_real Fare\nData .Fare'))
                 .toBe('7.25 71.5 8.05 8.05');
         } finally { runtime.dispose(); }
     });

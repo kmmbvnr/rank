@@ -23,13 +23,22 @@ Submission csv OutputPath
 rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
 fun Train prepare_features Test
+  rem Keep absent keys as missing cells.
   Age = Train .Age median
-  Train .Age = Train .Age fill_real Age
-  Test .Age = Test .Age fill_real Age
+  Train .Age = (
+    Train .Age default .NA
+  ) fill_real Age
+  Test .Age = (
+    Test .Age default .NA
+  ) fill_real Age
 
   Fare = Train .Fare median
-  Train .Fare = Train .Fare fill_real Fare
-  Test .Fare = Test .Fare fill_real Fare
+  Train .Fare = (
+    Train .Fare default .NA
+  ) fill_real Fare
+  Test .Fare = (
+    Test .Fare default .NA
+  ) fill_real Fare
 
   Train .Female = (Train .Sex equal "female") binary
   Test .Female = (Test .Sex equal "female") binary
