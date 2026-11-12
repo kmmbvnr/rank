@@ -102,10 +102,12 @@ jobs:
           RANK_DIFFERENTIAL_SUMMARY: differential-${{ matrix.shard }}.json
         run: npm test --workspace @arrrank/interpreter -- test/differential.test.ts
       - uses: actions/upload-artifact@v4
-        if: matrix.suite == 'differential'
+        if: always() && matrix.suite == 'differential'
         with:
           name: differential-${{ matrix.shard }}
-          path: packages/interpreter/differential-${{ matrix.shard }}.json
+          path: |
+            packages/interpreter/differential-${{ matrix.shard }}.json
+            packages/interpreter/differential-${{ matrix.shard }}.json.progress.jsonl
 
   full-scale:
     if: github.event_name == 'workflow_dispatch' && inputs.full_scale

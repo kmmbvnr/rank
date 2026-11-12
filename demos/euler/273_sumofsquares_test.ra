@@ -17,7 +17,7 @@ test "small limits"
   Answer equal 2579619
 end
 
-test "prime boundaries and full answer"
+test "prime boundaries"
   use "273_sumofsquares"
   Limit = 5
   run
@@ -25,6 +25,10 @@ test "prime boundaries and full answer"
   Limit = 6
   run
   Answer equal 1
+end
+
+test "full-scale checkpoint"
+  use "273_sumofsquares"
   Limit = 150
   run
   Answer equal 2032447591196869022

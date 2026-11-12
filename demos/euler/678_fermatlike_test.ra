@@ -11,6 +11,10 @@ test "statement values"
   Nn = 10000000
   run
   Answer equal 287
+end
+
+test "full-scale checkpoint"
+  use "678_fermatlike"
   Nn = 1000000000000
   run
   Answer equal 16066
