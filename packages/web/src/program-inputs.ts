@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { parse } from '@arrrank/interpreter';
-import { isArgStatement, isFlagStatement, isStringLiteral } from '@arrrank/language';
+import { isArgStatement, isStringLiteral } from '@arrrank/language';
 import { splitSource } from '@arrrank/common/notebook';
 import { pickInputFile, downloadInputFile } from './notebook-store.js';
 import type { BrowserFile, ProgramInputValue } from './protocol.js';
@@ -28,8 +28,6 @@ export function programInputs(source: string): ProgramInput[] {
                     defaultSource: statement.defaultValue?.$cstNode?.text,
                     defaultPath: isStringLiteral(statement.defaultValue) ? statement.defaultValue.value : undefined,
                 }];
-                if (isFlagStatement(statement)) return [{ name: statement.name, valueType: 'boolean', many: false,
-                    defaultSource: String(statement.defaultValue ?? false) }];
                 return [];
             });
         } catch { return []; } // Unfinished cells stay editable.

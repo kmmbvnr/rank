@@ -31,15 +31,30 @@ test('Euler 001 explains completed paths before listing rejected candidates', ()
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, '233168\n');
     const summary = result.stderr.split('Execution counters')[0];
+    // The deferred mask only records its plan; the sum is one fused pass.
     assert.ok(summary.includes(`${file}:12:1 native`), summary);
-    assert.ok(summary.includes(`${file}:14:1 compiled`), summary);
-    assert.ok(summary.includes(`${file}:15:1 mixed (compiled + native)`), summary);
-    assert.ok(summary.includes(`${file}:17:1 compiled`), summary);
+    assert.ok(summary.includes(`${file}:14:1 interpreted`), summary);
+    assert.ok(summary.includes(`${file}:15:1 interpreted`), summary);
+    assert.ok(summary.includes(`${file}:17:1 mixed (compiled + interpreted + native)`), summary);
     assert.ok(summary.includes(`${file}:18:1 native`), summary);
+    assert.match(summary, /completed paths: direct-expression, native-call, number-tensor/);
+    assert.match(summary, /rejected candidates: scalar-expression, tensor; completed paths are listed above/);
+    assert.doesNotMatch(summary, /native-array-map/);
+});
+
+test('diagnostics explains why an operator was delegated to the native array map', t => {
+    const directory = mkdtempSync(join(tmpdir(), 'rank-delegation-diagnostics-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const file = join(directory, 'mask.ra');
+    // Printing forces the deferred mask through the reference path.
+    writeFileSync(file, "use numbers\nuse io\nN = 1 till 20\nMask' = N mod 3 equal 0\nMask' or= N mod 5 equal 0\nMask print\n");
+    const result = run(['--diagnostics=all', file]);
+    assert.equal(result.status, 0, result.stderr);
+    const summary = result.stderr.split('Execution counters')[0];
     assert.match(summary, /mod: expected two integer scalars and a nonzero right operand/);
     assert.match(summary, /non-scalar object \(not inspected\)/);
     assert.match(summary, /delegated to native-array-map, native-operator/);
-    assert.match(summary, /rejected candidates: scalar-expression, tensor/);
+    assert.match(summary, /rejected candidates: tensor, tensor-reduction/);
 });
 
 test('diagnostics explains the region budget and preserves program arguments and stdout', t => {

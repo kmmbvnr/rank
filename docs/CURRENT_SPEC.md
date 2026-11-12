@@ -1161,7 +1161,7 @@ Values min
 Values max
 ```
 
-`use cli` enables `arg`, `flag` and `args`. Without it, a
+`use cli` enables `arg` and `args`. Without it, a
 program cannot declare command-line inputs. `use testing` enables test blocks.
 
 A bare module name opens standard-library vocabulary in the current workspace:
@@ -1315,8 +1315,11 @@ Positional and boolean inputs use the same model:
 use cli
 arg Input path
 arg Numbers integer array
-flag Verbose
+arg Verbose boolean = false
 ```
+
+A bare `--verbose` on the command line sets a boolean input to `true`;
+`--verbose false` sets it to `false`.
 
 `array` collects remaining positional values or repeated named values into a rank-one array and must be the last `arg` declaration. Named inputs bind first; positional inputs fill the remaining declarations in order. A declaration
 without a default is required. Contiguous `rem` lines immediately above an input

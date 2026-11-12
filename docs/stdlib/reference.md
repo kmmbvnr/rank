@@ -182,8 +182,7 @@ These need `use cli` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
-| `arg Name Type = Default` | Declares a program input, passed by name or position. |
-| `flag Name` | Declares a boolean command-line flag. |
+| `arg Name Type = Default` | Declares a program input, passed by name or position; a boolean input is set by a bare --name. |
 | `args Values` | Sets arguments for the next run. |
 
 ## core

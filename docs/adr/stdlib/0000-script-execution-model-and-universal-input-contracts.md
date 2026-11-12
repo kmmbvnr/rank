@@ -27,8 +27,8 @@ arg Limit integer = 1000
 rem Positional input file path.
 arg Input path
 
-rem Optional boolean flag.
-flag Verbose = false
+rem Optional boolean input, set by a bare --verbose.
+arg Verbose boolean = false
 ```
 
 ### 1. No `main()` Function: Sequential Top-Level Execution
@@ -36,10 +36,10 @@ flag Verbose = false
 - Running a file from the host terminal (`rank solution.ra`) executes its top-level statements directly.
 - Helper functions declared with `fun` or `memo` are hoisted (ADR-0302) and can be placed at the bottom of the file without requiring forward declarations.
 
-### 2. Declarative Input Contracts (`arg`, `flag`)
+### 2. Declarative Input Contracts (`arg`)
 Program inputs are declared as first-class statements guarded by `use cli`:
 - `arg Name Type [array] [= Default]`: Declares a program input, passed by name or position on CLI or bound by name in the workspace. Named inputs bind first; positional values fill remaining declarations in order. The `array` modifier collects remaining or repeated inputs into a rank-1 array and must be the last input declaration.
-- `flag Name [= Boolean]`: Declares a boolean toggle (defaulting to `false` if omitted).
+- A boolean input is `arg Name boolean = false`. A bare `--name` on the command line sets it to `true`. (The earlier `flag` keyword was removed.)
 - `path`: An input constraint validated as a valid file/directory path and represented as `text`.
 - **Automatic help text:** Contiguous `rem` lines immediately preceding an input declaration serve as its canonical documentation in `--help` output.
 

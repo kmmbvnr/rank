@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
     analyzeValues, completedValueFacts, completionMayCall, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
-    isFunctionCallGroup, isFunctionParameter, isExpression, isArgStatement,  isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
+    isFunctionCallGroup, isFunctionParameter, isExpression, isArgStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -368,7 +368,7 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
     if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'assignment' } : undefined;
     }
-    if (isArgStatement(node) || isFlagStatement(node)) {
+    if (isArgStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'input' } : undefined;
     }
     if (isFunctionStatement(node)) {
@@ -408,7 +408,6 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
             return known(node as Expression);
         }
         case 'input': {
-            if (isFlagStatement(node)) return { types: ['boolean'], rank: 0, shape: [] };
             if (!isArgStatement(node)) return UNKNOWN;
             const types = declaredType(node.valueType, node.many);
             if (!types.length) return UNKNOWN;

@@ -1,14 +1,13 @@
 import {
     applicationForm, isApplicationExpression, isDeclaredCallExpression, isArgsStatement,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
-    isFlagStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
+    isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isNameExpression, isArgStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
     isOperationAssignmentStatement,
     isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type FunctionBindingStatement, type FunctionStatement, type Operation, type Statement,
 } from '@arrrank/language';
 import type { BindingEnvironment } from '../binding-environment.js';
-import { inputDeclarationName } from '../cli-args.js';
 import { BREAK_SIGNAL, CONTINUE_SIGNAL, returnFunctionValue } from '../control-signals.js';
 import { materializeSequence } from '../sequence.js';
 import { RankError } from '../errors.js';
@@ -80,10 +79,9 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             return undefined;
         } };
     }
-    if (isArgStatement(statement)
-        || isFlagStatement(statement)) {
+    if (isArgStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> {
-            host.requireModule('cli', inputDeclarationName(statement));
+            host.requireModule('cli', 'arg');
             return undefined;
         } };
     }

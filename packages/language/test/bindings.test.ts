@@ -271,7 +271,7 @@ describe('type facts', () => {
         const result = await facts([
             'use algo',
             'arg Limit integer = 10',
-            'flag Verbose',
+            'arg Verbose boolean = false',
             'N = 3',
             'R = 1.5',
             'T = "text"',
@@ -398,9 +398,9 @@ it('recognizes core operations without imports and still reports specialized nam
 });
 
 it('reports CLI declarations and args without their own import', async () => {
-    const lines = ['arg N integer = 3', 'arg Path path', 'flag Verbose', 'args "--n" "7"'];
+    const lines = ['arg N integer = 3', 'arg Path path', 'arg Verbose boolean = false', 'args "--n" "7"'];
     expect((await facts(lines)).missing.map(op => [op.name, op.module])).toEqual([
-        ['arg', 'cli'], ['flag', 'cli'], ['args', 'cli'],
+        ['arg', 'cli'], ['args', 'cli'],
     ]);
     expect((await facts(['use cli', ...lines])).missing).toEqual([]);
 });

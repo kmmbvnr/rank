@@ -8,7 +8,7 @@ async page => {
         await notebookStore().save({ id, title: 'Program input test', manual: true, created: now, updated: now,
             snapshot: { cells: [
                 'use cli', 'use io', 'use numbers', 'arg Input path', 'arg Limit integer = 3',
-                'arg Numbers integer array = array 1 2 3', 'flag Verbose',
+                'arg Numbers integer array = array 1 2 3', 'arg Verbose boolean = false',
                 'Input read print', 'Limit print', 'Numbers sum print', 'Verbose print',
             ], draft: '' } });
         localStorage.setItem('rank-active-notebook-v1', id);

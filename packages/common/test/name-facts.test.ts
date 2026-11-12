@@ -444,7 +444,7 @@ it.each([
     ['arg File path', 'File', 'text'],
     ['arg Values integer array', 'Values', 'c[#]<integer>'],
     ['arg Files path array', 'Files', 'c[#]<text>'],
-    ['flag Verbose', 'Verbose', 'boolean'],
+    ['arg Verbose boolean = false', 'Verbose', 'boolean'],
 ])('shows the declared input type on its name: %s', (source, name, type) => {
     const start = source.indexOf(name);
     for (const offset of [start, start + 1, start + name.length]) {
@@ -479,8 +479,8 @@ it('keeps Euler 1 computed integer arrays and boolean masks, including compound 
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
         ['N =', 'N · c[#]<integer>'],
-        ['Mask =', 'Mask · c[#]<boolean>'],
-        ['Mask or=', 'Mask · c[#]<boolean>'],
+        ["Mask' =", 'Mask · c[#]<boolean>'],
+        ["Mask' or=", 'Mask · c[#]<boolean>'],
         ['Mask sum', 'Mask · c[#]<boolean>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],

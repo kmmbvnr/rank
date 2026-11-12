@@ -1770,7 +1770,7 @@ it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
 
 
 it('types declared CLI scalars without treating defaults as supplied values', () => {
-    const names = bound('arg Digits integer = 3\narg File path = "input"\nflag Verbose\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
+    const names = bound('arg Digits integer = 3\narg File path = "input"\narg Verbose boolean = false\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
     expect(names.get('Digits')).toMatchObject({ types: ['integer'], rank: 0 });
     expect(names.get('Digits')!.integer).toBeUndefined();
     expect(names.get('File')).toMatchObject({ types: ['text'], rank: 1 });

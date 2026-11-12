@@ -110,7 +110,6 @@ Statement:
     UseStatement |
     RunStatement |
     ArgStatement |
-    FlagStatement |
     ArgsStatement |
     TestStatement |
     FunctionStatement |
@@ -137,9 +136,6 @@ RunStatement:
 ArgStatement:
     'arg' name=VARIABLE valueType=TypeName (many?='array')?
     ('=' defaultValue=Expression)?;
-
-FlagStatement:
-    'flag' name=VARIABLE ('=' defaultValue=BooleanValue)?;
 
 ArgsStatement:
     'args' values+=PrimaryExpression+;

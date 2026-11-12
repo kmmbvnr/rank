@@ -21,7 +21,7 @@ import {
     isOperationAssignmentStatement,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
-    isArgStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isArgStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     isTableFilterExpression, isUnpackExpression,
@@ -1525,8 +1525,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
                 env.set(statement.name, completedValueFacts(statement.many ? externalArray(statement.valueType)
                     : externalScalar(statement.valueType, env.get(statement.name))));
-            } else if (isFlagStatement(statement)) {
-                env.set(statement.name, externalScalar('boolean', env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {
                 if (importedAliases.has(statement.alias)) {
                     invalidateImportedAlias(statement.alias, env);

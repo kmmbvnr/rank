@@ -99,36 +99,7 @@ options inside the app.
 
 ### See also
 
-arg, flag, run
-
-## flag
-
-Declare an on/off switch, such as
---verbose.
-
-```rank
-use cli
-flag Verbose
-Verbose
-```
-
-```result
-false
-```
-
-### Usage
-
-```text
-flag Name
-```
-
-The name is true when the flag is given
-and false otherwise. Unlike arg, a flag
-takes no value.
-
-### See also
-
-arg
+arg, run
 
 ## arg
 
@@ -153,7 +124,8 @@ arg Name Type [array] [= Default]
 
 Type is integer, real, text, path or
 boolean. The default is used when the
-argument is left out.
+argument is left out. A boolean input
+is set to true by a bare `--name`.
 
 `text` accepts any text, including empty
 and multiline values. In zsh or bash,
@@ -197,4 +169,4 @@ against the program's directory.
 
 ### See also
 
-flag, args
+args

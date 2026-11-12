@@ -18,7 +18,7 @@ import {
     isDeclaredCallExpression, isTupleExpression, isApplicationExpression, isArgsStatement,
     isAliasedTableExpression, isBoundClauseExpression, isCountClauseExpression,
     isFirstWhereExpression, isFirstIndexWhereExpression, isTakeWhileExpression, isSubjectComparisonExpression,
-    isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
+    isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isOperationAssignmentStatement,
     isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isKeyedRollingExpression,
@@ -44,7 +44,7 @@ export interface Site {
 /** How a name came to exist. */
 export type BindingKind =
     | 'assignment' | 'parameter' | 'loop' | 'unpack' | 'catch'
-    | 'arg' | 'flag' | 'module' | 'function';
+    | 'arg' | 'module' | 'function';
 
 export interface Binding {
     readonly name: string;
@@ -410,8 +410,8 @@ class Analyzer {
             this.block(statement.finallyStatements, nested);
             return;
         }
-        if (isArgStatement(statement) || isFlagStatement(statement) || isArgsStatement(statement)) {
-            const name = isArgStatement(statement) ? 'arg' : isFlagStatement(statement) ? 'flag' : 'args';
+        if (isArgStatement(statement) || isArgsStatement(statement)) {
+            const name = isArgStatement(statement) ? 'arg' : 'args';
             const sites = this.cliForms.get(name) ?? [];
             sites.push(site(statement));
             this.cliForms.set(name, sites);
@@ -420,10 +420,6 @@ class Analyzer {
             if (statement.defaultValue) this.expression(statement.defaultValue);
             this.bind(statement.name, 'arg',
                 statement, declaredType(statement.valueType, statement.many === true));
-            return;
-        }
-        if (isFlagStatement(statement)) {
-            this.bind(statement.name, 'flag', statement, ['boolean']);
             return;
         }
         if (isPushStatement(statement)) {
