@@ -111,11 +111,10 @@ outer`)).toThrow('unknown name: Dy');
             } finally { runtime.dispose(); }
         });
 
-        it('does not make a top-level block a function return context', () => {
+        it('returns from the program when a top-level block returns', () => {
             const runtime = new Interpreter(undefined, { compilation });
             try {
-                expect(() => runtime.execute('for I in 0 till 2\n X = I\n return X\nend'))
-                    .toThrow('return is only valid inside a function');
+                expect(runtime.execute('for I in 0 till 2\n X = I + 5\n return X\nend')).toBe(5n);
             } finally { runtime.dispose(); }
         });
     });

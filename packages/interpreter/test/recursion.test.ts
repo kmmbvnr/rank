@@ -126,7 +126,8 @@ end
 `)).toThrowError(RankError);
         expect(lines).toEqual(Array.from({ length: 1001 }, (_, i) => String(i)));
         expect(interpreter.execute(`${down}\n1000 down`)).toBe(1000n);
-        expect(() => interpreter.execute('return 1')).toThrowError('return is only valid inside a function');
+        // A top-level return ends the program with its value; the frames are clean.
+        expect(interpreter.execute('return 1')).toBe(1n);
     });
 
     it('closes files on a deep unwind', () => {
