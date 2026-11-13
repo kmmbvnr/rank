@@ -10,7 +10,6 @@ use cli
 arg Limit integer = 10000000000
 
 Answer = Limit totientcubes
-Answer print
 
 rem If N = product P^E, phi(N^2) = product P^(2*E-1) * (P-1).
 rem Visit selected primes in descending order. A smaller prime cannot change

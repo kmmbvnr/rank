@@ -1,19 +1,26 @@
 use testing
 
 test "given tower values"
-  use "324_tower"
-  Exp = 5
-  run
-  5 recurrence equal 96149360
-  500 recurrence equal 24806056
-  500000 recurrence equal 30808124
+  use "324_tower" as tower
+  Answer = tower 5
+  Answer equal 96149360
+  Answer = tower 500
+  Answer equal 24806056
+  Answer = tower 500000
+  Answer equal 30808124
 end
 
 test "certified period boundary"
-  use "324_tower"
-  Exp = 0
-  run
-  Period recurrence equal 1
-  (Period + 1) recurrence equal 229
-  (Period + 5) recurrence equal 96149360
+  use "324_tower" as tower
+  Mod = 100000007
+  Period = Mod * (Mod ** 2 - 1)
+  Period *= (Mod ** 3 - 1)
+  Period *= (Mod ** 5 - 1)
+  Period //= (Mod - 1) ** 2
+  Answer = tower Period
+  Answer equal 1
+  Answer = tower (Period + 1)
+  Answer equal 229
+  Answer = tower (Period + 5)
+  Answer equal 96149360
 end

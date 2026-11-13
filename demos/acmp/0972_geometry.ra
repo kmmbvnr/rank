@@ -98,6 +98,4 @@ end
 Arr = (Q reverse) reverse
 HasRes = ((Arr shape) 0) greater 0
 Joined = Arr join "\n"
-Output = HasRes choose Joined ""
-
-Output print
+return HasRes choose Joined ""

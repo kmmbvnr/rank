@@ -48,6 +48,11 @@ function run(source: string, compilation = true): string {
 describe.each([false, true])('files as functions (compilation=%s)', compilation => {
     const call = (source: string) => run(source, compilation);
 
+    it('returns a call result from the top level of a program', () => {
+        expect(call('fun X twice\n return X * 2\nend\nreturn 3 twice')).toBe('6');
+        expect(call('fun Items total\n return Items sum\nend\nreturn (array 1 2 3) total')).toBe('6');
+    });
+
     it('returns from the top level of a program', () => {
         expect(call('return 5')).toBe('5');
         expect(call('X = 2\nreturn X * 3\nX = 9')).toBe('6');

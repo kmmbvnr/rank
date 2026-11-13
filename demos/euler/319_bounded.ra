@@ -75,7 +75,7 @@ for L at most N
   Before = Current
   L = R + 1
 end
-Answer print
+return Answer
 
 fun M coeff
   if M at most 0

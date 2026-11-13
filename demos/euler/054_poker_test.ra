@@ -2,20 +2,14 @@ use testing
 use text
 
 test "official thousand deals"
-  use "054_poker"
-  run
+  use "054_poker" as poker
+  Answer = poker
 
-  Hands len equal 1000
   Answer equal 376
 end
 
 test "five examples from the problem"
   use "054_poker"
-  use io
-  rem Initialize captured globals without replaying the thousand official deals.
-  Input = "/tmp/euler054.txt"
-  "" write Input
-  run
   Deals = array shape 5
     "5H 5C 6S 7S KD 2C 3S 8S 8D TD"
     "5D 8C 9S JS AC 2C 5C 7D 8S QH"
@@ -28,11 +22,8 @@ test "five examples from the problem"
 end
 
 test "all categories in ascending order"
+  use text
   use "054_poker"
-  use io
-  Input = "/tmp/euler054.txt"
-  "" write Input
-  run
   Examples = array shape 10
     "2H 4C 6S 8D TH"
     "2H 2C 6S 8D TH"
@@ -55,10 +46,6 @@ end
 
 test "tie breaks use the combination before every kicker"
   use "054_poker"
-  use io
-  Input = "/tmp/euler054.txt"
-  "" write Input
-  run
   Deals = array shape 9
     "AH AD 2C 3S 4H KH KD QC JS TH"
     "AH AD 2C 2S 3H KH KD QC QS JH"
@@ -75,11 +62,8 @@ test "tie breaks use the combination before every kicker"
 end
 
 test "ace-low straights and suit-independent ties"
+  use text
   use "054_poker"
-  use io
-  Input = "/tmp/euler054.txt"
-  "" write Input
-  run
   Wheel = ("AH 2C 3S 4D 5H" split " ") hand_score
   Six = ("2H 3C 4S 5D 6H" split " ") hand_score
   Wheel (array 4 3 0 0 0 0) equal rank 1

@@ -146,5 +146,4 @@ for KIdx in 0 till K
   Results KIdx = BitStr
 end
 
-Output = Results join "\n"
-Output print
+return Results join "\n"

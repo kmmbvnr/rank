@@ -60,3 +60,4 @@ for Board i in Boards
   end
   "" print
 end
+return Placements

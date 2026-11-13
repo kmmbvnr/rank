@@ -3,19 +3,27 @@ use sequences
 use text
 
 test "eight queens"
-  use "queens"
-  run
+  use sequences
+  use "queens" as queens
+  States = queens
 
   States len equal 92
   (States shape equal (array 92 8)) all
+  Cols = array 0 till 8
+  Mask' = States Cols outer equal
+  Boards' = Mask choose "Q" "."
   (Boards shape equal (array 92 8 8)) all
 end
 
 test "placements are safe and distinct"
-  use "queens"
+  use text
+  use sequences
+  use "queens" as queens
   use algo
   use numbers
-  run
+  States = queens
+  Size = 8
+  Cols = array 0 till Size
 
   Seen = new set
   Ok = true

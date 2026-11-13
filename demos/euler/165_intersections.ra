@@ -15,16 +15,11 @@ rem Test each pair by orientation signs.
 rem A crossing at t = o3 / (o3 - o4)
 rem along segment i is stored reduced as
 rem keys (x num * 2^19 + den, y num).
-T = array shape (4 * Segs) fill 0
-V = 290797
-for K in 0 to 4 * Segs - 1
-  V = V * V mod 50515093
-  T K = V mod 500
-end
-X1 = T (0 to # by 4) copy
-Y1 = T (1 to # by 4) copy
-X2 = T (2 to # by 4) copy
-Y2 = T (3 to # by 4) copy
+Lines = Segs segments
+X1 = Lines 0
+Y1 = Lines 1
+X2 = Lines 2
+Y2 = Lines 3
 Kx = array shape Room fill 0
 Ky = array shape Room fill 0
 Used = 0
@@ -92,4 +87,15 @@ Sy' = Ry shift 1 with -1
 Newx' = Rx not equal Sx
 Newy' = Ry not equal Sy
 Answer = (Newx or Newy) count
-Answer print
+return Answer
+
+rem The pseudo-random end points: x1, y1, x2, y2.
+fun N segments
+  T = array shape (4 * N) fill 0
+  V = 290797
+  for K in 0 to 4 * N - 1
+    V = V * V mod 50515093
+    T K = V mod 500
+  end
+  return tuple (T (0 to # by 4) copy) (T (1 to # by 4) copy) (T (2 to # by 4) copy) (T (3 to # by 4) copy)
+end

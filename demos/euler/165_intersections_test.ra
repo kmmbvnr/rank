@@ -2,26 +2,17 @@ use testing
 
 test "first segment from the statement"
   use "165_intersections"
-  Segs = 1
-  Room = 0
-  run
-
-  X1 0 equal 27
-  Y1 0 equal 144
-  X2 0 equal 12
-  Y2 0 equal 232
+  Lines = 1 segments
+  (Lines 0) 0 equal 27
+  (Lines 1) 0 equal 144
+  (Lines 2) 0 equal 12
+  (Lines 3) 0 equal 232
 end
 
 test "smaller sets of segments"
-  use "165_intersections"
-  Segs = 300
-  Room = Segs * (Segs - 1) // 2
-  run
-
+  use "165_intersections" as crossings
+  Answer = crossings 300 (300 * 299 // 2)
   Answer equal 11064
-  Segs = 1000
-  Room = Segs * (Segs - 1) // 2
-  run
-
+  Answer = crossings 1000 (1000 * 999 // 2)
   Answer equal 113849
 end

@@ -6,12 +6,10 @@ rem for 1 at most n at most 100
 use sequences
 use io
 
-Threshold = 1000000
-
 Rows' = 1 to 100
 Large' = Rows large_choices rank 0
 Answer = Large sum
-Answer print
+return Answer
 
 
 rem Build each row exactly from two seeded
@@ -20,5 +18,5 @@ fun N large_choices
   Top' = N to 1 by -1 scan * with 1
   Bottom' = 1 to N scan * with 1
   Choices' = Top // Bottom
-  return Choices greater Threshold count
+  return Choices greater 1000000 count
 end

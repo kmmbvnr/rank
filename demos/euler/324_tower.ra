@@ -39,7 +39,7 @@ Period *= (Mod ** 3 - 1)
 Period *= (Mod ** 5 - 1)
 Period //= (Mod - 1) ** 2
 Answer = Exp recurrence
-Answer print
+return Answer
 
 fun N recurrence
   if N less K

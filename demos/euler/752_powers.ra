@@ -99,4 +99,4 @@ Numbers = 5 to Limit
 Keep = Numbers gcd 6 equal 1
 Numbers = Numbers Keep
 Answer = Numbers period sum
-Answer print
+return Answer

@@ -43,7 +43,12 @@ Totals print
 rem Reachability and minimum cost use existing operations.
 Reachable = (Graph bfs 0) .order
 CheapestNetwork = Graph mst
-CheapestNetwork .weight print
+return record
+  .cheapest = CheapestNetwork .weight
+  .route_count = Routes len
+  .totals = Totals
+  .graph = Graph
+end
 
 fun Pair flight Coordinates rank 1 2
   From = Pair 0

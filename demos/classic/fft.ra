@@ -62,5 +62,4 @@ end
 
 X = array 1 2 3 4
 unpack Re Im = X fftReal
-Re print
-Im print
+return tuple Re Im

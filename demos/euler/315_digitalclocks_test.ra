@@ -1,29 +1,20 @@
 use testing
 
+rem A range holding one prime gives that prime's clock difference.
 test "statement chain"
-  use "315_digitalclocks"
-  From = 2
-  To = 3
-  run
-
-  137 segments equal 11
-  137 clock_diff equal 10
+  use "315_digitalclocks" as clocks
+  Answer = clocks 137 138
+  Answer equal 10
 end
 
 test "single digit is equal"
-  use "315_digitalclocks"
-  From = 2
-  To = 3
-  run
-
-  7 clock_diff equal 0
+  use "315_digitalclocks" as clocks
+  Answer = clocks 7 8
+  Answer equal 0
 end
 
 test "small prime range"
-  use "315_digitalclocks"
-  From = 100
-  To = 200
-  run
-
+  use "315_digitalclocks" as clocks
+  Answer = clocks 100 200
   Answer equal 278
 end

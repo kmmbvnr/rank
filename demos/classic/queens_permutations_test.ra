@@ -14,14 +14,15 @@ test "eight queens by permutations"
 end
 
 test "matches prefix search"
-  use "queens"
-  run
-  PrefixStates = States copy
-  PrefixBoards = Boards copy
+  use "queens" as prefix
+  use "queens_permutations" as permutations
+  use sequences
+  States = prefix
+  Out = permutations
+  Cols = array 0 till 8
+  Mask' = States Cols outer equal
+  Boards' = Mask choose "Q" "."
 
-  use "queens_permutations"
-  run
-
-  (Sols equal PrefixStates) all
-  (Boards equal PrefixBoards) all
+  ((Out .sols) equal States) all
+  ((Out .boards) equal Boards) all
 end

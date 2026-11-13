@@ -107,6 +107,4 @@ ChosenSort = Chosen sort
 AnsK = ChosenSort shape 0
 AnsStr = ChosenSort join " "
 
-Ans = array (AnsK text) AnsStr
-AnsK print
-AnsStr print
+return (AnsK text) + "\n" + AnsStr

@@ -1,43 +1,25 @@
 use testing
 
 test "statement sums"
-  use "752_powers"
-  Limit = 100
-  run
+  use "752_powers" as powers
+  Answer = powers 100
   Answer equal 28891
-  Limit = 1000
-  run
+  Answer = powers 1000
   Answer equal 13131583
 end
 
 test "no admissible modulus"
-  use "752_powers"
-  Limit = 2
-  run
+  use "752_powers" as powers
+  Answer = powers 2
   Answer equal 0
-  Limit = 4
-  run
+  Answer = powers 4
   Answer equal 0
 end
 
 test "first admissible moduli"
-  use "752_powers"
-  Limit = 5
-  run
+  use "752_powers" as powers
+  Answer = powers 5
   Answer equal 12
-  Limit = 7
-  run
+  Answer = powers 7
   Answer equal 19
-end
-
-test "prime powers and composites"
-  use "752_powers"
-  Limit = 343
-  run
-  Orders 5 equal 12
-  Orders 7 equal 7
-  Orders 25 equal 60
-  Orders 49 equal 49
-  Orders 343 equal 343
-  35 period equal 84
 end

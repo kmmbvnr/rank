@@ -9,11 +9,8 @@ use cli
 
 arg Input path = "demos/euler/fixtures/0054_poker.txt"
 
-Ranks = "23456789TJQKA"
-
 Hands = Input readlines
-Answer = Hands poker_wins
-Answer print
+return Hands poker_wins
 
 
 rem Compare each deal's category and tie-break cards.
@@ -104,7 +101,7 @@ end
 rem Convert a card rank to 0..12.
 fun Card card_value
   Rank = Card 0
-  return Ranks find Rank
+  return "23456789TJQKA" find Rank
 end
 
 

@@ -6,21 +6,24 @@ use sequences
 use text
 
 test "default 3 segment pairs"
-  use "0972_geometry"
-  run
+  use sequences
+  use text
+  use "0972_geometry" as geometry
+  Out = geometry
 
-  ((Arr shape) 0) equal 3
+  (((Out split "\n") shape) 0) equal 3
 end
 
 test "sample 1: parallel vertical"
-  use "0972_geometry"
-  Input = "0 0 0 4
+  use numbers
+  use text
+  use "0972_geometry" as geometry
+  Out = geometry "0 0 0 4
 1 0 1 4
 0 0 0 0
 0 0 0 0"
-  run
 
-  Line = Arr 0
+  Line = (Out split "\n") 0
   P = Line split " "
   Ox = P 0 real
   Oy = P 1 real
@@ -33,14 +36,15 @@ test "sample 1: parallel vertical"
 end
 
 test "perpendicular crossing segments"
-  use "0972_geometry"
-  Input = "-5 0 5 0
+  use numbers
+  use text
+  use "0972_geometry" as geometry
+  Out = geometry "-5 0 5 0
 0 -5 0 5
 0 0 0 0
 0 0 0 0"
-  run
 
-  Line = Arr 0
+  Line = (Out split "\n") 0
   P = Line split " "
   Ox = P 0 real
   Oy = P 1 real
@@ -57,14 +61,15 @@ test "perpendicular crossing segments"
 end
 
 test "collinear disjoint segments"
-  use "0972_geometry"
-  Input = "0 0 2 0
+  use numbers
+  use text
+  use "0972_geometry" as geometry
+  Out = geometry "0 0 2 0
 4 0 6 0
 0 0 0 0
 0 0 0 0"
-  run
 
-  Line = Arr 0
+  Line = (Out split "\n") 0
   P = Line split " "
   Ox = P 0 real
   Oy = P 1 real

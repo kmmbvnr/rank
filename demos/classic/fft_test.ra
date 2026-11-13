@@ -53,9 +53,9 @@ test "rejects a non-vector FFT input"
 end
 
 test "four-sample example"
-  use "fft"
+  use "fft" as example
   use numbers
-  run
+  unpack Re Im = example
 
   (Re - (array 10 -2 -2 -2)) abs less 1e-10
   (Im - (array 0 2 0 -2)) abs less 1e-10

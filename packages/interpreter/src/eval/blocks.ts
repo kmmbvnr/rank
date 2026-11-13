@@ -59,6 +59,8 @@ export class BlockExecution implements BlockSteps {
             insideLoop,
             insideFinally,
             false,
+            // A program has no caller frame to hand a tail call to.
+            false,
         ));
     }
 

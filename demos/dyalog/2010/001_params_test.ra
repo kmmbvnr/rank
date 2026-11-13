@@ -1,8 +1,8 @@
 use testing
 
 test "example case from the contest"
-  use "001_params"
-  run
+  use "001_params" as params
+  Params = params
 
   Params equal array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
 end

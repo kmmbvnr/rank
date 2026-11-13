@@ -1,8 +1,8 @@
 use testing
 
 test "sample 1: 110 and ERROR"
-  use "0657_hello_space"
-  Input = (
+  use "0657_hello_space" as signal
+  Out = signal (
     "2\n" +
     "5\n" +
     "42\n" +
@@ -17,23 +17,20 @@ test "sample 1: 110 and ERROR"
     "10\n" +
     "30"
   )
-  run
 
-  (Results 0) equal "110"
-  (Results 1) equal "ERROR"
+  Out equal "110\nERROR"
 end
 
 test "single bit 10 signal"
-  use "0657_hello_space"
-  Input = "1\n3\n50\n100\n50"
-  run
+  use "0657_hello_space" as signal
+  Out = signal "1\n3\n50\n100\n50"
 
-  (Results 0) equal "10"
+  Out equal "10"
 end
 
 test "longer valid signal: 1010"
-  use "0657_hello_space"
-  Input = (
+  use "0657_hello_space" as signal
+  Out = signal (
     "1\n" +
     "5\n" +
     "100\n" +
@@ -42,22 +39,20 @@ test "longer valid signal: 1010"
     "200\n" +
     "100"
   )
-  run
 
-  (Results 0) equal "1010"
+  Out equal "1010"
 end
 
 test "error: invalid starting bit"
-  use "0657_hello_space"
-  Input = "1\n3\n100\n100\n100"
-  run
+  use "0657_hello_space" as signal
+  Out = signal "1\n3\n100\n100\n100"
 
-  (Results 0) equal "ERROR"
+  Out equal "ERROR"
 end
 
 test "error: noise exceeds tolerance"
-  use "0657_hello_space"
-  Input = (
+  use "0657_hello_space" as signal
+  Out = signal (
     "1\n" +
     "5\n" +
     "100\n" +
@@ -66,7 +61,6 @@ test "error: noise exceeds tolerance"
     "200\n" +
     "100"
   )
-  run
 
-  (Results 0) equal "ERROR"
+  Out equal "ERROR"
 end

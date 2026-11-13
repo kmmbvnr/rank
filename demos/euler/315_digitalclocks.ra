@@ -20,7 +20,7 @@ Answer = 0
 for P in primes from From till To
   Answer += P clock_diff
 end
-Answer print
+return Answer
 
 fun N digit_sum
   Sum = 0
