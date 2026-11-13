@@ -45,4 +45,4 @@ Net add Id
 Net add Edges
 Dist = (Net dijkstra Count) .distance
 Answer = Dist Far min
-Answer print
+return Answer

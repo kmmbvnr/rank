@@ -64,3 +64,4 @@ end
 Misspelled = Titles seek "suduko"
 Sudoku = Titles seek "sudoku"
 ErrorTrapping = Titles seek "Error Trapping"
+return Titles

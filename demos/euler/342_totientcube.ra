@@ -112,3 +112,4 @@ fun X cube
   end
   return R * R * R equal X
 end
+return Answer

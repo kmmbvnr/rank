@@ -116,4 +116,4 @@ if (Ends len) greater 0
   MinE = Ends min
   Ans = MinE text
 end
-Ans print
+return Ans

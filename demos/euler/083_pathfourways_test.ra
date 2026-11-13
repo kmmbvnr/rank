@@ -1,33 +1,31 @@
 use testing
 
 test "default input"
-  use "083_pathfourways"
-  run
+  use "083_pathfourways" as solve
+  Answer = solve
 
   Answer equal 425185
 end
 
 test "statement matrix"
-  use "083_pathfourways"
+  use "083_pathfourways" as solve
   use io
   Mat = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
   Mat write "/tmp/euler083.txt"
-  Input = "/tmp/euler083.txt"
-  run
+  Answer = solve "/tmp/euler083.txt"
 
   Answer equal 2297
 end
 
 test "tiny matrices"
-  use "083_pathfourways"
+  use "083_pathfourways" as solve
   use io
-  Input = "/tmp/euler083.txt"
   "5\n" write "/tmp/euler083.txt"
-  run
+  Answer = solve "/tmp/euler083.txt"
 
   Answer equal 5
   "1,9\n1,1\n" write "/tmp/euler083.txt"
-  run
+  Answer = solve "/tmp/euler083.txt"
 
   Answer equal 3
 end

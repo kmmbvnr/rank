@@ -50,4 +50,4 @@ Size = Codes len
 Lines = Ends len
 Kept = Short sum
 Answer = Size - Lines - Kept
-Answer print
+return Answer

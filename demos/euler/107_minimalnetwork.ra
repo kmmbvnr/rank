@@ -41,4 +41,4 @@ Net = new graph .undirected
 Net add Edges
 Tree = Net mst
 Answer = Cost sum - Tree .weight
-Answer print
+return Answer

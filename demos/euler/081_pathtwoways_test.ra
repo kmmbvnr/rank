@@ -1,33 +1,31 @@
 use testing
 
 test "default input"
-  use "081_pathtwoways"
-  run
+  use "081_pathtwoways" as solve
+  Answer = solve
 
   Answer equal 427337
 end
 
 test "statement matrix"
-  use "081_pathtwoways"
+  use "081_pathtwoways" as solve
   use io
   Grid = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
   Grid write "/tmp/euler081.txt"
-  Input = "/tmp/euler081.txt"
-  run
+  Answer = solve "/tmp/euler081.txt"
 
   Answer equal 2427
 end
 
 test "single cell and single row"
-  use "081_pathtwoways"
+  use "081_pathtwoways" as solve
   use io
   "7\n" write "/tmp/euler081.txt"
-  Input = "/tmp/euler081.txt"
-  run
+  Answer = solve "/tmp/euler081.txt"
 
   Answer equal 7
   "1,2,3\n" write "/tmp/euler081.txt"
-  run
+  Answer = solve "/tmp/euler081.txt"
 
   Answer equal 6
 end

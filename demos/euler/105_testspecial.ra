@@ -40,4 +40,4 @@ for Line in Input readlines
     Answer += Items sum
   end
 end
-Answer print
+return Answer

@@ -112,4 +112,8 @@ for G in 0 till Count
   Head = Grid take 3
   Answer += Head matmul Weight
 end
-Answer print
+return record
+  .answer = Answer
+  .grid = Grid
+  .grids = Grids
+end

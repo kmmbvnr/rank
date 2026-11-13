@@ -2,23 +2,23 @@ use testing
 
 test "small totient cubes"
   use "342_totientcube"
-  Limit = 10
-  run
+  use "342_totientcube" as solve
+  Answer = solve 10
   Answer equal 4
 end
 
 test "given totient cube"
   use "342_totientcube"
+  use "342_totientcube" as solve
   50 squarephi cube
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 158
 end
 
 test "medium totient cubes"
   use "342_totientcube"
-  Limit = 10000
-  run
+  use "342_totientcube" as solve
+  Answer = solve 10000
   Answer equal 62061
 end
 

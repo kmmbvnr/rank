@@ -27,4 +27,4 @@ Exps' = Pairs # 1
 Logs' = Bases log
 Size' = Exps * Logs
 Answer = (Size max .index) + 1
-Answer print
+return Answer

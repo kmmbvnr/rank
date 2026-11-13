@@ -1,26 +1,25 @@
 use testing
 
 test "default input"
-  use "099_largestexp"
-  run
+  use "099_largestexp" as solve
+  Answer = solve
 
   Answer equal 709
 end
 
 test "statement pair and single line"
-  use "099_largestexp"
+  use "099_largestexp" as solve
   use io
-  Input = "/tmp/euler099.txt"
   "2,11\n3,7\n" write "/tmp/euler099.txt"
-  run
+  Answer = solve "/tmp/euler099.txt"
 
   Answer equal 2
   "3,7\n2,11\n" write "/tmp/euler099.txt"
-  run
+  Answer = solve "/tmp/euler099.txt"
 
   Answer equal 1
   "5,5\n" write "/tmp/euler099.txt"
-  run
+  Answer = solve "/tmp/euler099.txt"
 
   Answer equal 1
 end

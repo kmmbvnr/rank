@@ -51,4 +51,4 @@ for N in 1 to Count
   Answer += N Power Mod psum - 1
   Answer mod= Mod
 end
-Answer print
+return Answer

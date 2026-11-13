@@ -1,30 +1,29 @@
 use testing
 
 test "default input"
-  use "102_triangles"
-  run
+  use "102_triangles" as solve
+  Answer = solve
 
   Answer equal 228
 end
 
 test "statement triangles"
-  use "102_triangles"
+  use "102_triangles" as solve
   use io
-  Input = "/tmp/euler102.txt"
   "-340,495,-153,-910,835,-947\n" write "/tmp/euler102.txt"
-  run
+  Answer = solve "/tmp/euler102.txt"
 
   Answer equal 1
   "-175,41,-421,-714,574,-645\n" write "/tmp/euler102.txt"
-  run
+  Answer = solve "/tmp/euler102.txt"
 
   Answer equal 0
   "-340,495,-153,-910,835,-947\n-175,41,-421,-714,574,-645\n" write "/tmp/euler102.txt"
-  run
+  Answer = solve "/tmp/euler102.txt"
 
   Answer equal 1
   "-1,-1,2,-1,-1,2\n" write "/tmp/euler102.txt"
-  run
+  Answer = solve "/tmp/euler102.txt"
 
   Answer equal 1
 end

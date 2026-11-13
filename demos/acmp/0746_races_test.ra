@@ -1,60 +1,56 @@
 use testing
 
 test "sample: K4 has 3 four-cycles"
-  use "0746_races"
-  run
+  use "0746_races" as solve
+  Ans = solve
 
   Ans equal 3
 end
 
 test "single square -> 1"
-  use "0746_races"
-  Input = "4 4
+  use "0746_races" as solve
+  Ans = solve "4 4
 1 2
 2 3
 3 4
 4 1"
-  run
 
   Ans equal 1
 end
 
 test "triangle has no 4-cycle"
-  use "0746_races"
-  Input = "3 3
+  use "0746_races" as solve
+  Ans = solve "3 3
 1 2
 2 3
 3 1"
-  run
 
   Ans equal 0
 end
 
 test "no roads"
-  use "0746_races"
-  Input = "1 0"
-  run
+  use "0746_races" as solve
+  Ans = solve "1 0"
 
   Ans equal 0
 end
 
 test "K2,3 has 3 four-cycles"
-  use "0746_races"
-  Input = "5 6
+  use "0746_races" as solve
+  Ans = solve "5 6
 1 3
 1 4
 1 5
 2 3
 2 4
 2 5"
-  run
 
   Ans equal 3
 end
 
 test "K5 has 15 four-cycles"
-  use "0746_races"
-  Input = "5 10
+  use "0746_races" as solve
+  Ans = solve "5 10
 1 2
 1 3
 1 4
@@ -65,32 +61,29 @@ test "K5 has 15 four-cycles"
 3 4
 3 5
 4 5"
-  run
 
   Ans equal 15
 end
 
 test "tree has none"
-  use "0746_races"
-  Input = "5 4
+  use "0746_races" as solve
+  Ans = solve "5 4
 1 2
 1 3
 3 4
 3 5"
-  run
 
   Ans equal 0
 end
 
 test "n = 300: complete bipartite"
   use text
-  use "0746_races"
+  use "0746_races" as solve
   E = 0 till 22500
   Flat = array shape 45000 fill 0
   Flat (E * 2) = (E // 150) + 1
   Flat ((E * 2) + 1) = (E mod 150) + 151
-  Input = "300 22500 " + (Flat join " ")
-  run
+  Ans = solve ("300 22500 " + (Flat join " "))
 
   Ans equal 124880625
 end

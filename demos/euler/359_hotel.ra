@@ -36,4 +36,4 @@ for A in 0 to 27
   end
 end
 Answer mod= 10 ** 8
-Answer print
+return Answer

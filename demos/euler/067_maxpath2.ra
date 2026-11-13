@@ -45,4 +45,4 @@ Dist = (Net dijkstra 0) .distance
 Base = Id (Row equal Last) array
 Short = Dist Base min
 Answer = Vals 0 + Last * 100 - Short
-Answer print
+return Answer

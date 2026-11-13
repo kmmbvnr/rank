@@ -1,8 +1,9 @@
 use testing
 
 test "default input"
-  use "150_subtriangle"
-  run
+  use "150_subtriangle" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal -271248680
 end

@@ -1,32 +1,30 @@
 use testing
 
 test "default input"
-  use "098_anagramsquares"
-  run
+  use "098_anagramsquares" as solve
+  Answer = solve
 
   Answer equal 18769
 end
 
 test "statement pair"
-  use "098_anagramsquares"
+  use "098_anagramsquares" as solve
   use io
-  Input = "/tmp/euler098.txt"
   "\"CARE\",\"RACE\"" write "/tmp/euler098.txt"
-  run
+  Answer = solve "/tmp/euler098.txt"
 
   Answer equal 9216
   "\"BOARD\",\"BROAD\",\"APPLE\"" write "/tmp/euler098.txt"
-  run
+  Answer = solve "/tmp/euler098.txt"
 
   Answer equal 18769
 end
 
 test "pairs without square mapping"
-  use "098_anagramsquares"
+  use "098_anagramsquares" as solve
   use io
-  Input = "/tmp/euler098.txt"
   "\"ACT\",\"CAT\",\"TO\",\"OT\"" write "/tmp/euler098.txt"
-  run
+  Answer = solve "/tmp/euler098.txt"
 
   Answer equal 0
 end

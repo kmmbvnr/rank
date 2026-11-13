@@ -39,8 +39,9 @@ end
 
 test "published search checks on the example titles"
   use "005_search"
+  use "005_search" as solve
   use sequences
-  run
+  Titles = solve
   Miss = Titles seek "suduko"
   Sudoku = Titles seek "sudoku"
   Errors = Titles seek "Error Trapping"

@@ -2,18 +2,19 @@ use testing
 
 test "default input"
   use "021_amicable"
-  run
+  use "021_amicable" as solve
+  Answer = solve
 
   Answer equal 31626
 end
 
 test "first amicable pair"
   use "021_amicable"
+  use "021_amicable" as solve
 
   220 proper_divisor_sum equal 284
   284 proper_divisor_sum equal 220
-  Limit = 300
-  run
+  Answer = solve 300
 
   Answer equal 504
 end

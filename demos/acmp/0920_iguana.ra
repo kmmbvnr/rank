@@ -66,4 +66,4 @@ for K in 1 to N
   end
 end
 
-(Ans text) print
+return Ans

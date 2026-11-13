@@ -1,34 +1,33 @@
 use testing
 
 test "default input"
-  use "089_roman"
-  run
+  use "089_roman" as solve
+  Answer = solve
 
   Answer equal 743
 end
 
 test "statement and mixed lines"
-  use "089_roman"
+  use "089_roman" as solve
   use io
-  Input = "/tmp/euler089.txt"
   "XIIIIII\n" write "/tmp/euler089.txt"
-  run
+  Answer = solve "/tmp/euler089.txt"
 
   Answer equal 4
   "XVI\n" write "/tmp/euler089.txt"
-  run
+  Answer = solve "/tmp/euler089.txt"
 
   Answer equal 0
   "IIII\nXXXXVIIII\nMMMMDCLXXII\n" write "/tmp/euler089.txt"
-  run
+  Answer = solve "/tmp/euler089.txt"
 
   Answer equal 7
   "DCCCC\nLXXXX\nCCCC" write "/tmp/euler089.txt"
-  run
+  Answer = solve "/tmp/euler089.txt"
 
   Answer equal 8
   "IX\nXLIV\nCM\n" write "/tmp/euler089.txt"
-  run
+  Answer = solve "/tmp/euler089.txt"
 
   Answer equal 0
 end

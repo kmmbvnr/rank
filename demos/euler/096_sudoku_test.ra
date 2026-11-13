@@ -1,17 +1,20 @@
 use testing
 
 test "default input"
-  use "096_sudoku"
+  use "096_sudoku" as solve
   use sequences
-  run
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 24702
 end
 
 test "last solved grid is valid"
-  use "096_sudoku"
+  use "096_sudoku" as solve
   use sequences
-  run
+  Out = solve
+  Grid = Out .grid
+  Grids = Out .grids
 
   Start = Grids 49
   Board = Grid reshape 9 9
@@ -21,13 +24,14 @@ test "last solved grid is valid"
 end
 
 test "first puzzle is solved to 483"
-  use "096_sudoku"
+  use "096_sudoku" as solve
   use io
   use sequences
   Puzzle = "Grid 01\n003020600\n900305001\n001806400\n008102900\n700000008\n006708200\n002609500\n800203009\n005010300\n"
   Puzzle write "/tmp/euler096.txt"
-  Input = "/tmp/euler096.txt"
-  run
+  Out = solve "/tmp/euler096.txt"
+  Answer = Out .answer
+  Grid = Out .grid
 
   Answer equal 483
   Grid 0 equal 4

@@ -1,30 +1,28 @@
 use testing
 
 test "default input"
-  use "067_maxpath2"
+  use "067_maxpath2" as solve
   use io
-  run
+  Answer = solve
 
   Answer equal 7273
 end
 
 test "statement triangle"
-  use "067_maxpath2"
+  use "067_maxpath2" as solve
   use io
   Text = "3\n7 4\n2 4 6\n8 5 9 3\n"
   Text write "/tmp/euler067.txt"
-  Input = "/tmp/euler067.txt"
-  run
+  Answer = solve "/tmp/euler067.txt"
 
   Answer equal 23
 end
 
 test "single row"
-  use "067_maxpath2"
+  use "067_maxpath2" as solve
   use io
   "42\n" write "/tmp/euler067.txt"
-  Input = "/tmp/euler067.txt"
-  run
+  Answer = solve "/tmp/euler067.txt"
 
   Answer equal 42
 end

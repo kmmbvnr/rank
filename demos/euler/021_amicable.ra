@@ -38,3 +38,4 @@ fun N proper_divisor_sum
 
   return Total
 end
+return Answer
