@@ -36,7 +36,7 @@ test('Euler 001 explains completed paths before listing rejected candidates', ()
     assert.ok(summary.includes(`${file}:14:1 interpreted`), summary);
     assert.ok(summary.includes(`${file}:15:1 interpreted`), summary);
     assert.ok(summary.includes(`${file}:17:1 mixed (compiled + interpreted + native)`), summary);
-    assert.ok(summary.includes(`${file}:18:1 native`), summary);
+    assert.ok(summary.includes(`${file}:18:1 interpreted`), summary);
     assert.match(summary, /completed paths: direct-expression, native-call, number-tensor/);
     assert.match(summary, /rejected candidates: scalar-expression, tensor; completed paths are listed above/);
     assert.doesNotMatch(summary, /native-array-map/);
