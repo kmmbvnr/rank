@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/735_divisorsoftwo.ra', import.meta.url), 'utf8');
 // Count divisors directly, without the Mobius decomposition or ragged tasks.
@@ -16,7 +17,7 @@ function run(limit: number, budget: number, compilation: boolean): bigint {
     try {
         runtime.execute(source.replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`)
             .replace('arg Budget integer = 16777216', `Budget = ${budget}`));
-        return runtime.variables.get('Answer') as bigint;
+        return answerOf(runtime) as bigint;
     } finally { runtime.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 735 (compiled=${compilation})`, () => {

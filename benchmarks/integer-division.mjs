@@ -25,7 +25,7 @@ if (process.argv.includes('--worker')) {
     try {
         if (name === 'euler') {
             runtime.execute(readFileSync(resolve(root, 'demos/euler/074_digitchains.ra'), 'utf8'));
-            assert.equal(runtime.variables.get('Answer'), 402n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 402n);
         } else {
             const [expression, expected] = cases[name];
             const value = runtime.execute(`use sequences\nV = 1 to 2540160 array\nV sum\nD = ${expression}\nD sum`);

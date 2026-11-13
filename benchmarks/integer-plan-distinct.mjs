@@ -13,7 +13,7 @@ try {
     if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(`Answer = Plan ${consumer}`));
     else runtime.execute(`Answer = Plan ${consumer}`);
     const ms = performance.now() - start, rss = process.resourceUsage().maxRSS / 1024;
-    if (consumer === 'unique len') assert.equal(runtime.variables.get('Answer'), 997n);
+    if (consumer === 'unique len') assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 997n);
     else {
         assert.equal(runtime.execute('Answer len'), 997n);
         assert.equal(runtime.execute('Answer sum'), 496506n);

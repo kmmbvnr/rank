@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/346_strongrepunits.ra', import.meta.url), 'utf8');
 const helpers = source.slice(0, source.indexOf('\nAnswer ='));
@@ -33,7 +34,7 @@ describe('Euler 346 strong repunits', () => {
                 for (const delta of [-1, 0, 1]) limits.add(n + delta);
             }
             try {
-                runtime.execute(helpers + '\n' + [...limits].map(n => `${n} strong print`).join('\n'));
+                runtime.execute(withoutReturn(helpers) + '\n' + [...limits].map(n => `${n} strong print`).join('\n'));
                 expect(output).toEqual([...limits].map(n => String(n <= 1 ? 0 : sums[n - 1])));
             } finally { runtime.dispose(); }
         });

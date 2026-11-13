@@ -17,7 +17,7 @@ try {
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const checkpoints = { '11':'3132','1111':'706036312','111111':'22156169','1111111':'128977140','11111111':'852950321' };
     const expected = checkpoints[limit];
     if (expected !== undefined && answer !== expected) throw new Error(`Wrong answer: ${answer}`);

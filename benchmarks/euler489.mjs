@@ -11,6 +11,6 @@ const diagnostics=process.env.RANK489_DIAGNOSTICS === '1' ? new RuntimeDiagnosti
 const start=performance.now(),cpu=process.cpuUsage();
 try {
  if (diagnostics) diagnostics.run(()=>runtime.execute(source)); else runtime.execute(source);
- if (process.env.RANK489_EXPECTED && String(runtime.variables.get('Answer')) !== process.env.RANK489_EXPECTED) throw Error('Wrong answer');
- console.log(JSON.stringify({mode,ma,nb,node:process.version,arch:process.arch,sourceSha256:createHash('sha256').update(source).digest('hex'),ms:performance.now()-start,cpu:process.cpuUsage(cpu),rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),diagnosticMode:!!diagnostics,diagnostics},null,2));
+ if (process.env.RANK489_EXPECTED && String((runtime.variables.get('Answer') ?? runtime.lastResult)) !== process.env.RANK489_EXPECTED) throw Error('Wrong answer');
+ console.log(JSON.stringify({mode,ma,nb,node:process.version,arch:process.arch,sourceSha256:createHash('sha256').update(source).digest('hex'),ms:performance.now()-start,cpu:process.cpuUsage(cpu),rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),diagnosticMode:!!diagnostics,diagnostics},null,2));
 } finally { runtime.dispose(); }

@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/596_hyperballpoints.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler596-original.ra', import.meta.url), 'utf8');
 function run(text: string, radius: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--r=${radius}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 /** Count coordinate pairs independently, then join their squared lengths. */

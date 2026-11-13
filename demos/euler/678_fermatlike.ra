@@ -164,5 +164,4 @@ for E in 4 to Fm
     end
   end
 end
-Answer = E2 + E3 + E4
-return Answer
+return E2 + E3 + E4

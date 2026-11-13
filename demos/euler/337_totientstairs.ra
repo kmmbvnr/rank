@@ -7,8 +7,7 @@ use cli
 
 arg Limit integer = 20000000
 
-Answer = Limit stairs
-return Answer
+return Limit stairs
 
 fun Limit stairs
   Mod = 100000000

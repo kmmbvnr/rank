@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue, isNativeFunction } from '../src/index.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
 import { withDemandBudget, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 type Scope = (run: () => void) => void;
 function execute(source: string, options: InterpreterOptions = {}, scope: Scope = run => run()) {
@@ -294,12 +295,12 @@ A = 0 to 4096 copy`);
             expect(() => withInterrupt(signal, invoke)).toThrow();
             Atomics.store(signal, 0, 0);
             withInterrupt(signal, invoke);
-            expect(runtime.variables.get('Answer')).toBe(33562624n);
+            expect(answerOf(runtime)).toBe(33562624n);
             expect(() => withDemandBudget(1, invoke)).toThrow('demand budget exhausted');
             invoke();
-            expect(runtime.variables.get('Answer')).toBe(33562624n);
+            expect(answerOf(runtime)).toBe(33562624n);
             invoke();
-            expect(runtime.variables.get('Answer')).toBe(33562624n);
+            expect(answerOf(runtime)).toBe(33562624n);
         } finally { runtime.dispose(); }
     });
     it('retains observable interruption boundaries', () => {

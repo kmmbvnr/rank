@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/746_messydinner.ra', import.meta.url), 'utf8');
 // Enumerate complete cyclic ternary words; use no transfer matrix or masks.
 function direct(families: number): bigint {
@@ -34,7 +35,7 @@ for (const compilation of [false, true]) describe(`Euler 746 (compiled=${compila
             try {
                 r.execute(source.replace('arg Families integer = 2021', `Families = ${families}`)
                     .replace('arg Prime integer = 1000000007', `Prime = ${prime}`));
-                expect(r.variables.get('Answer')).toBe(expected % BigInt(prime));
+                expect(answerOf(r)).toBe(expected % BigInt(prime));
             } finally { r.dispose(); }
         }
     });
@@ -42,7 +43,7 @@ for (const compilation of [false, true]) describe(`Euler 746 (compiled=${compila
         const r = new Interpreter(() => {}, { compilation });
         try {
             r.execute(source.replace('arg Families integer = 2021', 'Families = 10'));
-            expect(r.variables.get('Answer')).toBe(399291975n);
+            expect(answerOf(r)).toBe(399291975n);
         } finally { r.dispose(); }
     });
 });

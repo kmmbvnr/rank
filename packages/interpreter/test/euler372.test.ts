@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {Interpreter, parse} from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/372_pencils.ra', import.meta.url), 'utf8');
 const program = parse(source);
@@ -61,7 +62,7 @@ it('retains the full exact answer and compiles the helper chain', () => {
     const runtime = new Interpreter(() => {}, {onScalarFunctionExecuted:() => calls++});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(301450082318807027n);
+        expect(answerOf(runtime)).toBe(301450082318807027n);
         expect(calls).toBeGreaterThan(0);
     } finally {runtime.dispose();}
 });

@@ -84,5 +84,4 @@ end
 R = N isqrt
 Counts = N sieve
 Ps = primes to R array
-Answer = N Counts Ps count8
-return Answer
+return N Counts Ps count8

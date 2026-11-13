@@ -211,5 +211,4 @@ fun Code solve rank 0
   end
   return Exps walk Seed
 end
-Answer = Codes solve sum
-return Answer
+return Codes solve sum

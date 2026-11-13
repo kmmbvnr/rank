@@ -75,4 +75,4 @@ if(variant==='sizes') s=s.replace("Sizes' =",'Sizes =');
 if(variant==='mult') s=s.replace("Mult' =",'Mult =');
 let scalarCalls=0;
 const d=new RuntimeDiagnostics(),r=new Interpreter(()=>{}, {onScalarFunctionExecuted:()=>scalarCalls++,compilation:mode==='compiled'}),t=performance.now();
-try {d.run(()=>r.execute(s)); if(under==='100' && limit==='10000000000000000' && least==='4' && String(r.variables.get('Answer'))!=='785478606870985') throw new Error('Wrong full answer'); console.log(JSON.stringify({mode,variant,under,limit,least,ms:performance.now()-t,answer:String(r.variables.get('Answer')),scalarCalls,rss:process.resourceUsage().maxRSS/1024,diagnostics:d}));}finally{r.dispose()}
+try {d.run(()=>r.execute(s)); if(under==='100' && limit==='10000000000000000' && least==='4' && String((r.variables.get('Answer') ?? r.lastResult))!=='785478606870985') throw new Error('Wrong full answer'); console.log(JSON.stringify({mode,variant,under,limit,least,ms:performance.now()-t,answer:String((r.variables.get('Answer') ?? r.lastResult)),scalarCalls,rss:process.resourceUsage().maxRSS/1024,diagnostics:d}));}finally{r.dispose()}

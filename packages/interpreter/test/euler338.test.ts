@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/338_gridpaper.ra', import.meta.url), 'utf8')
     .replace('use io', '').replace('use cli', '')
@@ -47,7 +48,7 @@ describe('Euler 338 hyperbola counting', () => {
             }
             for (const n of inputs) {
                 runtime.execute(`Answer = ${n} grid`);
-                expect(runtime.variables.get('Answer'), `N=${n}`).toBe(reference(n));
+                expect(answerOf(runtime), `N=${n}`).toBe(reference(n));
             }
         } finally { runtime.dispose(); }
     });

@@ -20,7 +20,7 @@ for I in 1 to 16
  Part = Values clampSum
  Answer = Answer + Part
 end`);
-    assert.equal(runtime.variables.get('Answer'), expected);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
     const used = process.cpuUsage(cpu);
     console.log(JSON.stringify({ ms: performance.now() - start, cpuMs: (used.user + used.system) / 1000,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, answer: String(expected), node: process.version, arch: process.arch }));

@@ -48,5 +48,4 @@ for P in primes to R
   end
 end
 Ps = primes to R array
-Answer = Hi Ps - Lo Ps + 1 sum
-return Answer
+return Hi Ps - Lo Ps + 1 sum

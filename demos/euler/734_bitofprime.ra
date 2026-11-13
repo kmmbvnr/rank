@@ -42,5 +42,4 @@ for Bit in 0 to Bits - 1
   Powers = Merged reshape Size
 end
 Exact = Powers (Primes array)
-Answer = Exact sum mod Prime
-return Answer
+return Exact sum mod Prime

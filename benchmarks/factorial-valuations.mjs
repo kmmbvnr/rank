@@ -25,7 +25,7 @@ if (option('worker')) {
         if (option('diagnostics')) diagnostics.run(() => runtime.execute(source));
         else runtime.execute(source);
         const executeMs = performance.now() - start, usage = process.cpuUsage(cpu);
-        const answer = runtime.variables.get('Answer');
+        const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         assert.equal(answer, cases.get(upper));
         console.log(JSON.stringify({ upper, executeMs, cpuMs: (usage.user + usage.system) / 1000,
             maxRssKiB: process.resourceUsage().maxRSS, answer: String(answer),

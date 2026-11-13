@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const fixture = new URL('../../../demos/euler/518_primetriples_test.ra', import.meta.url);
 const source = readFileSync(new URL('518_primetriples.ra', fixture), 'utf8');
@@ -27,7 +28,7 @@ it.each(modes)('matches independent prime-triple enumeration with %j', options =
         try {
             r.execute(source);
             const expected = triples.filter(row => row.last < n).reduce((sum, row) => sum + row.sum, 0n);
-            expect(r.variables.get('Answer'), `N=${n}`).toBe(expected);
+            expect(answerOf(r), `N=${n}`).toBe(expected);
         } finally { r.dispose(); }
     }
 }, 30_000);
@@ -43,7 +44,7 @@ it('compiles the main candidate search without reference-cell computation', () =
     const r = new Interpreter(() => {}, { args: ['--n=1000000'] }), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(17822459735n);
+        expect(answerOf(r)).toBe(17822459735n);
         expect(d.numberLoops).toBe(1);
         expect(d.cellsComputed).toBe(0);
     } finally { r.dispose(); }

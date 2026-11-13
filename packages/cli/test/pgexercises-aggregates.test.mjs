@@ -83,7 +83,7 @@ test('aggregate count programs match SQLite on empty and repeated data', async t
             for (const [file, sql] of cases) {
                 await t.test(`${phase}: ${file}`, () => {
                     const result = spawnSync(process.execPath,
-                        [cli, path.join(examples, file), dbPath],
+                        [cli, '--print', path.join(examples, file), dbPath],
                         { cwd: root, encoding: 'utf8', timeout: 15_000 });
                     assert.equal(result.status, 0, result.stderr);
                     assert.equal(result.stdout.trim(), String(db.prepare(sql).pluck().get()));
@@ -656,32 +656,40 @@ for (const compilation of [false, true]) {
                         } };
                     }, close() { closes++; connection.close(); } };
                 } };
-                const printed = [];
-                const runtime = new Interpreter(text => printed.push(text), { io, compilation });
+                const runtime = new Interpreter(() => {}, { io, compilation });
                 try {
                     const source = fs.readFileSync(path.join(examples, file), 'utf8');
-                    const consumer = count ? 'Count print' : 'Result csv OutputPath';
+                    if (count) {
+                        // A counting program returns its count; each run reads once.
+                        const results = [1, 2].map(() => {
+                            const fresh = new Interpreter(() => {}, { io, compilation });
+                            try { return fresh.executeProgram(parse(source), [dbPath]); } finally { fresh.dispose(); }
+                        });
+                        assert.equal(typeof results[0], 'bigint');
+                        assert.equal(results[0], results[1]);
+                        assert.equal(reads, 2);
+                        assert.match(queries[0], /COUNT\(/);
+                    } else {
+                    const consumer = 'Result csv OutputPath';
                     const boundary = source.lastIndexOf(consumer);
                     assert.ok(boundary > 0);
                     const output = path.join(directory, 'out.csv');
-                    runtime.executeProgram(parse(source.slice(0, boundary)), count ? [dbPath] : [dbPath, output]);
+                    runtime.executeProgram(parse(source.slice(0, boundary)), [dbPath, output]);
                     const before = [1, 2, 7, 15, 17, 20].includes(number) ? 1 : 0;
                     assert.equal(reads, before);
-                    if (count) {
-                        assert.equal(typeof runtime.variables.get('Count'), 'bigint');
-                        assert.match(queries[0], /COUNT\(/);
-                    } else assert.ok(isRankPlan(runtime.variables.get('Result')));
+                    assert.ok(isRankPlan(runtime.variables.get('Result')));
                     const results = [];
                     for (const demand of [1, 2]) {
                         runtime.execute(consumer);
-                        assert.equal(reads, count ? before : before + demand * (number === 11 ? 2 : 1));
-                        results.push(count ? printed.at(-1) : fs.readFileSync(output, 'utf8'));
+                        assert.equal(reads, before + demand * (number === 11 ? 2 : 1));
+                        results.push(fs.readFileSync(output, 'utf8'));
                     }
                     assert.equal(results[0], results[1]);
-                    if (!count) assert.equal(queries.at(-1), queries.at(number === 11 ? -3 : -2));
+                    assert.equal(queries.at(-1), queries.at(number === 11 ? -3 : -2));
                     if (number === 11) {
                         assert.match(queries[0], /COUNT\(/);
                         assert.match(queries[1], /LIMIT \? OFFSET \?/);
+                    }
                     }
                 } finally { runtime.dispose(); }
                 assert.equal(opens, closes);

@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/552_chineseleftovers2.ra', import.meta.url), 'utf8');
 function literal(limit: number): bigint {
     const primes: bigint[] = [];
@@ -17,7 +18,7 @@ function literal(limit: number): bigint {
 }
 function solve(limit: number, options: InterpreterOptions) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--l=${limit}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const modes = [ { name: 'Number', options: {} },

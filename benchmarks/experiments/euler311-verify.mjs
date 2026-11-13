@@ -34,7 +34,7 @@ for (const file of ['../../demos/euler/311_biclinic.ra', './euler311-online.ra']
                 interpreter.execute(source
                     .replace('arg Limit integer = 10 ** 10', `arg Limit integer = ${limit}`)
                     .replace(/arg Block integer = \d+/, `arg Block integer = ${block}`));
-                assert.equal(String(interpreter.variables.get('Answer')), String(expected),
+                assert.equal(String((interpreter.variables.get('Answer') ?? interpreter.lastResult)), String(expected),
                     `${file}/${limit}/${block}/${mode}`);
                 checks++;
             } finally { interpreter.dispose(); }

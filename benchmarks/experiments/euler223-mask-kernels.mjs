@@ -19,4 +19,4 @@ end`;
 let sum=0n;for(let i=1;i<=size;i++)if(i%3===0&&kind!=='empty')sum+=BigInt(i)+(kind==='int64'?1000000000000n:0n);
 const expected=kind==='real'?String(Number(sum)*repeats/2):String(sum*BigInt(repeats));
 const r=new Interpreter(()=>{},{compilation:!process.argv.includes('--reference')});
-try{const start=performance.now();r.execute(source);const ms=performance.now()-start;const answer=r.variables.get('Answer');assert.equal(String(answer),String(expected));console.log(JSON.stringify({kind,ms,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(answer)}));}finally{r.dispose()}
+try{const start=performance.now();r.execute(source);const ms=performance.now()-start;const answer=(r.variables.get('Answer') ?? r.lastResult);assert.equal(String(answer),String(expected));console.log(JSON.stringify({kind,ms,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(answer)}));}finally{r.dispose()}

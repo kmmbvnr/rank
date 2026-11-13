@@ -10,4 +10,4 @@ const [mode='compiled',m='1000000',file='demos/euler/421_primefactors.ra',n='100
 let source=readFileSync(file,'utf8');
 const runtime=new Interpreter(()=>{},{compilation:mode!=='reference',args:[`--n=${n}`,`--m=${m}`]});
 const diagnostics=new RuntimeDiagnostics(),start=performance.now();
-try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({mode,n,m,file,languageOperationsSha256,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),diagnostics}));}finally{runtime.dispose();}
+try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({mode,n,m,file,languageOperationsSha256,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),diagnostics}));}finally{runtime.dispose();}

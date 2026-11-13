@@ -38,7 +38,7 @@ for (let n = 1; n <= 10; n++) {
             const runtime = new Interpreter(() => {}, {compilation});
             try {
                 runtime.execute(source);
-                assert.equal(runtime.variables.get('Answer'), expected, `${variant}/${n}/${compilation}`);
+                assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected, `${variant}/${n}/${compilation}`);
                 comparisons++;
             } finally {
                 runtime.dispose();

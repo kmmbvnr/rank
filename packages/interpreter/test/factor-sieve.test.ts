@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 import { Factorizer } from '../src/factorization.js';
+import { answerOf } from './support.js';
 
 function trialSum(n: number): number {
     let sum = 0;
@@ -58,7 +59,7 @@ for N in 1 to 10000
 end`);
             let expected = 0;
             for (let n = 1; n <= 10000; n++) expected += trialSum(n);
-            expect(runtime.variables.get('Answer')).toBe(BigInt(expected));
+            expect(answerOf(runtime)).toBe(BigInt(expected));
             expect(runtime.execute('Saved 12')).toBe(2n);
             expect(formatValue(runtime.execute('12 factors array')!)).toBe('2 2 3');
         } finally { runtime.dispose(); }

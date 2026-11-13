@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {Interpreter, RuntimeDiagnostics, type InterpreterOptions} from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/545_faulhaberformulas.ra', import.meta.url), 'utf8');
 function prime(n: number) {if (n < 2) return false; for (let d=2;d*d<=n;d++) if (n%d===0) return false; return true;}
 function denominator(n: number) {
@@ -17,7 +18,7 @@ for(let n=308;expected.length<100;n+=308) if(denominator(n)===20010n) expected.p
 function solve(q: number, options: InterpreterOptions, text=source) {
     const runtime=new Interpreter(()=>{}, {...options,args:[`--q=${q}`]});
     const diagnostics=new RuntimeDiagnostics();
-    try {diagnostics.run(()=>runtime.execute(text));return {answer:runtime.variables.get('Answer'),diagnostics};}
+    try {diagnostics.run(()=>runtime.execute(text));return {answer:answerOf(runtime),diagnostics};}
     finally {runtime.dispose();}
 }
 const modes=[{name:'Number',options:{}},{name:'exact',options:{numberLoopCompilation:false}},{name:'reference',options:{compilation:false}}];

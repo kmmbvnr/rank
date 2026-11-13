@@ -14,7 +14,7 @@ try {
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const checkpoints = { 10: '142', 100: '122726', 2000: '975176532', 5000: '227886188', 300000: '902957242', 99999999019: '106467648' };
     if (checkpoints[limit] !== undefined && answer !== checkpoints[limit]) throw new Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, limit, file, node: process.version, arch: process.arch,

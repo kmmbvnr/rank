@@ -32,5 +32,4 @@ for Size greater 0
   end
 end
 
-Answer = Result
-return Answer
+return Result

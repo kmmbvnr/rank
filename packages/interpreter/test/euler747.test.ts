@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/747_triangularpizza.ra', import.meta.url), 'utf8');
 // Enumerate z and compare squared integers; use no square root or floor/ceil.
 function direct(limit: number): bigint {
@@ -25,7 +26,7 @@ for (const compilation of [false, true]) describe(`Euler 747 (compiled=${compila
             try {
                 r.execute(source.replace('arg Limit integer = 10 ** 8', `Limit = ${limit}`)
                     .replace('arg Prime integer = 1000000007', `Prime = ${prime}`));
-                expect(r.variables.get('Answer')).toBe(expected % BigInt(prime));
+                expect(answerOf(r)).toBe(expected % BigInt(prime));
             } finally { r.dispose(); }
         }
     });
@@ -33,7 +34,7 @@ for (const compilation of [false, true]) describe(`Euler 747 (compiled=${compila
         const r = new Interpreter(() => {}, { compilation });
         try {
             r.execute(source.replace('arg Limit integer = 10 ** 8', 'Limit = 1000'));
-            expect(r.variables.get('Answer')).toBe(172166601n);
+            expect(answerOf(r)).toBe(172166601n);
         } finally { r.dispose(); }
     });
 });

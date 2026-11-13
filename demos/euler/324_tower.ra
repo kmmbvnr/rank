@@ -38,8 +38,7 @@ Period = Mod * (Mod ** 2 - 1)
 Period *= (Mod ** 3 - 1)
 Period *= (Mod ** 5 - 1)
 Period //= (Mod - 1) ** 2
-Answer = Exp recurrence
-return Answer
+return Exp recurrence
 
 fun N recurrence
   if N less K

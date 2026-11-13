@@ -13,6 +13,6 @@ try {
   console.log(JSON.stringify({phase:i,ms:performance.now()-t,...(process.env.DIAGNOSTICS?{diagnostics}:{}),q:String(runtime.variables.get('Qn')),count:String(runtime.variables.get('Count'))}));
  }
  const expected={'5000000000000000':'4037526','1000000':'175','100000000':'1225','100000000000':'26516'}[limit];
- if(expected) assert.equal(String(runtime.variables.get('Answer')),expected);
- console.log(JSON.stringify({mode,variant,limit,probe:process.env.RANK291_PROBE??null,whole:!!process.env.WHOLE,ms:performance.now()-start,answer:String(runtime.variables.get('Answer')),rssMiB:process.resourceUsage().maxRSS/1024}));
+ if(expected) assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)),expected);
+ console.log(JSON.stringify({mode,variant,limit,probe:process.env.RANK291_PROBE??null,whole:!!process.env.WHOLE,ms:performance.now()-start,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),rssMiB:process.resourceUsage().maxRSS/1024}));
 }finally{runtime.dispose();}

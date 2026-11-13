@@ -17,7 +17,7 @@ try{
  if(process.env.PROFILE){session.connect();await session.post('Profiler.enable');await session.post('Profiler.start');}
  r.execute(source);
  const expected={'2,10':'2.61969775','10,20':'5.99374121','20,100':'18.71276493','200,500':'20.11208767'}[[lo,hi].join(',')];
- if(expected!==undefined&&String(r.variables.get('Answer'))!==expected)throw Error('wrong answer');
- console.log(JSON.stringify({lo,hi,mode,variant,control:process.env.CONTROL??'',sourceHash,answer:String(r.variables.get('Answer')),ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,runs:String(r.variables.get('Runs')??r.variables.get('S')),Nb:String(r.variables.get('Nb')),node:process.version,cpu:cpus()[0].model}));
+ if(expected!==undefined&&String((r.variables.get('Answer') ?? r.lastResult))!==expected)throw Error('wrong answer');
+ console.log(JSON.stringify({lo,hi,mode,variant,control:process.env.CONTROL??'',sourceHash,answer:String((r.variables.get('Answer') ?? r.lastResult)),ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,runs:String(r.variables.get('Runs')??r.variables.get('S')),Nb:String(r.variables.get('Nb')),node:process.version,cpu:cpus()[0].model}));
  if(process.env.PROFILE){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
 }finally{session.disconnect();r.dispose();}

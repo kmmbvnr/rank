@@ -4,6 +4,7 @@ import { booleanCells, ownedArray, typedArray, readArrayItem } from '../src/arra
 import { compareStoredInt32 } from '../src/integer-array-kernel.js';
 import { packedTruePositions } from '../src/packed-booleans.js';
 import { DemandBudgetExhausted, withDemandBudget, withInterrupt } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 const comparisons: Record<string, (a: number, b: number) => boolean> = {
     equal: (a, b) => a === b, notequal: (a, b) => a !== b,
@@ -61,7 +62,7 @@ describe('compact integer comparison masks', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute('use sequences\n' + source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
         } finally { runtime.dispose(); }
     });
 
@@ -85,7 +86,7 @@ describe('compact integer comparison masks', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute('use sequences\nInput = array shape 5000 fill 1\nMask = Input equal 1\nInput 0 = 2\nAnswer = Mask indices len');
-            expect(runtime.variables.get('Answer')).toBe(5000n);
+            expect(answerOf(runtime)).toBe(5000n);
         } finally { runtime.dispose(); }
     });
 
@@ -93,7 +94,7 @@ describe('compact integer comparison masks', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute('use sequences\nInput = 0 till 5000 array\nSelected = Input (0 till 5000 by 2)\nAnswer = (Selected greater 4990) indices');
-            expect(formatValue(runtime.variables.get('Answer')!)).toBe('2496 2497 2498 2499');
+            expect(formatValue(answerOf(runtime)!)).toBe('2496 2497 2498 2499');
             runtime.execute('Matrix = array shape 33 35 fill 0\nMatrix 32 34 = 1\nCoordinates = (Matrix equal 1) indices');
             expect(formatValue(runtime.variables.get('Coordinates')!)).toBe('32 34');
         } finally { runtime.dispose(); }

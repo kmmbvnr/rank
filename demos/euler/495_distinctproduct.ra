@@ -109,5 +109,4 @@ fun N solve K
   return Totals sum mod Md
 end
 
-Answer = N solve K
-return Answer
+return N solve K

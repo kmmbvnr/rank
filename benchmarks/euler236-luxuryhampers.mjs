@@ -31,7 +31,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(load(file)));
     const ms = performance.now() - start;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const count = fixture ? undefined : Number(runtime.variables.get('Cnt'));
     if (fixture) {
         assert.equal(runtime.testResults.length, 2);

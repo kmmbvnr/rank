@@ -101,5 +101,4 @@ Pk = Pk (1 to Kk)
 B9 = 1000000000
 Hi = Pk // B9 sum mod B9
 Lo = Pk mod B9 sum
-Answer = (Hi * B9 + Lo) mod (B9 * B9)
-return Answer
+return (Hi * B9 + Lo) mod (B9 * B9)

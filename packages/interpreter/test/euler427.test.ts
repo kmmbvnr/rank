@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { boundedRunAnswer } from '../../../benchmarks/experiments/euler427-oracle.mjs';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/427_nsequences.ra', import.meta.url), 'utf8');
 
 describe('Euler 427 folded inclusion-exclusion', () => {
@@ -11,7 +12,7 @@ describe('Euler 427 folded inclusion-exclusion', () => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(expected);
+                expect(answerOf(runtime)).toBe(expected);
             } finally { runtime.dispose(); }
         }
     });
@@ -20,7 +21,7 @@ describe('Euler 427 folded inclusion-exclusion', () => {
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(97138867n);
+            expect(answerOf(runtime)).toBe(97138867n);
             expect(diagnostics.numberLoops).toBe(3);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.numberFunctionFallbacks).toBe(0);

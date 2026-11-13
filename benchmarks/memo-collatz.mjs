@@ -42,7 +42,7 @@ Seqs = 1 to ${limit} collatz rank 0
 Answer = (Seqs max .index) + 1
 `);
     const ms = performance.now() - before;
-    assert.equal(runtime.variables.get('Answer'), BigInt(best));
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(best));
     global.gc();
     console.log(JSON.stringify({ ms, answer: best, heapUsed: process.memoryUsage().heapUsed }));
     runtime.dispose();

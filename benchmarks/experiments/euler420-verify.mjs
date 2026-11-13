@@ -19,7 +19,7 @@ let checked=0;
 for(const variant of variants){const source=readFileSync(new URL(`./euler420-${variant}.ra`,import.meta.url),'utf8');
  for(const compilation of [false,true])for(const [n,expected]of cases){
   const runtime=new Interpreter(()=>{},{compilation,args:[`--n=${n}`]});
-  try{runtime.execute(source);const answer=runtime.variables.get('Answer');if(answer!==expected)throw Error(JSON.stringify({variant,compilation,n,expected:String(expected),answer:String(answer)}));checked++;}finally{runtime.dispose();}
+  try{runtime.execute(source);const answer=(runtime.variables.get('Answer') ?? runtime.lastResult);if(answer!==expected)throw Error(JSON.stringify({variant,compilation,n,expected:String(expected),answer:String(answer)}));checked++;}finally{runtime.dispose();}
  }
 }
 console.log(JSON.stringify({checked,variants,oracle:'positive matrix root enumeration',smallOracle:cases.slice(0,15).map(([n,v])=>[n,String(v)])}));

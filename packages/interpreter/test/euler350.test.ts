@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/350_constraining.ra', import.meta.url), 'utf8');
 const helpers = source.slice(0, source.indexOf('\nAnswer ='));
@@ -42,6 +43,6 @@ it('preserves the full constrained-list answer', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(84664213n);
+        expect(answerOf(runtime)).toBe(84664213n);
     } finally { runtime.dispose(); }
 }, 15_000);

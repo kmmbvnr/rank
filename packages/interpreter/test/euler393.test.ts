@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/393_ants.ra', import.meta.url), 'utf8');
 
@@ -34,7 +35,7 @@ it.each([false, true])('matches direct ant enumeration, compilation=%s', compila
         const runtime = new Interpreter(() => {}, {compilation, args: [`--n=${n}`]});
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(enumerate(n));
+            expect(answerOf(runtime)).toBe(enumerate(n));
         } finally {runtime.dispose();}
     }
 });
@@ -43,7 +44,7 @@ it('retains the exact full answer and compiles the recursive row search', () => 
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(112398351350823112n);
+        expect(answerOf(runtime)).toBe(112398351350823112n);
         expect(diagnostics.compiledLoops).toBeGreaterThan(0);
         expect(diagnostics.compiledEffectCalls).toBeGreaterThan(0);
         expect(diagnostics.cowCopies).toBe(0);

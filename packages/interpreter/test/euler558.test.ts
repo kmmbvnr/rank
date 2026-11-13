@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions, type RankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/558_irrationalbase.ra', import.meta.url), 'utf8');
 const { solve: oracle, weight } = await import(new URL('../../../benchmarks/euler558-oracle.mjs', import.meta.url).href);
 function solve(m: number, options: InterpreterOptions = {}, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--m=${m}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 558 %j', options => {

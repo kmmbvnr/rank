@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const demos = fileURLToPath(new URL('../../../demos/euler/', import.meta.url));
 const targets = [1, 2, 3, 4, 5, 10, 20, 50, 100, 1000];
@@ -29,7 +30,7 @@ describe.each([false, true])('reciprocal exponent tables (compilation=%s)', comp
             const runtime = new Interpreter(() => {}, { compilation, args: [`--target=${target}`] });
             try {
                 runtime.execute(readFileSync(resolve(demos, `${name}.ra`), 'utf8'));
-                expect(runtime.variables.get('Answer')).toBe(expected.get(target));
+                expect(answerOf(runtime)).toBe(expected.get(target));
             } finally { runtime.dispose(); }
         });
     });

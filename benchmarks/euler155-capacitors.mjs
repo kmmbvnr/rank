@@ -28,7 +28,7 @@ try {
     if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const golden = { 1: '1', 2: '3', 3: '7', 10: '2525', 12: '15463', 15: '241519', 18: '3857447' }[count];
     if (golden) assert.equal(answer, golden);
     console.log(JSON.stringify({ count, variant, reference: process.argv.includes('--reference'), ms,

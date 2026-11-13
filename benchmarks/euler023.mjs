@@ -39,7 +39,7 @@ Pairs Valid = true
 Answer = (not Pairs) indices sum` : source.slice(boundary));
         const pairsMs = performance.now() - start;
         const pairsCpuMs = Object.values(process.cpuUsage(cpu)).reduce((a, b) => a + b) / 1000;
-        assert.equal(runtime.variables.get('Answer'), 4179871n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 4179871n);
         console.log(JSON.stringify({ mode, variant, sieveMs, pairsMs, pairsCpuMs, totalMs: sieveMs + pairsMs,
             rssMiB: process.resourceUsage().maxRSS / 1024, answer: '4179871' }));
     } finally { runtime.dispose(); }

@@ -56,7 +56,7 @@ Answer = M 63 63` : source.replace('arg Grid integer = 250', `arg Grid integer =
         const start = performance.now();
         if (process.argv.includes('--diagnostic')) diagnostics.run(() => runtime.execute(program));
         else runtime.execute(program);
-        const ms = performance.now() - start, answer = runtime.variables.get('Answer');
+        const ms = performance.now() - start, answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         assert.equal(typeof answer, 'number');
         if (micro) assert.equal(answer, 47.75);
         if (grid <= 25) assert.ok(Math.abs(answer - reference(grid)) < 1e-10, String(answer));

@@ -11,8 +11,7 @@ Positions = array shape 7
 end
 
 Digits' = Positions champernowne_digit rank 0
-Answer = Digits reduce *
-return Answer
+return Digits reduce *
 
 
 rem Skip whole equal-width number blocks, then

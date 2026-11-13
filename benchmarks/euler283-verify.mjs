@@ -30,7 +30,7 @@ for(const variant of variants){
     const r=new Interpreter(()=>{},{compilation:scenario!=='reference'});
     let source=original.replace('arg Top integer = 1000',`arg Top integer = ${top}`);
     if(scenario==='wide-seed')source=source.replace('Total = 0','Total = 9007199254740992').replace('Answer = Total','Answer = Total - 9007199254740992');
-    try{r.execute(source);assert.equal(String(r.variables.get('Answer')),expected[top],`${variant}/${scenario}/${top}`);comparisons++;}finally{r.dispose()}
+    try{r.execute(source);assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),expected[top],`${variant}/${scenario}/${top}`);comparisons++;}finally{r.dispose()}
   }
 }
 console.log(JSON.stringify({comparisons,variants,limits,expected}));

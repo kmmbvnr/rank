@@ -361,5 +361,4 @@ Small = array 1 2 3 5
 Base = Small (Small at most N)
 Total = Solutions sum
 Extra = Base sum
-Answer = Total + Extra
-return Answer
+return Total + Extra

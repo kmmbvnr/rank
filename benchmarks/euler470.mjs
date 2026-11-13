@@ -17,7 +17,7 @@ try {
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const checkpoints = { '10':'45968', '20':'147668794' };
     const expected = checkpoints[limit];
     const costs = runtime.variables.get('Sd');

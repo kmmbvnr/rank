@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/326_modulosums.ra', import.meta.url), 'utf8');
 const definition = source.slice(source.indexOf('fun N pairs M'));
@@ -47,7 +48,7 @@ describe('Euler 326 dense residue counters', () => {
         const runtime = new Interpreter(() => {});
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(1966666166408794329n);
+            expect(answerOf(runtime)).toBe(1966666166408794329n);
         } finally { runtime.dispose(); }
     });
 

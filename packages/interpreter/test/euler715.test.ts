@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/715_sextupletnorms.ra', import.meta.url), 'utf8');
 
@@ -32,7 +33,7 @@ function run(limit: number, prime: bigint, compilation: boolean) {
         diagnostics.run(() => runtime.execute(source
             .replace('arg Limit integer = 10 ** 12', `Limit = ${limit}`)
             .replace('arg Prime integer = 1000000007', `Prime = ${prime}`)));
-        return { answer: runtime.variables.get('Answer'), diagnostics };
+        return { answer: answerOf(runtime), diagnostics };
     } finally { runtime.dispose(); }
 }
 

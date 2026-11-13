@@ -6,7 +6,7 @@ const cases=[...Array.from({length:26},(_,i)=>i),31,32,48,49,63,64,80,81,99,100,
 let checked=0;
 for(const options of [{},{numberLoopCompilation:false},{compilation:false}])for(const n of cases)for(const l of [0,1000]) {
  const runtime=new Interpreter(()=>{},{...options,args:[`--n=${n}`,`--l=${l}`]});
- try{runtime.execute(source);if(runtime.variables.get('Answer')!==expected[n])throw Error(`${n},${l},${JSON.stringify(options)}: ${runtime.variables.get('Answer')} != ${expected[n]}`);checked++;}finally{runtime.dispose();}
+ try{runtime.execute(source);if((runtime.variables.get('Answer') ?? runtime.lastResult)!==expected[n])throw Error(`${n},${l},${JSON.stringify(options)}: ${(runtime.variables.get('Answer') ?? runtime.lastResult)} != ${expected[n]}`);checked++;}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({checked,cases,tableLimits:[0,1000],oracle:'direct factorization of each 510510*i',passed:true}));
 

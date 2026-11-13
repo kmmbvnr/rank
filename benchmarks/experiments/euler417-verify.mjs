@@ -14,9 +14,9 @@ let checked=0;
 for(const variant of variants){const source=readFileSync(new URL(variant==='delivered'?'../../demos/euler/417_reciprocalcycles.ra':`./euler417-${variant}.ra`,import.meta.url),'utf8');
  for(const compilation of [false,true])for(const n of cases){
   const runtime=new Interpreter(()=>{},{compilation,args:[`--n=${n}`]});
-  try{runtime.execute(source);const actual=runtime.variables.get('Answer');if(actual!==expected.get(n))throw Error(JSON.stringify({variant,compilation,n,expected:String(expected.get(n)),actual:String(actual)}));checked++;}finally{runtime.dispose();}
+  try{runtime.execute(source);const actual=(runtime.variables.get('Answer') ?? runtime.lastResult);if(actual!==expected.get(n))throw Error(JSON.stringify({variant,compilation,n,expected:String(expected.get(n)),actual:String(actual)}));checked++;}finally{runtime.dispose();}
  }
  const runtime=new Interpreter(()=>{},{args:['--n=1000000']});
- try{runtime.execute(source);if(runtime.variables.get('Answer')!==55535191115n)throw Error(variant+' checkpoint');checked++;}finally{runtime.dispose();}
+ try{runtime.execute(source);if((runtime.variables.get('Answer') ?? runtime.lastResult)!==55535191115n)throw Error(variant+' checkpoint');checked++;}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({checked,variants,cases,oracle:'decimal long division',publishedMillion:true}));

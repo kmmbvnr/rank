@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/474_lastdigitsdivisors_test.ra', import.meta.url);
 const source = readFileSync(new URL('474_lastdigitsdivisors.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -24,7 +25,7 @@ function direct(n: number, digits: number) {
 }
 function solve(n: number, d: number, options: InterpreterOptions) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--d=${d}`] });
-    try { r.execute(source); return r.variables.get('Answer'); } finally { r.dispose(); }
+    try { r.execute(source); return answerOf(r); } finally { r.dispose(); }
 }
 it.each([
     { n: 0, d: 0 }, { n: 0, d: 1 }, { n: 1, d: 1 }, { n: 1, d: 2 },

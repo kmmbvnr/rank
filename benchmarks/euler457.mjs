@@ -17,7 +17,7 @@ try {
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const checkpoints = { 10: '5', 100: '1752', 1000: '6728355', 100000: '3710903873569', 10000000: '2647787126797397063' };
     if (checkpoints[limit] !== undefined && answer !== checkpoints[limit]) throw new Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, limit, file, node: process.version, arch: process.arch,

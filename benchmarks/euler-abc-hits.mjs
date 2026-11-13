@@ -63,7 +63,7 @@ if (option('small-checks')) {
             const output = [], runtime = new Interpreter(line => output.push(line), { compilation });
             try {
                 runtime.execute(source.replace('arg Limit integer = 120000', `arg Limit integer = ${limit}`));
-                assert.equal(runtime.variables.get('Answer'), BigInt(sum));
+                assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(sum));
                 assert.deepEqual(output, [String(sum)]);
                 results.push({ version, compilation, limit, hits, sum });
             } finally { runtime.dispose(); }
@@ -105,7 +105,7 @@ if (option('small-checks')) {
         } else {
             expected = oracle(120000);
             assert.equal(expected.sum, 18407904);
-            assert.equal(runtime.variables.get('Answer'), BigInt(expected.sum));
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(expected.sum));
             assert.deepEqual(output, ['18407904']);
             const rad = runtime.variables.get('Rad');
             for (let i = 0; i < expected.radicals.length; i++)

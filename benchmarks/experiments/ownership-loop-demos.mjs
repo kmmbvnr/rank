@@ -14,7 +14,7 @@ if(process.env.RANK_OWNERSHIP_CASE){
  let outlines=0;
  const runtime=new Interpreter(()=>{},{args:entry[2],onIntegerLoopCompiled:source=>{outlines+=(source.match(/function traversal\d+\(/g)??[]).length;}});
  const diagnostics=new RuntimeDiagnostics(),start=performance.now();
- try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({name:entry[0],args:entry[2],ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),outlines,diagnostics}));}finally{runtime.dispose();}
+ try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({name:entry[0],args:entry[2],ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),outlines,diagnostics}));}finally{runtime.dispose();}
 }else{
  for(let pair=0;pair<3;pair++)for(const [name] of cases){
   let answer;

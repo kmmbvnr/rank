@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const fixture = new URL('../../../demos/euler/522_hiddenchains_test.ra', import.meta.url);
 const source = readFileSync(new URL('522_hiddenchains.ra', fixture), 'utf8');
@@ -52,7 +53,7 @@ it('checks the factorial formula against graph rewiring enumeration', () => {
 it.each(modes)('retains exact sums across block boundaries with %j', options => {
     for (const n of inputs) {
         const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-        try { r.execute(source.replace('Block = 65536', 'Block = 7')); expect(r.variables.get('Answer'), `N=${n}`).toBe(expected.get(n)); }
+        try { r.execute(source.replace('Block = 65536', 'Block = 7')); expect(answerOf(r), `N=${n}`).toBe(expected.get(n)); }
         finally { r.dispose(); }
     }
 }, 30_000);
@@ -66,6 +67,6 @@ it.each(modes)('retains the statement fixture with %j', options => {
 });
 it('compiles the chunked scan/power region', () => {
     const r = new Interpreter(() => {}, { args: ['--n=100'] }), d = new RuntimeDiagnostics();
-    try { d.run(() => r.execute(source.replace('Block = 65536', 'Block = 7'))); expect(r.variables.get('Answer')).toBe(84326147n); expect(d.numberLoops).toBe(1); expect(d.numberLoopOverflows).toBe(0); }
+    try { d.run(() => r.execute(source.replace('Block = 65536', 'Block = 7'))); expect(answerOf(r)).toBe(84326147n); expect(d.numberLoops).toBe(1); expect(d.numberLoopOverflows).toBe(0); }
     finally { r.dispose(); }
 });

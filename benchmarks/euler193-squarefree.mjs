@@ -28,7 +28,7 @@ try {
     else runtime.execute(source);
     const ms = performance.now() - start;
     const rssMiB = process.resourceUsage().maxRSS / 1024;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const golden = { 10: '624', 20: '637461', 24: '10199301', 50: '684465067343069' }[power];
     if (!fixture && golden) assert.equal(answer, golden);
     if (fixture) {

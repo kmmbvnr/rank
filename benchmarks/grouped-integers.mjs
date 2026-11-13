@@ -36,7 +36,7 @@ if (process.argv[2] === '--index-worker') {
             console.log(JSON.stringify({ limit, phase, ms: performance.now() - start,
                 peakRssKiB: process.resourceUsage().maxRSS, diagnostics }));
         }
-        const answer = runtime.variables.get('Answer');
+        const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         const expected = new Map([[200, 5n], [1000, 76n], [10000, 1438n], [1000000, 210139n]]).get(limit);
         if (expected !== undefined) assert.equal(answer, expected);
         console.log(JSON.stringify({ limit, answer: String(answer) }));

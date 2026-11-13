@@ -21,7 +21,7 @@ for(const name of names)for(const compilation of [false,true])for(const [N,want]
  const r=new Interpreter(()=>{},{compilation,args:[`--n=${N}`]});
  try{
   r.execute(readFileSync(`benchmarks/experiments/euler404-${name}.ra`,'utf8'));
-  const got=r.variables.get('Answer');
+  const got=(r.variables.get('Answer') ?? r.lastResult);
   if(got!==want)throw Error(`${name}/${compilation}/${N}: ${got} != ${want}`);
   comparisons++;
  }finally{r.dispose();}

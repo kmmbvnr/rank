@@ -39,7 +39,7 @@ if (options.case) {
  let loops = 0;
  const r = new Interpreter(() => {}, options.instrument ? { onIntegerLoopExecuted: () => loops++ } : {});
  const d = new RuntimeDiagnostics();
- const run = () => { r.execute(source); assert.equal(String(r.variables.get('Answer')), expected); };
+ const run = () => { r.execute(source); assert.equal(String((r.variables.get('Answer') ?? r.lastResult)), expected); };
  const start = performance.now();
  if (options.instrument) d.run(run); else run();
  if (options.instrument && typeof d.bulkArrayWrites === 'number') {

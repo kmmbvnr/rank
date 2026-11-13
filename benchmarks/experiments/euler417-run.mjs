@@ -7,4 +7,4 @@ const phases=[];let previous=performance.now();
 const runtime=new Interpreter(line=>{if(line.startsWith('phase:')){const now=performance.now();phases.push({name:line.trim(),ms:now-previous});previous=now;}},{compilation:mode!=='reference',args:[`--n=${n}`]});
 const diagnosticsEnabled=process.env.RANK417_DIAGNOSTICS!=='0';
 const diagnostics=new RuntimeDiagnostics(),start=performance.now();previous=start;
-try{diagnosticsEnabled?diagnostics.run(()=>runtime.execute(source)):runtime.execute(source);console.log(JSON.stringify({mode,n,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),phases,diagnosticsEnabled,diagnostics:diagnosticsEnabled?diagnostics:undefined}));}finally{runtime.dispose();}
+try{diagnosticsEnabled?diagnostics.run(()=>runtime.execute(source)):runtime.execute(source);console.log(JSON.stringify({mode,n,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),phases,diagnosticsEnabled,diagnostics:diagnosticsEnabled?diagnostics:undefined}));}finally{runtime.dispose();}

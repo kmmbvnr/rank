@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions, type RankArray } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { fullScale } from './full-scale.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/557_cuttingtriangles.ra', import.meta.url), 'utf8');
 
 // Enumerate piece areas, without reciprocal keys, sorting or group ranks.
@@ -18,7 +19,7 @@ function oracle(n: number) {
 }
 function solve(n: number, options: InterpreterOptions, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 557 %j', options => {
@@ -87,7 +88,7 @@ describe('Euler 557 windowed adjacent-key search', () => {
                     .replace('Window = 1000000', `Window = ${window}`));
                 const expected = fractionOracle(n);
                 expect(expected.answer).toBe(answer);
-                expect(runtime.variables.get('Answer')).toBe(answer);
+                expect(answerOf(runtime)).toBe(answer);
                 const matched = runtime.variables.get('Values') as RankArray;
                 expect(Array.from({ length: matched.shape[0] }, (_, i) => readArrayItem(matched, i))).toEqual(expected.matched);
             } finally { runtime.dispose(); }
@@ -97,7 +98,7 @@ describe('Euler 557 windowed adjacent-key search', () => {
         const runtime = new Interpreter(() => {}, { compilation: false });
         try {
             runtime.execute(source.replace('N integer = 10000', 'N integer = 55').replace('Window = 1000000', 'Window = 11'));
-            expect(runtime.variables.get('Answer')).toBe(fractionOracle(55).answer);
+            expect(answerOf(runtime)).toBe(fractionOracle(55).answer);
         } finally { runtime.dispose(); }
     });
 });

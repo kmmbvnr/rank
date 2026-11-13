@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/352_bloodtests.ra', import.meta.url), 'utf8');
 const helpers = source.slice(0, source.indexOf('\nSum ='));
@@ -54,7 +55,7 @@ for (const compilation of [false, true]) {
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(378563.260589);
+            expect(answerOf(runtime)).toBe(378563.260589);
             if (compilation) {
                 expect(diagnostics.numberFunctions).toBe(50);
                 expect(diagnostics.numberFunctionFallbacks).toBe(0);

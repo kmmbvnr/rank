@@ -91,5 +91,4 @@ Flag = Used integer
 Evens = Coef * Part * Flag
 Odds = (Limit + 1) // 2
 Gain = Evens sum
-Answer = Gain - Odds * Odds
-return Answer
+return Gain - Odds * Odds

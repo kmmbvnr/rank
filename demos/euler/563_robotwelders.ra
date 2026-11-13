@@ -130,5 +130,4 @@ Found = Found max 0
 if Found less (K - 1)
   .SearchError "increase L" raise
 end
-Answer = Minima sum
-return Answer
+return Minima sum

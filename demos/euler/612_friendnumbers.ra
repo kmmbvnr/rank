@@ -47,5 +47,4 @@ Cr = Cn reshape 1 1024
 Dp = Dj * Ca mod M * Cr mod M sum
 Dp = Dp mod M
 S = (Tt * Tt - Dp) mod M
-Answer = (S - Tt) * ((M + 1) // 2) mod M
-return Answer
+return (S - Tt) * ((M + 1) // 2) mod M

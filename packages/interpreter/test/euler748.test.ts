@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/748_upsidedown.ra', import.meta.url), 'utf8');
 function gcd(a: bigint, b: bigint): bigint { while (b) { const r = a % b; a = b; b = r; } return a; }
 // Enumerate x,y directly in z^2*(x^2+y^2)=13*x^2*y^2.
@@ -25,7 +26,7 @@ for (const compilation of [false, true]) describe(`Euler 748 (compiled=${compila
             try {
                 r.execute(source.replace('arg Limit integer = 10 ** 16', `Limit = ${limit}`)
                     .replace(/arg Rows integer = \d+/, `Rows = ${rows}`));
-                expect(r.variables.get('Answer')).toBe(expected % 1000000000n);
+                expect(answerOf(r)).toBe(expected % 1000000000n);
             } finally { r.dispose(); }
         }
     });
@@ -35,7 +36,7 @@ for (const compilation of [false, true]) describe(`Euler 748 (compiled=${compila
             try {
                 r.execute(source.replace('arg Limit integer = 10 ** 16', 'Limit = 100000')
                     .replace('arg Digits integer = 1000000000', `Digits = ${digits}`));
-                expect(r.variables.get('Answer')).toBe(2340084n % BigInt(digits));
+                expect(answerOf(r)).toBe(2340084n % BigInt(digits));
             } finally { r.dispose(); }
         }
     });

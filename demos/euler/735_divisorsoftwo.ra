@@ -187,5 +187,4 @@ for Piece in 0 to Chunks - 1
     Total = Total + Added
   end
 end
-Answer = Total + Fixed
-return Answer
+return Total + Fixed

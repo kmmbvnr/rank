@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/456_triangleorigin.ra', import.meta.url), 'utf8');
 const backends = [{}, { compilation: false }, { numberLoopCompilation: false }];
 function points(count: number): [number, number][] {
@@ -18,7 +19,7 @@ function brute(points: [number, number][]) {
 }
 function solve(n: number, options: object, program = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(program); return runtime.variables.get('Answer'); } finally { runtime.dispose(); }
+    try { runtime.execute(program); return answerOf(runtime); } finally { runtime.dispose(); }
 }
 it.each([0, 1, 2, 3, 4, 5, 8, 12, 20, 40, 80])('matches independent strict triangle counts at N=%s', n => {
     for (const options of backends) expect(solve(n, options)).toBe(brute(points(n)));

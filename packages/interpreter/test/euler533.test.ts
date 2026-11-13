@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/533_carmichael.ra', import.meta.url), 'utf8');
 function gcd(a: number, b: number): number { return b ? gcd(b, a % b) : a; }
 // Independent finite DP on exact Carmichael values. Introduce each prime
@@ -40,21 +41,21 @@ describe.each([
 ])('Euler 533 $name', ({ options }) => {
     it.each(limits)('matches exact lambda-state enumeration at N=%s', n => {
         const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-        try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(expected.get(n)); }
+        try { runtime.execute(source); expect(answerOf(runtime)).toBe(expected.get(n)); }
         finally { runtime.dispose(); }
     });
     it.each([60, 100, 200])('selects the exact maximum after a deliberately coarse log screen at N=%s', n => {
         const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
         try {
             runtime.execute(source.replace('Scale = 65536', 'Scale = 2'));
-            expect(runtime.variables.get('Answer')).toBe(expected.get(n));
+            expect(answerOf(runtime)).toBe(expected.get(n));
         } finally { runtime.dispose(); }
     });
     it('preserves dense/sparse batches and boundaries with a small event budget', () => {
         const runtime = new Interpreter(() => {}, { ...options, args: ['--n=1000'] });
         try {
             runtime.execute(source.replace(/Budget = \d+/, 'Budget = 7'));
-            expect(runtime.variables.get('Answer')).toBe(expected.get(1000));
+            expect(answerOf(runtime)).toBe(expected.get(1000));
         } finally { runtime.dispose(); }
     });
     it.each([21, 1000])('matches every quantized score to independent inverse products at N=%s', n => {
@@ -75,7 +76,7 @@ describe.each([
         }
         try {
             runtime.execute(probe);
-            const actual = runtime.variables.get('Answer');
+            const actual = answerOf(runtime);
             if (!actual || !isRankArray(actual)) throw Error('expected score array');
             expect([...actual.items]).toEqual(wanted);
         } finally { runtime.dispose(); }
@@ -93,7 +94,7 @@ it('matches the full result with a private compiled score sieve', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(789453601n);
+        expect(answerOf(runtime)).toBe(789453601n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 120_000);

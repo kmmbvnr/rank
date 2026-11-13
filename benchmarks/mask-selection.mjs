@@ -18,7 +18,7 @@ if (process.argv[2] === '--worker') {
             const source = readFileSync(new URL('../demos/euler/060_primepairs.ra', import.meta.url), 'utf8');
             const start = performance.now();
             runtime.execute(source);
-            assert.equal(runtime.variables.get('Answer'), 26033n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 26033n);
             console.log(JSON.stringify({ milliseconds: performance.now() - start, answer: '26033' }));
         } finally { runtime.dispose(); }
     } else {

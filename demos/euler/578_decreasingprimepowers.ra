@@ -175,5 +175,4 @@ fun Limit solve Start Cap
   end
   return Total
 end
-Answer = N solve 0 Cap
-return Answer
+return N solve 0 Cap

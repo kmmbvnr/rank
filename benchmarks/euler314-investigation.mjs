@@ -38,7 +38,7 @@ if(variant.includes('continuous')) s=s.replace('Answer = 130.87', 'Pi = (-1) aco
 const i=new Interpreter(()=>{},{compilation:mode!=='reference',numberLoopCompilation:mode!=='exact',scalarFunctionCompilation:mode!=='prefix'});const d=new RuntimeDiagnostics();
 i.execute('');
 const t=performance.now(),c=process.cpuUsage();
-try{if(process.env.DIAGNOSTICS) d.run(()=>i.execute(s)); else i.execute(s); const cpu=process.cpuUsage(c),ms=performance.now()-t,rssMiB=process.resourceUsage().maxRSS/1024,answer=i.variables.get('Answer');
+try{if(process.env.DIAGNOSTICS) d.run(()=>i.execute(s)); else i.execute(s); const cpu=process.cpuUsage(c),ms=performance.now()-t,rssMiB=process.resourceUsage().maxRSS/1024,answer=(i.variables.get('Answer') ?? i.lastResult);
 if(Number(grid)===250) assert.equal(answer.toFixed(8),'132.52756426');
 if(Number(grid)<=25) assert.ok(Math.abs(answer-oracle(Number(grid)))<1e-10, String(answer));
 console.log(JSON.stringify({mode,grid,variant,ms,cpuMs:(cpu.user+cpu.system)/1000,rssMiB,answer,...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));}finally{i.dispose()}

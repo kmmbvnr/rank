@@ -167,5 +167,4 @@ Dbc' = ((Dx * Dx + Dy * Dy) * 1.0) sqrt
 Per = Dab + Dac + Dbc
 Fit' = Per at most Limit
 Tt' = Per filter Fit
-Answer = Tt sum round 4
-return Answer
+return Tt sum round 4

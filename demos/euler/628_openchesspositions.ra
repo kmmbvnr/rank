@@ -31,5 +31,4 @@ Ps = Fs scan + mod M
 Fk = Fs (N)
 S1 = Ps (N - 1)
 T = (Ps (0 to N - 2)) sum
-Answer = (Fk - 2 * S1 + T + 1) mod M
-return Answer
+return (Fk - 2 * S1 + T + 1) mod M

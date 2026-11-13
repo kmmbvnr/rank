@@ -36,7 +36,7 @@ for (const file of ['demos/euler/393_ants.ra', 'benchmarks/experiments/euler393-
         const runtime = new Interpreter(() => {}, {compilation, args: [`--n=${n}`]});
         try {
             runtime.execute(source);
-            assert.equal(runtime.variables.get('Answer'), expected, `${file}, N=${n}, compilation=${compilation}`);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected, `${file}, N=${n}, compilation=${compilation}`);
             comparisons++;
         } finally {runtime.dispose();}
     }
@@ -58,10 +58,10 @@ for (const defineUnderInspection of [false,true]) {
 end`);
         if (defineUnderInspection) withInterrupt(signal, define, () => {}); else define();
         withInterrupt(signal, () => runtime.execute('Answer = 1000 helper'), () => {});
-        assert.equal(runtime.variables.get('Answer'), 500500n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 500500n);
         assert.equal(compiledCalls, 0);
         runtime.execute('Answer = 1000 helper');
-        assert.equal(runtime.variables.get('Answer'), 500500n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 500500n);
         assert.equal(runtime.compiler.enabled, true, 'restore compiled capabilities after inspection');
     } finally {runtime.dispose();}
 }

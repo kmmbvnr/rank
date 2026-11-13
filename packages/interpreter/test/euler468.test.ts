@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source=readFileSync(new URL('../../../demos/euler/468_smoothbinomial.ra',import.meta.url),'utf8');
 const backends:InterpreterOptions[]=[{}, {compilation:false}, {numberLoopCompilation:false}];
 const modulus=1000000993n;
@@ -20,7 +21,7 @@ function direct(n:number) {
 }
 function solve(n:number,options:InterpreterOptions={}) {
     const runtime=new Interpreter(()=>{}, {...options,args:[`--n=${n}`]});
-    try{runtime.execute(source);return runtime.variables.get('Answer');}finally{runtime.dispose();}
+    try{runtime.execute(source);return answerOf(runtime);}finally{runtime.dispose();}
 }
 it.each([0,1,2,3,4,5,7,11,16,29,30,31,32,36,37,61,62,63,64,95])('matches explicit B-smooth binomial divisors at N=%s', n=>{
     const expected=direct(n);

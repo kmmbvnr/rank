@@ -47,7 +47,7 @@ if (mode === 'writer') {
         array = runtime.variables.get('S');
         assert.equal(readArrayItem(array, 10), 5n);
         if (mode === 'full') {
-            answer = String(runtime.variables.get('Answer'));
+            answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
             const expected = { 100: '2012', 10000000: '5494373412573', 100000000: '476001479068717' }[n];
             assert.ok(expected, 'full mode requires a verified input');
             assert.equal(answer, expected);

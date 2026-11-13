@@ -30,5 +30,4 @@ for P in 1 to Limit
   end
 end
 Sorted = Out take At sort
-Answer = Sorted (N - 1)
-return Answer
+return Sorted (N - 1)

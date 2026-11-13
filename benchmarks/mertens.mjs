@@ -47,7 +47,7 @@ if (values.worker) {
         if (values.diagnostics) diagnostics.run(() => runtime.execute(source));
         else runtime.execute(source);
         const ms = performance.now() - start, used = process.cpuUsage(cpu);
-        const answer = String(runtime.variables.get('Answer'));
+        const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
         assert.equal(answer, expected);
         if (session) {
             const { profile } = await session.post('Profiler.stop');

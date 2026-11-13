@@ -31,5 +31,4 @@ Top = Bottles * (Bottles + 1) // 2
 Facts = (1 to Top) scan mulp
 Chosen = Facts (Triangle - 1)
 Terms = Chosen * Powers mod Prime
-Answer = Terms sum mod Prime
-return Answer
+return Terms sum mod Prime

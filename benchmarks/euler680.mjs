@@ -13,8 +13,8 @@ try {
         r.execute('use sequences\nCells = array shape 1600 fill 600000000000000');
         const t = performance.now();
         r.execute('Total = 0\nfor J in 0 till 1000\n Cells 0 = 600000000000000 + J\n Prefix = Cells scan +\n Total += Prefix last\nend\nAnswer = Total');
-        assert.equal(r.variables.get('Answer'), 960000000000000499500n);
-        console.log(JSON.stringify({mode, ms: performance.now() - t, answer: String(r.variables.get('Answer'))}));
+        assert.equal((r.variables.get('Answer') ?? r.lastResult), 960000000000000499500n);
+        console.log(JSON.stringify({mode, ms: performance.now() - t, answer: String((r.variables.get('Answer') ?? r.lastResult))}));
     } else {
         const file = mode === 'batched' ? 'benchmarks/fixtures/680-batched.ra' : 'demos/euler/680_yarragnisrever.ra';
         const source = readFileSync(new URL(file, root), 'utf8')
@@ -24,7 +24,7 @@ try {
         const t = performance.now(), cpu = process.cpuUsage();
         r.execute(source);
         const ms = performance.now() - t, used = process.cpuUsage(cpu);
-        const answer = String(r.variables.get('Answer'));
+        const answer = String((r.variables.get('Answer') ?? r.lastResult));
         if (n === '1000000000000000000') {
             const expected = {800: '2631975', 3200: '801393719', 12800: '5458811', 1000000: '563917241'}[k];
             if (expected) assert.equal(answer, expected);

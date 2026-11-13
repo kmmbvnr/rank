@@ -22,7 +22,7 @@ if (option('worker')) {
         if (instrumented) diagnostics.run(() => runtime.execute(entry.source));
         else runtime.execute(entry.source);
         const executeMs = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), entry.answer);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), entry.answer);
         const bufferCells = ['Is', 'F2', 'F5'].map(name => [name, runtime.variables.get(name).shape[0]]);
         console.log(JSON.stringify({ case: entry.name, executeMs, answer: String(entry.answer), bufferCells,
             sourceSha256: createHash('sha256').update(entry.source).digest('hex'),

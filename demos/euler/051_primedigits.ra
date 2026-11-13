@@ -7,8 +7,7 @@ use sequences
 use algo
 use io
 
-Answer = smallest_prime_replacement
-return Answer
+return smallest_prime_replacement
 
 
 rem Search primes in ascending order, replacing three

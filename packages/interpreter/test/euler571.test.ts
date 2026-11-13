@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/571_superpandigital.ra', import.meta.url), 'utf8');
 function pandigital(n: number, base: number): boolean {
     let seen = 0;
@@ -24,7 +25,7 @@ const cases = [2, 3, 4, 5, 6, 7].flatMap(base => {
 });
 function run(base: number, count: number, options: InterpreterOptions) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--b=${base}`, `--t=${count}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 571 %j', options => {

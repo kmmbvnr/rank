@@ -11,7 +11,7 @@ try {
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
     const half = BigInt(limit) / 2n;
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, half * (half + 1n) / 2n);
     console.log(JSON.stringify({ node: process.version, arch: process.arch, limit,
         ms, rssMiB: process.resourceUsage().maxRSS / 1024, answer: String(answer), diagnostics }));

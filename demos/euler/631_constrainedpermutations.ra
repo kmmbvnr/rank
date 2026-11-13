@@ -91,5 +91,4 @@ Tt = (N + 1) mod Md
 Cx = 0 to (K + 3)
 Wt = (N + 1 - Cx max 0) mod Md
 Pc = ((Ca mod Md) * Wt mod Md) sum
-Answer = (Tt + Pc) mod Md
-return Answer
+return (Tt + Pc) mod Md

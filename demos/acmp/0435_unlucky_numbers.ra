@@ -88,5 +88,4 @@ for S len greater 0
   end
 end
 
-Answer = OddTotal + EvenTotal
-return Answer
+return OddTotal + EvenTotal

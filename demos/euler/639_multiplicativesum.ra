@@ -177,5 +177,4 @@ for Kk in 1 to K
   end
   Total = Total mod Md
 end
-Answer = Total mod Md
-return Answer
+return Total mod Md

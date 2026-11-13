@@ -73,5 +73,4 @@ for Index in 0 to Primes len - 1
   Less = (Diff + Mod) mod Mod
   Zeta Dst = Less
 end
-Answer = Zeta sum mod Mod
-return Answer
+return Zeta sum mod Mod

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/177_quadrilaterals.ra', import.meta.url), 'utf8');
 
@@ -37,7 +38,7 @@ describe.each([false, true])('Euler 177 (compilation=%s)', compilation => {
             runtime.execute(scaled);
             const expected = oracle(total);
             expect(expected).toBeGreaterThan(0n);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
             expect((runtime.variables.get('Fixed') as bigint) % 8n).toBe(0n);
         } finally { runtime.dispose(); }
     });

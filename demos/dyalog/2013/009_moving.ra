@@ -11,5 +11,4 @@ fun N movingAverage A
 end
 
 Sales = array 200 300 2700 3400 100 2000 400 2100 3500 3000 4700 4300
-Example = 2 movingAverage Sales
-Example print
+return 2 movingAverage Sales

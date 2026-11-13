@@ -310,7 +310,7 @@ test('TPC-H Q6 Rank operations execute a bound SQLite aggregate', () => fixture(
         + "WHERE l_shipdate >= '1994-01-01' AND l_shipdate < '1995-01-01' "
         + 'AND l_discount >= 0.05 AND l_discount <= 0.07 AND l_quantity < 24').get().revenue;
     db.close();
-    const result = spawnSync(process.execPath, [cli,
+    const result = spawnSync(process.execPath, [cli, '--print',
         path.join(root, 'demos/tpch/001_q6_sqlite.ra'), dbPath,
     ], { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
     assert.equal(result.status, 0, result.stderr);

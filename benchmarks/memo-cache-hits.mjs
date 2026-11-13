@@ -31,7 +31,7 @@ if (mode) {
             const start = performance.now();
             runtime.execute('Mapped = Source value\nAnswer = Mapped sum');
             ms.push(performance.now() - start);
-            assert.equal(runtime.variables.get('Answer'), expected);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
         }
         global.gc();
         console.log(JSON.stringify({ ms, medianMs: median(ms), heapUsed: process.memoryUsage().heapUsed }));

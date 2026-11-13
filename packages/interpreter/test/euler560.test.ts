@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/560_coprimenim.ra', import.meta.url), 'utf8');
 const { solve: oracle } = await import(new URL('../../../benchmarks/euler560-oracle.mjs', import.meta.url).href);
 function solve(n: number, k: number, options: InterpreterOptions = {}) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--k=${k}`] });
-    try { r.execute(source); return r.variables.get('Answer'); }
+    try { r.execute(source); return answerOf(r); }
     finally { r.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 560 %j', options => {

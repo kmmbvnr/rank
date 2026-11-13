@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/534_weakqueens.ra', import.meta.url), 'utf8');
 // Independent board enumeration: compare columns and distances directly.
@@ -42,7 +43,7 @@ describe.each([
             const actual = runtime.variables.get('Results');
             if (!actual || !isRankArray(actual)) throw Error('expected counts array');
             expect([...actual.items]).toEqual(values);
-            expect(runtime.variables.get('Answer')).toBe(values.reduce((a, b) => a + b, 0n));
+            expect(answerOf(runtime)).toBe(values.reduce((a, b) => a + b, 0n));
         } finally { runtime.dispose(); }
     });
 });
@@ -53,7 +54,7 @@ it.each([
     { compilation: false },
 ])('matches a larger board with %j', options => {
     const runtime = new Interpreter(() => {}, { ...options, args: ['--n=10'] });
-    try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(10570235486n); }
+    try { runtime.execute(source); expect(answerOf(runtime)).toBe(10570235486n); }
     finally { runtime.dispose(); }
 });
 it('retains the full wide total and the classical 14-queens endpoint', () => {
@@ -63,6 +64,6 @@ it('retains the full wide total and the classical 14-queens endpoint', () => {
         const actual = runtime.variables.get('Results');
         if (!actual || !isRankArray(actual)) throw Error('expected counts array');
         expect(actual.items[13]).toBe(365596n);
-        expect(runtime.variables.get('Answer')).toBe(11726115562784664n);
+        expect(answerOf(runtime)).toBe(11726115562784664n);
     } finally { runtime.dispose(); }
 }, 120_000);

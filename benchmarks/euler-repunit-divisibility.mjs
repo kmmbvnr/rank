@@ -77,7 +77,7 @@ if (option('worker')) {
             expected = oracle(1000000);
             assert.equal(expected.answer, 1000023);
             assert.equal(expected.orders.find(({ n }) => n === expected.answer).k, 1000020);
-            assert.equal(r.variables.get('Answer'), BigInt(expected.answer));
+            assert.equal((r.variables.get('Answer') ?? r.lastResult), BigInt(expected.answer));
             assert.deepEqual(output, [String(expected.answer)]);
             if (version !== 'pruned') {
                 const ns = expected.orders.map(({ n }) => n), table = r.variables.get('Tab');

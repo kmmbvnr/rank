@@ -65,5 +65,4 @@ Starts = 2 to N by Block copy
 Ends = Starts + Block - 1
 Stops = Ends min N
 Totals = Starts subtotal Stops rank 0 0
-Answer = Totals sum
-return Answer
+return Totals sum

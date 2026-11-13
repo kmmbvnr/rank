@@ -35,7 +35,7 @@ if (option('worker')) {
                 const a = lpf(k + 1n), b = lpf(k * k - k + 1n);
                 answer += (a > b ? a : b) - 1n;
             }
-        } else { runtime.execute(source); answer = runtime.variables.get('Answer'); }
+        } else { runtime.execute(source); answer = (runtime.variables.get('Answer') ?? runtime.lastResult); }
         const executeMs = performance.now() - start, usage = process.cpuUsage(cpu);
         assert.equal(answer, expected.get(limit));
         console.log(JSON.stringify({ variant, limit, compilation, executeMs, cpuMs: (usage.user + usage.system) / 1000,

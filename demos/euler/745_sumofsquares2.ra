@@ -33,5 +33,4 @@ Floors = Limit // Squares
 Floors = Floors mod Prime
 Terms = Parts * Floors mod Prime
 Total = Terms sum
-Answer = Total mod Prime
-return Answer
+return Total mod Prime

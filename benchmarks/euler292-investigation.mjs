@@ -12,6 +12,6 @@ try{
  const parts=process.env.PHASES?executed.split(/(?=^Total =)/m):[executed];
  for(let i=0;i<parts.length;i++){const diagnostics=new RuntimeDiagnostics();const t=performance.now();if(process.env.DIAGNOSTICS)diagnostics.run(()=>runtime.execute(parts[i]));else runtime.execute(parts[i]);console.log(JSON.stringify({phase:i,ms:performance.now()-t,...(process.env.DIAGNOSTICS?{diagnostics}:{})}));}
  if(n==='fixture'){assert.equal(runtime.testResults.length,variant==='shipping'?2:1);assert(runtime.testResults.every(t=>t.passed),JSON.stringify(runtime.testResults));}
- const answer=n==='fixture'?'fixture passed':String(runtime.variables.get('Answer'));const expected={4:'1',30:'3655',60:'891045',120:'3600060866'}[n];if(expected)assert.equal(answer,expected);
+ const answer=n==='fixture'?'fixture passed':String((runtime.variables.get('Answer') ?? runtime.lastResult));const expected={4:'1',30:'3655',60:'891045',120:'3600060866'}[n];if(expected)assert.equal(answer,expected);
  console.log(JSON.stringify({mode,variant,n:n==='fixture'?n:+n,ms:performance.now()-start,answer,rssMiB:process.resourceUsage().maxRSS/1024}));
 }finally{runtime.dispose();}

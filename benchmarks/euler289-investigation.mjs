@@ -19,7 +19,7 @@ const start = performance.now();
 try {
     if (process.env.DIAGNOSTICS) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (+m === 6 && +n === 10) assert.equal(answer, '6567944538');
     if (+m === 3 && +n === 3) assert.equal(answer, '104290');
     console.log(JSON.stringify({mode, m, n, variant, ms: performance.now() - start, answer,

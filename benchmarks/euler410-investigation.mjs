@@ -17,5 +17,5 @@ try {
     diagnostics.run(() => runtime.execute(readFileSync(file, 'utf8')));
     console.log(JSON.stringify({ file, r, x, mode, block: block ?? String(runtime.variables.get('Block')),
         ms: performance.now() - start, rssMiB: process.resourceUsage().maxRSS / 1024,
-        answer: String(runtime.variables.get('Answer')), entries, d: diagnostics }));
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), entries, d: diagnostics }));
 } finally { runtime.dispose(); }

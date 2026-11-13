@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/179_consecutivedivisors.ra', import.meta.url), 'utf8');
 function divisors(n: number): number {
@@ -19,7 +20,7 @@ describe.each([false, true])('Euler 179 (compilation=%s)', compilation => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source.replace('arg Limit integer = 10000000', `arg Limit integer = ${limit}`));
-            expect(runtime.variables.get('Answer')).toBe(oracle(limit));
+            expect(answerOf(runtime)).toBe(oracle(limit));
         } finally { runtime.dispose(); }
     });
 });

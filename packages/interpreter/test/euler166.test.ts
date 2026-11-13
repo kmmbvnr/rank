@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/166_crisscross.ra', import.meta.url), 'utf8');
 
@@ -26,7 +27,7 @@ describe.each([false, true])('Euler 166 (compilation=%s)', compilation => {
         try {
             const result = r.execute(source);
             const answer = oracle(base);
-            expect(r.variables.get('Answer')).toBe(answer);
+            expect(answerOf(r)).toBe(answer);
             expect(result).toBe(answer);
         } finally { r.dispose(); }
     });
@@ -37,7 +38,7 @@ it('compiles both counter consumers over each retained sum', () => {
     try {
         const d = new RuntimeDiagnostics();
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(5400n);
+        expect(answerOf(r)).toBe(5400n);
         expect(d.compiledCounterBuilds).toBe(7);
         expect(d.compiledCounterSums).toBe(7);
     } finally { r.dispose(); }

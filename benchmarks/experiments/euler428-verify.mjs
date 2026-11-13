@@ -6,7 +6,7 @@ const prefix=necklacePrefix(3000),cases=[...Array.from({length:26},(_,i)=>i),31,
 let checked=0;
 for(const options of [{},{numberLoopCompilation:false,arrayFunctionCompilation:false},{compilation:false}])for(const n of cases) {
  const runtime=new Interpreter(()=>{},{...options,args:[`--n=${n}`]});
- try{runtime.execute(source);if(runtime.variables.get('Answer')!==prefix[n])throw Error(`n=${n} ${JSON.stringify(options)}: ${runtime.variables.get('Answer')} != ${prefix[n]}`);checked++;}finally{runtime.dispose();}
+ try{runtime.execute(source);if((runtime.variables.get('Answer') ?? runtime.lastResult)!==prefix[n])throw Error(`n=${n} ${JSON.stringify(options)}: ${(runtime.variables.get('Answer') ?? runtime.lastResult)} != ${prefix[n]}`);checked++;}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({file,checked,cases,checkpoints:[1,20,300,3000].map(n=>[n,String(prefix[n])]),oracle:'direct factor pairs of the three circle equations'}));
 const fixtureId = new URL('../../demos/euler/428_necklacetriplets_test.ra', import.meta.url).pathname;

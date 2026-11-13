@@ -5,6 +5,7 @@ import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 // @ts-expect-error The independent native oracle is a benchmark module.
 import { edgeExpectation, exhaustiveExpectation } from '../../../benchmarks/euler514-oracle.mjs';
+import { answerOf } from './support.js';
 
 const source=readFileSync(new URL('../../../demos/euler/514_geoboard.ra',import.meta.url),'utf8');
 const old=readFileSync(new URL('../../../benchmarks/experiments/euler514-original.ra',import.meta.url),'utf8');
@@ -18,7 +19,7 @@ for(const compilation of [false,true]) {
                 const runtime=new Interpreter(()=>{}, {compilation,args:[`--n=${n}`]});
                 try {
                     runtime.execute(program);
-                    expect(Number(runtime.variables.get('Answer')),`N=${n}`).toBe(expected);
+                    expect(Number(answerOf(runtime)),`N=${n}`).toBe(expected);
                 } finally {runtime.dispose();}
             }
         }

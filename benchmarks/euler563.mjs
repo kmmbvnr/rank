@@ -14,7 +14,7 @@ try {
     if (process.env.RANK563_PROFILE) { profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const k = runtime.variables.get('K'), finished = runtime.variables.get('Fd') ?? runtime.variables.get('Found');
     if (typeof k === 'bigint' && finished !== (k > 1n ? k - 1n : 0n)) throw Error('Incomplete minimum table');
     if (process.env.RANK563_EXPECTED && answer !== process.env.RANK563_EXPECTED) throw Error(`Wrong answer: ${answer}`);

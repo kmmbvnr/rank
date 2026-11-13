@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/415_titanicsets.ra', import.meta.url), 'utf8');
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
@@ -29,7 +30,7 @@ describe('Euler 415 Titanic Sets', () => {
     it.each([1, 2, 3, 4, 5, 6])('matches geometric enumeration with a minimal prefix table at N=%s', n => {
         for (const options of [{}, { numberLoopCompilation: false }, { compilation: false }]) {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, '--l=1'] });
-            try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(oracle(n)); }
+            try { runtime.execute(source); expect(answerOf(runtime)).toBe(oracle(n)); }
             finally { runtime.dispose(); }
         }
     });
@@ -39,7 +40,7 @@ describe('Euler 415 Titanic Sets', () => {
             const diagnostics = new RuntimeDiagnostics();
             try {
                 diagnostics.run(() => runtime.execute(source));
-                expect(runtime.variables.get('Answer')).toBe(expected);
+                expect(answerOf(runtime)).toBe(expected);
                 if (!Object.keys(options).length) {
                     expect(diagnostics.numberLoops).toBe(1);
                     expect(diagnostics.numberLoopOverflows).toBe(0);

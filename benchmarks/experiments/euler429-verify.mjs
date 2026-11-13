@@ -5,7 +5,7 @@ const file='demos/euler/429_unitary.ra',source=readFileSync(file,'utf8');
 let checked=0;
 for(const options of [{},{numberLoopCompilation:false},{compilation:false}])for(let n=0;n<=32;n++) {
  const runtime=new Interpreter(()=>{},{...options,args:[`--n=${n}`]});
- try{runtime.execute(source);if(runtime.variables.get('Answer')!==unitarySquares(n))throw Error(`wrong n=${n}`);checked++;}finally{runtime.dispose();}
+ try{runtime.execute(source);if((runtime.variables.get('Answer') ?? runtime.lastResult)!==unitarySquares(n))throw Error(`wrong n=${n}`);checked++;}finally{runtime.dispose();}
 }
 const fixtureId=new URL('../../demos/euler/429_unitary_test.ra',import.meta.url).pathname;
 for(const options of [{},{numberLoopCompilation:false},{compilation:false}]) {

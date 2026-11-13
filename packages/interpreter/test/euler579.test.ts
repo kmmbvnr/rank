@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/579_latticecubes.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler579-original.ra', import.meta.url), 'utf8');
@@ -41,7 +42,7 @@ function direct(bound: number) {
 }
 function run(n: number, options: InterpreterOptions = {}, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const small = Array.from({ length: 6 }, (_, n) => [n, direct(n)] as const);

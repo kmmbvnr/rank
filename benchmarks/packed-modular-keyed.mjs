@@ -16,7 +16,7 @@ try {
     for (let i = 0; i < Number(limit); i++) groups[i % 4096]
         = groups[i % 4096] * BigInt((i + 1) % 1009 + 1) % 1000000007n;
     const expected = groups.reduce((a, b) => a + b, 0n);
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     assert.equal(diagnostics.compiledLoops, 0);
     assert.equal(diagnostics.compiledTensors, 0);

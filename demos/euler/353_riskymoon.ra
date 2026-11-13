@@ -233,5 +233,4 @@ Sum = 0.0
 for N in 1 to Last
   Sum += 2 ** N - 1 moon
 end
-Answer = Sum round 10
-return Answer
+return Sum round 10

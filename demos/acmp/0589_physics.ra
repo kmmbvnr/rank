@@ -207,5 +207,4 @@ fun solve_physics Inp
   return OutLines join "\n"
 end
 
-Ans = solve_physics Input
-Ans print
+return solve_physics Input

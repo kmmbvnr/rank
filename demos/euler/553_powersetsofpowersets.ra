@@ -92,5 +92,4 @@ fun N families K
   Scale = Labels reduce multiply with 1
   return Scale * Total mod Mod
 end
-Answer = N families K
-return Answer
+return N families K

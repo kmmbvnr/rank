@@ -81,5 +81,4 @@ end
 
 A = N C P0 solvep
 B = N C P1 solvep
-Answer = A crt B
-return Answer
+return A crt B

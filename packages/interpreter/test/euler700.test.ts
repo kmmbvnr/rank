@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/700_eulercoin.ra', import.meta.url), 'utf8');
 
@@ -17,7 +18,7 @@ it('checks both coin-search phases against every residue of small coprime inputs
             });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `${multiplier}/${modulus}, cut ${cut}, ${compilation}`).toBe(expected);
+                expect(answerOf(runtime), `${multiplier}/${modulus}, cut ${cut}, ${compilation}`).toBe(expected);
             } finally { runtime.dispose(); }
         }
     }

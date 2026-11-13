@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { isRankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/720_unpredictablepermutations.ra', import.meta.url), 'utf8');
 function execute(bits: number, compilation: boolean) {
@@ -14,7 +15,7 @@ function execute(bits: number, compilation: boolean) {
             if (!value || !isRankArray(value)) throw Error(`missing ${name}`);
             return Array.from({ length: value.shape[0] }, (_, i) => Number(readArrayItem(value, i)));
         };
-        return { permutation: cells('Perm'), code: cells('Lehmer'), answer: host.variables.get('Answer'), diagnostics };
+        return { permutation: cells('Perm'), code: cells('Lehmer'), answer: answerOf(host), diagnostics };
     } finally { host.dispose(); }
 }
 

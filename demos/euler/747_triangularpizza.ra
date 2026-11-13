@@ -42,5 +42,4 @@ for Small in 1 to Top
   Added = Piece sum
   Total = (Total + Added) mod Prime
 end
-Answer = (Cubic + 3 * Total) mod Prime
-return Answer
+return (Cubic + 3 * Total) mod Prime

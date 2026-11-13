@@ -43,12 +43,12 @@ const started = performance.now();
 try {
     diagnostics.run(() => runtime.execute(s));
     if (limit === '190') {
-        assert.equal(runtime.variables.get('Answer'), 1096883702440585n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 1096883702440585n);
         assert.equal(runtime.variables.get('Best'), 2323218950659046189161096883702440585n);
     }
     console.log(JSON.stringify({
         mode, limit, variant, ms: performance.now() - started,
-        answer: String(runtime.variables.get('Answer')),
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
         best: String(runtime.variables.get('Best')),
         rss: process.resourceUsage().maxRSS / 1024,
         diagnostics,

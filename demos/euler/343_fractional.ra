@@ -40,5 +40,4 @@ for P in primes to (Limit + 1)
 end
 A = Largest (1 to Limit)
 B = Linear (2 to (Limit + 1))
-Answer = A max B sum - Limit
-return Answer
+return A max B sum - Limit

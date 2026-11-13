@@ -16,7 +16,7 @@ function run(text, width, count, compilation = true, prime = 1000000007) {
     try {
         runtime.execute(text);
         const value = runtime.variables.get('Nullity');
-        return { answer: String(runtime.variables.get('Answer')),
+        return { answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
             nullities: Array.from({ length: count }, (_, i) => Number(readArrayItem(value, i))) };
     } finally { runtime.dispose(); }
 }

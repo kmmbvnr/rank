@@ -6,8 +6,7 @@ rem permutation arithmetic sequence
 use sequences
 use io
 
-Answer = 1000 prime_permutation_sequence 10000
-return Answer
+return 1000 prime_permutation_sequence 10000
 
 
 rem Search increasing prime pairs and derive

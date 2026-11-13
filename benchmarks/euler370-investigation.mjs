@@ -33,7 +33,7 @@ if (process.argv[1] === import.meta.filename) {
         const execute = () => runtime.execute(source);
         const run = () => process.env.POLL ? withInterrupt(new Int32Array(1), execute) : execute();
         if (process.env.DIAGNOSTICS) diagnostics.run(run); else run();
-        const answer = String(runtime.variables.get('Answer'));
+        const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
         const known = {1000000: '861805', 100000000: '108073540', 25000000000000: '41791929448408'};
         if (known[limit]) assert.equal(answer, known[limit]);
         assertPatched();

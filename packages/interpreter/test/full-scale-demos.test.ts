@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { perBallReference } from '../../../benchmarks/experiments/euler426-oracle.mjs';
+import { answerOf } from './support.js';
 
 it('checks the full 314_mousemoon.ra answer with borrowed real tables', () => {
     const url = new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url);
@@ -10,7 +11,7 @@ it('checks the full 314_mousemoon.ra answer with borrowed real tables', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect((runtime.variables.get('Answer') as number).toFixed(8)).toBe('132.52756426');
+        expect((answerOf(runtime) as number).toFixed(8)).toBe('132.52756426');
         expect(diagnostics.numberLoops).toBe(500);
         expect(diagnostics.numberLoopBorrowedRealCells).toBe(94501500);
         expect(diagnostics.numberLoopReadBufferCells).toBe(0);
@@ -25,7 +26,7 @@ it('checks the full 311_biclinic.ra answer in private Number helpers', () => {
     const runtime = new Interpreter(() => {}, {sourceId: fileURLToPath(url)});
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(2466018557n);
+        expect(answerOf(runtime)).toBe(2466018557n);
         expect(diagnostics.numberFunctions).toBe(2500);
         expect(diagnostics.numberFunctionFallbacks).toBe(0);
     } finally { runtime.dispose(); }
@@ -81,7 +82,7 @@ for (const [file, expected] of [
         const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
         try {
             diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
             if (file === '426_boxball.ra') {
                 expect(diagnostics.numberLoops).toBe(1);
                 expect(diagnostics.numberLoopOverflows).toBe(0);
@@ -155,7 +156,7 @@ it('compiles the full Euler 255 interval traversal and preserves the exact total
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
         expect(runtime.variables.get('Total')).toBe(400266100622279n);
         expect(runtime.variables.get('Count')).toBe(90000000000000n);
-        expect(runtime.variables.get('Answer')).toBe(4.447401118);
+        expect(answerOf(runtime)).toBe(4.447401118);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
@@ -167,7 +168,7 @@ it('checks the full compiled Euler 288 tail without Number overflow', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(605857431263981935n);
+        expect(answerOf(runtime)).toBe(605857431263981935n);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(2);
         // The prefix rejects Number and output-only widening before the
         // broad mixed tier. The ten-million-step tail stays in Number.
@@ -183,7 +184,7 @@ it('checks the full compiled Euler 289 with private integer index stores', () =>
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(6567944538n);
+        expect(answerOf(runtime)).toBe(6567944538n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(154);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.indexWrites).toBeGreaterThan(0);
@@ -196,7 +197,7 @@ it('compiles Euler 290 row slices and keeps its large final answer exact', () =>
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(20444710234716473n);
+        expect(answerOf(runtime)).toBe(20444710234716473n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(19);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(19);
         // The DP cells fit Number; the final total crosses its safe range.
@@ -211,7 +212,7 @@ it('checks the full Euler 291 polynomial sieve and compiled root preparation', (
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(4037526n);
+        expect(answerOf(runtime)).toBe(4037526n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(1);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(3);
         expect(diagnostics.numberLoopOverflows).toBe(0);
@@ -224,7 +225,7 @@ it('checks full Euler 292 with disjoint slices and no operand snapshots', () => 
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(3600060866n);
+        expect(answerOf(runtime)).toBe(3600060866n);
         expect(diagnostics.numberLoops).toBe(2);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.numberLoopSliceCopies).toBe(0);
@@ -246,7 +247,7 @@ it('checks the full Euler 260 exact-bitset answer', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(167542057n);
+        expect(answerOf(runtime)).toBe(167542057n);
         expect(diagnostics.compiledLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
@@ -257,7 +258,7 @@ it('compiles the full Euler 261 squarefree-table search', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(238890850232021n);
+        expect(answerOf(runtime)).toBe(238890850232021n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(2);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
@@ -270,7 +271,7 @@ it('compiles the full Euler 262 contour and preserves the sampled route', () => 
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(2531.205);
+        expect(answerOf(runtime)).toBe(2531.205);
         expect(runtime.variables.get('Best')).toBeCloseTo(2531.2047740264857, 8);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(3);
         expect(diagnostics.fallbacks['loop:container-write-type:ForStatement']).toBeUndefined();
@@ -284,7 +285,7 @@ it('checks the full compiled answer for Euler 272', () => {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(8495585919506151122n);
+        expect(answerOf(runtime)).toBe(8495585919506151122n);
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
@@ -295,7 +296,7 @@ it('compiles the full Euler 283 reduced-divisor search with an exact wide total'
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(28038042525570324n);
+        expect(answerOf(runtime)).toBe(28038042525570324n);
         expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(2);
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
@@ -307,7 +308,7 @@ it('checks the full Euler 300 maximum-contact reduction', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         runtime.execute(readFileSync(url, 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(8.0540771484375);
+        expect(answerOf(runtime)).toBe(8.0540771484375);
         expect(runtime.variables.get('Count')).toBe(3409n);
     } finally { runtime.dispose(); }
 }, 60_000);
@@ -321,7 +322,7 @@ it('checks the full Euler 302 search with recursive owned-array helpers', () => 
     });
     try {
         runtime.execute(readFileSync(url, 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(1170060n);
+        expect(answerOf(runtime)).toBe(1170060n);
         expect(calls).toBeGreaterThan(1_600_000);
     } finally { runtime.dispose(); }
 }, 90_000);
@@ -333,7 +334,7 @@ it('checks Euler 303 with private Number state and exact wide reconstruction', (
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(1111981904675169n);
+        expect(answerOf(runtime)).toBe(1111981904675169n);
         expect(diagnostics.numberFunctions + diagnostics.numberFunctionSkips).toBeGreaterThanOrEqual(10000);
         expect(diagnostics.numberFunctionFallbacks).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
@@ -345,7 +346,7 @@ it('checks Euler 304 with the full prime range and array Fibonacci suffix', () =
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(283988410192n);
+        expect(answerOf(runtime)).toBe(283988410192n);
         expect(diagnostics.primeRunSieves).toBe(1);
         expect(diagnostics.compiledTensors).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
@@ -356,7 +357,7 @@ it('checks Euler 305 with the full reflexive-position sum', () => {
     const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
     try {
         runtime.execute(readFileSync(url, 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(18174995535140n);
+        expect(answerOf(runtime)).toBe(18174995535140n);
     } finally { runtime.dispose(); }
 }, 60_000);
 
@@ -366,7 +367,7 @@ it('checks the full Euler 378 total with a private numeric Fenwick tree', () => 
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(147534623725724718n);
+        expect(answerOf(runtime)).toBe(147534623725724718n);
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
@@ -376,7 +377,7 @@ it('checks the full Euler 386 antichain sum with linked vector recursion', () =>
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(readFileSync(new URL('../../../demos/euler/386_antichain.ra', import.meta.url), 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(528755790n);
+        expect(answerOf(runtime)).toBe(528755790n);
     } finally {runtime.dispose();}
 }, 30_000);
 
@@ -385,7 +386,7 @@ it.each([4641589, 1])('checks the full Euler 388 wide sum with bounded tables (C
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(readFileSync(new URL('../../../demos/euler/388_lines.ra', import.meta.url), 'utf8')));
-        expect(runtime.variables.get('Answer')).toBe(831907372771451255456805129931n);
+        expect(answerOf(runtime)).toBe(831907372771451255456805129931n);
         expect(runtime.variables.get('Token')).toBe('831907372805129931');
         expect(runtime.variables.get('Top') as bigint).toBeLessThanOrEqual(100000n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(3);
@@ -401,7 +402,7 @@ for (const compilation of [true, false]) it(`checks the full Euler 707 polynomia
     const runtime = new Interpreter(() => {}, { compilation });
     try {
         runtime.execute(readFileSync(url, 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(652907799n);
+        expect(answerOf(runtime)).toBe(652907799n);
     } finally { runtime.dispose(); }
 });
 
@@ -409,6 +410,6 @@ it('checks the full Euler 474 unit-residue count with compact row copies', () =>
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(readFileSync(new URL('../../../demos/euler/474_lastdigitsdivisors.ra', import.meta.url), 'utf8'));
-        expect(runtime.variables.get('Answer')).toBe(9690646731515010n);
+        expect(answerOf(runtime)).toBe(9690646731515010n);
     } finally { runtime.dispose(); }
 }, 180_000);

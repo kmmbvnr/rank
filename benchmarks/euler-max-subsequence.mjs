@@ -69,7 +69,7 @@ if (option('worker')) {
                 assert.equal(runtime.variables.get(name), BigInt(bests[i]), name);
             }
             const answer = BigInt(Math.max(...bests));
-            assert.equal(runtime.variables.get('Answer'), answer);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), answer);
             assert.deepEqual(output, [String(answer)]);
         }
         console.log(JSON.stringify({ n, workload: option('worker'), executeMs, peakRssMiB,

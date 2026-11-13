@@ -43,5 +43,4 @@ for M in 2 to Top
     Total += (Limit // ((2 * M + E) * (M + 2 * E))) sum
   end
 end
-Answer = Total
-return Answer
+return Total

@@ -60,5 +60,4 @@ for E greater 0
   C = C conv C
   E //= 2
 end
-Answer = R ((0 - N) mod K)
-return Answer
+return R ((0 - N) mod K)

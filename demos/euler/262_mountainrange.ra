@@ -343,5 +343,4 @@ for I in Ja
   Tm = Tt2 min
   Best = Best min Tm
 end
-Answer = Best round 3
-return Answer
+return Best round 3

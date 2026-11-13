@@ -129,5 +129,4 @@ for M in 1 to Top
     end
   end
 end
-Answer = Out take At unique sum
-return Answer
+return Out take At unique sum

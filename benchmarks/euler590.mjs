@@ -10,7 +10,7 @@ const runtime = new Interpreter(() => {}, { compilation: mode !== 'reference', a
 try {
     const start = performance.now(), cpu = process.cpuUsage(), load = loadavg();
     runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = { 4: '44', 6: '3748', 10: '946139968', 16: '265773312', 50000: '834171904' }[n];
     if (expected && answer !== expected) throw Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, n, file, node: process.version, arch: process.arch, processor: cpus()[0]?.model, load,

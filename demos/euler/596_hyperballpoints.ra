@@ -40,5 +40,4 @@ Limits = Square // (array 1 4)
 Sums = Limits subtotal rank 0
 Weights = array 1 -4
 Total = Weights * Sums sum
-Answer = (1 + 8 * Total) mod Mod
-return Answer
+return (1 + 8 * Total) mod Mod

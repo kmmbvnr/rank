@@ -25,5 +25,4 @@ Limit = 11
 if Count greater 5
   Limit = Count * (Count log + (Count log log)) integer
 end
-Answer = (Limit sieve) (Count - 1)
-return Answer
+return (Limit sieve) (Count - 1)

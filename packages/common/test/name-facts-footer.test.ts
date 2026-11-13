@@ -217,8 +217,6 @@ it('uses a later notebook predicate definition and analyzes uncalled function lo
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8'));
         for (const [site, expected] of [
             ['Candidates filter', 'Candidates · c<integer>'],
-            ['Answer =', 'Answer · integer'],
-            ['return Answer', 'Answer · integer'],
             ['Original =', 'Original · integer'],
             ['Original equal', 'Original · integer'],
         ]) {
@@ -274,11 +272,9 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8'));
         for (const [site, expected] of [
             ['N =', 'N · c[#]<integer>'],
-            ["Mask' =", 'Mask · c[#]<boolean>'],
-            ["Mask' or=", 'Mask · c[#]<boolean>'],
+            ["Mask =", 'Mask · c[#]<boolean>'],
+            ["Mask or=", 'Mask · c[#]<boolean>'],
             ['Mask sum', 'Mask · c[#]<boolean>'],
-            ['Answer =', 'Answer · integer'],
-            ['return Answer', 'Answer · integer'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
             repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site) + (site.startsWith('return ') ? 7 : 0));

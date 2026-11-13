@@ -31,5 +31,4 @@ end
 
 Rev = Triangle reverse axis 0
 Best = Rev reduce pick rank 1 axis 0
-Answer = Best 0
-return Answer
+return Best 0

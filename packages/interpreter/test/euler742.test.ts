@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/742_convexgridpolygon.ra', import.meta.url), 'utf8');
 const missing = 4000000000000000001n;
 
@@ -30,7 +31,7 @@ function run(vertices: number, reach: number, width: number, compilation: boolea
         runtime.execute(source.replace('arg Vertices integer = 1000', `Vertices = ${vertices}`)
             .replace('arg Reach integer = 40', `Reach = ${reach}`)
             .replace('arg Width integer = 2400', `Width = ${width}`));
-        return runtime.variables.get('Answer');
+        return answerOf(runtime);
     } finally { runtime.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 742 (compiled=${compilation})`, () => {

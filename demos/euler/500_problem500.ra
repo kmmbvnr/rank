@@ -38,5 +38,4 @@ for Pw len greater 1
   Ph = Pw (0 till Hh)
   Pw = Ph * Pw (Hh till 2 * Hh) mod Md
 end
-Answer = Pw 0
-return Answer
+return Pw 0

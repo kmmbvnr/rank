@@ -8,8 +8,7 @@ use io
 
 Rows' = 1 to 100
 Large' = Rows large_choices rank 0
-Answer = Large sum
-return Answer
+return Large sum
 
 
 rem Build each row exactly from two seeded

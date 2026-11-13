@@ -17,8 +17,7 @@ Names = Text "\"" "" translate split ","
 rem Sort, then weight by position.
 Sums' = Names sort name_value rank 0
 Scores' = Sums * (1 to Names len)
-Answer = Scores sum
-return Answer
+return Scores sum
 
 rem Map A through Z to 1 through 26
 rem using Unicode code points.

@@ -90,5 +90,4 @@ for
   end
   S += Step
 end
-Answer = Found
-return Answer
+return Found

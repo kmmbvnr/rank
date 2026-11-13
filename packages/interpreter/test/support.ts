@@ -6,6 +6,7 @@ import {
     type RankInput,
     type RankIo,
 } from '../src/index.js';
+import type { RankValue } from '../src/value.js';
 
 export function run(source: string): string | undefined {
     const result = new Interpreter().execute(source);
@@ -137,4 +138,9 @@ class MemoryFile implements RankFileHandle {
 /** A demo's source without its closing `return`, for tests that append probes to it. */
 export function withoutReturn(source: string): string {
     return source.replace(/\nreturn (?:record\n(?:  \..*\n)*end|[^\n]*)\n*$/, '\n');
+}
+
+/** The `Answer` name of a program that keeps one, else what the program returned. */
+export function answerOf(runtime: Interpreter): RankValue | undefined {
+    return runtime.variables.get('Answer') ?? runtime.lastResult;
 }

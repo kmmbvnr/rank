@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/213_fleacircus.ra', import.meta.url), 'utf8');
 
@@ -18,7 +19,7 @@ describe.each([false, true])('Euler 213 (compilation=%s)', compilation => {
         const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${n}`, `--rings=${rings}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(answer);
+            expect(answerOf(runtime)).toBe(answer);
         } finally { runtime.dispose(); }
     });
 });

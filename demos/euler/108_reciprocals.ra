@@ -46,5 +46,4 @@ for P in Ps
   N = Big filter Keep array
   Cnt = Next filter Keep array
 end
-Answer = Best
-return Answer
+return Best

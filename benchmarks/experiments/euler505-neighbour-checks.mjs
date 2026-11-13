@@ -20,7 +20,7 @@ for(const [id,variant,inputs] of [
   let expected;
   for(const compilation of [false,true])for(const source of [base,candidate]){
    const r=new Interpreter(()=>{},{compilation,args:Object.entries(values).map(([k,v])=>`--${k.toLowerCase()}=${v}`)});
-   try{r.execute(source);const actual=r.variables.get('Answer');if(expected===undefined)expected=actual;else if(actual!==expected)throw Error(`${id} ${JSON.stringify(values)} ${actual} != ${expected}`);checks++;}finally{r.dispose()}
+   try{r.execute(source);const actual=(r.variables.get('Answer') ?? r.lastResult);if(expected===undefined)expected=actual;else if(actual!==expected)throw Error(`${id} ${JSON.stringify(values)} ${actual} != ${expected}`);checks++;}finally{r.dispose()}
   }
  }
 }

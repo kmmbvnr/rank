@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/374_partproduct.ra', import.meta.url), 'utf8');
 
@@ -32,7 +33,7 @@ it.each([false, true])('matches exact partition products through complete and pa
     try {
         for (let limit = 0; limit < expected.length; limit++) {
             runtime.execute(source.replace('arg Limit integer = 10 ** 14', `Limit = ${limit}`));
-            expect(runtime.variables.get('Answer'), `Limit=${limit}`).toBe(expected[limit]);
+            expect(answerOf(runtime), `Limit=${limit}`).toBe(expected[limit]);
         }
     } finally { runtime.dispose(); }
 });
@@ -41,7 +42,7 @@ it('computes the full partition-product golden in one numeric loop without array
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(334420941n);
+        expect(answerOf(runtime)).toBe(334420941n);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.typedArrayPublishedCells).toBe(0);

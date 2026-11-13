@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/410_circleandtangent.ra', import.meta.url), 'utf8');
 function solve(r: number, x: number, block: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--r=${r}`, `--x=${x}`, `--block=${block}`] });
     const diagnostics = new RuntimeDiagnostics();
-    try { diagnostics.run(() => runtime.execute(source)); return { answer: runtime.variables.get('Answer'), diagnostics }; }
+    try { diagnostics.run(() => runtime.execute(source)); return { answer: answerOf(runtime), diagnostics }; }
     finally { runtime.dispose(); }
 }
 // Independent trial division, without a segmented sieve or prime-power table.

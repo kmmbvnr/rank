@@ -65,5 +65,4 @@ for M in 2 to Count
   End = array (Store len)
   Off = concat Off End copy
 end
-Answer = Store unique len
-return Answer
+return Store unique len

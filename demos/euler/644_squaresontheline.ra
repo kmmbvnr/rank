@@ -238,5 +238,4 @@ if Roots len greater 0
   E = X / 2.0 * (E + Bc / (X - Rt))
   Best = Best max (E max)
 end
-Answer = Best text ".8f"
-return Answer
+return Best text ".8f"

@@ -183,5 +183,4 @@ for Step in 0 to Pairs - 1
     SumLow Range = Fresh mod Prime
   end
 end
-Answer = (1 + SumBig 1) mod Prime
-return Answer
+return (1 + SumBig 1) mod Prime

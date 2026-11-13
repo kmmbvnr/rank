@@ -129,8 +129,7 @@ array (1 observed) "bad" (2 observed)`)).toThrow();
     });
     it('runs the Euler 11 solution with separate directional products', () => {
         const r = runtime();
-        r.execute(readFileSync(new URL('../../../demos/euler/011_gridproduct.ra', import.meta.url), 'utf8'));
-        expect(r.execute('Answer')).toBe(70600674n);
+        expect(r.execute(readFileSync(new URL('../../../demos/euler/011_gridproduct.ra', import.meta.url), 'utf8'))).toBe(70600674n);
         expect(formatValue(r.execute('array H V D U')!)).toBe('48477312 51267216 40304286 70600674');
     });
 });

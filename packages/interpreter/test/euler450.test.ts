@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/450_hypocycloid.ra', import.meta.url), 'utf8');
 function gcd(a: bigint, b: bigint): bigint {
@@ -70,7 +71,7 @@ it.each([0, 1, 2, 3, 4, 9, 10, 24, 25, 26, 99, 100, 101, 624, 625, 626, 999, 100
                 expect(runtime.variables.get('Nontrivial')).toBe(expected.nontrivial);
                 expect(runtime.variables.get('Trivial')).toBe(expected.trivial);
                 expect(runtime.variables.get('Correction')).toBe(expected.correction);
-                expect(runtime.variables.get('Answer')).toBe(expected.answer);
+                expect(answerOf(runtime)).toBe(expected.answer);
             } finally { runtime.dispose(); }
         }
     });
@@ -96,7 +97,7 @@ it('preserves the full exact Euler 450 answer without Number replay', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(583333163984220940n);
+        expect(answerOf(runtime)).toBe(583333163984220940n);
         expect(runtime.variables.get('Triples')).toBe(632n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);

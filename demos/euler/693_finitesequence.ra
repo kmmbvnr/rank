@@ -157,5 +157,4 @@ for Go equal 1
     end
   end
 end
-Answer = Best
-return Answer
+return Best

@@ -280,5 +280,4 @@ for Y in 0 to N
     Nc = Ns
   end
 end
-Answer = Cv 0
-return Answer
+return Cv 0

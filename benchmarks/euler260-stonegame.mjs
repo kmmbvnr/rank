@@ -40,7 +40,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = { 0: 0, 1: 0, 2: 3, 3: 10, 5: 35, 10: 213, 15: 645, 100: 173895, 1000: 167542057 }[top];
     if (expected !== undefined) assert.equal(answer, String(expected));
     assert.deepEqual(output, [answer]);

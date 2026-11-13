@@ -12,4 +12,4 @@ for I in 1 to ${rounds}
   C = (concat A B) copy
   Answer += C len
 end`;
-const r=new Interpreter(()=>{}),diagnostics=new RuntimeDiagnostics();try{const start=performance.now();diagnostics.run(()=>r.execute(source));const ms=performance.now()-start;const answer=String(r.variables.get('Answer'));assert.equal(answer,String(2*size*rounds));console.log(JSON.stringify({size,rounds,answer,ms,diagnostics,rssMiB:process.resourceUsage().maxRSS/1024}));}finally{r.dispose()}
+const r=new Interpreter(()=>{}),diagnostics=new RuntimeDiagnostics();try{const start=performance.now();diagnostics.run(()=>r.execute(source));const ms=performance.now()-start;const answer=String((r.variables.get('Answer') ?? r.lastResult));assert.equal(answer,String(2*size*rounds));console.log(JSON.stringify({size,rounds,answer,ms,diagnostics,rssMiB:process.resourceUsage().maxRSS/1024}));}finally{r.dispose()}

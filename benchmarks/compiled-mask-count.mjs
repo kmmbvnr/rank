@@ -19,7 +19,7 @@ try {
         for (let value = 0; value < size; value++) counts[value % 7]++;
         for (let turn = 1; turn <= repeats; turn++) expected += counts[turn % 7];
     } else expected = BigInt(repeats * size / 10000);
-    assert.equal(runtime.variables.get('Answer'), expected);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
     console.log(JSON.stringify({ workload, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'), ms,
         rssMiB: process.resourceUsage().maxRSS / 1024, answer: String(expected), diagnostics }));

@@ -11,5 +11,4 @@ A = array shape 2 2
   1 -1
 end
 B = array 13 1
-Example = A linearSolve B
-Example print
+return A linearSolve B

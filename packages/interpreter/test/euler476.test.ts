@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/476_circlepacking_test.ra', import.meta.url);
 const source = readFileSync(new URL('476_circlepacking.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -22,7 +23,7 @@ function solve(n: number, options: InterpreterOptions) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] }), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        return { answer: r.variables.get('Answer'), count: r.variables.get('Count'), d };
+        return { answer: answerOf(r), count: r.variables.get('Count'), d };
     } finally { r.dispose(); }
 }
 it.each([2, 3, 4, 5, 6, 9, 10, 11, 25, 50, 51])('matches explicit Heron/all-corner triangles at N=%s', n => {

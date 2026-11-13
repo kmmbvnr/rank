@@ -23,7 +23,7 @@ if (process.argv[2] === '--worker') {
         if (diagnostics) diagnostics.run(() => runtime.execute(source));
         else runtime.execute(source);
         const ms = performance.now() - start;
-        const answer = workload === 'euler346' ? String(runtime.variables.get('Answer'))
+        const answer = workload === 'euler346' ? String((runtime.variables.get('Answer') ?? runtime.lastResult))
             : String(runtime.variables.get('Graph').outgoingEdges(0n).length);
         assert.equal(answer, workload === 'euler346' ? '336108797689259276' : '100000');
         console.log(JSON.stringify({ workload, variant: baseline ? 'baseline' : 'candidate', ms, answer, peakRssKiB: process.resourceUsage().maxRSS,

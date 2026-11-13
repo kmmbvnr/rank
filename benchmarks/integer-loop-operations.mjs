@@ -52,7 +52,7 @@ if (worker) {
         const start = performance.now();
         let result = diagnostic ? diagnostics.run(() => runtime.execute(source)) : runtime.execute(source);
         const ms = performance.now() - start;
-        if (demo) result = runtime.variables.get('Answer');
+        if (demo) result = (runtime.variables.get('Answer') ?? runtime.lastResult);
         assert.equal(result, entry[2]);
         console.log(JSON.stringify({ name: worker, ms, sourceSha256: createHash('sha256').update(source).digest('hex'), result: String(result), ...(diagnostic ? { diagnostics } : {}) }));
     } finally { runtime.dispose(); }

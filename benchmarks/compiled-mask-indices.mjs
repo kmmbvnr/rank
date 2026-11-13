@@ -22,7 +22,7 @@ try {
     } else {
         for (let value = 0; value < Number(limit); value += 10000) expected += 20n * BigInt(value);
     }
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     console.log(JSON.stringify({ workload, limit, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'), ms, rssMiB,

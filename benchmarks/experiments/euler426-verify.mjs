@@ -7,7 +7,7 @@ let checked=0;
 for(const mode of ['compiled','exact','reference']) for(const last of cases) {
  const expected=BigInt(perBallReference(last));
  const runtime=new Interpreter(()=>{},{compilation:mode!=='reference',...(mode==='exact'?{numberLoopCompilation:false}:{}),args:[`--last=${last}`]});
- try { runtime.execute(source); if(runtime.variables.get('Answer')!==expected)throw Error(`last=${last} ${mode}: ${runtime.variables.get('Answer')} != ${expected}`);checked++; }
+ try { runtime.execute(source); if((runtime.variables.get('Answer') ?? runtime.lastResult)!==expected)throw Error(`last=${last} ${mode}: ${(runtime.variables.get('Answer') ?? runtime.lastResult)} != ${expected}`);checked++; }
  finally {runtime.dispose();}
 }
 console.log(JSON.stringify({checked,cases,oracle:'one stack entry per ball',full:perBallReference(10000000)}));

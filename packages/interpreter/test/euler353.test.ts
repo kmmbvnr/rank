@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
 // @ts-expect-error The independent benchmark oracle is intentionally plain JavaScript.
 import { moonOracle, spherePoints } from '../../../benchmarks/lib/euler353-oracle.mjs';
+import { answerOf } from './support.js';
 
 const fullSource = readFileSync(new URL('../../../demos/euler/353_riskymoon.ra', import.meta.url), 'utf8');
 const source = fullSource.split('Sum = 0.0')[0];
@@ -73,7 +74,7 @@ describe('Euler 353 reduced geometric search', () => {
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(fullSource));
-            expect(runtime.variables.get('Answer')).toBe(1.2759860331);
+            expect(answerOf(runtime)).toBe(1.2759860331);
             expect(kernels.some(source => source.includes('input, cells, changes') && source.includes('Math.acos'))).toBe(true);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.fallbacks['loop:unstable-bindings:ForStatement']).toBeUndefined();

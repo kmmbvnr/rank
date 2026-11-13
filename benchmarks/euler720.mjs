@@ -29,7 +29,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[2, '3'], [3, '2295'], [5, '641839205'], [25, '688081048']]);
     if (expected.has(bits)) assert.equal(answer, expected.get(bits));
     console.log(JSON.stringify({ bits, answer, ms: performance.now() - start, maxRssMiB: process.resourceUsage().maxRSS / 1024,

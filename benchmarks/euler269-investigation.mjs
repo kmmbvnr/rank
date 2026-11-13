@@ -40,7 +40,7 @@ const runtime=new Interpreter(()=>{}, {compilation:mode==='compiled',onScalarFun
 const start=performance.now();
 try {
  diagnostics.run(()=>runtime.execute(source));
- const answer=String(runtime.variables.get('Answer'));
+ const answer=String((runtime.variables.get('Answer') ?? runtime.lastResult));
  if(k==='16') assert.equal(answer,'1311109198529286');
  if(k==='3') assert.equal(answer,'172');
  if(k==='5') assert.equal(answer,'14696');

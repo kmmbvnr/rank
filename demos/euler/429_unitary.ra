@@ -29,5 +29,4 @@ Exponents Small += Extra
 Powers = 2 * Exponents
 Values = Primes Powers Mod powmod
 Terms = Values + 1
-Answer = Terms reduce * with 1 mod Mod
-return Answer
+return Terms reduce * with 1 mod Mod

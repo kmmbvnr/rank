@@ -101,5 +101,4 @@ for Pool1 len greater 0
   Pool3 = concat Pool3 (RA filter FitA)
   Pool3 = concat Pool3 LegsB
 end
-Answer = (All + Diag) // 2
-return Answer
+return (All + Diag) // 2

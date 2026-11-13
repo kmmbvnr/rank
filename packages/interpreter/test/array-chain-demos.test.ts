@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 describe.each([false, true])('issue 402 eager array chains (compilation=%s)', compilation => {
     it.each([
@@ -13,7 +14,7 @@ describe.each([false, true])('issue 402 eager array chains (compilation=%s)', co
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n', '1000'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
         } finally { runtime.dispose(); }
     });
 });

@@ -56,7 +56,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     if (size in answers) assert.equal(answer, answers[size]);
     if (process.env.PROFILE) {
         const { profile } = await session.post('Profiler.stop');

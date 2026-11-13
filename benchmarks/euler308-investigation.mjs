@@ -15,7 +15,7 @@ const runtime=new Interpreter(()=>{},{compilation:mode==='compiled'}),diagnostic
 const start=performance.now(),cpu=process.cpuUsage();
 try{
  diagnostics.run(()=>runtime.execute(source));
- const elapsed=performance.now()-start,usage=process.cpuUsage(cpu),answer=String(runtime.variables.get('Answer'));
+ const elapsed=performance.now()-start,usage=process.cpuUsage(cpu),answer=String((runtime.variables.get('Answer') ?? runtime.lastResult));
  if(count==='10001')assert.equal(answer,'1539669807660924');
  console.log(JSON.stringify({mode,count:Number(count),variant,answer,ms:elapsed,cpuMs:(usage.user+usage.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,diagnostics}));
 }finally{runtime.dispose();}

@@ -134,5 +134,4 @@ for V in 1 to Sz - 1
 end
 Sr = (Bb reverse) scan max
 Sf = Sr reverse
-Answer = (Sf (1 to Nn + 1)) sum
-return Answer
+return (Sf (1 to Nn + 1)) sum

@@ -6,6 +6,7 @@ import type { TensorNode } from '../src/jit/tensor-ir.js';
 import { completed } from '../src/execution.js';
 import { isRankPlan } from '../src/plan.js';
 import { withDemandBudget, DemandBudgetExhausted } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function observe(body: string, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation });
@@ -14,7 +15,7 @@ function observe(body: string, compilation: boolean) {
     try {
         try { diagnostics.run(() => runtime.execute('use sequences\nuse numbers\n' + body)); }
         catch (cause) { error = cause instanceof RankError ? cause.format() : String(cause); }
-        const value = runtime.variables.get('Answer');
+        const value = answerOf(runtime);
         return { answer: value === undefined ? undefined : formatValue(value), error,
             plans: [...runtime.variables].filter(([, value]) => isRankPlan(value)).map(([name]) => name), diagnostics };
     } finally { runtime.dispose(); }
@@ -113,7 +114,7 @@ Answer = Values filter Mask`, true);
             expect(demand()).toBe(100040000n);
             runtime.execute('Answer = 7');
             expect(() => withDemandBudget(100, demand)).toThrow(DemandBudgetExhausted);
-            expect(runtime.variables.get('Answer')).toBe(7n);
+            expect(answerOf(runtime)).toBe(7n);
             expect(demand()).toBe(100040000n);
         } finally { runtime.dispose(); }
     });

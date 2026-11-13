@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/749_nearpowersums.ra', import.meta.url), 'utf8');
 // Enumerate numbers directly, independently of digit-count vectors/signatures.
 function direct(length: number): bigint {
@@ -21,14 +22,14 @@ for (const compilation of [false, true]) describe(`Euler 749, compilation=${comp
         const r = new Interpreter(() => {}, { compilation });
         try {
             r.execute(source.replace('arg Length integer = 16', `Length = ${length}`));
-            expect(r.variables.get('Answer')).toBe(expected);
+            expect(answerOf(r)).toBe(expected);
         } finally { r.dispose(); }
     });
     it('retains the six-digit statement example', () => {
         const r = new Interpreter(() => {}, { compilation });
         try {
             r.execute(source.replace('arg Length integer = 16', 'Length = 6'));
-            expect(r.variables.get('Answer')).toBe(2562701n);
+            expect(answerOf(r)).toBe(2562701n);
         } finally { r.dispose(); }
     });
 });

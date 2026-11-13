@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/412_gnomonnumbering.ra', import.meta.url), 'utf8');
 function solve(m: number, k: number, compilation: boolean, chunk = 4000000) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--m=${m}`, `--k=${k}`, `--chunk=${chunk}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 

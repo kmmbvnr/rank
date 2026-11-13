@@ -146,5 +146,4 @@ fun Bound count_divisors Target
   Position = Residue unit_positions Mod
   return Values Position mod CountMod
 end
-Answer = N count_divisors D
-return Answer
+return N count_divisors D

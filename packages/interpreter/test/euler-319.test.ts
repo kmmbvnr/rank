@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/319_bounded.ra', import.meta.url), 'utf8');
 const mod = 1_000_000_000n;
@@ -9,7 +10,7 @@ it('retains the full compiled Euler 319 answer', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(268457129n);
+        expect(answerOf(runtime)).toBe(268457129n);
     } finally { runtime.dispose(); }
 });
 
@@ -51,7 +52,7 @@ for (const compilation of [false, true]) describe(`Euler 319 bottom-up cache (co
         runtime.variables.set('Limit', BigInt(limit));
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected.answer);
+            expect(answerOf(runtime)).toBe(expected.answer);
             // Only floor(N / d) values are needed by this program's cache.
             const quotients = new Set(Array.from({ length: n }, (_, i) => Math.floor(n / (i + 1))));
             for (const x of quotients) expect(runtime.execute(`${x} mertens`)).toBe(expected.mertens[x]);

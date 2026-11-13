@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import type { RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/461_almostpi.ra', import.meta.url), 'utf8');
 const scale = 10n ** 60n;
 function atanInverse(base: bigint) {
@@ -39,7 +40,7 @@ function solve(n: number, options: object = {}, chunk = 262144) {
     try {
         diagnostics.run(() => runtime.execute(source));
         const winning = runtime.variables.get('Winning') as RankArray;
-        return { answer: runtime.variables.get('Answer'), winning: Array.from(winning.items), diagnostics };
+        return { answer: answerOf(runtime), winning: Array.from(winning.items), diagnostics };
     } finally { runtime.dispose(); }
 }
 it.each([1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20])('matches exhaustive 60-digit search at N=%s on every backend', n => {

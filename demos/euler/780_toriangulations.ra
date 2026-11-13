@@ -214,5 +214,4 @@ Cval = Dx 0 + 2 * Csum
 Dm = (array Half) dvec 0
 Ab = 4 * (Aval - Bval)
 Whole = 2 * (Dm 0) + Ab - 4 * Cval
-Answer = Whole mod Mod
-return Answer
+return Whole mod Mod

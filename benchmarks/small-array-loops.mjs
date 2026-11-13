@@ -80,7 +80,7 @@ if (process.argv.includes('--worker')) {
         const start = performance.now();
         runtime.execute(source);
         const executeMs = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), expected);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
         console.log(JSON.stringify({ executeMs, maxRSSMiB: process.resourceUsage().maxRSS / 1024 }));
     } finally { runtime.dispose(); }
 } else {

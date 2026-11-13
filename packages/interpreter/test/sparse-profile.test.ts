@@ -5,6 +5,7 @@ import { IntegerEntries } from '../src/integer-entries.js';
 import { compiledEntryArgumentType } from '../src/compiled-argument-type.js';
 import { protectValue } from '../src/value-protection.js';
 import { Interpreter, RuntimeDiagnostics, RankError, formatValue, type RankValue } from '../src/index.js';
+import { answerOf } from './support.js';
 
 function execute(source: string, compilation = true) {
     const diagnostics = new RuntimeDiagnostics();
@@ -15,7 +16,7 @@ function execute(source: string, compilation = true) {
         try { value = diagnostics.run(() => runtime.execute(source)); }
         catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
         const index = runtime.variables.get('Cache');
-        return { diagnostics, calls, error, value: value === undefined ? undefined : formatValue(value), answer: runtime.variables.get('Answer'),
+        return { diagnostics, calls, error, value: value === undefined ? undefined : formatValue(value), answer: answerOf(runtime),
             entries: index && typeof index === 'object' && index.kind === 'index' ? [...index.entries] : undefined };
     } finally { runtime.dispose(); }
 }
@@ -60,7 +61,7 @@ end`);
                     return function* () { yield 1.5; };
                 } });
                 diagnostics.run(() => runtime.execute('for X in Seen\n Answer += X\nend'));
-                expect(runtime.variables.get('Answer')).toBe(1.5);
+                expect(answerOf(runtime)).toBe(1.5);
                 expect(reads).toBe(2);
                 expect(diagnostics.compiledLoops).toBe(0);
             } finally { runtime.dispose(); }

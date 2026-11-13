@@ -6,8 +6,7 @@ rem a prime plus twice a square
 use sequences
 use io
 
-Answer = 9 goldbach_counterexample
-return Answer
+return 9 goldbach_counterexample
 
 
 rem Visit odd composites until one has no

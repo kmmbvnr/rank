@@ -33,7 +33,7 @@ try {
     if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start, rssMiB = process.resourceUsage().maxRSS / 1024;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (fixture) { assert.equal(runtime.testResults.length, 3); assert(runtime.testResults.every(t => t.passed)); }
     else {
         const golden = { 120: '10', 200000: '100967', 1000000: '509763', 100000000: '52374425' }[limit];

@@ -85,7 +85,7 @@ try {
         memory={arrays,beforeGC,afterGC:process.memoryUsage()};
     }
     console.log(JSON.stringify({id,scale,mode,controls,args,ms,
-        answer:String(runtime.variables.get('Answer')),scalarCalls,rssMiB:process.resourceUsage().maxRSS/1024,
+        answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),scalarCalls,rssMiB:process.resourceUsage().maxRSS/1024,
         ...(process.env.DIAGNOSTICS?{diagnostics}:{}),...(memory?{memory}:{})}));
     if(session){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
 }finally{session?.disconnect();runtime.dispose();}

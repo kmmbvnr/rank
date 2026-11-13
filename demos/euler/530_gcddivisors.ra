@@ -103,5 +103,4 @@ fun Limit solve
   FinalState = Work advance repeat Steps
   return FinalState 1
 end
-Answer = N solve
-return Answer
+return N solve

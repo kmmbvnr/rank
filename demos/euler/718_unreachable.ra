@@ -64,5 +64,4 @@ GapSum = Mixed mod Prime
 Pairs = Total * (Total - 1) mod Prime
 Triangle = Pairs * Half
 Sum = Triangle + Total * Genus + GapSum
-Answer = Sum mod Prime
-return Answer
+return Sum mod Prime

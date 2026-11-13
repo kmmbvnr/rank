@@ -1,13 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, formatValue } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/408_admissiblepaths.ra', import.meta.url), 'utf8');
 function solve(limit: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${limit}`] }), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        return { answer: runtime.variables.get('Answer'), count: runtime.variables.get('Count'),
+        return { answer: answerOf(runtime), count: runtime.variables.get('Count'),
             x: formatValue(runtime.variables.get('X')!), y: formatValue(runtime.variables.get('Y')!), diagnostics };
     } finally { runtime.dispose(); }
 }

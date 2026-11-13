@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL(
     '../../../demos/euler/696_mahjong.ra',
@@ -25,7 +26,7 @@ it.each([
                     `arg Ss integer = ${s}`)
                 .replace('arg Tt integer = 30',
                     `arg Tt integer = ${t}`));
-            expect(runtime.variables.get('Answer'))
+            expect(answerOf(runtime))
                 .toBe(answer);
         } finally {
             runtime.dispose();

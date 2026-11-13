@@ -107,5 +107,4 @@ for Vee in 0 to Depth
   Hi += (Term // 1073741824) sum
   Lo += (Term mod 1073741824) sum
 end
-Answer = Hi * 1073741824 + Lo
-return Answer
+return Hi * 1073741824 + Lo

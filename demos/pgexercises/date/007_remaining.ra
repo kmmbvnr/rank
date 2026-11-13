@@ -7,5 +7,4 @@ use io
 Moment = "2012-02-11 01:00:00" datetime
 Today = Moment date datetime
 Next = Moment nextmonth
-Remaining = Next - Today
-Remaining print
+return Next - Today

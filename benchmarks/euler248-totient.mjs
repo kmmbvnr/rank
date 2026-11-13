@@ -39,9 +39,9 @@ try {
         if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(text));
         else runtime.execute(text);
         if (fixture) { assert(runtime.testResults.length > 0); assert(runtime.testResults.every(t => t.passed)); }
-        else assert.equal(runtime.variables.get('Answer'), 23507044290n);
+        else assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 23507044290n);
         console.log(JSON.stringify({ reference, fixture, ms: performance.now() - start,
-            rssMiB: process.resourceUsage().maxRSS / 1024, answer: fixture ? undefined : String(runtime.variables.get('Answer')),
+            rssMiB: process.resourceUsage().maxRSS / 1024, answer: fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult)),
             ...(process.argv.includes('--diag') ? { diagnostics, scalarCalls } : {}) }));
     }
 } finally { runtime.dispose(); }

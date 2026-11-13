@@ -50,5 +50,4 @@ fun K X P A B search
   W = Kj S X (Mk - Bb) (Mk - A) search
   return V min (Mk - W)
 end
-Answer = 1 1 0 0 Mk search
-return Answer
+return 1 1 0 0 Mk search

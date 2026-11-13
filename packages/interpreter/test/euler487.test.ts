@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect,it } from 'vitest';
 import { Interpreter,type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture=new URL('../../../demos/euler/487_sumsofpowersums_test.ra',import.meta.url);
 const source=readFileSync(new URL('487_sumsofpowersums.ra',fixture),'utf8');
 const backends:InterpreterOptions[]=[{}, {compilation:false}, {numberLoopCompilation:false}];
@@ -24,7 +25,7 @@ it.each([
 ])('matches direct weighted powers: K=%s N=%s Lo=%s Wd=%s',(k,n,low,width)=>{
     for(const options of backends) {
         const r=new Interpreter(()=>{}, {...options,args:[`--k=${k}`,`--n=${n}`,`--lo=${low}`,`--wd=${width}`]});
-        try {r.execute(source);expect(r.variables.get('Answer')).toBe(brute(k,n,low,width));}
+        try {r.execute(source);expect(answerOf(r)).toBe(brute(k,n,low,width));}
         finally {r.dispose();}
     }
 });
@@ -39,12 +40,12 @@ it.each(backends)('retains the fixture and exact large-N closed forms with %j',o
         const total=k===0?n*(n+1n)/2n:n*(n+1n)*(n+2n)/6n;
         const expected=primes(2,45).reduce((a,p)=>a+total%BigInt(p),0n);
         const runtime=new Interpreter(()=>{}, {...options,args:[`--k=${k}`,`--n=${n}`,'--lo=2','--wd=45']});
-        try {runtime.execute(source);expect(runtime.variables.get('Answer')).toBe(expected);}
+        try {runtime.execute(source);expect(answerOf(runtime)).toBe(expected);}
         finally {runtime.dispose();}
     }
 });
 it('matches the full exact native oracle',()=>{
     const r=new Interpreter(()=>{});
-    try {r.execute(source);expect(r.variables.get('Answer')).toBe(106650212746n);}
+    try {r.execute(source);expect(answerOf(r)).toBe(106650212746n);}
     finally {r.dispose();}
 },120000);

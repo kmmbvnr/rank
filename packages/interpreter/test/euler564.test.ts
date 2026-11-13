@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/564_maximalpolygons.ra', import.meta.url), 'utf8');
 const { compositions, partitions } = await import(new URL('../../../benchmarks/euler564-oracle.mjs', import.meta.url).href);
 const small = Array.from({ length: 8 }, (_, i) => compositions(i + 3));
@@ -12,7 +13,7 @@ function run(k: number, options: InterpreterOptions = {}) {
         r.execute(source);
         const means = r.variables.get('Means');
         if (!means || !isRankArray(means)) throw Error('expected mean vector');
-        return { answer: r.variables.get('Answer'), total: r.variables.get('Total') as number,
+        return { answer: answerOf(r), total: r.variables.get('Total') as number,
             means: Array.from({ length: means.shape[0] }, (_, i) => readArrayItem(means, i) as number) };
     } finally { r.dispose(); }
 }
@@ -48,7 +49,7 @@ it('executes fused real arc helpers and stored-key reductions', () => {
     const r = new Interpreter(() => {}, { args: ['--k=10'] }), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(66.955511);
+        expect(answerOf(r)).toBe(66.955511);
         expect(d.compiledArrayFunctions).toBeGreaterThan(0);
         expect(d.realKeyedFolds).toBeGreaterThan(0);
     } finally { r.dispose(); }

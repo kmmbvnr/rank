@@ -109,5 +109,4 @@ fun start
   return N solve
 end
 
-Answer = start
-Answer print
+return start

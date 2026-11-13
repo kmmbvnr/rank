@@ -154,5 +154,4 @@ Fl = Lo2 at most Lm choose Sw (Lw Qn)
 Dq = (Fx - Fl) mod Mod
 Aq = At Qq
 P2 = Aq * Aq mod Mod * Dq mod Mod sum
-Answer = (P1 + P2) mod Mod
-return Answer
+return (P1 + P2) mod Mod

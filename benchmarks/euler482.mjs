@@ -27,7 +27,7 @@ try {
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const triples = runtime.variables.get('Triples'), windows = runtime.variables.get('Windows');
     const radii = triples && isRankTuple(triples) ? triples.items[0] : undefined;
     const prefix = windows && isRankTuple(windows) ? windows.items[3] : runtime.variables.get('Cs');

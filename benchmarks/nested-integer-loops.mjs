@@ -28,7 +28,7 @@ if (option('worker')) {
     try {
         const run = () => runtime.execute(source);
         if (diagnostics) diagnostics.run(run); else run();
-        const executeMs = performance.now() - start, answer = runtime.variables.get('Answer');
+        const executeMs = performance.now() - start, answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         if (name === 'sieve') {
             const top = Math.floor(Math.sqrt(Math.floor(limit / 3))), expected = new Int32Array(top + 1);
             expected[1] = 1;

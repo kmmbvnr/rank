@@ -26,5 +26,4 @@ for X in 1 to Top
   V0 = array X 0 X
   Tot += (Rm matmul V0) 2
 end
-Answer = Tot mod Mod
-return Answer
+return Tot mod Mod

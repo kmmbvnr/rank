@@ -12,7 +12,7 @@ const start = performance.now();
 try {
     if (process.env.DIAGNOSTICS) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (+n === 18) assert.equal(answer, '20444710234716473');
     if (+n === 6) assert.equal(answer, '27955');
     if (+n === 3) assert.equal(answer, '33');

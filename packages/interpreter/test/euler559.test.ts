@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/559_permutedmatrices.ra', import.meta.url), 'utf8');
 const { solve: oracle } = await import(new URL('../../../benchmarks/euler559-oracle.mjs', import.meta.url).href);
 function solve(n: number, options: InterpreterOptions, text = source) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { r.execute(text); return r.variables.get('Answer'); }
+    try { r.execute(text); return answerOf(r); }
     finally { r.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 559 %j', options => {

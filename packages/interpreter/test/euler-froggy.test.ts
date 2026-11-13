@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/416_froggy.ra', import.meta.url), 'utf8');
 // Enumerate routes independently of the matrix recurrence, then union each
@@ -28,7 +29,7 @@ function oracle(m: number, n: number) {
 }
 function run(m: number, n: number | bigint, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--m=${m}`, `--n=${n}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([false, true])('Euler 416, compilation=%s', compilation => {

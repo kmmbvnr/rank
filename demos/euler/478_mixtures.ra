@@ -119,5 +119,4 @@ Excluded = 1 + HalfPower * Rays - Total
 Bad = Excluded mod Modulus
 Residue = Primitive mod Period
 Leading = 2 Residue Modulus powmod
-Answer = (Leading - Bad) mod Modulus
-return Answer
+return (Leading - Bad) mod Modulus

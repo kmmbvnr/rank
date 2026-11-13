@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, parse } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/337_totientstairs.ra', import.meta.url), 'utf8');
 const program = parse(source);
@@ -60,8 +61,7 @@ it('solves the default input in one private numeric region with compact storage'
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.executeProgram(program, []));
-        expect(output.at(-1)).toBe('85068035');
-        expect(runtime.variables.get('Answer')).toBe(85068035n);
+        expect(answerOf(runtime)).toBe(85068035n);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.cowCopies).toBe(0);

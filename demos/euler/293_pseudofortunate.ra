@@ -45,5 +45,4 @@ for I in 0 till Count
     end
   end
 end
-Answer = Fort unique sum
-return Answer
+return Fort unique sum

@@ -27,7 +27,7 @@ if (options.worker && options.program === 'oracle') {
         const start = performance.now();
         runtime.execute(source);
         const ms = performance.now() - start;
-        const result = runtime.variables.get('Answer');
+        const result = (runtime.variables.get('Answer') ?? runtime.lastResult);
         const expected = { 5: 1.1091333145, 8: 1.220942742, 9: 1.2388476315, 15: 1.2759860331 }[last];
         if (expected !== undefined) assert.equal(result, expected);
         assert.equal(typeof result, 'number');

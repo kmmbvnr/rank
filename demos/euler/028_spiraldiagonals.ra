@@ -7,8 +7,7 @@ use cli
 
 arg Size integer = 1001
 
-Answer = Size spiral_diagonal_sum
-return Answer
+return Size spiral_diagonal_sum
 
 
 rem Add the four corners of every concentric

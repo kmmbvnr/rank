@@ -147,5 +147,4 @@ Twice = 2 * Mod
 Left = N mod Twice
 Right = (N + 1) mod Twice
 Triangle = Left * Right // 2
-Answer = (Total - Triangle) mod Mod
-return Answer
+return (Total - Triangle) mod Mod

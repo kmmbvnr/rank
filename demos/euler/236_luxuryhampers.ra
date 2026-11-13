@@ -132,5 +132,4 @@ for A in 1 to Top
   end
 end
 Pair = array Bu Bv
-Answer = Pair join "/"
-return Answer
+return Pair join "/"

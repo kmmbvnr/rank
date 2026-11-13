@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/320_factorials.ra', import.meta.url), 'utf8');
 const helpers = withoutReturn(source.slice(source.indexOf('fun P Target Prev minimum')));
@@ -67,7 +67,7 @@ for (const mode of ['reference', 'compiled', 'exact'] as const) describe(`Euler 
         try {
             runtime.variables.set('Upper', BigInt(upper));
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected.get(upper));
+            expect(answerOf(runtime)).toBe(expected.get(upper));
         } finally { runtime.dispose(); }
     });
     it('retains the statement checkpoint', () => {
@@ -75,7 +75,7 @@ for (const mode of ['reference', 'compiled', 'exact'] as const) describe(`Euler 
         try {
             runtime.variables.set('Upper', 1000n);
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(614538266565663n);
+            expect(answerOf(runtime)).toBe(614538266565663n);
         } finally { runtime.dispose(); }
     });
 });
@@ -84,7 +84,7 @@ it('retains the full compiled Euler 320 answer', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(278157919195482643n);
+        expect(answerOf(runtime)).toBe(278157919195482643n);
         expect(runtime.variables.get('Best')).toBe(1234559248024796n);
     } finally { runtime.dispose(); }
 });

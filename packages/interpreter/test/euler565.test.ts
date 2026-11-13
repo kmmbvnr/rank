@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/565_divisibilityofsigma.ra', import.meta.url), 'utf8');
 const sigma = new Float64Array(1000001);
 for (let divisor = 1; divisor < sigma.length; divisor++)
@@ -13,7 +14,7 @@ const expected = bounds.map(bound => {
 });
 function run(n: number, options: InterpreterOptions) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { r.execute(source); return r.variables.get('Answer'); }
+    try { r.execute(source); return answerOf(r); }
     finally { r.dispose(); }
 }
 for (const options of [{}, { compilation: false }, { numberLoopCompilation: false }]) describe(`Euler 565 ${JSON.stringify(options)}`, () => {

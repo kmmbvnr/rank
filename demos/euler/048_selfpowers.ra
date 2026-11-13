@@ -10,8 +10,7 @@ use cli
 arg Limit integer = 1000
 arg Digits integer = 10
 
-Answer = Limit self_power_tail Digits
-return Answer
+return Limit self_power_tail Digits
 
 
 rem Reduce every power modulo the requested

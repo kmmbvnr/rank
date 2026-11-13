@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/407_idempotents.ra', import.meta.url), 'utf8');
 function solve(limit: number, compilation: boolean) {
@@ -8,7 +9,7 @@ function solve(limit: number, compilation: boolean) {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        return { answer: runtime.variables.get('Answer'), diagnostics };
+        return { answer: answerOf(runtime), diagnostics };
     } finally { runtime.dispose(); }
 }
 function enumerate(limit: number) {

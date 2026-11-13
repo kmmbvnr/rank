@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/489_commonfactors_test.ra', import.meta.url);
 const source = readFileSync(new URL('489_commonfactors.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -53,12 +54,12 @@ it.each(backends)('retains the statement fixture and empty parameter grids with 
     finally { r.dispose(); }
     for (const [a, b] of [[0, 0], [0, 3], [3, 0], [-1, 3], [3, -1], [-1, -2]]) {
         const host = new Interpreter(() => {}, { ...options, args: [`--ma=${a}`, `--nb=${b}`] });
-        try { host.execute(source); expect(host.variables.get('Answer')).toBe(0n); }
+        try { host.execute(source); expect(answerOf(host)).toBe(0n); }
         finally { host.dispose(); }
     }
 });
 it('matches the full default exact oracle', () => {
     const r = new Interpreter();
-    try { r.execute(source); expect(r.variables.get('Answer')).toBe(1791954757162n); }
+    try { r.execute(source); expect(answerOf(r)).toBe(1791954757162n); }
     finally { r.dispose(); }
 }, 120000);

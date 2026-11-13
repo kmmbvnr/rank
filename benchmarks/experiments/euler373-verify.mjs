@@ -21,10 +21,10 @@ for(const variant of ['original','pairs','formula'])for(const compilation of [tr
         runtime.execute('use "e373"');
         for(let n=0;n<=limit;n++) {
             runtime.execute(`Limit = ${n}\nrun`);
-            assert.equal(runtime.variables.get('Answer'),prefix[n],`${variant}/${compilation}/${n}`);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult),prefix[n],`${variant}/${compilation}/${n}`);
         }
         runtime.execute('Limit = 1200\nrun');
-        assert.equal(runtime.variables.get('Answer'),1653605n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult),1653605n);
         console.log(JSON.stringify({variant,compilation,whole:limit+1,fixture:true,oracle:'exhaustive integer side triples'}));
     }finally{runtime.dispose();}
 }

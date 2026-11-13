@@ -14,7 +14,7 @@ for(const[name,body]of Object.entries(cases)){
   const r=new Interpreter(()=>{},{compilation,onScalarFunctionExecuted:()=>calls++});
   try{
    d.run(()=>r.execute('use numbers\nuse sequences\n'+body));
-   const answer=String(r.variables.get('Answer'));
+   const answer=String((r.variables.get('Answer') ?? r.lastResult));
    if(!compilation)expected=answer;else assert.equal(answer,expected);
    console.log(JSON.stringify({name,compilation,answer,calls,rejections:d.compilerRejections,fallbacks:d.fallbacks}));
   }finally{r.dispose();}

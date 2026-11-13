@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/023_abundantsums.ra', import.meta.url), 'utf8');
 function oracle(limit: number) {
@@ -22,7 +23,7 @@ for (const compilation of [false, true]) describe(`Euler 23 (${compilation})`, (
     it('matches direct divisor/pair search for every limit 0 through 80', () => {
         for (let limit = 0; limit <= 80; limit++) {
             const r = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
-            try { r.execute(source); expect(r.variables.get('Answer')).toBe(oracle(limit)); }
+            try { r.execute(source); expect(answerOf(r)).toBe(oracle(limit)); }
             finally { r.dispose(); }
         }
     });
@@ -31,7 +32,7 @@ for (const compilation of [false, true]) describe(`Euler 23 (${compilation})`, (
         const words = [0, 0, 0];
         const signal: InterruptSignal = { length: 3, load: i => words[i], store: (i, v) => { words[i] = v; },
             exchange(i, v) { const old = words[i]; words[i] = v; return old; }, wait() { throw Error('unexpected pause'); } };
-        try { withInterrupt(signal, () => r.execute(source), () => {}); expect(r.variables.get('Answer')).toBe(4179871n); }
+        try { withInterrupt(signal, () => r.execute(source), () => {}); expect(answerOf(r)).toBe(4179871n); }
         finally { r.dispose(); }
     });
 });

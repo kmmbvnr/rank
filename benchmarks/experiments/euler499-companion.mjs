@@ -22,5 +22,5 @@ try{
  r.execute(source.slice(0,source.indexOf('X = array shape D D fill 0.0')));
  r.variables.set('X',typedArray(power(companion(last),size),[size,size]));
  r.execute(source.slice(source.indexOf('rem Lowest layer:')));
- console.log(JSON.stringify({ticket,capital,answer:String(r.variables.get('Answer')),steps,best,fixedMs,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024}));
+ console.log(JSON.stringify({ticket,capital,answer:String((r.variables.get('Answer') ?? r.lastResult)),steps,best,fixedMs,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024}));
 }finally{r.dispose();}

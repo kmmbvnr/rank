@@ -11,8 +11,7 @@ use cli
 
 arg Limit integer = 1000000
 
-Answer = Limit double_palindrome_sum
-return Answer
+return Limit double_palindrome_sum
 
 
 rem Even positive values end in binary zero,

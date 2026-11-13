@@ -57,5 +57,4 @@ Bd = Sl reduce * with 1 mod P
 Den = An * Bn mod P * Bn mod P
 Num = Ad * Bd mod P * Bd mod P
 Inv = Den (P - 2) P powmod
-Answer = Fact * Num mod P * Inv mod P
-return Answer
+return Fact * Num mod P * Inv mod P

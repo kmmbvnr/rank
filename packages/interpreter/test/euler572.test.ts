@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/572_idempotentmatrices.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler572-original.ra', import.meta.url), 'utf8');
 // Enumerate matrices directly, independently of the p w^T decomposition.
@@ -22,7 +23,7 @@ function oracle(bound: number): bigint {
 }
 function run(n: number, options: InterpreterOptions = {}, text = source) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { r.execute(text); return r.variables.get('Answer'); } finally { r.dispose(); }
+    try { r.execute(text); return answerOf(r); } finally { r.dispose(); }
 }
 const expected = new Map([0, 1, 2].map(n => [n, oracle(n)]));
 for (const n of [3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20]) expected.set(n, run(n, {}, original) as bigint);

@@ -25,7 +25,7 @@ if (options.worker) {
     const runtime = new Interpreter(() => {}, options.worker === 'exact' ? { numberLoopCompilation: false } : {});
     try {
         runtime.execute(source);
-        assert.equal(String(runtime.variables.get('Answer')), expected);
+        assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), expected);
         console.log(JSON.stringify({ milliseconds: performance.now() - start, answer: expected,
             sourceHash: createHash('sha256').update(source).digest('hex') }));
     } finally { runtime.dispose(); }

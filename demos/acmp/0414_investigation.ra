@@ -47,5 +47,4 @@ for not (Visited LCA)
   LCA = Parents LCA
 end
 
-Answer = LCA
-return Answer
+return LCA

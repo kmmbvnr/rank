@@ -8,8 +8,7 @@ use cli
 arg Limit integer = 20
 
 Range' = 1 to Limit
-Answer = Range reduce lcm with 1
-return Answer
+return Range reduce lcm with 1
 
 fun A lcm B
   return A // (A gcd B) * B

@@ -91,5 +91,4 @@ fun Low subtotal
 end
 Starts = 0 till (Flaps len) by Width
 Totals = Starts subtotal rank 0
-Answer = Totals sum
-return Answer
+return Totals sum

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/351_orchards.ra', import.meta.url), 'utf8');
 const helpers = source.slice(0, source.indexOf('\nAnswer ='));
@@ -37,7 +38,7 @@ for (const compilation of [false, true]) {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(11762187201804552n);
+            expect(answerOf(runtime)).toBe(11762187201804552n);
         } finally { runtime.dispose(); }
     }, 45_000);
 }

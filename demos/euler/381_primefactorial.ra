@@ -13,5 +13,4 @@ Ps = primes from 5 till Limit array
 K' = 8 - Ps mod 8
 Inv' = (K * Ps + 1) // 8
 Terms' = (Ps - 3 * Inv) mod Ps
-Answer = Terms sum
-return Answer
+return Terms sum

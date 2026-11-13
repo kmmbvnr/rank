@@ -13,8 +13,7 @@ rem Builtin: `use sequences`
 rem `fibonacci to Limit`.
 Fib = fibs to Limit
 Mask = Fib even
-Answer = Fib Mask sum
-return Answer
+return Fib Mask sum
 
 
 fun fibs

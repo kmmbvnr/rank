@@ -139,5 +139,4 @@ fun N solve Limit
   return 92160 * Total mod Mod
 end
 
-Answer = N solve L
-return Answer
+return N solve L

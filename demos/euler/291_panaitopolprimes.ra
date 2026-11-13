@@ -70,5 +70,4 @@ for Lo in Small + 1 to Top by Blk
   end
   Count += Sv equal 0 count
 end
-Answer = Count
-return Answer
+return Count

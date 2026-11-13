@@ -6,7 +6,7 @@ const variants=['original','native','symmetry','vector','hybrid','lazy','eager',
 for(const variant of variants){
  const source=readFileSync(variant==='original'?'demos/euler/299_threesimilar.ra':`benchmarks/experiments/euler299-${variant}.ra`,'utf8');
  for(const compilation of [false,true])for(let n=1;n<=100;n++){
-  const r=new Interpreter(()=>{},{compilation});try{r.execute(source.replace('arg Limit integer = 100000000',`arg Limit integer = ${n}`));const answer=Number(r.variables.get('Answer'));assert.equal(answer,oracle.answers[n],JSON.stringify({variant,compilation,n,answer}));}finally{r.dispose();}
+  const r=new Interpreter(()=>{},{compilation});try{r.execute(source.replace('arg Limit integer = 100000000',`arg Limit integer = ${n}`));const answer=Number((r.variables.get('Answer') ?? r.lastResult));assert.equal(answer,oracle.answers[n],JSON.stringify({variant,compilation,n,answer}));}finally{r.dispose();}
  }
  checks.push({variant,limits:'1..100',modes:['reference','compiled'],checks:200});
 }

@@ -37,7 +37,7 @@ try {
         const start = performance.now();
         diagnostics.run(() => runtime.executeProgram(program));
         const ms = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), expected);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
         samples.push({ ms, compiledLoops: diagnostics.compiledLoops, numberLoops: diagnostics.numberLoops,
             fallbacks: diagnostics.fallbacks });
     }

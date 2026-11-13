@@ -51,7 +51,7 @@ for (const [name, checkout] of Object.entries(versions)) {
                 const start = performance.now();
                 withInterrupt(signal, () => runtime.execute(source), mode === 'turbo' ? () => { throw Error('Unexpected pause'); } : undefined);
                 results[mode].push(performance.now() - start);
-                assert.equal(runtime.variables.get('Answer'), 837799n);
+                assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 837799n);
                 if (mode === 'turbo') assert(switched);
             } finally { runtime.dispose(); }
         }

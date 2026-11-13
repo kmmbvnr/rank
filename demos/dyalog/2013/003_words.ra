@@ -9,5 +9,4 @@ fun Text wordCount
   return Lengths greater 0 count
 end
 
-Example = "Testing one, two, three" wordCount
-Example print
+return "Testing one, two, three" wordCount

@@ -21,7 +21,7 @@ end` : readFileSync(new URL(path, import.meta.url), 'utf8');
         const run = () => r.execute(source), start = performance.now();
         const execute = () => polling ? withInterrupt(new Int32Array(1), run) : run();
         if (process.env.DIAGNOSTICS) d.run(execute); else execute();
-        const ms = performance.now() - start, answer = String(r.variables.get('Answer'));
+        const ms = performance.now() - start, answer = String((r.variables.get('Answer') ?? r.lastResult));
         assert.equal(answer, expected[id]); assertPatched();
         console.log(JSON.stringify({id, polling, control, answer, ms, rssMiB: process.resourceUsage().maxRSS/1024,
             ...(process.env.DIAGNOSTICS ? {diagnostics: d} : {})}));

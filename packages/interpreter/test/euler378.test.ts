@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {Interpreter} from '../src/index.js';
+import { answerOf } from './support.js';
 const source=readFileSync(new URL('../../../demos/euler/378_triangles.ra',import.meta.url),'utf8');
 
 function oracle(n: number): bigint {
@@ -14,13 +15,13 @@ describe.each([true,false])('Euler 378 Fenwick passes %s',compilation=>{
     it('matches direct divisor/triple enumeration',()=>{
         for(const limit of [0,1,2,3,10,20,40,80,100]) {
             const runtime=new Interpreter(()=>{},{compilation,args:[`--limit=${limit}`]});
-            try{runtime.execute(source);expect(runtime.variables.get('Answer')).toBe(oracle(limit));}
+            try{runtime.execute(source);expect(answerOf(runtime)).toBe(oracle(limit));}
             finally{runtime.dispose();}
         }
     });
 });
 it('retains the full sixty-million-element answer',()=>{
     const runtime=new Interpreter(()=>{});
-    try{runtime.execute(source);expect(runtime.variables.get('Answer')).toBe(147534623725724718n);}
+    try{runtime.execute(source);expect(answerOf(runtime)).toBe(147534623725724718n);}
     finally{runtime.dispose();}
 },120000);

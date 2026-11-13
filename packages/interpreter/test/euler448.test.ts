@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/448_averagelcm.ra', import.meta.url), 'utf8');
 function gcd(a: number, b: number): number {
@@ -21,7 +22,7 @@ it.each([0, 1, 2, 3, 4, 9, 10, 31, 32, 63, 64, 65, 99, 100, 499, 500, 1000])(
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${limit}`, `--l=${length}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(totals[limit]);
+                    expect(answerOf(runtime)).toBe(totals[limit]);
                 } finally { runtime.dispose(); }
             }
         }
@@ -31,7 +32,7 @@ it('preserves the full Euler 448 answer without Number overflow', () => {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(106467648n);
+        expect(answerOf(runtime)).toBe(106467648n);
         expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(2);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }

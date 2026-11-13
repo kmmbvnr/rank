@@ -36,5 +36,4 @@ for N in 1 to Total
   Ways Base = (Ways (Use + Base)) matmul Sgn
 end
 Ways = Ways (Total to 0 by -1) copy
-Answer = Ways Total - 1
-return Answer
+return Ways Total - 1

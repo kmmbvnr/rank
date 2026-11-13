@@ -69,5 +69,4 @@ for Jj in J to 0 by -1
   Sb = Tw sum
   Gs Jj = F - Sb
 end
-Answer = Gs 0
-return Answer
+return Gs 0

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/375_subseqmin.ra', import.meta.url), 'utf8');
 function program(limit: number, period: number) {
@@ -28,7 +29,7 @@ it.each([{}, { numberLoopCompilation: false }, { compilation: false }])('matches
         for (const period of [1, 2, 5, 10]) {
             for (const limit of [period, period + 1, 2 * period, 3 * period + 2]) {
                 runtime.execute(program(limit, period));
-                expect(runtime.variables.get('Answer'), `Limit=${limit}, Period=${period}`).toBe(reference(limit, period));
+                expect(answerOf(runtime), `Limit=${limit}, Period=${period}`).toBe(reference(limit, period));
             }
         }
     } finally { runtime.dispose(); }
@@ -38,9 +39,9 @@ it.each([{}, { numberLoopCompilation: false }])('keeps packed-array and wide-ans
     const runtime = new Interpreter(() => {}, options);
     try {
         runtime.execute(program(10000, 10000));
-        expect(runtime.variables.get('Answer')).toBe(3264567774119n);
+        expect(answerOf(runtime)).toBe(3264567774119n);
         runtime.execute(program(2000000000, 1));
-        expect(runtime.variables.get('Answer')).toBe(629527n * 2000000000n * 2000000001n / 2n);
+        expect(answerOf(runtime)).toBe(629527n * 2000000000n * 2000000001n / 2n);
     } finally { runtime.dispose(); }
 });
 
@@ -84,13 +85,13 @@ it.each([false, true])('matches independent minima across period boundaries (com
                 2 * period - 1, 2 * period, 2 * period + 1, 3 * period + Math.floor(period / 2)]);
             for (const limit of limits) {
                 r.execute(input(limit, period));
-                expect(r.variables.get('Answer'), `P=${period},N=${limit}`).toBe(expected[Math.max(0, limit)]);
+                expect(answerOf(r), `P=${period},N=${limit}`).toBe(expected[Math.max(0, limit)]);
             }
         }
         // Existing fixture goldens remain explicit regression checks.
         for (const [limit, expected] of [[10, 432256955n], [10000, 3264567774119n]] as const) {
             r.execute(input(limit, limit));
-            expect(r.variables.get('Answer')).toBe(expected);
+            expect(answerOf(r)).toBe(expected);
         }
     } finally { r.dispose(); }
 });
@@ -104,14 +105,14 @@ it.each([false, true])('handles tied minima and forces actual stack growth (comp
             const expected = sums(values, 3 * values.length + 1);
             for (let limit = 0; limit < expected.length; limit++) {
                 r.execute(synthetic(values, limit));
-                expect(r.variables.get('Answer')).toBe(expected[limit]);
+                expect(answerOf(r)).toBe(expected[limit]);
             }
         }
         // A strictly increasing period needs more than the initial 64 slots.
         const values = Array.from({ length: 300 }, (_, i) => i + 1), limit = 601;
         const d = new RuntimeDiagnostics();
         d.run(() => r.execute(synthetic(values, limit)));
-        expect(r.variables.get('Answer')).toBe(sums(values, limit)[limit]);
+        expect(answerOf(r)).toBe(sums(values, limit)[limit]);
         expect(r.execute('St len')).toBe(512n);
         if (compilation) {
             expect(d.numberLoops).toBe(1);
@@ -124,7 +125,7 @@ it('computes the full golden with two Number loops and a growing stack', () => {
     const r = new Interpreter(() => {}), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(7435327983715286168n);
+        expect(answerOf(r)).toBe(7435327983715286168n);
         expect(r.execute('St len')).toBe(64n);
         expect(d.numberLoops).toBe(2);
         expect(d.numberLoopOverflows).toBe(0);

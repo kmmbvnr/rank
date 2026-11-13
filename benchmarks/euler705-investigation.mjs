@@ -47,7 +47,7 @@ try {
     last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (size === 100000000) assert.equal(answer, '480440153');
     console.log(JSON.stringify({ size, mode, variant, answer, ms: performance.now() - start,
         maxRssMiB: process.resourceUsage().maxRSS / 1024,

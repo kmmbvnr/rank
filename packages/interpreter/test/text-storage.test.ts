@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, MissingValueError } from '../src/index.js';
 import { textAt, textLength, textPoints } from '../src/text-storage.js';
 import { selectAxis } from '../src/selectors.js';
+import { answerOf } from './support.js';
 
 describe('code-point text storage', () => {
     it('uses string storage for decimal/BMP text and lone surrogates', () => {
@@ -51,7 +52,7 @@ Out + (Size text)`)).toBe('1😀😀9');
                 const source = readFileSync(new URL('../../../benchmarks/fixtures/euler316-kmp.ra', import.meta.url), 'utf8');
                 r.execute(source.replace('arg Top integer = 999999', 'Top = 999')
                     .replace('arg Num integer = 10000000000000000', 'Num = 1000000'));
-                expect(r.variables.get('Answer')).toBe(27280188n);
+                expect(answerOf(r)).toBe(27280188n);
                 expect(r.execute('535 waiting')).toBe(1008n);
                 expect(r.execute('1111 waiting')).toBe(11107n);
             } finally { r.dispose(); }

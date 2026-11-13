@@ -8,8 +8,7 @@ use sequences
 use io
 
 Digits = "7654321"
-Answer = Digits largest_pandigital_prime
-return Answer
+return Digits largest_pandigital_prime
 
 
 rem Descending input makes permutations arrive

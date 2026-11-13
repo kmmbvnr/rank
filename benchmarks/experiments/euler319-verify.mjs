@@ -28,7 +28,7 @@ for(const n of [1,2,5,10,20,97,100,256,1000]){
   runtime.variables.set('N',BigInt(n));runtime.variables.set('Limit',BigInt(limit));
   try{
    runtime.execute(sourceFor(variant));
-   assert.equal(String(runtime.variables.get('Answer')??outputs.at(-1)),String(expected.answer),`${mode}/${variant}/${n}/${limit}`);
+   assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)??outputs.at(-1)),String(expected.answer),`${mode}/${variant}/${n}/${limit}`);
    if(variant!=='whole')for(const q of new Set(Array.from({length:n},(_,i)=>Math.floor(n/(i+1))))){
     assert.equal(runtime.execute(`${q} mertens`),expected.mertens[q]);quotientChecks++;
    }

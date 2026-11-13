@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/537_primecounting.ra', import.meta.url), 'utf8');
 const modulus = 1004535809n;
 
@@ -25,7 +26,7 @@ function reference(n: number, k: number): bigint {
 }
 function answer(n: number, k: number, options: InterpreterOptions = {}) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--k=${k}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const modes = [

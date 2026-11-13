@@ -46,7 +46,7 @@ try {
             const start = performance.now();
             runtime.execute(source.slice(at));
             ms.push(performance.now() - start);
-            assert.equal(runtime.variables.get('Answer'),
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult),
                 436944244n);
         }
         console.log(JSON.stringify({ mode, tailMs: ms,
@@ -57,7 +57,7 @@ try {
         runtime.execute(source);
         const ms = performance.now() - start;
         const used = process.cpuUsage(cpu);
-        const answer = String(runtime.variables.get('Answer'));
+        const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
         assert.equal(answer, '436944244');
         console.log(JSON.stringify({ mode, ms,
             cpuMs: (used.user + used.system) / 1000,

@@ -53,5 +53,4 @@ Hq = Hi (1 to Qm)
 Bd = Hq - Lo R
 Sm = Ps sum
 Bg = Bd sum
-Answer = Nn - Sm - Bg
-return Answer
+return Nn - Sm - Bg

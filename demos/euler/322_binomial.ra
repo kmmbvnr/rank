@@ -54,8 +54,7 @@ for Low in Lows
     end
   end
 end
-Answer = Limit - A2 - A5 + Both
-return Answer
+return Limit - A2 - A5 + Both
 
 fun N Limit Base nocarry
   if Limit equal 0

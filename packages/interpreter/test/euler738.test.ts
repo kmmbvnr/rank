@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/738_orderedfactorisations.ra', import.meta.url), 'utf8');
 // Enumerate nondecreasing tuples, including ones, for every permitted length.
@@ -24,7 +25,7 @@ for (const compilation of [false, true]) describe(`Euler 738 (compiled=${compila
             for (const count of [1, 2, 3, 7]) {
                 runtime.execute(source.replace('arg Limit integer = 10 ** 10', `Limit = ${limit}`)
                     .replace('arg Kmax integer = 10 ** 10', `Kmax = ${count}`));
-                expect(runtime.variables.get('Answer')).toBe(brute(limit, count));
+                expect(answerOf(runtime)).toBe(brute(limit, count));
             }
         } finally { runtime.dispose(); }
     });
@@ -33,7 +34,7 @@ for (const compilation of [false, true]) describe(`Euler 738 (compiled=${compila
         try {
             runtime.execute(source.replace('arg Limit integer = 10 ** 10', `Limit = ${limit}`)
                 .replace('arg Kmax integer = 10 ** 10', `Kmax = ${limit}`));
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
         } finally { runtime.dispose(); }
     });
 });

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/420_squarematrices.ra', import.meta.url), 'utf8');
 // Enumerate positive matrix roots; independent of the coprime trace formula.
@@ -22,7 +23,7 @@ function run(n: number, options: InterpreterOptions = {}) {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        return { answer: runtime.variables.get('Answer'), diagnostics };
+        return { answer: answerOf(runtime), diagnostics };
     } finally { runtime.dispose(); }
 }
 

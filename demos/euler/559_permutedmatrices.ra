@@ -94,5 +94,4 @@ Total = (Short sum) + (Long sum)
 Total = Total mod Mod
 Factor = Factorials N
 Scale = Factor N Mod powmod
-Answer = Total * Scale mod Mod
-return Answer
+return Total * Scale mod Mod

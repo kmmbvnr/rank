@@ -9,7 +9,7 @@ try {
  for(const code of phase==='split'?[source.slice(0,source.indexOf('Max =')),source.slice(source.indexOf('Max ='))]:[source]){
   const start=performance.now();d.run(()=>r.execute(code));parts.push(performance.now()-start);
  }
- const c=process.cpuUsage(cpu),answer=String(r.variables.get('Answer'));
+ const c=process.cpuUsage(cpu),answer=String((r.variables.get('Answer') ?? r.lastResult));
  if(limit==='100000'&&answer!=='2586528661783')throw Error(`full golden mismatch: ${answer}`);
  console.log(JSON.stringify({mode,limit,variant,phase,ms:performance.now()-t,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer,max:String(r.variables.get('Max')),parts,diagnostics:d}));
 }finally{r.dispose();}

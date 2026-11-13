@@ -49,5 +49,4 @@ Ok' = Real reshape Cnt 130
 Bad' = Flat and Ok
 Proof' = not (Bad any axis 1)
 Good' = Cand filter Proof array
-Answer = Good (N - 1)
-return Answer
+return Good (N - 1)

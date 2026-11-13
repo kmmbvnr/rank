@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {Interpreter,RuntimeDiagnostics} from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source=readFileSync(new URL('../../../demos/euler/379_lcmcount.ra',import.meta.url),'utf8');
 
@@ -33,7 +34,7 @@ describe.each([{}, {numberLoopCompilation:false}, {compilation:false}])('Euler 3
             const runtime=new Interpreter(()=>{},{...options,args:[`--limit=${limit}`]});
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(expected[limit]);
+                expect(answerOf(runtime)).toBe(expected[limit]);
             }finally{runtime.dispose();}
         }
     });
@@ -52,7 +53,7 @@ it('compiles both full sieves above the private-copy cap',()=>{
     const runtime=new Interpreter(()=>{}),diagnostics=new RuntimeDiagnostics();
     try {
         diagnostics.run(()=>runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(132314136838185n);
+        expect(answerOf(runtime)).toBe(132314136838185n);
         expect(diagnostics.numberLoops).toBe(4);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.numberLoopCopyProbes).toBe(0);

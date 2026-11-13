@@ -5,6 +5,7 @@ import type { InterpreterOptions } from '../src/interpreter-options.js';
 import { maskedArray, ownedArray, typedArray } from '../src/array-storage.js';
 import type { RankArray } from '../src/value.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 it('keeps nested borrowed-real loops when outer row stores need ownership fallback', () => {
     const source = readFileSync(new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url), 'utf8');
@@ -13,7 +14,7 @@ it('keeps nested borrowed-real loops when outer row stores need ownership fallba
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            return { answer: runtime.variables.get('Answer'), diagnostics };
+            return { answer: answerOf(runtime), diagnostics };
         } finally { runtime.dispose(); }
     };
     const compiled = run(true);

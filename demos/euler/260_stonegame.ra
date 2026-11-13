@@ -51,5 +51,4 @@ for Z in 0 to Top
     end
   end
 end
-Answer = Sum
-return Answer
+return Sum

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/446_retractionsb.ra', import.meta.url), 'utf8');
 const modulus = 1000000007n;
@@ -24,7 +25,7 @@ it.each([0, 1, 2, 3, 4, 10, 31, 32, 63, 64, 65, 99, 100])(
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${limit}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(totals[limit]);
+                expect(answerOf(runtime)).toBe(totals[limit]);
             } finally { runtime.dispose(); }
         }
     });
@@ -47,7 +48,7 @@ it('compiles shrinking prime-power extraction as one fresh-array region', () => 
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(376757876n);
+        expect(answerOf(runtime)).toBe(376757876n);
         expect(diagnostics.numberLoops).toBe(3);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.numberLoopCopyProbes).toBe(0);
@@ -58,6 +59,6 @@ it('preserves the full default Euler 446 answer', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(907803852n);
+        expect(answerOf(runtime)).toBe(907803852n);
     } finally { runtime.dispose(); }
 }, 60000);

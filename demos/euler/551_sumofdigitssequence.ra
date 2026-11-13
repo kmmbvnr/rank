@@ -95,5 +95,4 @@ Stages = 9 * Levels
 Result = Start advance repeat Stages
 Q = Result .q
 R = Result .rest
-Answer = Q + R
-return Answer
+return Q + R

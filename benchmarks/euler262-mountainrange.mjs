@@ -57,9 +57,9 @@ const start = performance.now();
 try {
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    if (step === '2' || step === '1') assert.equal(String(runtime.variables.get('Answer')), '2531.205');
-    if (step === '8') assert.equal(String(runtime.variables.get('Answer')), '2531.2');
-    assert.deepEqual(output, [String(runtime.variables.get('Answer'))]);
+    if (step === '2' || step === '1') assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), '2531.205');
+    if (step === '8') assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), '2531.2');
+    assert.deepEqual(output, [String((runtime.variables.get('Answer') ?? runtime.lastResult))]);
     const signatures = Object.fromEntries(['Va', 'Vb', 'Da', 'Db'].map(name => [name, createHash('sha256').update(JSON.stringify(Array.from(runtime.variables.get(name).items, Number))).digest('hex')]));
-    console.log(JSON.stringify({ step, mode, variant, ms, answer: String(runtime.variables.get('Answer')), best: String(runtime.variables.get('Best')), F: String(runtime.variables.get('F')), Bl: String(runtime.variables.get('Bl')), output, rssMiB: process.resourceUsage().maxRSS / 1024, signatures, phases, diagnostics }));
+    console.log(JSON.stringify({ step, mode, variant, ms, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), best: String(runtime.variables.get('Best')), F: String(runtime.variables.get('F')), Bl: String(runtime.variables.get('Bl')), output, rssMiB: process.resourceUsage().maxRSS / 1024, signatures, phases, diagnostics }));
 } finally { runtime.dispose(); }

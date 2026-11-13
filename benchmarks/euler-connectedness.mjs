@@ -105,7 +105,7 @@ if (option('worker')) {
             if (name === 'fixture') {
                 assert.equal(r.testResults.length, 2);
                 assert(r.testResults.every(t => t.passed), JSON.stringify(r.testResults));
-            } else assert.equal(r.variables.get('Answer'), 2325629n);
+            } else assert.equal((r.variables.get('Answer') ?? r.lastResult), 2325629n);
             details.tests = r.testResults.map(({ name, passed }) => ({ name, passed }));
         } finally { r.dispose(); }
     }
@@ -124,7 +124,7 @@ if (option('worker')) {
                     .replace('Pm = 524287', `Pm = ${pm}`)
                     .replace('arg Calls integer = 3000000', `arg Calls integer = ${calls}`)
                     .replace('arg Percent integer = 99', `arg Percent integer = ${percent}`));
-                assert.equal(r.variables.get('Answer'), BigInt(expected));
+                assert.equal((r.variables.get('Answer') ?? r.lastResult), BigInt(expected));
                 checks.push({ variant, users, percent, engine, answer: expected });
             } finally { r.dispose(); }
         }

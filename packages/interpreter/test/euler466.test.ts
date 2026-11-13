@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source=readFileSync(new URL('../../../demos/euler/466_distinctproducts.ra',import.meta.url),'utf8');
 const backends: InterpreterOptions[]=[{}, {compilation:false}, {numberLoopCompilation:false}];
 function gcd(a:bigint,b:bigint):bigint { while(b)[a,b]=[b,a%b];return a; }
@@ -27,7 +28,7 @@ function brute(rows:number,columns:number) {
 function solve(rows:number|bigint,columns:number|bigint,options:InterpreterOptions={}) {
     const runtime=new Interpreter(()=>{}, {...options,args:[`--m=${rows}`,`--n=${columns}`]});
     const diagnostics=new RuntimeDiagnostics();
-    try { diagnostics.run(()=>runtime.execute(source));return {answer:runtime.variables.get('Answer'),diagnostics}; }
+    try { diagnostics.run(()=>runtime.execute(source));return {answer:answerOf(runtime),diagnostics}; }
     finally {runtime.dispose();}
 }
 it.each([[0,0],[0,7],[7,0],[1,1],[1,19],[3,4],[2,11],[5,12],[12,5],[7,17],[11,23],[12,345],[64,64]])('matches distinct product enumeration for %s by %s',(rows,columns)=>{

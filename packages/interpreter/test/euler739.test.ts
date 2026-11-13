@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/739_summationofsummations.ra', import.meta.url), 'utf8');
 
 // Literal repeated partial summation of the Lucas start; no ballot weights.
@@ -25,7 +26,7 @@ for (const compilation of [false, true]) describe(`Euler 739 (compiled=${compila
             try {
                 runtime.execute(source.replace('arg Length integer = 10 ** 8', `Length = ${length}`)
                     .replace('arg Chunk integer = 4194304', `Chunk = ${chunk}`));
-                const actual = runtime.variables.get('Answer'), expected = direct(length, 1000000007n);
+                const actual = answerOf(runtime), expected = direct(length, 1000000007n);
                 expect(actual).toBe(expected);
                 if (length === 8) expect(actual).toBe(2663n);
                 if (length === 20) expect(actual).toBe(742296999n);
@@ -38,7 +39,7 @@ for (const compilation of [false, true]) describe(`Euler 739 (compiled=${compila
             runtime.execute(source.replace('arg Length integer = 10 ** 8', `Length = ${length}`)
                 .replace('arg Chunk integer = 4194304', 'Chunk = 7')
                 .replace('arg Prime integer = 1000000007', 'Prime = 101'));
-            expect(runtime.variables.get('Answer')).toBe(direct(length, 101n));
+            expect(answerOf(runtime)).toBe(direct(length, 101n));
         } finally { runtime.dispose(); }
     });
 });

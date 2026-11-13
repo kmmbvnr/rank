@@ -85,7 +85,7 @@ if (option('worker')) {
             const expected = oracle(10);
             assert.equal(expected.answer, 612407567715);
             assert.deepEqual(output, [String(expected.answer)]);
-            assert.equal(runtime.variables.get('Answer'), BigInt(expected.answer));
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(expected.answer));
             assert.deepEqual(runtime.variables.get('Found').items, Array(10).fill(true));
             assert.equal(oracle(4).answer, 273700);
         }

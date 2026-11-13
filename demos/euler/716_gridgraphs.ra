@@ -27,5 +27,4 @@ Side = 8 * Height + 10
 CutH = Side * PowW mod Prime
 Linear = 10 * (Height + Width + 1)
 Total = Main + Cross - CutW - CutH
-Answer = (Total + Linear) mod Prime
-return Answer
+return (Total + Linear) mod Prime

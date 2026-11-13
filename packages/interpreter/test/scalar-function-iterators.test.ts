@@ -4,6 +4,7 @@ import { Interpreter, RuntimeDiagnostics, RankError, formatValue } from '../src/
 import { native } from '../src/modules/shared.js';
 import { ownedArray } from '../src/array-storage.js';
 import { isNativeFunction } from '../src/value.js';
+import { answerOf } from './support.js';
 
 function evaluate(source: string, compilation: boolean) {
     let calls = 0;
@@ -189,7 +190,7 @@ end`;
         try {
             const source = readFileSync(new URL('../../../demos/euler/263_engineersdream.ra', import.meta.url), 'utf8');
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(2039506520n);
+            expect(answerOf(runtime)).toBe(2039506520n);
             expect(runtime.variables.get('Found')).toBe(4n);
             expect(calls).toBeGreaterThan(0);
             expect(diagnostics.compiledLoops).toBeGreaterThan(0);

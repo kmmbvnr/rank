@@ -16,8 +16,7 @@ rem Limit. The mask is deferred: first
 rem stops checking candidates at the hit.
 Candidates = Limit + 1 to Limit + Window array
 Long' = Candidates exceeds_limit rank 0
-Answer = Candidates first where Long
-return Answer
+return Candidates first where Long
 
 fun N exceeds_limit
   if N mod 2 equal 0 or N mod 5 equal 0

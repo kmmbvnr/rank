@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/791_averagevariance.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler791-original.ra', import.meta.url), 'utf8');
@@ -20,7 +21,7 @@ function run(code: string, limit: number, compilation: boolean, modulus = 433494
     try {
         runtime.execute(code.replace('arg Limit integer = 10 ** 8', `Limit = ${limit}`)
             .replace('arg Mod integer = 433494437', `Mod = ${modulus}`));
-        return runtime.variables.get('Answer');
+        return answerOf(runtime);
     } finally { runtime.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 791 (compiled=${compilation})`, () => {

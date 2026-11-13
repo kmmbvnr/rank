@@ -34,5 +34,4 @@ for M in 3 to Top
   V = 2 * (A + C - B) // G
   Tot += (2 * N // (U * V)) sum
 end
-Answer = Tot
-return Answer
+return Tot

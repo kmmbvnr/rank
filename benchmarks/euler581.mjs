@@ -14,7 +14,7 @@ try {
     if (process.env.RANK581_PROFILE) { profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (process.env.RANK581_EXPECTED && answer !== process.env.RANK581_EXPECTED) throw Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, n, limit: String(runtime.variables.get('B')), node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'),

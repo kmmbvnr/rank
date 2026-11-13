@@ -10,4 +10,4 @@ for I in 0 to 2
 end
 Answer = A 0
 `;
-for(const compilation of [false,true]){const runtime=new Interpreter(()=>{},{compilation}),d=new RuntimeDiagnostics();try{d.run(()=>runtime.execute(source));console.log(JSON.stringify({compilation,answer:String(runtime.variables.get('Answer')),total:String(runtime.variables.get('Total')),diagnostics:d}));}finally{runtime.dispose();}}
+for(const compilation of [false,true]){const runtime=new Interpreter(()=>{},{compilation}),d=new RuntimeDiagnostics();try{d.run(()=>runtime.execute(source));console.log(JSON.stringify({compilation,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),total:String(runtime.variables.get('Total')),diagnostics:d}));}finally{runtime.dispose();}}

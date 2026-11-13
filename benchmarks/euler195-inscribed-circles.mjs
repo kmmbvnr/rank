@@ -45,7 +45,7 @@ try {
     if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start, rssMiB = process.resourceUsage().maxRSS / 1024;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const golden = { 100: '1234', 1000: '22767', 10000: '359912', 1053779: '75085391' }[limit];
     if (!fixture && golden) assert.equal(answer, golden);
     if (fixture) {

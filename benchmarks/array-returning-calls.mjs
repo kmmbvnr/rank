@@ -41,7 +41,7 @@ if (process.argv.includes('--worker')) {
         }
         assert.deepEqual([...runtime.variables.get('A').items], cells);
         const answer = cells.reduce((a, b) => a + b, 0n);
-        assert.equal(runtime.variables.get('Answer'), answer);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), answer);
         console.log(JSON.stringify({ n, executeMs, cpuMs: (usage.user + usage.system) / 1000,
             maxRssKiB: process.resourceUsage().maxRSS, answer: String(answer),
             compiledLoops: entries ? loops : undefined,

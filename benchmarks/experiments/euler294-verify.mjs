@@ -33,7 +33,7 @@ for (let n = 0; n <= 100; n++) {
         try {
             interpreter.execute(template.replace('arg N integer = 3138428376721', `arg N integer = ${n}`)
                 .replace('arg Mod integer = 1000000000', `arg Mod integer = ${mod}`));
-            const answer = String(interpreter.variables.get('Answer'));
+            const answer = String((interpreter.variables.get('Answer') ?? interpreter.lastResult));
             assert.equal(answer, String(expected[n] % mod), `N=${n}, Mod=${mod}, compilation=${compilation}`);
             cases.push({n, mod: String(mod), compilation, answer});
         } finally { interpreter.dispose(); }

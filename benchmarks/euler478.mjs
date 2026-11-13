@@ -23,7 +23,7 @@ try {
     const ms = performance.now() - start;
     const cpu = process.cpuUsage(cpuStart);
     const memory = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const primitive = String(runtime.variables.get('Primitive') ?? runtime.variables.get('Pt'));
     const expected = process.env.RANK478_EXPECTED;
     if (expected !== undefined && answer !== expected) throw Error(`Wrong answer: ${answer}`);

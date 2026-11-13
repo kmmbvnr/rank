@@ -30,7 +30,7 @@ for(const limit of [0,1,2,3,4,7,9,16,29,30,50,100,250,1000]){
   const source=readFileSync(new URL(variant==='production'?'../../demos/euler/310_nimsquare.ra':`./euler310-${variant}.ra`,import.meta.url),'utf8').replace('arg Limit integer = 100000',`arg Limit integer = ${limit}`);
   const r=new Interpreter(()=>{},{compilation:mode==='compiled'});
   try{
-   r.execute(source);assert.equal(String(r.variables.get('Answer')),String(expected.answer),`${limit} ${variant} ${mode}`);
+   r.execute(source);assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),String(expected.answer),`${limit} ${variant} ${mode}`);
    const g=r.variables.get('G');assert.deepEqual(Array.from({length:limit+1},(_,n)=>Number(readArrayItem(g,n))),Array.from(expected.g));checks++;
   }finally{r.dispose();}
  }

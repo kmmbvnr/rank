@@ -22,10 +22,10 @@ try {
     runtime.execute(source);
     const executeMs = performance.now() - start;
     const sums = [0n, 219869980n, 532371800n, 892985500n, 2039506520n];
-    assert.equal(runtime.variables.get('Answer'), sums[count]);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), sums[count]);
     assert.equal(runtime.variables.get('Found'), BigInt(count));
     console.log(JSON.stringify({ phase: 'execute', ms: executeMs,
-        answer: String(runtime.variables.get('Answer')), found: String(runtime.variables.get('Found')),
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), found: String(runtime.variables.get('Found')),
         heapUsed: process.memoryUsage().heapUsed, maxRssKiB: process.resourceUsage().maxRSS }));
 } finally { runtime.dispose(); }
 const analysisStart = performance.now();

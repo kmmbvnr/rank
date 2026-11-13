@@ -67,8 +67,8 @@ if(option('worker')){
   if(option('diagnostics'))d.run(()=>r.execute(source));else r.execute(source);
   const ms=performance.now()-start,rssMiB=process.resourceUsage().maxRSS/1024;
   if(name.endsWith('-test')){assert(r.testResults.length>0);assert(r.testResults.every(t=>t.passed),JSON.stringify(r.testResults));}
-  else assert.equal(r.variables.get('Answer'),BigInt(expected));
-  console.log(JSON.stringify({case:name,version:option('version'),ms,rssMiB,sourceHash:hash(source),answer:String(r.variables.get('Answer')),tests:r.testResults.map(({name,passed})=>({name,passed})),...(option('diagnostics')?{diagnostics:d}:{})}));
+  else assert.equal((r.variables.get('Answer') ?? r.lastResult),BigInt(expected));
+  console.log(JSON.stringify({case:name,version:option('version'),ms,rssMiB,sourceHash:hash(source),answer:String((r.variables.get('Answer') ?? r.lastResult)),tests:r.testResults.map(({name,passed})=>({name,passed})),...(option('diagnostics')?{diagnostics:d}:{})}));
  }finally{r.dispose();}
 }else{
  const selected=option('versions')?.split(',')??['before','fixed','adaptive'];

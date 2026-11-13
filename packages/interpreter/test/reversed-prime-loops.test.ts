@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, formatValue, type InterpreterOptions } from '../src/index.js';
 import { withDemandBudget, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 type Scope = (run: () => void) => void;
 function outcome(source: string, options: InterpreterOptions = {}, scope: Scope = run => run()) {
@@ -96,10 +97,10 @@ fun total
 end`);
             const invoke = () => runtime.execute('Answer = total');
             invoke();
-            expect(runtime.variables.get('Answer')).toBe(1058n);
+            expect(answerOf(runtime)).toBe(1058n);
             expect(() => withDemandBudget(1, invoke)).toThrow();
             invoke();
-            expect(runtime.variables.get('Answer')).toBe(1058n);
+            expect(answerOf(runtime)).toBe(1058n);
         } finally { runtime.dispose(); }
     });
 });

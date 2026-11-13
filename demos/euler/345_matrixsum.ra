@@ -67,5 +67,4 @@ for Mask in 0 till (2 ** 15)
     end
   end
 end
-Answer = Dp ((2 ** 15) - 1)
-return Answer
+return Dp ((2 ** 15) - 1)

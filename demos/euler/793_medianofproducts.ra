@@ -48,5 +48,4 @@ for Round in 1 to 60
     Low = Mid
   end
 end
-Answer = High
-return Answer
+return High

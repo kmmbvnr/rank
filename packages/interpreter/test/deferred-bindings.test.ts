@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics, formatValue } from '../src/index.js';
 import { isRankPlan } from '../src/plan.js';
+import { answerOf } from './support.js';
 
 describe.each([false, true])('deferred binding validation (compilation=%s)', compilation => {
     it('rejects captured array writes before any program effects run', () => {
@@ -114,7 +115,7 @@ describe.each([false, true])('compound deferred bindings (compilation=%s)', comp
         const runtime = new Interpreter(undefined, { compilation });
         try {
             runtime.execute('use numbers\n' + source);
-            const value = runtime.variables.get('Answer');
+            const value = answerOf(runtime);
             return value === undefined ? undefined : formatValue(value);
         } catch (error) { return String(error instanceof RankError ? error.format() : error); }
         finally { runtime.dispose(); }
@@ -143,7 +144,7 @@ describe.each([false, true])('compound deferred bindings (compilation=%s)', comp
         const runtime = new Interpreter(undefined, { compilation });
         try {
             runtime.execute("use numbers\nA = array 1 2\nX' = A\nX' += 10\nA = array 100 200\nAnswer = X");
-            expect(formatValue(runtime.variables.get('Answer')!)).toBe('11 12');
+            expect(formatValue(answerOf(runtime)!)).toBe('11 12');
             expect(isRankPlan(runtime.variables.get('X')!)).toBe(true);
         } finally { runtime.dispose(); }
     });
@@ -151,6 +152,17 @@ describe.each([false, true])('compound deferred bindings (compilation=%s)', comp
     it('chains a mask over a range in one plan', () => {
         const source = "N = 1 till 1000\nMask' = N mod 3 equal 0\nMask' or= N mod 5 equal 0\nAnswer = N Mask sum";
         expect(answer(source)).toBe('233168');
+    });
+
+    it('fuses a stored mask chain when the program returns its result', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            const source = 'use numbers\nN = 1 till 1000\nMask = N mod 3 equal 0\nMask or= N mod 5 equal 0\nreturn N Mask sum';
+            diagnostics.run(() => runtime.execute(source));
+            expect(formatValue(answerOf(runtime)!)).toBe('233168');
+            if (compilation) expect(diagnostics.compiledTensors).toBe(1);
+        } finally { runtime.dispose(); }
     });
 
     it('does not evaluate a plan for an unused compound binding', () => {

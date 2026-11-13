@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/566_cakeicing.ra', import.meta.url), 'utf8');
 const { flips, total } = await import(new URL('../../../benchmarks/euler566-oracle.mjs', import.meta.url).href);
 function run(n: number, options: InterpreterOptions = {}, triple?: number[]) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
     try {
         r.execute(withoutReturn(source) + (triple ? `\nTriple = array ${triple.join(' ')}\nAnswer = Triple icing\n` : ''));
-        return r.variables.get('Answer');
+        return answerOf(r);
     } finally { r.dispose(); }
 }
 for (const options of [{}, { compilation: false }, { numberLoopCompilation: false }]) describe(`Euler 566 ${JSON.stringify(options)}`, () => {
@@ -29,7 +29,7 @@ it('uses native integer word joining in the array solution', () => {
     const r = new Interpreter(() => {}, { args: ['--n=17'] }), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(1269260n);
+        expect(answerOf(r)).toBe(1269260n);
         expect(d.nativeIntegerJoins).toBeGreaterThan(0);
     } finally { r.dispose(); }
 });

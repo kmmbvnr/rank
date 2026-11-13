@@ -12,7 +12,7 @@ assert.equal(expected.get(10000),7);
 const results=[];
 for(const mode of ['compiled','reference'])for(const variant of ['original','reuse','prune','production']){
 const source=readFileSync(new URL(variant==='production'?'../../demos/euler/302_strongachilles.ra':`./euler302-${variant}.ra`,import.meta.url),'utf8');
-for(const [limit,want] of expected){const rt=new Interpreter(()=>{},{compilation:mode==='compiled'});try{rt.execute(source.replace('10 ** 18',String(limit)));assert.equal(rt.variables.get('Answer'),BigInt(want));results.push({mode,variant,limit,answer:want});}finally{rt.dispose();}}
+for(const [limit,want] of expected){const rt=new Interpreter(()=>{},{compilation:mode==='compiled'});try{rt.execute(source.replace('10 ** 18',String(limit)));assert.equal((rt.variables.get('Answer') ?? rt.lastResult),BigInt(want));results.push({mode,variant,limit,answer:want});}finally{rt.dispose();}}
 }
 writeFileSync(new URL('../baselines/2026-10-31-euler302-verification.json',import.meta.url),JSON.stringify(results,null,2)+'\n');
 console.log(JSON.stringify({checks:results.length,oracle:Object.fromEntries(expected)}));

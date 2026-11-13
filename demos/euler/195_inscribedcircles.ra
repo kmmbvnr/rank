@@ -50,5 +50,4 @@ for T in 1 to Qa
     Total += Hit sum
   end
 end
-Answer = Total
-return Answer
+return Total

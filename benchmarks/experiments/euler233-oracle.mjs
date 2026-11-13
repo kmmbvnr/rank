@@ -15,6 +15,6 @@ function geometric(n) {let c=0;for(let x=Math.ceil((n-Math.SQRT2*n)/2);x<=Math.f
 for(let n=1;n<=1000;n++) assert.equal(factorCount(n),geometric(n));assert.equal(geometric(10000),36);
 const rows=[];
 for(const [file,source] of [['original',original],['shipping',readFileSync(main,'utf8')]]) for(const compilation of [false,true]) for(const limit of limits) {
- const r=new Interpreter(()=>{}, {compilation});try{r.execute(source.replace(/option Limit integer = \d+/,`option Limit integer = ${limit}`));const answer=String(r.variables.get('Answer'));assert.equal(answer,String(expected.get(limit)));rows.push({file,compilation,limit,answer});}finally{r.dispose();}
+ const r=new Interpreter(()=>{}, {compilation});try{r.execute(source.replace(/option Limit integer = \d+/,`option Limit integer = ${limit}`));const answer=String((r.variables.get('Answer') ?? r.lastResult));assert.equal(answer,String(expected.get(limit)));rows.push({file,compilation,limit,answer});}finally{r.dispose();}
 }
 console.log(JSON.stringify({checks:rows.length,geometricChecks:1001,rows,expected:[...expected].map(([n,v])=>[n,String(v)])}));

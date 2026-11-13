@@ -24,5 +24,4 @@ for Start in 2 till Limit
   Lengths Start = Steps + Lengths N
 end
 
-Answer = Lengths max .index
-return Answer
+return Lengths max .index

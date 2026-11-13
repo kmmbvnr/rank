@@ -15,7 +15,7 @@ function brute(limit){
 const answers=limits.map(brute);let checked=0;
 for(const compilation of [false,true])for(const variant of ['original','production'])for(let i=0;i<limits.length;i++){
  const source=readFileSync(new URL(variant==='original'?'./euler309-original.ra':'../../demos/euler/309_ladders.ra',import.meta.url),'utf8').replace('arg Limit integer = 1000000',`arg Limit integer = ${limits[i]}`);
- const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(String(r.variables.get('Answer')),String(answers[i]));checked++;}finally{r.dispose();}
+ const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),String(answers[i]));checked++;}finally{r.dispose();}
 }
 for(const compilation of [false,true]){
  const file=new URL('../../demos/euler/309_ladders_test.ra',import.meta.url).pathname;

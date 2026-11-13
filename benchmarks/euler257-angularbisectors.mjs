@@ -32,7 +32,7 @@ try {
     if (flag('interrupt')) withInterrupt(new Int32Array(new SharedArrayBuffer(12)), execute);
     else execute();
     const ms = performance.now() - start;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (fixture) {
         assert.equal(runtime.testResults.length, 2);
         assert(runtime.testResults.every(test => test.passed));

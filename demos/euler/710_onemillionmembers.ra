@@ -42,5 +42,4 @@ Totals = (Powers - Counts) mod Base
 Zero = Totals equal 0
 Match = Zero and (Terms greater 42)
 Found = Terms filter Match
-Answer = Found min
-return Answer
+return Found min

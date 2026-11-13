@@ -27,7 +27,7 @@ const run = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf
 
 test('Euler 001 explains completed paths before listing rejected candidates', () => {
     const file = fileURLToPath(new URL('../../../demos/euler/001_multiples.ra', import.meta.url));
-    const result = run(['--diagnostics=all', file]);
+    const result = run(['--print', '--diagnostics=all', file]);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, '233168\n');
     const summary = result.stderr.split('Execution counters')[0];
@@ -36,7 +36,6 @@ test('Euler 001 explains completed paths before listing rejected candidates', ()
     assert.ok(summary.includes(`${file}:14:1 interpreted`), summary);
     assert.ok(summary.includes(`${file}:15:1 interpreted`), summary);
     assert.ok(summary.includes(`${file}:17:1 mixed (compiled + interpreted + native)`), summary);
-    assert.ok(summary.includes(`${file}:18:1 interpreted`), summary);
     assert.match(summary, /completed paths: direct-expression, native-call, number-tensor/);
     assert.match(summary, /rejected candidates: scalar-expression, tensor; completed paths are listed above/);
     assert.doesNotMatch(summary, /native-array-map/);

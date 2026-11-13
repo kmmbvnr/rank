@@ -18,6 +18,6 @@ const runtime=new Interpreter(out=>{outputs.push(out.trim());if(process.env.PHAS
 const diagnostics=new RuntimeDiagnostics();const begin=performance.now();previous=begin;
 try {
  if(process.env.DIAGNOSTICS)diagnostics.run(()=>runtime.execute(source));else runtime.execute(source);
- console.log(JSON.stringify({mode,n,limit,variant,ms:performance.now()-begin,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')??outputs.at(-1)), ...(stages.length?{stages}:{}),...(process.env.DIAGNOSTICS?{diagnostics}:{} )}));
+ console.log(JSON.stringify({mode,n,limit,variant,ms:performance.now()-begin,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)??outputs.at(-1)), ...(stages.length?{stages}:{}),...(process.env.DIAGNOSTICS?{diagnostics}:{} )}));
  if(process.env.SOURCES)writeFileSync(process.env.SOURCES,JSON.stringify(sources,null,2));
 }finally{runtime.dispose()}

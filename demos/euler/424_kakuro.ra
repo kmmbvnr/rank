@@ -463,5 +463,4 @@ for Ln in 0 to Count - 1
   end
   Tot += Res
 end
-Answer = Tot
-return Answer
+return Tot

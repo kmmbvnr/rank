@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, formatValue, isNativeFunction, isRankSequence } from '../src/index.js';
 import { Factorizer } from '../src/factorization.js';
 import { InterruptedError, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function trial(value: number): bigint[] {
     const result: bigint[] = [];
@@ -190,7 +191,7 @@ describe('Euler 302 using builtin factors', () => {
                 const runtime = new Interpreter(() => {}, { compilation });
                 try {
                     runtime.execute(demo.replace('arg Limit integer = 10 ** 18', `arg Limit integer = ${limit}`));
-                    expect(runtime.variables.get('Answer')).toBe(expected);
+                    expect(answerOf(runtime)).toBe(expected);
                 } finally { runtime.dispose(); }
             }
         }

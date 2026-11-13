@@ -5,6 +5,7 @@ import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 // @ts-expect-error Independent benchmark oracle.
 import { sieveSum } from '../../../benchmarks/euler516-oracle.mjs';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/516_5smoothtotients.ra', import.meta.url), 'utf8');
 for (const compilation of [false, true]) {
@@ -13,7 +14,7 @@ for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation, args: [`--l=${limit}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `L=${limit}`).toBe(sieveSum(limit));
+                expect(answerOf(runtime), `L=${limit}`).toBe(sieveSum(limit));
             } finally { runtime.dispose(); }
         }
     });

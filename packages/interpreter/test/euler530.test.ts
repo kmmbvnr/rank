@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/530_gcddivisors.ra', import.meta.url), 'utf8');
 // Enumerate divisors and their complementary factors directly, without the
@@ -24,7 +25,7 @@ describe.each([
     it.each([0, 1, 2, 7, 8, 9, 10, 26, 27, 28, 63, 64, 65, 999, 1000, 1001, 10000])(
         'matches divisor enumeration at N=%s', n => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-            try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(expected[n]); }
+            try { runtime.execute(source); expect(answerOf(runtime)).toBe(expected[n]); }
             finally { runtime.dispose(); }
         });
     it('matches across multiple block boundaries', () => {
@@ -33,7 +34,7 @@ describe.each([
         const runtime = new Interpreter(() => {}, { ...options, args: ['--n=10000'] });
         try {
             runtime.execute(source.replace('Block = 1048576', 'Block = 13'));
-            expect(runtime.variables.get('Answer')).toBe(expected[10000]);
+            expect(answerOf(runtime)).toBe(expected[10000]);
         } finally { runtime.dispose(); }
     });
 });
@@ -41,7 +42,7 @@ it('keeps the exact full-scale result with compiled array stages', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(207366437157977206n);
+        expect(answerOf(runtime)).toBe(207366437157977206n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }

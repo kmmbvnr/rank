@@ -14,7 +14,7 @@ if(process.env.HOT){const at=src.indexOf('\nAnswer =');r.execute(src.slice(0,at)
 const d=new RuntimeDiagnostics();let session;
 if(process.env.PROFILE){session=new Session();session.connect();await session.post('Profiler.enable');await session.post('Profiler.start')}
 const t=performance.now();try{if(process.env.DIAG)d.run(()=>r.execute(src));else r.execute(src);
-if(radius==='default')assert.equal(r.variables.get('Answer'),878825614395267072n);
-console.log(JSON.stringify({radius,mode,file,hot:!!process.env.HOT,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),phases,...(process.env.DIAG?{diagnostics:d,kernels:kernels.length}:{})}));
+if(radius==='default')assert.equal((r.variables.get('Answer') ?? r.lastResult),878825614395267072n);
+console.log(JSON.stringify({radius,mode,file,hot:!!process.env.HOT,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),phases,...(process.env.DIAG?{diagnostics:d,kernels:kernels.length}:{})}));
 if(process.env.KERNELS)writeFileSync(process.env.KERNELS,kernels.join('\n\n'));if(session){const{profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile))}
 }finally{r.dispose();session?.disconnect()}

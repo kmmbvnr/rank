@@ -35,7 +35,7 @@ console.log(JSON.stringify({metadata:{root,node:process.version,cpu:cpus()[0]?.m
 for(const [name,c]of Object.entries(cases)){
  if(options.case&&options.case!==name)continue;
  const times=[];const r=new Interpreter(()=>{},{args:c.args});if(c.init)r.execute(c.init);
- const run=()=>{if(c.input)r.variables.set('Input',c.input());r.execute(c.source);if(c.verify)c.verify(r);else if(r.variables.get('Answer')!==c.expected)throw Error(`${name}: ${r.variables.get('Answer')} != ${c.expected}`);};
+ const run=()=>{if(c.input)r.variables.set('Input',c.input());r.execute(c.source);if(c.verify)c.verify(r);else if((r.variables.get('Answer') ?? r.lastResult)!==c.expected)throw Error(`${name}: ${(r.variables.get('Answer') ?? r.lastResult)} != ${c.expected}`);};
  for(let i=0;i<samples+3;i++){const t=performance.now();run();if(i>=3)times.push(performance.now()-t);}
  const d=new RuntimeDiagnostics();if(options.instrument)d.run(run);r.dispose();
  console.log(JSON.stringify({name,medianMs:med(times),samples:times,...(options.instrument?{diagnostics:d}:{})}));

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/417_reciprocalcycles.ra', import.meta.url), 'utf8');
 // Decimal long division is independent of the sieve/order recurrence.
 const expected = [0n];
@@ -18,7 +19,7 @@ function run(n: number, options: InterpreterOptions = {}) {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        return { answer: runtime.variables.get('Answer'), diagnostics };
+        return { answer: answerOf(runtime), diagnostics };
     } finally { runtime.dispose(); }
 }
 describe('Euler 417 reciprocal cycles', () => {

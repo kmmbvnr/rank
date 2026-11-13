@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/397_parabola.ra', import.meta.url), 'utf8');
 function brute(kMax: number, x: number): bigint {
@@ -59,7 +60,7 @@ it('keeps the complete reduced workload in one compiled region', () => {
     const r = runtime(true), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => r.execute(source.replace('arg K integer = 1000000', 'arg K integer = 10000')));
-        expect(r.variables.get('Answer')).toBe(1008745304821002n);
+        expect(answerOf(r)).toBe(1008745304821002n);
         expect(diagnostics.compiledLoops).toBe(1);
         expect(diagnostics.numberLoops).toBe(1);
     } finally { r.dispose(); }
@@ -71,7 +72,7 @@ it('finishes the default bound with exact wide accumulation', () => {
     const r = runtime(true), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(141630459461893728n);
+        expect(answerOf(r)).toBe(141630459461893728n);
         expect(diagnostics.compiledLoops).toBe(1);
         expect(diagnostics.mixedIntegerLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);

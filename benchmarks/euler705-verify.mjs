@@ -15,7 +15,7 @@ const run = (source, size, modulus, compilation) => {
             const value = runtime.variables.get(name);
             return Array.from({ length: value.shape[0] }, (_, i) => readArrayItem(value, i));
         };
-        return { answer: runtime.variables.get('Answer'),
+        return { answer: (runtime.variables.get('Answer') ?? runtime.lastResult),
             pairs: cells(source.includes('Pairs =') ? 'Pairs' : 'Cc'),
             counts: cells(source.includes('Seen =') ? 'Seen' : source.includes('Counts =') ? 'Counts' : 'Cr'),
             loops: diagnostics.numberLoops };

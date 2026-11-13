@@ -38,7 +38,7 @@ if (!mode) {
             else runtime.executeProgram(program);
             times.push(performance.now() - start);
             assert.equal(runtime.variables.get('Value'), expected);
-            assert.equal(runtime.variables.get('Answer'), sum);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), sum);
         }
         const warmMs = times.slice(2);
         console.log(JSON.stringify({ mode, firstMs: times[0], warmMs,

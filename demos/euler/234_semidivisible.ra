@@ -36,5 +36,4 @@ Tri1' = K1 * (K1 + 1) // 2
 Tri0' = K0 * (K0 + 1) // 2
 Mult' = D * (Tri1 - Tri0)
 Wt' = (array 1 1 -2) reshape 3 1
-Answer = Mult * Wt sum
-return Answer
+return Mult * Wt sum

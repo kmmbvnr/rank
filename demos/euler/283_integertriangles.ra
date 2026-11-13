@@ -138,5 +138,4 @@ for Kk in 1 to Top
     end
   end
 end
-Answer = Total
-return Answer
+return Total

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import type { RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/464_mobiusintervals.ra', import.meta.url), 'utf8');
 const backends = [{}, { compilation: false }, { numberLoopCompilation: false }];
 function mobius(n: number) {
@@ -32,7 +33,7 @@ function solve(n: number, options: object = {}, check?: (runtime: Interpreter) =
     try {
         diagnostics.run(() => runtime.execute(source));
         check?.(runtime);
-        return { answer: runtime.variables.get('Answer'), diagnostics };
+        return { answer: answerOf(runtime), diagnostics };
     } finally { runtime.dispose(); }
 }
 it.each([0,1,2,3,4,5,8,9,10,16,17,25,49,100,199,300,500])('matches trial-factor Möbius values and exhaustive intervals at N=%s', n => {

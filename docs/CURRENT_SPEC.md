@@ -1264,8 +1264,10 @@ Mask' or= N mod 5 equal 0
 return N Mask sum
 ```
 
-`rank multiples.ra` prints `233168`, as `print` would show it. A program
-with no `return` prints only what it prints itself.
+`rank multiples.ra` runs the program and prints nothing itself. The
+option `rank --print multiples.ra` also shows the returned value, `233168`,
+as `print` would. An interpreter session shows the result directly, so a
+program does not need a `print` line to be seen.
 
 Importing the file under a lowercase name makes it callable. The name is the
 file stem when that is a lowercase word, or the alias after `as`:
@@ -1531,6 +1533,11 @@ Answer = N Mask sum
 
 Every compound operator accepts the apostrophe. `and=`, `or=` and `xor=`
 still evaluate both sides.
+
+In a program that ends with `return`, the other names are private, so a
+name that is set once and then only combined by `and=`, `or=` or `xor=` is
+bound as a plan without the apostrophe. The same chain written as
+`Mask = …`, `Mask or= …` and `return N Mask sum` is also one pass.
 
 A name captured by an apostrophe binding is read-only for the rest of its
 scope. A later indexed or field write through that name is rejected, while

@@ -15,7 +15,7 @@ try {
         : 'Answer = 0\nfor I in 1 to Count\n Answer += Values 0\nend';
     const start = performance.now();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    if (runtime.variables.get('Answer') !== BigInt(count) * (mode === 'read' ? 7n : 1n)) throw Error('wrong final index value');
+    if ((runtime.variables.get('Answer') ?? runtime.lastResult) !== BigInt(count) * (mode === 'read' ? 7n : 1n)) throw Error('wrong final index value');
     console.log(JSON.stringify({ count, mode, ms: performance.now() - start, rssMiB: process.resourceUsage().maxRSS / 1024,
         node: process.version, arch: process.arch, diagnostics }));
 } finally { runtime.dispose(); }

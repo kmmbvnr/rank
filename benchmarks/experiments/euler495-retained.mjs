@@ -8,7 +8,7 @@ const source = readFileSync(file, 'utf8'), runtime = new Interpreter(() => {}), 
 try {
     for (let turn = 0; turn < 3; turn++) {
         runtime.execute(turn && source.includes('fun N solve K') ? 'Answer = N solve K' : source);
-        if (runtime.variables.get('Answer') !== 789107601n) throw Error('Wrong answer');
+        if ((runtime.variables.get('Answer') ?? runtime.lastResult) !== 789107601n) throw Error('Wrong answer');
         for (let i = 0; i < 3; i++) { global.gc(); await new Promise(resolve => setImmediate(resolve)); }
         const memory = process.memoryUsage();
         runs.push({ heapMiB: memory.heapUsed / 2 ** 20, arrayBuffersMiB: memory.arrayBuffers / 2 ** 20 });

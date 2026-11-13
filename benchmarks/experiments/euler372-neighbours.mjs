@@ -13,6 +13,6 @@ const d=new RuntimeDiagnostics();
 try {
     const start=performance.now(), run=()=>runtime.execute(source);
     if(process.env.DIAGNOSTICS)d.run(run);else run();
-    console.log(JSON.stringify({id,mode,args,ms:performance.now()-start,answer:String(runtime.variables.get('Answer')),
+    console.log(JSON.stringify({id,mode,args,ms:performance.now()-start,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),
         scalarCalls:calls,...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));
 }finally{runtime.dispose();}

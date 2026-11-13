@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { withDemandBudget } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/443_gcdsequence.ra', import.meta.url), 'utf8');
 const values = new Int32Array(20001);
 values[4] = 13;
@@ -14,7 +15,7 @@ for (const n of [...samples].sort((a, b) => a - b)) {
     it(`matches the direct GCD recurrence at N=${n}`, () => {
         for (const options of [{}, { numberLoopCompilation: false }, { compilation: false }]) {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-            try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(BigInt(values[n])); }
+            try { runtime.execute(source); expect(answerOf(runtime)).toBe(BigInt(values[n])); }
             finally { runtime.dispose(); }
         }
     });

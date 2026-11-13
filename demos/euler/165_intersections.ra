@@ -86,8 +86,7 @@ Sx' = Rx shift 1 with -1
 Sy' = Ry shift 1 with -1
 Newx' = Rx not equal Sx
 Newy' = Ry not equal Sy
-Answer = (Newx or Newy) count
-return Answer
+return (Newx or Newy) count
 
 rem The pseudo-random end points: x1, y1, x2, y2.
 fun N segments

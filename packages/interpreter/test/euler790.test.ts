@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/790_clockgrid.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler790-original.ra', import.meta.url), 'utf8');
@@ -39,7 +40,7 @@ describe.each([false, true])('Euler 790 compilation=%s', compilation => {
             const runtime = new Interpreter(() => {}, { compilation, args: [`--steps=${steps}`, `--chunk=${chunk}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `chunk=${chunk}`).toBe(expected.get(steps));
+                expect(answerOf(runtime), `chunk=${chunk}`).toBe(expected.get(steps));
             } finally { runtime.dispose(); }
         }
     });
@@ -50,7 +51,7 @@ it('retains the original 1000-rectangle answer and uses an exact mixed loop', ()
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(program));
-            expect(runtime.variables.get('Answer')).toBe(16486236070816953n);
+            expect(answerOf(runtime)).toBe(16486236070816953n);
             if (program === source) expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
         } finally { runtime.dispose(); }
     }

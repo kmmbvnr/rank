@@ -44,7 +44,7 @@ function validate(runtime, id) {
         }
         assert.deepEqual(runtime.variables.get('Cands').items, candidates);
         assert.equal(answer, 329468);
-        assert.equal(runtime.variables.get('Answer'), BigInt(answer));
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(answer));
     }
 }
 

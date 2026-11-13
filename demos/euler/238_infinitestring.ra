@@ -174,5 +174,4 @@ for
   end
   Cur = Cur * Cur mod Mod
 end
-Answer = (Top // Dw) * Weight + Part - 1
-return Answer
+return (Top // Dw) * Weight + Part - 1

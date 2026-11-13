@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
 import type { RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/465_polarpolygons.ra', import.meta.url), 'utf8');
 const backends: InterpreterOptions[] = [{}, { numberLoopCompilation: false }, { compilation: false }];
 function gcd(a: number, b: number): number { return b ? gcd(b, a % b) : a; }
@@ -46,7 +47,7 @@ function geometric(n: number) {
 function solve(n: number, limit = 0, options: InterpreterOptions = {}, modulus = 1000000007) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--limit=${limit}`] });
     const diagnostics = new RuntimeDiagnostics();
-    try { diagnostics.run(() => runtime.execute(source.replace('\nMod = 1000000007\n', `\nMod = ${modulus}\n`))); return { answer: runtime.variables.get('Answer'), product: runtime.variables.get('Product'), diagnostics }; }
+    try { diagnostics.run(() => runtime.execute(source.replace('\nMod = 1000000007\n', `\nMod = ${modulus}\n`))); return { answer: answerOf(runtime), product: runtime.variables.get('Product'), diagnostics }; }
     finally { runtime.dispose(); }
 }
 it.each([0, 1, 2])('matches independent angular subset enumeration at N=%s', n => {

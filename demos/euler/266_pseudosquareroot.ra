@@ -34,5 +34,4 @@ Ok = Where at least 0
 Pick' = Sa (Where filter Ok array)
 Mate' = B filter Ok array
 Best = Pick * Mate max
-Answer = Best mod 10000000000000000
-return Answer
+return Best mod 10000000000000000

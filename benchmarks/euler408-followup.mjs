@@ -6,6 +6,6 @@ const diagnostics = new RuntimeDiagnostics(), start = performance.now();
 try {
     diagnostics.run(() => runtime.execute(readFileSync(file, 'utf8')));
     console.log(JSON.stringify({ file, limit, mode, ms: performance.now() - start,
-        rssMiB: process.resourceUsage().maxRSS / 1024, answer: String(runtime.variables.get('Answer')),
+        rssMiB: process.resourceUsage().maxRSS / 1024, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
         points: String(runtime.variables.get('Count') ?? runtime.variables.get('M')), diagnostics }));
 } finally { runtime.dispose(); }

@@ -10,7 +10,7 @@ let checks=0;
 for(const compilation of[true,false])for(const variant of['original','formula','grouped','shipping']){
  let source=readFileSync(new URL(variant==='shipping'?'../demos/euler/276_primitivetriangles.ra':`./experiments/euler276-${variant}.ra`,import.meta.url),'utf8').replace('arg Limit integer = 10000000','');
  const r=new Interpreter(()=>{},{compilation});
- try{for(const limit of limits){r.execute(`Limit = ${limit}\n`+source);assert.equal(r.variables.get('Answer'),counts[limit],`${compilation}/${variant}/${limit}`);checks++;}}finally{r.dispose()}
+ try{for(const limit of limits){r.execute(`Limit = ${limit}\n`+source);assert.equal((r.variables.get('Answer') ?? r.lastResult),counts[limit],`${compilation}/${variant}/${limit}`);checks++;}}finally{r.dispose()}
 }
 const A=[0,2,3,6,8,12,15,20,24,30,35,42].map(BigInt),B=[0,0,0,1,1,2,3,5,6,9,11,15].map(BigInt);
 let sum=0n;

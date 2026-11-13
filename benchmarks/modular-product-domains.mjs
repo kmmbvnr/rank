@@ -18,7 +18,7 @@ try {
         const b = (a * 17n + 104729n) % m;
         expected += a * b % m;
     }
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     console.log(JSON.stringify({ mode, modulus, limit, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'), ms, rssMiB,

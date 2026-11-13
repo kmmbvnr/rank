@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isNativeFunction, type RankValue } from '../src/index.js';
 import { native } from '../src/modules/shared.js';
+import { answerOf } from './support.js';
 
 function call(body: string, args: RankValue[], compilation: boolean) {
     let calls = 0;
@@ -105,7 +106,7 @@ end`);
             const diagnostics = new RuntimeDiagnostics();
             try {
                 diagnostics.run(() => runtime.execute(source));
-                expect(runtime.variables.get('Answer')).toBe(614538266565663n);
+                expect(answerOf(runtime)).toBe(614538266565663n);
                 if (compilation) {
                     // One sieve region and one factor walk, rather than thousands
                     // of separately entered short loops and interpreted calls.

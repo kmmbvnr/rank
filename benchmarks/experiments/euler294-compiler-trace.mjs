@@ -22,5 +22,5 @@ const diagnostics = new RuntimeDiagnostics();
 try {
     diagnostics.run(() => interpreter.execute(readFileSync(new URL('./euler294-original.ra', import.meta.url), 'utf8')));
     writeFileSync('/tmp/rank294-generated.js', sources.join('\n\n'));
-    console.log(JSON.stringify({answer: String(interpreter.variables.get('Answer')), diagnostics}, null, 2));
+    console.log(JSON.stringify({answer: String((interpreter.variables.get('Answer') ?? interpreter.lastResult)), diagnostics}, null, 2));
 } finally {interpreter.dispose();}

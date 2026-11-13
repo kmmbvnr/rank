@@ -10,7 +10,7 @@ for(const top of [2,3,4,5,6,7,10,15,20,25,40,64,100])for(const nines of [0,1,2,3
  if(variant==='bounded')s=s.replace('for Q in P + 1 to Top - P','End = (Top - P) min (P + 1 + ((4 * P) isqrt))\n  for Q in P + 1 to End');
  if(variant==='break')s=s.replace('if Beta less 1.0','if not (Beta less 1.0)\n      break\n    end\n    if Beta less 1.0');
  if(variant==='stable')s=s.replace('Beta = (Q sqrt) - (P sqrt)','Beta = (Q - P) / ((Q sqrt) + (P sqrt))');
- const r=new Interpreter(()=>{},{compilation:mode!=='reference',numberLoopCompilation:mode!=='exact'});try{r.execute(s);if(String(r.variables.get('Answer'))!==String(expected))throw Error(JSON.stringify({top,nines,variant,mode,expected,actual:String(r.variables.get('Answer'))}));total++;}finally{r.dispose()}
+ const r=new Interpreter(()=>{},{compilation:mode!=='reference',numberLoopCompilation:mode!=='exact'});try{r.execute(s);if(String((r.variables.get('Answer') ?? r.lastResult))!==String(expected))throw Error(JSON.stringify({top,nines,variant,mode,expected,actual:String((r.variables.get('Answer') ?? r.lastResult))}));total++;}finally{r.dispose()}
  }
 }
 console.log(JSON.stringify({checks:total,node:process.version}));

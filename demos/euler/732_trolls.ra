@@ -53,5 +53,4 @@ for Step in 0 to Trolls - 1
     Best (Height to Deadline) = Both
   end
 end
-Answer = Best max
-return Answer
+return Best max

@@ -70,5 +70,4 @@ fun Top arrangements
   Terms = (8 * Ways - Offset) mod Prime
   return Terms sum mod Prime
 end
-Answer = Top arrangements
-return Answer
+return Top arrangements

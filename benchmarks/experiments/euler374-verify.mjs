@@ -36,7 +36,7 @@ for (const name of ['original', 'inline', 'recurrence', 'production']) {
             for (let n = 1; n <= size; n++) {
                 const input = source.replace('arg Limit integer = 10 ** 14', `Limit = ${n}`);
                 runtime.execute(input);
-                assert.equal(runtime.variables.get('Answer'), expected[n], `${name}, compilation=${compilation}, limit=${n}`);
+                assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected[n], `${name}, compilation=${compilation}, limit=${n}`);
                 checks++;
             }
         } finally { runtime.dispose(); }
@@ -55,7 +55,7 @@ for (const limit of limits) {
             const runtime = new Interpreter(() => {}, {compilation});
             try {
                 runtime.execute(source.replace('arg Limit integer = 10 ** 14', `Limit = ${limit}`));
-                const actual = runtime.variables.get('Answer');
+                const actual = (runtime.variables.get('Answer') ?? runtime.lastResult);
                 if (original === undefined) original = actual;
                 assert.equal(actual, original, `${name}, compilation=${compilation}, limit=${limit}`);
                 boundaryChecks++;
@@ -67,7 +67,7 @@ for (const compilation of [false, true]) {
     const runtime = new Interpreter(() => {}, {compilation});
     try {
         runtime.execute(sources.get('recurrence').replace('arg Limit integer = 10 ** 14', 'Limit = 0'));
-        assert.equal(runtime.variables.get('Answer'), 0n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 0n);
     } finally { runtime.dispose(); }
 }
 console.log(JSON.stringify({checks, oracle: 'distinct-part exact-product knapsack', maxLimit: size,

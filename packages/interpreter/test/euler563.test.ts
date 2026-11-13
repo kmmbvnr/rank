@@ -2,11 +2,12 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions, type RankValue } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/563_robotwelders.ra', import.meta.url), 'utf8');
 const { solve: oracle } = await import(new URL('../../../benchmarks/euler563-oracle.mjs', import.meta.url).href);
 function solve(limit: number, k: number, options: InterpreterOptions = {}) {
     const r = new Interpreter(() => {}, { ...options, args: [`--l=${limit}`, `--k=${k}`] });
-    try { r.execute(source); return r.variables.get('Answer'); } finally { r.dispose(); }
+    try { r.execute(source); return answerOf(r); } finally { r.dispose(); }
 }
 const small = [[1, 0], [1, 1], [486, 2], [500, 2], [600, 2], [1038, 3], [1100, 3], [2000, 3]].map(([limit, k]) => ({ limit, k, answer: oracle(limit, k).answer }));
 for (const options of [{}, { compilation: false }, { numberLoopCompilation: false }]) describe(`Euler 563 ${JSON.stringify(options)}`, () => {
@@ -64,7 +65,7 @@ it('uses ordered numeric frequency kernels in complete area bands', () => {
     const d = new RuntimeDiagnostics(), r = new Interpreter(() => {}, { args: ['--l=3000000', '--k=10'] });
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(3813201480n);
+        expect(answerOf(r)).toBe(3813201480n);
         expect(d.numericSortedCounts).toBeGreaterThan(0);
         expect(d.sortedIndexBatches).toBeGreaterThan(0);
     } finally { r.dispose(); }

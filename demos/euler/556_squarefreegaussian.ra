@@ -72,5 +72,4 @@ Active = Weights not equal 0 indices
 Norms = Norms Active
 Weights = Weights Active
 Counts = Norms disc rank 0
-Answer = Weights * Counts sum
-return Answer
+return Weights * Counts sum

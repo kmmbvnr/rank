@@ -93,7 +93,7 @@ if (option('worker', '')) {
                 }
                 if (limit === 10000000) { assert.equal(count, 3183158); assert.equal(populated, 814182); }
             } else {
-                const answer = runtime.variables.get('Answer');
+                const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
                 const expected = new Map([[100, 4950n], [1200, 1653605n]]).get(limit);
                 assert.notEqual(expected, undefined);
                 assert.equal(answer, expected);

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/421_primefactors.ra', import.meta.url), 'utf8');
 const primes: number[] = [];
 for (let p = 2; p <= 5000; p++) if (primes.every(q => q * q > p || p % q !== 0)) primes.push(p);
@@ -16,7 +17,7 @@ function oracle(n: bigint, m: number): bigint {
 }
 function run(n: bigint, m: number, options: InterpreterOptions = {}) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--m=${m}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 it.each([[0n, 20], [1n, 2], [2n, 10], [2n, 3], [3n, 5], [10n, 0], [10n, 1], [10n, 2], [10n, 3], [10n, 5], [10n, 20], [25n, 50], [200n, 1000], [1000n, 5000]] as const)

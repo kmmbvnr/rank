@@ -18,7 +18,7 @@ for (const limit of [1,2,3,4,5,10,19,31,64,100,127,250]) {
         const runtime=new Interpreter(()=>{},{compilation});
         try {
             runtime.execute(text);
-            assert.equal(runtime.variables.get('Answer'),expected.at(-1));
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult),expected.at(-1));
             const sorted=runtime.variables.get('Sorted');
             assert.deepEqual(Array.from(sorted.items),expected);
             checks++;

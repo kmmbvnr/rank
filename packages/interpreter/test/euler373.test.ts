@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {Interpreter,parse} from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source=readFileSync(new URL('../../../demos/euler/373_circles.ra',import.meta.url),'utf8');
 const program=parse(source);
@@ -37,7 +38,7 @@ it('retains the full default and empty prime-selection boundaries',()=>{
         const runtime=new Interpreter(()=>{},{args:[`--limit=${limit}`]});
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(limit===10000000?727227472448913n:limit===5?5n:0n);
+            expect(answerOf(runtime)).toBe(limit===10000000?727227472448913n:limit===5?5n:0n);
         }finally{runtime.dispose();}
     }
 });

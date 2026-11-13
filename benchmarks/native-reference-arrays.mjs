@@ -16,7 +16,7 @@ try {
     const n = BigInt(limit), count = (n + 2n) / 3n;
     const expected = workload === 'updates' ? n * (n - 1n) / 2n + 3n * n
         : n * (n + 1n) + count * (2n + 3n * (count - 1n)) / 2n;
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     assert.equal(diagnostics.compiledLoops, 0);
     assert.equal(diagnostics.compiledTensors, 0);

@@ -13,8 +13,7 @@ arg Power integer = 5
 
 Inputs = First to Count
 Answers = Inputs ** Power uphill rank 0
-Answer = Answers sum
-return Answer
+return Answers sum
 
 fun N strip P
   Exponent = 0

@@ -79,7 +79,7 @@ if (option('worker')) {
         } else {
             const expected = oracle();
             assert.deepEqual(output, ['44680']);
-            assert.equal(runtime.variables.get('Answer'), 44680n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 44680n);
             assert.deepEqual(runtime.variables.get('Cnt').items.map(Number), expected.counts);
             assert.deepEqual(runtime.variables.get('Ways').items.map(Number), expected.ways);
         }

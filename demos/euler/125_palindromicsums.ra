@@ -39,5 +39,4 @@ for Start in 1 to Top
     end
   end
 end
-Answer = Seen sum
-return Answer
+return Seen sum

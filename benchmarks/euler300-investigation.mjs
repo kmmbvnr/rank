@@ -21,7 +21,7 @@ try {
   if(process.env.DIAGNOSTICS)diagnostics.run(()=>runtime.execute(stages[i]));else runtime.execute(stages[i]);
   timings.push({stage:i,ms:performance.now()-t,...(process.env.DIAGNOSTICS?{diagnostics}:{})});
  }
- const answer=String(runtime.variables.get('Answer')),golden={5:'1.4375',8:'3.3203125',10:'4.6220703125',12:'5.994873046875',15:'8.0540771484375'}[n];
+ const answer=String((runtime.variables.get('Answer') ?? runtime.lastResult)),golden={5:'1.4375',8:'3.3203125',10:'4.6220703125',12:'5.994873046875',15:'8.0540771484375'}[n];
  if(golden)assert.equal(answer,golden);
  console.log(JSON.stringify({mode,variant,n,answer,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,timings}));
 }finally{runtime.dispose();}

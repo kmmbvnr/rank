@@ -20,7 +20,7 @@ Quotients' = Values // Divisors
 Answer = Quotients sum`;
     const start = performance.now();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     console.log(JSON.stringify({ count, answer: String(answer), ms: performance.now() - start,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, ...(diagnostics && { diagnostics }) }));

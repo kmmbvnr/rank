@@ -124,5 +124,4 @@ for Step in 1 to Last
   Abuf Where = RowA
   Bbuf Where = RowB
 end
-Answer = Qarr Last
-return Answer
+return Qarr Last

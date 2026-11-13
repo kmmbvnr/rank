@@ -11,7 +11,7 @@ if(process.env.PROFILE){s=new Session();s.connect();await s.post('Profiler.enabl
 const start=performance.now();
 try{if(process.env.DIAG)d.run(()=>r.execute(source));else r.execute(source);
 const checks=new Map([['1000',63237130793050n],['10000',1008745304821002n],['100000',13388504309158360n],['1000000',141630459461893728n]]);
-if(x==='1000000000'&&checks.has(k))assert.equal(r.variables.get('Answer'),checks.get(k));
-console.log(JSON.stringify({sink:process.env.SINK||false,k,mode,file,x,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),...(process.env.DIAG?{diagnostics:d}:{})}));
+if(x==='1000000000'&&checks.has(k))assert.equal((r.variables.get('Answer') ?? r.lastResult),checks.get(k));
+console.log(JSON.stringify({sink:process.env.SINK||false,k,mode,file,x,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),...(process.env.DIAG?{diagnostics:d}:{})}));
 if(s){const {profile}=await s.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}}
 finally{s?.disconnect();r.dispose();}

@@ -85,5 +85,4 @@ for K in First to Last
   end
   Total += ((Sum - 1) mod Mod)
 end
-Answer = Total mod Mod
-return Answer
+return Total mod Mod

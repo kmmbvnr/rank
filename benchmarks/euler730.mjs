@@ -52,7 +52,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (!process.env.ROOTS_ONLY && shifts === 100 && perimeter === 100000000) assert.equal(answer, '1315965924');
     console.log(JSON.stringify({ shifts, perimeter, budget, answer, nodes: String(runtime.variables.get('All')),
         ms: performance.now() - start, maxRssMiB: process.resourceUsage().maxRSS / 1024,

@@ -45,5 +45,4 @@ for Side in 1 to N // 2
   Count += Size
 end
 Pi = 4 * (1.0 atan)
-Answer = Total * Pi / Count round 5
-return Answer
+return Total * Pi / Count round 5

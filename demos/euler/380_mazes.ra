@@ -33,5 +33,4 @@ Power = Sum / (10.0 log)
 Expo = Power floor
 Lead = 10.0 ** (Power - Expo)
 LeadText = Lead text ".4f"
-Answer = LeadText + "e" + (Expo text)
-return Answer
+return LeadText + "e" + (Expo text)

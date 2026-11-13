@@ -11,7 +11,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    const n = BigInt(limit), answer = runtime.variables.get('Answer');
+    const n = BigInt(limit), answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, n * (n - 1n) / 2n + (n + 1n) / 2n * 300n);
     console.log(JSON.stringify({ limit, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'), ms,

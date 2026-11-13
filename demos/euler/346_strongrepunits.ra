@@ -40,5 +40,4 @@ fun Limit strong
   return Total + (Seen sum)
 end
 
-Answer = Limit strong
-return Answer
+return Limit strong

@@ -117,5 +117,4 @@ Cycle = Prime - 1
 Total = Width * Fibs - Nullity
 Exponent = Total mod Cycle
 Powers = 2 Exponent Prime powmod
-Answer = Powers sum mod Prime
-return Answer
+return Powers sum mod Prime

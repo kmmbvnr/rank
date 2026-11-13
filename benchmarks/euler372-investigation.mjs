@@ -49,7 +49,7 @@ try {
     if(process.env.DIAGNOSTICS) diagnostics.run(run); else run();
     console.log(JSON.stringify({variant, mode, low, high, node:process.version,
         ms:performance.now()-start, rssMiB:process.resourceUsage().maxRSS/1024,
-        answer:String(runtime.variables.get('Answer')), scalarCalls,
+        answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)), scalarCalls,
         absIntegerPrototype:!!process.env.ABS_INTEGER,
         ...(process.env.DIAGNOSTICS ? {diagnostics} : {})}));
     if(session) {

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 
 const program = readFileSync(new URL('../../../demos/euler/311_biclinic.ra', import.meta.url), 'utf8');
 const block = withoutReturn(program.slice(program.indexOf('fun Low biclinic_block High')));
@@ -28,7 +28,7 @@ describe('dense sum-of-squares blocks', () => {
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(`use numbers\n${block}\nAnswer = ${low} biclinic_block ${high}`));
-            expect(runtime.variables.get('Answer')).toBe(oracle(low, high));
+            expect(answerOf(runtime)).toBe(oracle(low, high));
             // Fresh local storage now spans both loops in one numeric prefix.
             expect(diagnostics.numberLoops).toBe(1);
             expect(diagnostics.numberLoopOverflows).toBe(0);
@@ -41,7 +41,7 @@ describe('dense sum-of-squares blocks', () => {
         try {
             runtime.execute(program.replace('arg Limit integer = 10 ** 10', `arg Limit integer = ${limit}`)
                 .replace('arg Block integer = 4000000', `arg Block integer = ${size}`));
-            expect(runtime.variables.get('Answer')).toBe(answer);
+            expect(answerOf(runtime)).toBe(answer);
         } finally { runtime.dispose(); }
     });
 });

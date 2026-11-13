@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/781_feynmandiagrams.ra', import.meta.url), 'utf8');
 // Literal exact recurrence: sum each suffix separately, with no scan, concat,
 // fixed-width storage or intermediate modular reduction.
@@ -25,7 +26,7 @@ for (const compilation of [false, true]) describe(`Euler 781 (compiled=${compila
             try {
                 r.execute(source.replace('arg Count integer = 50000', `Count = ${count}`)
                     .replace('arg Mod integer = 1000000007', `Mod = ${modulus}`));
-                expect(r.variables.get('Answer')).toBe(exact(count) % BigInt(modulus));
+                expect(answerOf(r)).toBe(exact(count) % BigInt(modulus));
             } finally { r.dispose(); }
         }
     });

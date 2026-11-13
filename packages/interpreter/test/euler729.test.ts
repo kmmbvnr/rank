@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { isRankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/729_periodicrange.ra', import.meta.url), 'utf8');
 function execute(period: number, compilation = true) {
@@ -14,7 +15,7 @@ function execute(period: number, compilation = true) {
             if (!value || !isRankArray(value)) throw Error(`missing ${name}`);
             return Array.from({ length: value.shape[0] }, (_, i) => readArrayItem(value, i));
         };
-        return { answer: host.variables.get('Answer'), words: cells('Lyndon'), lengths: cells('Lengths') };
+        return { answer: answerOf(host), words: cells('Lyndon'), lengths: cells('Lengths') };
     } finally { host.dispose(); }
 }
 function primitive(word: string) {

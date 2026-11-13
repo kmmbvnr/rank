@@ -10,5 +10,4 @@ fun A fractionalValues
   return A Mask array
 end
 
-Example = (array 14.2 9.0 -3.0 3.1 0.0 -1.1) fractionalValues
-Example print
+return (array 14.2 9.0 -3.0 3.1 0.0 -1.1) fractionalValues

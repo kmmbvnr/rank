@@ -75,5 +75,4 @@ fun R sphere
   return 6 * R + 24 * Total
 end
 
-Answer = 2 ** 10 * (5 ** 10 sphere)
-Answer print
+return 2 ** 10 * (5 ** 10 sphere)

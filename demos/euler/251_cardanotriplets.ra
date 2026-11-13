@@ -88,5 +88,4 @@ for Lo in 1 to Top by Blk
     end
   end
 end
-Answer = Count
-return Answer
+return Count

@@ -15,7 +15,7 @@ try {
     if (process.env.DIAGNOSTICS) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = {1: '9', 2: '30', 3: '86', 8: '4552', 12: '75658', 16: '1221292', 24: '313135496'}[n];
     if (expected) assert.equal(answer, expected);
     console.log(JSON.stringify({mode, variant, n: +n, ms, answer,

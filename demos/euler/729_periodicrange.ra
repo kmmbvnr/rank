@@ -88,5 +88,4 @@ for Ranges len greater 1
   Grid = Padded reshape Rows 64
   Ranges = Grid sum axis 1
 end
-Answer = Ranges 0 text ".4f"
-return Answer
+return Ranges 0 text ".4f"

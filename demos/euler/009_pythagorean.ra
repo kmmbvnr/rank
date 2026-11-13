@@ -17,6 +17,4 @@ Valid = Bs round 0 equal Bs
 A = As Valid first
 B = Bs Valid first
 C = A ** 2 + B ** 2 sqrt
-Answer = A * B * C
-
-return Answer
+return A * B * C

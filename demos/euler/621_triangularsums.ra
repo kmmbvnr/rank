@@ -85,5 +85,4 @@ for J in 0 to Nd - 1
   end
 end
 W = 2 + 4 * (M equal 3 integer)
-Answer = 6 * H * S // W
-return Answer
+return 6 * H * S // W

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/799_pentagonalpuzzle.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler799-original.ra', import.meta.url), 'utf8');
@@ -40,7 +40,7 @@ describe.each([false, true])('Euler 799 compiled=%s', compilation => {
             const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`, `--least=${least}`, '--floor=1'] });
             try {
                 runtime.execute(program);
-                expect(runtime.variables.get('Answer')).toBe(answer);
+                expect(answerOf(runtime)).toBe(answer);
             } finally { runtime.dispose(); }
         }
     });

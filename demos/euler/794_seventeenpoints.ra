@@ -135,5 +135,4 @@ end
 Sums = Lm sum axis 1
 Best = Sums min
 Ratio = Best / Grid
-Answer = Ratio round 12
-return Answer
+return Ratio round 12

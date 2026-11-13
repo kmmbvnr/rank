@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/447_retractions.ra', import.meta.url), 'utf8');
 // Direct factorization supplies unitary divisors, without Mobius inversion
@@ -23,7 +24,7 @@ it.each([0, 1, 2, 3, 4, 9, 10, 15, 16, 17, 63, 64, 65, 99, 100, 999, 1000])(
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${limit}`, `--cut=${cut}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(totals[limit]);
+                    expect(answerOf(runtime)).toBe(totals[limit]);
                 } finally { runtime.dispose(); }
             }
         }
@@ -33,7 +34,7 @@ it('preserves the full Euler 447 answer without Number overflow', () => {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(530553372n);
+        expect(answerOf(runtime)).toBe(530553372n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }

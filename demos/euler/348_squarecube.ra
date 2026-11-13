@@ -64,5 +64,4 @@ fun Want solve
   return Hits sum
 end
 
-Answer = Want solve
-return Answer
+return Want solve

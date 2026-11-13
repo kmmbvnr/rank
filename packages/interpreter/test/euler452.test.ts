@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/452_longproducts.ra', import.meta.url), 'utf8');
 const modulus = 1234567891n;
 function choose(n: bigint, k: number) {
@@ -31,7 +32,7 @@ it.each(cases)('counts products through $limit in $length slots on all backends'
         const runtime = new Interpreter(() => {}, { ...options, args: [`--m=${limit}`, `--n=${length}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
         } finally { runtime.dispose(); }
     }
 });
@@ -39,7 +40,7 @@ it('retains the full answer and compiles the private prime tables', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(345558983n);
+        expect(answerOf(runtime)).toBe(345558983n);
         expect(diagnostics.numberLoops).toBe(2);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.bulkArrayWriteCells).toBeLessThan(100);

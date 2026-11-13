@@ -15,7 +15,7 @@ for (const k of ks) {
         const runtime = new Interpreter(() => {}, {compilation, args:[`--k=${k}`]});
         try {
             runtime.execute(readFileSync(file,'utf8'));
-            const answer = runtime.variables.get('Answer');
+            const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
             if (expected === undefined) expected = answer;
             assert.equal(answer, expected, `${file}, K=${k}, compilation=${compilation}`);
             checked++;

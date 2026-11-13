@@ -19,7 +19,7 @@ for(const mode of ['compiled','reference'])for(const variant of ['original','can
         const runtime=new Interpreter(()=>{}, {compilation:mode==='compiled'});
         try {
             runtime.execute(source.replace('arg Limit integer = 0',`arg Limit integer = ${limit}`));
-            assert.equal(String(runtime.variables.get('Answer')),String(counts[limit]??({5000:8891,1000000:3055201})[limit]),`${mode}/${variant}/${limit}`);
+            assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)),String(counts[limit]??({5000:8891,1000000:3055201})[limit]),`${mode}/${variant}/${limit}`);
             checks++;
         } finally {runtime.dispose()}
     }

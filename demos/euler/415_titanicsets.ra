@@ -206,5 +206,4 @@ if Mc2 equal 0
 end
 Nt = 1 + Nm * Nm + Su1 + Su2
 Pw = 2 (Nn * Nn) Mod powmod
-Answer = (Pw - Nt) mod Mod
-return Answer
+return (Pw - Nt) mod Mod

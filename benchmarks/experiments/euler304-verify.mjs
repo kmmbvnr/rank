@@ -10,6 +10,6 @@ for(const [start,count,mod] of cases)for(const variant of variants)for(const com
  let source=readFileSync(variant==='production'?'demos/euler/304_primonacci.ra':'benchmarks/experiments/euler304-original.ra','utf8').replace('arg Start integer = 10 ** 14',`arg Start integer = ${start}`).replace('arg Count integer = 100000',`arg Count integer = ${count}`).replace('arg Mod integer = 1234567891011',`arg Mod integer = ${mod}`);
  if(['scalar','gaps','prefix','prefixeager'].includes(variant))source=source.slice(0,source.indexOf('F0 ='))+readFileSync(`benchmarks/experiments/euler304-${variant==='prefixeager'?'prefix':variant}.ra`,'utf8');
  if(['eager','prefixeager'].includes(variant))source=source.replaceAll("Twice' =",'Twice =').replaceAll("Shifted' =",'Shifted =').replaceAll("Next' =",'Next =');
- const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(String(r.variables.get('Answer')),expected(start,count,mod),JSON.stringify({start,count,mod,variant,compilation}));checked++;}finally{r.dispose();}
+ const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),expected(start,count,mod),JSON.stringify({start,count,mod,variant,compilation}));checked++;}finally{r.dispose();}
 }
 writeFileSync('benchmarks/baselines/2026-11-01-euler304-verification.json',JSON.stringify({checked,cases,variants,oracle:'Trial division for primes; linear Fibonacci recurrence for each index'},null,2)+'\n');console.log(`${checked} independent small checks passed`);

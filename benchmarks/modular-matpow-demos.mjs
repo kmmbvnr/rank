@@ -23,7 +23,7 @@ for (const [name, source, expected, count] of cases) {
     try {
         const start = performance.now();
         d.run(() => r.execute(source));
-        const ms = performance.now() - start, answer = r.variables.get('Answer');
+        const ms = performance.now() - start, answer = (r.variables.get('Answer') ?? r.lastResult);
         assert.equal(answer, expected);
         assert.equal(d.modularMatrixPowers, mode === 'before' ? 0 : count);
         console.log(JSON.stringify({ mode, name, ms, answer: String(answer), fused: d.modularMatrixPowers }));

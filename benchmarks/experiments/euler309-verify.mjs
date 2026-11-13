@@ -21,7 +21,7 @@ let checked=0;
 for(const compilation of [false,true])for(const variant of ['original','packed','copied-groups','parity','slices','production'])for(let i=0;i<limits.length;i++){
  const s=readFileSync(new URL(variant==='production'?'../../demos/euler/309_ladders.ra':`./euler309-${variant}.ra`,import.meta.url),'utf8').replace('arg Limit integer = 1000000',`arg Limit integer = ${limits[i]}`);
  const r=new Interpreter(()=>{},{compilation});
- try{r.execute(s);assert.equal(String(r.variables.get('Answer')),String(answers[i]),JSON.stringify({compilation,variant,limit:limits[i]}));checked++;}finally{r.dispose();}
+ try{r.execute(s);assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),String(answers[i]),JSON.stringify({compilation,variant,limit:limits[i]}));checked++;}finally{r.dispose();}
 }
 for(const compilation of [false,true]){
  const file=resolve('demos/euler/309_ladders_test.ra');

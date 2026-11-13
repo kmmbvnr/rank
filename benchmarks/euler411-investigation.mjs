@@ -12,4 +12,4 @@ if(variant==='phases')src=src.replace('  N = K ** Power','  K print\n  N = K ** 
 const start=performance.now(), cpuStart=process.cpuUsage();
 const runtime=new Interpreter(s=>{if(variant==='phases') console.error(JSON.stringify({ms:performance.now()-start,text:s}));},{compilation:mode!=='reference',args:[`--first=${first}`,`--count=${count}`,`--power=${process.env.RANK411_POWER ?? '5'}`]});
 const d=new RuntimeDiagnostics();
-try {d.run(()=>runtime.execute(src)); console.log(JSON.stringify({mode,first,count,variant,ms:performance.now()-start,cpuMs:(()=>{const c=process.cpuUsage(cpuStart);return(c.user+c.system)/1000;})(),rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),d}));}finally{runtime.dispose();}
+try {d.run(()=>runtime.execute(src)); console.log(JSON.stringify({mode,first,count,variant,ms:performance.now()-start,cpuMs:(()=>{const c=process.cpuUsage(cpuStart);return(c.user+c.system)/1000;})(),rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),d}));}finally{runtime.dispose();}

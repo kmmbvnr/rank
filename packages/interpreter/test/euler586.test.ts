@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/586_binaryquadraticform.ra', import.meta.url), 'utf8');
 
@@ -8,7 +9,7 @@ function run(n: number, r: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${n}`, `--r=${r}`] });
     try {
         runtime.execute(source);
-        return runtime.variables.get('Answer');
+        return answerOf(runtime);
     } finally { runtime.dispose(); }
 }
 

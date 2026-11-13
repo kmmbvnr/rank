@@ -1,5 +1,5 @@
 import { runProgram } from '@arrrank/common';
-import { Interpreter, RankError, RuntimeDiagnostics, parse, type RankTestResult } from '@arrrank/interpreter';
+import { Interpreter, RankError, RuntimeDiagnostics, parse, printedText, type RankTestResult } from '@arrrank/interpreter';
 import {
     analyzeValues, analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
@@ -30,6 +30,9 @@ export default async function main(): Promise<void> {
 
 async function dispatch(): Promise<void> {
     const arguments_ = process.argv.slice(2);
+    // `--print` shows the value the program returns; without it only `print` writes.
+    const showResult = arguments_[0] === '--print';
+    if (showResult) arguments_.shift();
     if (arguments_[0] === '--version' || arguments_[0] === '-V') {
         console.log(JSON.parse(packageContent).version);
         return;
@@ -57,28 +60,31 @@ async function dispatch(): Promise<void> {
     }
     if (arguments_[0] === '--diagnostics' || arguments_[0] === '--diagnostics=all') {
         if (arguments_[1] === undefined) throw new RankError('--diagnostics needs a file');
-        await runFile(arguments_[1], arguments_.slice(2), arguments_[0] === '--diagnostics=all' ? Infinity : 64);
+        await runFile(arguments_[1], arguments_.slice(2), showResult, arguments_[0] === '--diagnostics=all' ? Infinity : 64);
         return;
     }
     if (arguments_.length === 0) {
         await startRepl();
         return;
     }
-    await runFile(arguments_[0], arguments_.slice(1));
+    await runFile(arguments_[0], arguments_.slice(1), showResult);
 }
 
-async function runFile(file: string, args: readonly string[], diagnostic?: number): Promise<void> {
+async function runFile(file: string, args: readonly string[], showResult: boolean, diagnostic?: number): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
-    const run = () => runProgram(source, console.log, {
-        environment: nodeEnvironment(),
-        args,
-        input: new NodeInput(),
-        io: nodeIo,
-        md5: nodeMd5,
-        sourceId,
-        loadModule,
-    });
+    const run = () => {
+        const value = runProgram(source, console.log, {
+            environment: nodeEnvironment(),
+            args,
+            input: new NodeInput(),
+            io: nodeIo,
+            md5: nodeMd5,
+            sourceId,
+            loadModule,
+        });
+        if (showResult && value !== undefined) console.log(printedText(value));
+    };
     if (diagnostic === undefined) { run(); return; }
     const diagnostics = new RuntimeDiagnostics(diagnostic, true);
     try { diagnostics.run(run); }
@@ -443,6 +449,7 @@ function printHelp(): void {
         'Usage:',
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
+        '  rank --print <file> [arguments...]   Also show the returned value',
         '  rank --diagnostics <file> [arguments...]   Run with compiler diagnostics',
         '  rank --diagnostics=all <file> [arguments...]   Retain all rejection sites',
         '  rank check [path]            Check every *.ra file',

@@ -18,7 +18,7 @@ try {
     const cpu = process.cpuUsage(), start = performance.now();
     runtime.execute(source);
     const ms = performance.now() - start, used = process.cpuUsage(cpu);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (width === 199 && count === 199) assert.equal(answer, '652907799');
     const nullity = runtime.variables.get('Nullity');
     const nullities = Array.from({ length: count }, (_, i) => Number(readArrayItem(nullity, i)));

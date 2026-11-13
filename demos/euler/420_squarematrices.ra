@@ -98,5 +98,4 @@ for Trace in 2 to MaxTrace
     Total += (Prefix Slot) sum
   end
 end
-Answer = Total
-return Answer
+return Total

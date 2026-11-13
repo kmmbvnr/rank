@@ -192,5 +192,4 @@ for Ee greater 0
   end
   Ee = Ee // 2
 end
-Answer = (Ss mod P) * Rs Tt mod P
-return Answer
+return (Ss mod P) * Rs Tt mod P

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/754_gaussfactorials.ra', import.meta.url), 'utf8');
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
 function direct(limit: number): bigint {
@@ -18,7 +19,7 @@ for (const compilation of [false, true]) describe(`Euler 754 (compiled=${compila
             try {
                 runtime.execute(source.replace(/arg Limit integer = \d+/, `Limit = ${limit}`)
                     .replace(/arg Chunk integer = \d+/, `Chunk = ${chunk}`));
-                expect(runtime.variables.get('Answer')).toBe(expected);
+                expect(answerOf(runtime)).toBe(expected);
             } finally { runtime.dispose(); }
         }
     });

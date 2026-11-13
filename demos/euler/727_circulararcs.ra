@@ -87,5 +87,4 @@ Weighted = Dist * Weight
 Total = Weighted sum
 Count = Weight sum
 Mean = Total / Count
-Answer = Mean text ".8f"
-return Answer
+return Mean text ".8f"

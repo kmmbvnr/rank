@@ -32,5 +32,4 @@ Ss = Gs scan +
 Ew = Rs at most 10000000
 Bs = Ew choose (0 - Ss - 10) (Ss - 10)
 Lv = Ln - 20 * (Jm - 1)
-Answer = Lv + (Bs sort) (Nm - Jm)
-return Answer
+return Lv + (Bs sort) (Nm - Jm)

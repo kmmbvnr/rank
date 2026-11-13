@@ -9,5 +9,5 @@ assert(['compiled','reference'].includes(mode)&&/^[a-z]+$/.test(variant)&&/^\d+$
 const source=readFileSync(new URL(variant==='original'?'../demos/euler/299_threesimilar.ra':`./experiments/euler299-${variant}.ra`,import.meta.url),'utf8').replace('arg Limit integer = 100000000',`arg Limit integer = ${limit}`);
 const runtime=new Interpreter(()=>{},{compilation:mode==='compiled'}),d=new RuntimeDiagnostics(),start=performance.now();
 try{if(process.env.DIAGNOSTICS)d.run(()=>runtime.execute(source));else runtime.execute(source);
-const answer=String(runtime.variables.get('Answer')),expected={100:'92',100000:'320471',100000000:'549936643'}[limit];if(expected)assert.equal(answer,expected);
+const answer=String((runtime.variables.get('Answer') ?? runtime.lastResult)),expected={100:'92',100000:'320471',100000000:'549936643'}[limit];if(expected)assert.equal(answer,expected);
 console.log(JSON.stringify({mode,variant,limit,answer,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));}finally{runtime.dispose();}

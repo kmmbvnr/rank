@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/343_fractional.ra', import.meta.url), 'utf8');
 function createRuntime(compilation: boolean, testing = false): Interpreter {
@@ -53,7 +54,7 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
         const runtime = createRuntime(compilation);
         try {
             runtime.execute(source.replace('arg Limit integer = 2000000', 'arg Limit integer = 1000'));
-            expect(runtime.variables.get('Answer')).toBe(72421603n);
+            expect(answerOf(runtime)).toBe(72421603n);
         } finally { runtime.dispose(); }
     });
 });
@@ -62,6 +63,6 @@ it('preserves the full Euler 343 checksum with compiled slice writes', () => {
     const runtime = createRuntime(true);
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(269533451410884183n);
+        expect(answerOf(runtime)).toBe(269533451410884183n);
     } finally { runtime.dispose(); }
 }, 15_000);

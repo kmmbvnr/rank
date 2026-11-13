@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isNativeFunction, isRankQueue, type RankArray } from '../src/index.js';
 import { createArraySnapshot } from '../src/array-storage.js';
 import { materializeValue } from '../src/materialize.js';
+import { answerOf } from './support.js';
 
 describe('numerical demo host oracles', () => {
     it.each([[10, 4n], [100, 82073668n], [10000, 73808307n]])('runs Euler 337 at limit %s on both numeric backends and the interpreter', (limit, expected) => {
@@ -13,7 +14,7 @@ describe('numerical demo host oracles', () => {
             const diagnostics = new RuntimeDiagnostics();
             try {
                 diagnostics.run(() => runtime.execute(source));
-                expect(output.join('').trim()).toBe(String(expected));
+                expect(answerOf(runtime)).toBe(expected);
                 if (!('numberLoopCompilation' in options) && !('compilation' in options)) {
                     // Fresh Phi/Bit storage lets one region join the sieve and DP.
                     expect(diagnostics.numberLoops).toBe(1);

@@ -30,7 +30,7 @@ if (option('worker')) {
         if (instrumented) diagnostics.run(() => runtime.execute(source));
         else runtime.execute(source);
         const executeMs = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), expected.get(limit));
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected.get(limit));
         if (instrumented) {
             assert.equal(diagnostics.loopElementScans, 0, 'reuse tracked scalar-kind evidence');
             assert.equal(diagnostics.compiledLoops, limit * 3, 'compile each entire BFS frontier');

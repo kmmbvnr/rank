@@ -24,7 +24,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = { 0: 0, 3: 0, 4: 4, 110: 355, 1000: 9167,
         200000: 23434786, 3000000: 1305678503, 10000000000: 238890850232021 }[limit];
     if (expected !== undefined) assert.equal(answer, String(expected));

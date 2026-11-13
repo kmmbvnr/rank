@@ -95,5 +95,4 @@ for Sx in 0 till Wx
     end
   end
 end
-Answer = Total - 1 - Digons
-return Answer
+return Total - 1 - Digons

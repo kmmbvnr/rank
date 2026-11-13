@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/589_poohsticks.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler589-original.ra', import.meta.url), 'utf8');
 function run(text: string, k: number, d: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--k=${k}`, `--d=${d}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([true, false])('Euler 589 (compilation=%s)', compilation => {

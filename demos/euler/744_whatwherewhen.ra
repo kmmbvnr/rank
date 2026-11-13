@@ -50,5 +50,4 @@ if Pairs at most 2000 or Skew less 15.0
   Sum = Terms sum
   Value = Sum / Total
 end
-Answer = Value text ".10f"
-return Answer
+return Value text ".10f"

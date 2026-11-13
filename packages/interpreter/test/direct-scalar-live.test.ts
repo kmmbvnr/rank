@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, parse } from '../src/index.js';
 import { native } from '../src/modules/shared.js';
+import { answerOf } from './support.js';
 
 describe.each([false, true])('prepared scalar expressions (compilation=%s)', compilation => {
     it('reads public binding replacements and deletions through the same prepared program', () => {
@@ -9,10 +10,10 @@ describe.each([false, true])('prepared scalar expressions (compilation=%s)', com
         try {
             r.variables.set('X', 2n);
             r.executeProgram(program);
-            expect(r.variables.get('Answer')).toBe(7n);
+            expect(answerOf(r)).toBe(7n);
             r.variables.set('X', 5n);
             r.executeProgram(program);
-            expect(r.variables.get('Answer')).toBe(16n);
+            expect(answerOf(r)).toBe(16n);
             r.variables.delete('X');
             expect(() => r.executeProgram(program)).toThrow('unknown name: X');
         } finally { r.dispose(); }

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/478_mixtures_test.ra', import.meta.url);
 const source = readFileSync(new URL('478_mixtures.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -34,7 +35,7 @@ function solve(n: number, options: InterpreterOptions, check?: (r: Interpreter) 
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] }), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => r.execute(source)); check?.(r);
-        return { answer: r.variables.get('Answer'), primitive: r.variables.get('Primitive'), diagnostics };
+        return { answer: answerOf(r), primitive: r.variables.get('Primitive'), diagnostics };
     } finally { r.dispose(); }
 }
 it.each([1, 2, 3, 4, 5, 7, 9, 10, 16, 20])('matches primitive triples and coprime lattice counts at N=%s', n => {

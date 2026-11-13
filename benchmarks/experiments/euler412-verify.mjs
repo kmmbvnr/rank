@@ -25,6 +25,6 @@ const delivered=readFileSync(new URL('../../demos/euler/412_gnomonnumbering.ra',
 let checked=0;
 for(const compilation of [false,true])for(let m=1;m<=12;m++)for(let k=0;k<m;k++)for(const src of [original,native,direct,delivered]){
  const r=new Interpreter(()=>{},{compilation,args:[`--m=${m}`,`--k=${k}`,'--chunk=7']});
- try{r.execute(src);const got=r.variables.get('Answer'),want=oracle(m,k);if(got!==want)throw Error(`${compilation} ${m} ${k} ${got} != ${want}`);checked++;}finally{r.dispose();}
+ try{r.execute(src);const got=(r.variables.get('Answer') ?? r.lastResult),want=oracle(m,k);if(got!==want)throw Error(`${compilation} ${m} ${k} ${got} != ${want}`);checked++;}finally{r.dispose();}
 }
 console.log(JSON.stringify({checked}));

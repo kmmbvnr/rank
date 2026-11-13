@@ -19,7 +19,7 @@ for (const limit of [...Array(31).keys(), 50, 99, 100, 101, 199, 200, 201, 300, 
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source.replace('arg Limit integer = 75000000', `arg Limit integer = ${limit}`));
-            assert.equal(String(runtime.variables.get('Answer')), String(expected), `${name}: ${limit}, compiled=${compilation}`);
+            assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), String(expected), `${name}: ${limit}, compiled=${compilation}`);
             checks++;
         } finally { runtime.dispose(); }
     }

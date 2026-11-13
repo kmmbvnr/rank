@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/553_powersetsofpowersets.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler553-original.ra', import.meta.url), 'utf8');
 function enumerate(n: number): bigint[] {
@@ -22,7 +23,7 @@ function enumerate(n: number): bigint[] {
 const counts = Array.from({ length: 5 }, (_, n) => enumerate(n));
 function solve(n: number, k: number, options: InterpreterOptions, program = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--k=${k}`] });
-    try { runtime.execute(program); return runtime.variables.get('Answer'); }
+    try { runtime.execute(program); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const cases = counts.flatMap((row, n) => [...row, 0n].map((answer, k) => ({ n, k, answer })));

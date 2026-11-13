@@ -72,5 +72,4 @@ end
 rem Overlap makes blocks independent.
 rem Ranked sums release each block.
 Starts = 1 to U - K + 1 by Bs
-Answer = Starts block rank 0 sum
-return Answer
+return Starts block rank 0 sum

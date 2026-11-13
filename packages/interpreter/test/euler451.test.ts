@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/451_modularinverses.ra', import.meta.url), 'utf8');
 function roots(limit: number) {
@@ -21,7 +22,7 @@ it.each([0, 1, 2, 3, 4, 7, 8, 9, 15, 16, 24, 25, 26, 63, 64, 65, 100, 255, 256, 
             try {
                 runtime.execute(source);
                 expect((runtime.variables.get('B') as RankArray).items).toEqual(expected);
-                expect(runtime.variables.get('Answer')).toBe(expected.reduce((sum, value) => sum + value, 0n));
+                expect(answerOf(runtime)).toBe(expected.reduce((sum, value) => sum + value, 0n));
             } finally { runtime.dispose(); }
         }
     });
@@ -29,7 +30,7 @@ it('compiles the full search in one private region without replay', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(153651073760956n);
+        expect(answerOf(runtime)).toBe(153651073760956n);
         expect((runtime.variables.get('B') as RankArray).shape).toEqual([20000001]);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);

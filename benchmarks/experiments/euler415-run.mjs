@@ -8,4 +8,4 @@ if(process.env.RANK415_PHASES)for(const [marker,label] of [
 let previous=performance.now();const phases=[];
 const runtime=new Interpreter(line=>{if(line.startsWith('phase:')){const now=performance.now();phases.push({phase:line.trim(),ms:now-previous,rssMiB:process.memoryUsage().rss/2**20});previous=now;}},{compilation:mode!=='reference',args:[`--n=${n}`,`--l=${limit}`]});
 const diagnostics=new RuntimeDiagnostics(),start=performance.now();previous=start;
-try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({mode,n,limit,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),phases,diagnostics}));}finally{runtime.dispose();}
+try{diagnostics.run(()=>runtime.execute(source));console.log(JSON.stringify({mode,n,limit,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),phases,diagnostics}));}finally{runtime.dispose();}

@@ -123,7 +123,7 @@ const diagnostics=new RuntimeDiagnostics();
 const start=performance.now();
 try {
  if(process.env.DIAGNOSTICS) diagnostics.run(()=>runtime.execute(source)); else runtime.execute(source);
- const answer=String(runtime.variables.get('Answer'));
+ const answer=String((runtime.variables.get('Answer') ?? runtime.lastResult));
  const expected={'10000000':'4222148009','1000000000':'316174709149021','100000000000':'8495585919506151122'}[limit];
  if(expected) assert.equal(answer,expected);
  console.log(JSON.stringify({mode,variant,limit,ms:performance.now()-start,answer,rssMiB:process.resourceUsage().maxRSS/1024,stages,...(process.env.DIAGNOSTICS?{diagnostics}:{})}));

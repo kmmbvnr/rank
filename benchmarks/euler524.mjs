@@ -9,7 +9,7 @@ const runtime = new Interpreter(() => {}, { compilation: mode !== 'reference', a
 try {
     const start = performance.now(), cpu = process.cpuUsage();
     runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (expected && answer !== expected) throw Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, k, file, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'),

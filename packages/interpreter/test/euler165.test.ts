@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/165_intersections.ra', import.meta.url), 'utf8');
 
@@ -42,7 +43,7 @@ describe.each([false, true])('Euler 165 (compilation=%s)', compilation => {
             args: [`--segs=${count}`, `--room=${count * (count - 1) / 2}`] });
         try {
             r.execute(source);
-            expect(r.variables.get('Answer')).toBe(oracle(count));
+            expect(answerOf(r)).toBe(oracle(count));
         } finally { r.dispose(); }
     });
 });

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/531_chineseleftovers.ra', import.meta.url), 'utf8');
 function gcd(a: bigint, b: bigint): bigint { return b ? gcd(b, a % b) : a; }
 function phi(n: bigint) {
@@ -52,12 +53,12 @@ describe.each([
     it.each(ranges.map(([low, high], i) => ({ low, high, expected: expected[i] })))(
         'matches independently computed CRT over [$low,$high)', ({ low, high, expected }) => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--lo=${low}`, `--hi=${high}`] });
-            try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(expected); }
+            try { runtime.execute(source); expect(answerOf(runtime)).toBe(expected); }
             finally { runtime.dispose(); }
         });
     it('keeps each CRT cell exact beyond the Number input range', () => {
         const runtime = new Interpreter(() => {}, { ...options, args: [`--lo=${wideLow}`, `--hi=${wideLow + 2n}`] });
-        try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(wideExpected); }
+        try { runtime.execute(source); expect(answerOf(runtime)).toBe(wideExpected); }
         finally { runtime.dispose(); }
     });
 });
@@ -73,7 +74,7 @@ it('matches the full result with an exact total beyond Number', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(4515432351156203105n);
+        expect(answerOf(runtime)).toBe(4515432351156203105n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.mixedIntegerLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }

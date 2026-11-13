@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import type { RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/324_tower.ra', import.meta.url), 'utf8');
 const cells = (value: unknown) => [...(value as RankArray).items] as bigint[];
@@ -128,7 +129,7 @@ for (const mode of ['reference', 'compiled', 'exact'] as const) describe(`Euler 
     });
     it('retains the full 10000-digit default answer', () => {
         const r = new Interpreter(() => {}, options);
-        try { r.execute(source); expect(r.variables.get('Answer')).toBe(96972774n); }
+        try { r.execute(source); expect(answerOf(r)).toBe(96972774n); }
         finally { r.dispose(); }
     });
 });

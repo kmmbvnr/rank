@@ -15,7 +15,7 @@ try {
     const start = performance.now(), cpu = process.cpuUsage();
     d.run(() => runtime.execute(source));
     const ms = performance.now() - start, used = process.cpuUsage(cpu);
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, answers[n]);
     assert.equal(d.compiledLoops, mode === 'on' ? 2 : 0);
     console.log(JSON.stringify({ mode, n, ms, cpuMs: (used.user + used.system) / 1000,

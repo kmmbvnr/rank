@@ -42,7 +42,7 @@ if (option('worker')) {
             }
         }
         const executeMs = performance.now() - start;
-        if (!interrupted) assert.equal(runtime.variables.get('Answer'), entry.expected);
+        if (!interrupted) assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), entry.expected);
         if (instrumented && !entry.original) assert.ok(diagnostics.numberLoops > 0, 'Number backend executed');
         console.log(JSON.stringify({ case: entry.name, n: entry.n, executeMs, interrupted,
             result: interrupted ? undefined : String(entry.expected), ...(instrumented ? { diagnostics } : {}) }));

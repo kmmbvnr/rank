@@ -16,7 +16,7 @@ try {
     if (process.env.RANK533_PROFILE) { profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const winner = runtime.variables.get('Tb');
     const score = winner === undefined ? undefined : String(readArrayItem(runtime.variables.get('Lg'), Number(winner)));
     if (process.env.RANK533_EXPECTED && answer !== process.env.RANK533_EXPECTED) throw Error(`Wrong answer: ${answer}`);

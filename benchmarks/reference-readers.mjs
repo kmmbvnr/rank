@@ -39,7 +39,7 @@ const result = runtime.executeProgram(program, args);
 const ms = performance.now() - start;
 const cpu = process.cpuUsage(cpuStart);
 const actual = Array.isArray(expected) ? (assert(isRankArray(result)), expected.map((_, i) => readArrayItem(result, i)))
-    : name === 'calls' ? result : runtime.variables.get('Answer');
+    : name === 'calls' ? result : (runtime.variables.get('Answer') ?? runtime.lastResult);
 assert.deepEqual(actual, expected);
 console.log(JSON.stringify({ name, engine, ms, cpuMs: (cpu.user + cpu.system) / 1000, loadStart, rssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, cpu: cpus()[0].model, answer: String(actual) }));
 runtime.dispose();

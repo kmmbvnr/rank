@@ -33,5 +33,4 @@ Tail' = H filter (H at least Least)
 Ways' = N binomial Tail
 Wins = Ways sum
 All = 2 ** N
-Answer = Wins / All round 12
-return Answer
+return Wins / All round 12

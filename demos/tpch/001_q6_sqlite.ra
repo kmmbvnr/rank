@@ -19,5 +19,4 @@ Discounted' = YearRows (DiscountLow and DiscountHigh)
 
 Limited' = Discounted (Discounted .l_quantity less 24)
 Price' = Limited .l_extendedprice * Limited .l_discount
-Revenue = Price sum
-Revenue print
+return Price sum

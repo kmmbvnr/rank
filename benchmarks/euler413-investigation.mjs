@@ -57,4 +57,4 @@ if(process.env.RANK413_SOURCE){writeFileSync(process.env.RANK413_SOURCE,src);pro
 const start=performance.now(),cpu=process.cpuUsage();
 const r=new Interpreter(()=>{},{compilation:mode!=='reference',args:[`--digits=${digits}`]});
 const d=new RuntimeDiagnostics();
-try{d.run(()=>r.execute(src));const c=process.cpuUsage(cpu);console.log(JSON.stringify({mode,digits,variant,ms:performance.now()-start,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),d}));}finally{r.dispose();}
+try{d.run(()=>r.execute(src));const c=process.cpuUsage(cpu);console.log(JSON.stringify({mode,digits,variant,ms:performance.now()-start,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),d}));}finally{r.dispose();}

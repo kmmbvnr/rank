@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/797_cyclogenic.ra', import.meta.url), 'utf8');
 
@@ -31,14 +32,14 @@ describe.each([false, true])('Euler 797 compilation=%s', compilation => {
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(reference(limit, 1000000007n));
+            expect(answerOf(runtime)).toBe(reference(limit, 1000000007n));
         } finally { runtime.dispose(); }
     });
     it.each([97n, 2305843009213693951n])('preserves modular arithmetic for modulus %s', mod => {
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=10', `--mod=${mod}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(reference(10, mod));
+            expect(answerOf(runtime)).toBe(reference(10, mod));
         } finally { runtime.dispose(); }
     });
 });
@@ -47,7 +48,7 @@ it('compiles all three unchanged prime sieves', () => {
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(reference(1000, 1000000007n));
+        expect(answerOf(runtime)).toBe(reference(1000, 1000000007n));
         expect(diagnostics.numberLoops).toBe(3);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }

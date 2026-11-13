@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/569_primemountain.ra', import.meta.url), 'utf8');
 function oracle(n: number): bigint {
     const primes: bigint[] = [];
@@ -28,7 +29,7 @@ function oracle(n: number): bigint {
 }
 function run(n: number, options: InterpreterOptions) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 569 %j', options => {

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/529_tensum.ra', import.meta.url), 'utf8');
 // Direct semantic oracle: enumerate decimal integers and mark every digit
@@ -42,13 +43,13 @@ describe.each(modes)('Euler 529 $name', ({ options }) => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${exponent}`, `--sd=${sum}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `T(${exponent}), sum=${sum}`).toBe(BigInt(counts.get(exponent)![sum]));
+                expect(answerOf(runtime), `T(${exponent}), sum=${sum}`).toBe(BigInt(counts.get(exponent)![sum]));
             } finally { runtime.dispose(); }
         }
     }, 120_000);
     it('keeps the existing long sum-four fixture', () => {
         const runtime = new Interpreter(() => {}, { ...options, args: ['--n=2000', '--sd=4'] });
-        try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(603612384n); }
+        try { runtime.execute(source); expect(answerOf(runtime)).toBe(603612384n); }
         finally { runtime.dispose(); }
     });
     it('covers a huge exponent independently as binary decimal strings for target one', () => {
@@ -58,12 +59,12 @@ describe.each(modes)('Euler 529 $name', ({ options }) => {
             if (power & 1n) expected = expected * base % modulus;
         }
         const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${exponent}`, '--sd=1'] });
-        try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(expected); }
+        try { runtime.execute(source); expect(answerOf(runtime)).toBe(expected); }
         finally { runtime.dispose(); }
     });
     it('handles the zero sequence at an exponent beyond the generated terms', () => {
         const runtime = new Interpreter(() => {}, { ...options, args: ['--n=10000', '--sd=0'] });
-        try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(0n); }
+        try { runtime.execute(source); expect(answerOf(runtime)).toBe(0n); }
         finally { runtime.dispose(); }
     });
 });
@@ -71,7 +72,7 @@ it('matches the full Euler 529 result without Int32 replay', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(23624465n);
+        expect(answerOf(runtime)).toBe(23624465n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }

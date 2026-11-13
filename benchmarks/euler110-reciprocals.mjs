@@ -35,7 +35,7 @@ try {
     else runtime.execute(source);
     const ms = performance.now() - start;
     const rss = process.resourceUsage().maxRSS / 1024;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const golden = { 4000000: '9350130049860600', 1000: '180180', 3: '6' }[target];
     if (golden) assert.equal(answer, golden);
     console.log(JSON.stringify({ demo, target, ms, rss, answer,

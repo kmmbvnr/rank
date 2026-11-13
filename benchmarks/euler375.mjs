@@ -29,8 +29,8 @@ if (options.worker) {
         phases[name] = { ms: performance.now() - start,
             ...(options.diagnostics === 'true' ? { diagnostics } : {}) };
     }
-    assert.equal(runtime.variables.get('Answer'), 7435327983715286168n);
-    console.log(JSON.stringify({ phases, answer: String(runtime.variables.get('Answer')),
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 7435327983715286168n);
+    console.log(JSON.stringify({ phases, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
         maxRssMiB: process.resourceUsage().maxRSS / 1024 }));
     runtime.dispose();
 } else {

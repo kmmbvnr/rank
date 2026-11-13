@@ -26,7 +26,7 @@ for (const limit of [20, 30, 50, 75, 100, 150, 300, 1000]) {
         const context = JSON.stringify({ limit, variant, compilation });
         try {
             runtime.execute(source);
-            assert.equal(Number(runtime.variables.get('Answer')), expected.answer, context);
+            assert.equal(Number((runtime.variables.get('Answer') ?? runtime.lastResult)), expected.answer, context);
             const columns = ['Ca', 'Cb', 'Cc', 'Cd', 'Ce', 'Cf'].map(name => runtime.variables.get(name).items);
             const actual = [];
             for (let i = 0; i < Number(runtime.variables.get('Nc')); i++) {

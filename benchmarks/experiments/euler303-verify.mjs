@@ -17,7 +17,7 @@ for(const mode of ['compiled','reference'])for(const variant of ['original','ear
 }
 for(const mode of ['compiled','reference'])for(const variant of ['original','early','array','arrayearly','reduce','production']){
  const source=readFileSync(new URL(variant==='production'?'../../demos/euler/303_smalldigits.ra':`./euler303-${variant}.ra`,import.meta.url),'utf8'),r=new Interpreter(()=>{},{compilation:mode==='compiled'});
- try{r.execute(source.replace('arg Limit integer = 10000','arg Limit integer = 100'));assert.equal(r.variables.get('Answer'),11363107n);checks++;}finally{r.dispose();}
+ try{r.execute(source.replace('arg Limit integer = 10000','arg Limit integer = 100'));assert.equal((r.variables.get('Answer') ?? r.lastResult),11363107n);checks++;}finally{r.dispose();}
 }
 const report={checks,enumeratedCandidates:tested,maxIndependentValue:String([...answers.values()].reduce((a,b)=>a>b?a:b)),results};
 writeFileSync(new URL('../baselines/2026-10-31-euler303-verification.json',import.meta.url),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));

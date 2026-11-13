@@ -17,7 +17,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    assert.equal(runtime.variables.get('Answer'), 38239n);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 38239n);
     console.log(JSON.stringify({ ms, rssMiB: process.resourceUsage().maxRSS / 1024,
-        answer: String(runtime.variables.get('Answer')), diagnostics }));
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), diagnostics }));
 } finally { runtime.dispose(); }

@@ -36,7 +36,7 @@ Total`;
             const start = performance.now();
             runtime.execute(source);
             const executeMs = performance.now() - start;
-            const answer = String(runtime.variables.get('Answer'));
+            const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
             const expected = { 10: '12', 100: '178', 1000: '2385', 10000: '29860', 100000: '357503', 1000000: '4153927', 100000000: '528755790' };
             if (expected[limit]) assert.equal(answer, expected[limit]);
             console.log(JSON.stringify({ case: mode, limit, executeMs, answer }));

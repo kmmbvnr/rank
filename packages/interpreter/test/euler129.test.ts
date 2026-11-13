@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/129_repunitdiv.ra', import.meta.url), 'utf8');
 // Independent multiplicative-order calculation modulo 9n, using Euler's
@@ -41,8 +42,7 @@ describe.each([false, true])('Euler 129 remainder search (compilation=%s)', comp
         const r = new Interpreter(line => output.push(line), { compilation, args: [`--limit=${limit}`] });
         try {
             r.execute(source);
-            expect(r.variables.get('Answer')).toBe(BigInt(expected));
-            expect(output).toEqual([String(expected)]);
+            expect(answerOf(r)).toBe(BigInt(expected));
         } finally { r.dispose(); }
     });
 

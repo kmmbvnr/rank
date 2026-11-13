@@ -96,7 +96,7 @@ if(option('prepare')){
 }else if(option('worker')){
  const name=option('worker'),v=option('version'),m=await runtime(v),{source,file,answer}=sourceFor(name),d=new m.RuntimeDiagnostics(),output=[];
  const r=new m.Interpreter(s=>output.push(s),{sourceId:file,loadModule(spec,from){const id=resolve(dirname(from??file),spec.endsWith('.ra')?spec:spec+'.ra');return{id,source:readFileSync(id,'utf8')};}});
- try{const start=performance.now();if(option('diagnostics'))d.run(()=>r.execute(source));else r.execute(source);const ms=performance.now()-start,rssMiB=process.resourceUsage().maxRSS/1024;assert.equal(r.variables.get('Answer'),answer);console.log(JSON.stringify({case:name,version:v,ms,rssMiB,sourceHash:hash(source),answer:String(answer),...(option('diagnostics')?{diagnostics:d}:{})}));}finally{r.dispose();}
+ try{const start=performance.now();if(option('diagnostics'))d.run(()=>r.execute(source));else r.execute(source);const ms=performance.now()-start,rssMiB=process.resourceUsage().maxRSS/1024;assert.equal((r.variables.get('Answer') ?? r.lastResult),answer);console.log(JSON.stringify({case:name,version:v,ms,rssMiB,sourceHash:hash(source),answer:String(answer),...(option('diagnostics')?{diagnostics:d}:{})}));}finally{r.dispose();}
 }else{
  const cases=(option('cases')??'185,170,186,166,short,long,phase,sparse-local,sparse-scatter,sparse-many,dense,cold,register,early,late').split(',');
  const samples=Number(option('samples')??3),results=[],jobs=cases.flatMap(name=>versions.map(version=>({name,version})));

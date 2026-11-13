@@ -23,7 +23,7 @@ assert.equal(answers[0],'19');assert.equal(answers[9],'36981');
 let checked=0;
 for(const compilation of [false,true])for(const variant of ['original','inline','native','production','fallback'])for(let i=0;i<answers.length;i++){
  const r=new Interpreter(()=>{},{compilation});
- try{r.execute(source(variant,i+1));assert.equal(String(r.variables.get('Answer')),answers[i],JSON.stringify({compilation,variant,target:i+1}));checked++;}finally{r.dispose();}
+ try{r.execute(source(variant,i+1));assert.equal(String((r.variables.get('Answer') ?? r.lastResult)),answers[i],JSON.stringify({compilation,variant,target:i+1}));checked++;}finally{r.dispose();}
 }
 for(const compilation of [false,true]){
  const file=resolve('demos/euler/308_automaton_test.ra');

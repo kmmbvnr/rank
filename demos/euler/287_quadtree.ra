@@ -100,5 +100,4 @@ for
     Top += 4
   end
 end
-Answer = 2 + 7 * Splits
-return Answer
+return 2 + 7 * Splits

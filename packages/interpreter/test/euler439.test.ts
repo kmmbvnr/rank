@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/439_sumofdivisors.ra', import.meta.url), 'utf8');
 function oracle(n: number) {
@@ -19,7 +20,7 @@ for (const n of [0, 1, 2, 3, 4, 8, 9, 10, 16, 25, 49, 80, 100]) {
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--l=${l}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(expected);
+                    expect(answerOf(runtime)).toBe(expected);
                 } finally { runtime.dispose(); }
             }
         }

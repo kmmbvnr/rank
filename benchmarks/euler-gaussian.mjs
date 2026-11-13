@@ -41,7 +41,7 @@ if (option('worker')) {
             assert.deepEqual(r.testResults.map(test => test.output), [['17971254122360635'], ['35', '17924657155']]);
         } else {
             const expected = name === 'scalar-writes' ? 100000n : name === 'scalar-loop' ? 1000000n : 17971254122360635n;
-            assert.equal(r.variables.get('Answer'), expected);
+            assert.equal((r.variables.get('Answer') ?? r.lastResult), expected);
             assert.deepEqual(output, [String(expected)]);
         }
         console.log(JSON.stringify({ case: name, engine: option('engine'), executeMs, peakRssMiB,

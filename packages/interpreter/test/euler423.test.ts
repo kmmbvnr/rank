@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/423_consecutive.ra', import.meta.url), 'utf8');
 // Independent exact counts: five choices change the face; one repeats it.
@@ -28,7 +29,7 @@ describe('Euler 423 modular recurrence', () => {
         const runtime = new Interpreter(() => {});
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(653972374n);
+            expect(answerOf(runtime)).toBe(653972374n);
         } finally { runtime.dispose(); }
     }, 30000);
 
@@ -38,7 +39,7 @@ describe('Euler 423 modular recurrence', () => {
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--l=${limit}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(oracle(limit));
+                    expect(answerOf(runtime)).toBe(oracle(limit));
                 } finally { runtime.dispose(); }
             }
         });
@@ -48,7 +49,7 @@ describe('Euler 423 modular recurrence', () => {
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(772698120n);
+            expect(answerOf(runtime)).toBe(772698120n);
             expect(diagnostics.numberLoops).toBe(2);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.nativeSequenceCopies).toBe(1);

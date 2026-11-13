@@ -125,5 +125,4 @@ Products = Twos Fives outer *
 Flat = Products reshape 861
 Values = Flat (Flat at most N)
 Smooth = Values sort
-Answer = Factors Smooth cycle_sum N
-return Answer
+return Factors Smooth cycle_sum N

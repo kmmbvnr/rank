@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/441_inversesum.ra', import.meta.url), 'utf8');
 function oracle(limit: number) {
     const gcd = (a: number, b: number) => { while (b) [a, b] = [b, a % b]; return a; };
@@ -22,7 +23,7 @@ for (const n of [0, 1, 2, 3, 4, 5, 10, 31, 32, 33, 63, 64, 65, 100, 129, 250, 10
             try {
                 runtime.execute(source);
                 expect(runtime.variables.get('Raw')).toBeCloseTo(expected, 9);
-                expect(runtime.variables.get('Answer')).toBe(Math.round(expected * 1e8) / 1e8);
+                expect(answerOf(runtime)).toBe(Math.round(expected * 1e8) / 1e8);
             } finally { runtime.dispose(); }
         }
     });

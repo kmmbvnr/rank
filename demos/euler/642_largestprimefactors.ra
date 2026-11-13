@@ -84,5 +84,4 @@ for P in Pr reverse
     Cs Sv = (Cs Sv + As) mod M
   end
 end
-Answer = Cl 1 mod M
-return Answer
+return Cl 1 mod M

@@ -31,5 +31,4 @@ for E max greater 0
 end
 Hit' = Res equal 1 and not (N in primes)
 Found' = N filter Hit array
-Answer = Found take Count sum
-return Answer
+return Found take Count sum

@@ -20,8 +20,7 @@ Factors = Upper to Lower by -1
 Products' = Factors Factors outer *
 Candidates' = Products merge .descending
 
-Answer = Candidates filter palindrome first
-return Answer
+return Candidates filter palindrome first
 
 rem Return true when a nonnegative integer
 rem reads the same in both directions.

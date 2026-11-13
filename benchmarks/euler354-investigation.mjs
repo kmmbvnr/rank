@@ -16,8 +16,8 @@ try{
  const run=()=>runtime.execute(source);
  if(process.env.DIAG)diagnostics.run(run);else run();
  const expected={'0':'0','1000000':'18','10000000':'597','500000000000':'58065134'}[limit];
- if(expected!==undefined)assert.equal(String(runtime.variables.get('Answer')),expected);
- console.log(JSON.stringify({limit,mode,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),phases,node:process.version,arch:process.arch,...(process.env.DIAG?{diagnostics,kernels:kernels.length}:{})}));
+ if(expected!==undefined)assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)),expected);
+ console.log(JSON.stringify({limit,mode,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),phases,node:process.version,arch:process.arch,...(process.env.DIAG?{diagnostics,kernels:kernels.length}:{})}));
  if(process.env.KERNELS)writeFileSync(process.env.KERNELS,kernels.join('\n\n'));
  if(session){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
 }finally{session?.disconnect();runtime.dispose();}

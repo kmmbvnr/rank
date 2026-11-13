@@ -113,5 +113,4 @@ Numbers = array shape 100
 end
 
 Total = Numbers sum
-Answer = Total text take Digits integer
-return Answer
+return Total text take Digits integer

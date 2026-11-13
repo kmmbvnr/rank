@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/153_gaussian.ra', import.meta.url), 'utf8');
 
@@ -22,7 +23,7 @@ describe.each([false, true])('Euler 153 (compilation=%s)', compilation => {
             try {
                 const result = r.execute(source);
                 const expected = oracle(limit);
-                expect(r.variables.get('Answer')).toBe(expected);
+                expect(answerOf(r)).toBe(expected);
                 expect(result).toBe(expected);
             } finally { r.dispose(); }
         });

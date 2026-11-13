@@ -126,7 +126,7 @@ else {
         run(prefix);
         const sieve = performance.now();
         run(bodies[variant]);
-        assert.equal(rt.variables.get('Answer'), 4179871n);
+        assert.equal((rt.variables.get('Answer') ?? rt.lastResult), 4179871n);
         console.log(JSON.stringify({ variant, mode, ms: performance.now() - start, sieve: sieve - start, pairs: performance.now() - sieve, answer: '4179871', rss: process.resourceUsage().maxRSS / 1024, ...(process.env.RANK023_DIAG ? { diag, kernels } : {}) }));
     }
     finally {

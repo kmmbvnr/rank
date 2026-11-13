@@ -93,5 +93,4 @@ Ca = Ca Ok
 Ao = Ka argsort
 Jx = Ao (Cn - 1)
 Tw = 2 (Om - Ca Jx) Md powmod
-Answer = Pa Jx * Tw mod Md
-return Answer
+return Pa Jx * Tw mod Md

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue, type InterpreterOptions } from '../src/index.js';
 import { withDemandBudget, withInterrupt, InterruptedError, type InterruptSignal } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 type Scope = (run: () => void) => void;
 function execute(source: string, options: InterpreterOptions = {}, scope: Scope = run => run()) {
@@ -87,7 +88,7 @@ end`);
                 let error: string | undefined;
                 try { withDemandBudget(budget, () => runtime.execute('Answer = 10 123 raised 97')); }
                 catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
-                return { error, answer: runtime.variables.get('Answer') };
+                return { error, answer: answerOf(runtime) };
             } finally { runtime.dispose(); }
         };
         expect(observe(true)).toEqual(observe(false));
@@ -108,11 +109,11 @@ fun B E raised M
  return B E M powmod
 end
 Answer = 10 1000000000000 raised 97`);
-            const before = runtime.variables.get('Answer');
+            const before = answerOf(runtime);
             const signal = new Int32Array(new SharedArrayBuffer(12));
             Atomics.store(signal, 0, 1);
             expect(() => withInterrupt(signal, () => runtime.execute('Answer = 10 1000000000000 raised 97'))).toThrow(InterruptedError);
-            expect(runtime.variables.get('Answer')).toBe(before);
+            expect(answerOf(runtime)).toBe(before);
         } finally { runtime.dispose(); }
     });
     it('retains nested leaf hooks and the call-depth limit', () => {

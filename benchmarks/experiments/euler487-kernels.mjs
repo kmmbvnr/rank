@@ -13,7 +13,7 @@ try {
  else {
   let b=BigInt(count-1),e=10000n,v=1n;
   while(e) {if(e%2n)v=v*b%modulus;b=b*b%modulus;e/=2n;}
-  const actual=readArrayItem(r.variables.get('Answer'),count-1);if(actual!==v)throw Error('Wrong answer');checksum=String(actual);
+  const actual=readArrayItem((r.variables.get('Answer') ?? r.lastResult),count-1);if(actual!==v)throw Error('Wrong answer');checksum=String(actual);
  }
  const sorted=times.slice(2).sort((a,b)=>a-b);
  console.log(JSON.stringify({mode,node:process.version,arch:process.arch,count,modulus:String(modulus),times,medianMs:sorted[2],rssMiB:process.resourceUsage().maxRSS/1024,checksum}));

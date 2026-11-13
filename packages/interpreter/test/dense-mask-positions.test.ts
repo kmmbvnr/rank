@@ -4,6 +4,7 @@ import { filledArray, typedArray, writeArrayCell, readArrayItem } from '../src/a
 import { packedTruePositions } from '../src/packed-booleans.js';
 import { maskSelection, materializeMaskSelection } from '../src/array-mask-selection.js';
 import { DemandBudgetExhausted, withDemandBudget, withInterrupt } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 describe('dense mask positions', () => {
     it.each([65536, 65537, 100003])('packs %s indices including the last partial word', size => {
@@ -48,7 +49,7 @@ Stored = (Input filter Mask) sum
 Indices = Mask indices
 Grid = array shape 2 40000 fill true
 Pairs = Grid indices`);
-            expect(runtime.variables.get('Answer')).toBe(5000550012n);
+            expect(answerOf(runtime)).toBe(5000550012n);
             expect(runtime.variables.get('Stored')).toBe(5000350006n);
             const indices = runtime.variables.get('Indices') as ReturnType<typeof typedArray>;
             expect(readArrayItem(indices, 100002)).toBe(100002n);

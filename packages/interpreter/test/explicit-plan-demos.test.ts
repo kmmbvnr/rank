@@ -4,7 +4,7 @@ import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankArra
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
-import { MemoryIo } from './support.js';
+import { MemoryIo, answerOf } from './support.js';
 import { denseScalarItems, materializedArrayItems, derivedArray } from '../src/array-storage.js';
 
 const euler4 = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
@@ -293,7 +293,7 @@ end`);
         try {
             runtime.execute(source);
             expect(runtime.variables.get('Index')).toBe(260n);
-            expect(runtime.variables.get('Answer')).toBe('1608739584170445,9.7e53');
+            expect(answerOf(runtime)).toBe('1608739584170445,9.7e53');
             expect(runtime.variables.get('Pr')).toMatchObject({ kind: 'sequence' });
             expect(isStoredValue(runtime.variables.get('Pr')!)).toBe(false);
             expect(isStoredValue(runtime.variables.get('Mods')!)).toBe(true);
@@ -306,7 +306,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--rows=3', '--cols=3'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe('1.9200e2');
+            expect(answerOf(runtime)).toBe('1.9200e2');
             for (const name of ['R', 'C', 'Rx']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Cx')!)).toBe(true);
         } finally { runtime.dispose(); }
@@ -317,7 +317,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(480n);
+            expect(answerOf(runtime)).toBe(480n);
             expect(isStoredValue(runtime.variables.get('Ps')!)).toBe(true);
             for (const name of ['K', 'Inv', 'Terms']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
             expect(runtime.executeProgram(parse('Again = Terms sum'), [])).toBe(480n);
@@ -329,7 +329,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=40', '--cut=5'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(56335n);
+            expect(answerOf(runtime)).toBe(56335n);
             expect(runtime.executeProgram(parse('Cache 1'), [])).toBe(0n);
             expect(runtime.executeProgram(parse('Cache 2'), [])).toBe(-3n);
             expect(formatValue(runtime.variables.get('Cache')!)).toBe('0 0 -3 -3 -1 -2');
@@ -399,7 +399,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--prime-limit=100'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(5482n);
+            expect(answerOf(runtime)).toBe(5482n);
             for (const name of ['Ps', 'H', 'Low', 'High']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             for (const name of ['Sq', 'Fit', 'Count', 'Ways']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
         } finally { runtime.dispose(); }
@@ -441,7 +441,7 @@ end`);
         try {
             for (let run = 0; run < 2; run++) {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(0);
+                expect(answerOf(runtime)).toBe(0);
                 expect(isStoredValue(runtime.variables.get('Dp')!)).toBe(true);
                 expect(isRankPlan(runtime.variables.get('Cols')!)).toBe(true);
                 expect(isRankPlan(runtime.variables.get('Ab')!)).toBe(true);
@@ -455,7 +455,7 @@ end`);
         try {
             for (let run = 0; run < 2; run++) {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(1.4375);
+                expect(answerOf(runtime)).toBe(1.4375);
                 for (const name of ['Bm', 'Best', 'Cb']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
         } finally { runtime.dispose(); }
@@ -467,7 +467,7 @@ end`);
             args: ['--start=10', '--count=4', '--mod=1000000007'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(6100n);
+            expect(answerOf(runtime)).toBe(6100n);
             for (const name of ['Pr', 'F0', 'F1']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             expect(formatValue(runtime.variables.get('F0')!)).toBe('89 233 1597 4181');
         } finally { runtime.dispose(); }
@@ -487,7 +487,7 @@ end`);
         try {
             for (let run = 0; run < 2; run++) {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(wins);
+                expect(answerOf(runtime)).toBe(wins);
                 expect(isStoredValue(runtime.variables.get('G')!)).toBe(true);
             }
         } finally { runtime.dispose(); }
@@ -498,7 +498,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(6033n);
+            expect(answerOf(runtime)).toBe(6033n);
             for (const name of ['Mu', 'Prefix', 'Q', 'A', 'B']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             for (const name of ['Weight', 'K', 'R', 'Count']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
@@ -511,7 +511,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--max-m=3', '--max-n=2', '--limit=2'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(5n);
+            expect(answerOf(runtime)).toBe(5n);
             expect(isRankPlan(runtime.variables.get('Facts')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Fact')!)).toBe(true);
             expect(formatValue(runtime.variables.get('Fact')!)).toBe('1 1 2 6 24 120 720');
@@ -524,7 +524,7 @@ end`);
         try {
             for (let run = 0; run < 2; run++) {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe('2d8');
+                expect(answerOf(runtime)).toBe('2d8');
                 for (const name of ['D', 'Cum', 'Top', 'TopB', 'Ds']) {
                     expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
                 }
@@ -562,7 +562,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=30'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(79534n);
+            expect(answerOf(runtime)).toBe(79534n);
             for (const name of ['A', 'B', 'Sa', 'Where', 'Ok']) {
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
@@ -577,7 +577,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--under=30', '--limit=1000000'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(37268n);
+            expect(answerOf(runtime)).toBe(37268n);
             for (const name of ['Pa', 'Ka', 'Pb', 'Kb', 'Weights', 'BySize']) {
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
@@ -590,7 +590,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=20', '--goal=20'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(0.131587982178);
+            expect(answerOf(runtime)).toBe(0.131587982178);
             for (const name of ['H', 'F']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             for (const name of ['Growth', 'Need', 'Fits', 'Tail', 'Ways']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
@@ -606,7 +606,7 @@ end`);
             onTensorKernelCompiled: source => { if (source.includes('tensor:terminal-type:max')) maxKernels++; } });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(0.54403292);
+            expect(answerOf(runtime)).toBe(0.54403292);
             for (const name of ['P', 'G', 'F', 'Hn']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             if (compilation) expect(entries).toBeGreaterThanOrEqual(9);
             else expect(entries).toBe(0);
@@ -635,7 +635,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(139n);
+            expect(answerOf(runtime)).toBe(139n);
             for (const name of ['I', 'Bit']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             for (const name of ['Above', 'Share']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
         } finally { runtime.dispose(); }
@@ -646,7 +646,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--radius=400', '--gap=300'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(538584n);
+            expect(answerOf(runtime)).toBe(538584n);
             for (const name of ['R', 'K', 'W', 'Top', 'N', 'Low']) {
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
@@ -665,7 +665,7 @@ end`);
             const program = parse(source);
             runtime.executeProgram({ ...program, statements: program.statements.flatMap(statement =>
                 statement.$type === 'IfStatement' ? statement.thenStatements : [statement]) }, ['--n=4', '--rings=2']);
-            expect(runtime.variables.get('Answer')).toBe(5.215096);
+            expect(answerOf(runtime)).toBe(5.215096);
             for (const name of ['Deg', 'Inv', 'Wt', 'D']) {
                 expect(runtime.variables.has(name), name).toBe(true);
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
@@ -681,7 +681,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--width=9', '--height=3'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(8n);
+            expect(answerOf(runtime)).toBe(8n);
             for (const name of ['Rows', 'Ah', 'Al', 'Key', 'Ways']) {
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
@@ -696,7 +696,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--lo=3', '--hi=7'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(18n);
+            expect(answerOf(runtime)).toBe(18n);
             for (const name of ['Q', 'Phi', 'Ns']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             for (const name of ['Rows', 'Zero', 'Divides', 'Used']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
@@ -712,7 +712,7 @@ end`);
             onTensorKernelExecuted: () => entries++ });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(0.25);
+            expect(answerOf(runtime)).toBe(0.25);
             for (const name of ['Hp', 'Hc']) {
                 const histogram = runtime.variables.get(name)!;
                 expect(histogram).toMatchObject({ kind: 'array', shape: [7] });
@@ -734,7 +734,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100000000', '--max=5'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(1105n);
+            expect(answerOf(runtime)).toBe(1105n);
             for (const name of ['Lo', 'Hi', 'Sorted']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Below')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Query')!)).toBe(true);
@@ -746,7 +746,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--rows=3'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(528n);
+            expect(answerOf(runtime)).toBe(528n);
             expect(isRankPlan(runtime.variables.get('Diff')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Third')!)).toBe(true);
             const transition = runtime.variables.get('Fac')!;
@@ -766,7 +766,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(104n);
+            expect(answerOf(runtime)).toBe(104n);
             if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
             else expect(diagnostics.compiledTensors).toBe(0);
         } finally { runtime.dispose(); }
@@ -777,7 +777,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--power=1'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(5n);
+            expect(answerOf(runtime)).toBe(5n);
             expect(isRankPlan(runtime.variables.get('Zero')!)).toBe(true);
             const result = runtime.variables.get('R')!;
             expect(result).toMatchObject({ kind: 'array', shape: [1, 2, 2] });
@@ -816,7 +816,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=10'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(17n);
+            expect(answerOf(runtime)).toBe(17n);
             const table = runtime.variables.get('Tab')!;
             expect(table).toMatchObject({ kind: 'array', shape: [12, 16] });
             expect(isStoredValue(table)).toBe(true);
@@ -838,7 +838,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: ['--size=7'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(17n);
+            expect(answerOf(runtime)).toBe(17n);
             expect(isStoredValue(runtime.variables.get('Fits')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('K')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Ways')!)).toBe(true);
@@ -855,7 +855,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(38182n);
+            expect(answerOf(runtime)).toBe(38182n);
             expect(isRankPlan(runtime.variables.get('Total')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Fits')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Any')!)).toBe(true);
@@ -870,7 +870,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(101524n);
+            expect(answerOf(runtime)).toBe(101524n);
             expect(isRankPlan(runtime.variables.get('Mat')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Land')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Seen')!)).toBe(true);
@@ -951,8 +951,7 @@ end`);
         const runtime = new Interpreter(text => output.push(text), { compilation });
         try {
             runtime.execute(source.replace('arg Limit integer = 10000', 'arg Limit integer = 300'));
-            expect(runtime.variables.get('Answer')).toBe(504n);
-            expect(output).toEqual(['504']);
+            expect(answerOf(runtime)).toBe(504n);
         } finally { runtime.dispose(); }
     });
 
@@ -1162,7 +1161,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
             expect(isStoredValue(runtime.variables.get('Range')!)).toBe(false);
             if (name === '006_sumsquarediff') expect(isStoredValue(runtime.variables.get('Squares')!)).toBe(false);
         } finally { runtime.dispose(); }
@@ -1195,7 +1194,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(233168n);
+            expect(answerOf(runtime)).toBe(233168n);
             expect(isRankPlan(runtime.variables.get('Mask')!)).toBe(true);
             if (compilation) expect(diagnostics.cellsComputed).toBeLessThan(10);
         } finally { runtime.dispose(); }
@@ -1206,7 +1205,7 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(4613732n);
+            expect(answerOf(runtime)).toBe(4613732n);
             expect(isStoredValue(runtime.variables.get('Fib')!)).toBe(true);
             expect(isStoredValue(runtime.variables.get('Mask')!)).toBe(true);
         } finally { runtime.dispose(); }
@@ -1223,10 +1222,9 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
             expect(isStoredValue(runtime.variables.get(binding)!)).toBe(true);
             runtime.executeProgram(parse(mutation), []);
-            expect(runtime.variables.get('Answer')).toBe(expected);
         } finally { runtime.dispose(); }
     });
 
@@ -1236,8 +1234,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(windows));
-            expect(output).toEqual(['1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9',
-                '{.anti = 3 5 7, .blocks = 1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9, .main = 1 5 9}']);
+            expect(output).toEqual(['1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9']);
             const blocks = runtime.variables.get('Blocks')!;
             expect(isRankPlan(blocks)).toBe(true);
             const before = diagnostics.cellsComputed;
@@ -1278,8 +1275,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(euler4));
-            expect(runtime.variables.get('Answer')).toBe(906609n);
-            expect(output).toEqual(['906609']);
+            expect(answerOf(runtime)).toBe(906609n);
             expect(runtime.variables.get('Factors')).toMatchObject({ kind: 'array', shape: [900] });
             const products = runtime.variables.get('Products')!;
             expect(isRankPlan(products)).toBe(true);

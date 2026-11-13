@@ -40,5 +40,4 @@ Edges' = stack From To Cost transpose
 Net = new graph .undirected
 Net add Edges
 Tree = Net mst
-Answer = Cost sum - Tree .weight
-return Answer
+return Cost sum - Tree .weight

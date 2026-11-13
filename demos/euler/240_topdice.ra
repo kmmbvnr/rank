@@ -41,5 +41,4 @@ for V in S to 1 by -1
   end
   W = Next
 end
-Answer = W N Sum
-return Answer
+return W N Sum

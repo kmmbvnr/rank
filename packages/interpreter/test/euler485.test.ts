@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/485_maxdivisors_test.ra', import.meta.url);
 const source = readFileSync(new URL('485_maxdivisors.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -24,7 +25,7 @@ it.each([
     const expected = brute(limit, width);
     for (const options of backends) {
         const r = new Interpreter(() => {}, { ...options, args: [`--u=${limit}`, `--k=${width}`, `--bs=${block}`] });
-        try { r.execute(source); expect(r.variables.get('Answer')).toBe(expected); }
+        try { r.execute(source); expect(answerOf(r)).toBe(expected); }
         finally { r.dispose(); }
     }
 });
@@ -38,6 +39,6 @@ it.each(backends)('preserves statement and cross-block fixtures with %j', option
 });
 it('matches the full independent sieve and deque oracle', () => {
     const r = new Interpreter(() => {});
-    try { r.execute(source); expect(r.variables.get('Answer')).toBe(51281274340n); }
+    try { r.execute(source); expect(answerOf(r)).toBe(51281274340n); }
     finally { r.dispose(); }
 }, 120000);

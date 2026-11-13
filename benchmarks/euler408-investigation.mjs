@@ -16,6 +16,6 @@ try {
         }
     } else diagnostics.run(() => runtime.execute(source));
     console.log(JSON.stringify({ file, limit, mode, ms: performance.now() - start, rssMiB: process.resourceUsage().maxRSS / 1024,
-        answer: String(runtime.variables.get('Answer')), points: String(runtime.variables.get('M')), stages, diagnostics }));
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), points: String(runtime.variables.get('M')), stages, diagnostics }));
     if (process.env.GENERATED) writeFileSync(process.env.GENERATED, generated.join('\n\n// NEXT REGION\n\n'));
 } finally { runtime.dispose(); }

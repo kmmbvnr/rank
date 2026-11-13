@@ -141,5 +141,4 @@ fun Limit solve
   Largest = Values max
   return (Largest + 1) mod 1000000000
 end
-Answer = N solve
-return Answer
+return N solve

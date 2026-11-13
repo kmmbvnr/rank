@@ -57,5 +57,4 @@ V = Grid window 4 axis 0 products
 D = Grid window 4 4 diag products
 U = Grid window 4 4 diag .anti products
 
-Answer = (array H V D U) max
-return Answer
+return (array H V D U) max

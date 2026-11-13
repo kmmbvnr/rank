@@ -17,7 +17,7 @@ try {
         for (let d = 2; d * d <= p; d++) if (p % d === 0) { prime = false; break; }
         if (prime) expected += BigInt(p);
     }
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, expected);
     console.log(JSON.stringify({ limit, node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'),

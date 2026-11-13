@@ -200,5 +200,4 @@ Floor = Numerator // Denominator isqrt
 Midpoint = 2 * Floor + 1
 Test = Midpoint * Midpoint * Denominator
 Up = Test at most 4 * Numerator integer
-Answer = Floor + Up
-return Answer
+return Floor + Up

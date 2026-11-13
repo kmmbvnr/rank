@@ -12,7 +12,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    const n = BigInt(limit), answer = runtime.variables.get('Answer');
+    const n = BigInt(limit), answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     const expected = workload === 'concat' ? 5n * n * (n + 1n) / 2n : n * (n + 1n) + 4n * n;
     assert.equal(answer, expected);
     assert.equal(diagnostics.compiledLoops, 0);

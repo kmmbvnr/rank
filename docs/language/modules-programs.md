@@ -133,14 +133,19 @@ use cli
 arg Limit integer = 1000
 
 N = 1 till Limit
-Mask' = N mod 3 equal 0
-Mask' or= N mod 5 equal 0
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
 
 return N Mask sum
 ```
 
-`rank multiples.ra` prints `233168`, as `print` would show it. A program
-with no `return` prints only what it prints itself.
+The names of a returning program are private, so the compiler reads the
+`Mask` chain as one expression and computes the sum in a single pass.
+
+`rank multiples.ra` runs the program and prints nothing itself. The
+option `rank --print multiples.ra` also shows the returned value, `233168`,
+as `print` would. An interpreter session shows the result directly, so a
+program does not need a `print` line to be seen.
 
 Importing the file under a lowercase name makes it callable. The name is the
 file stem when that is a lowercase word, or the alias after `as`:

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions, type RankArray, type RankTuple } from '../src/index.js';
 import { ownedArray, readArrayItem } from '../src/array-storage.js';
 import { tuple } from '../src/value.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/486_palindromestrings_test.ra', import.meta.url);
 const source = readFileSync(new URL('486_palindromestrings.ra', fixture), 'utf8');
 const prefix = source.split('Mods =')[0];
@@ -81,7 +82,7 @@ for(const options of backends) describe(`Euler 486 ${JSON.stringify(options)}`,(
                 const modulus=BigInt([9,1997,4877][table]);
                 for(let n=9+u;n<=5000;n+=6) expect(residues.has(BigInt((n-9-u)/6)%period)).toBe(totals[n]%modulus===0n);
             }
-            expect(r.variables.get('Answer')).toBe(11408450515n);
+            expect(answerOf(r)).toBe(11408450515n);
         } finally {r.dispose();}
     },30000);
     it('counts the first exact events, full periods and an arbitrary-precision limit',()=>{
@@ -111,7 +112,7 @@ for(const options of backends) describe(`Euler 486 ${JSON.stringify(options)}`,(
     });
     it.each([0,4,5,8,9,10000000])('has no solution below first known event at %s',limit=>{
         const r=new Interpreter(()=>{}, {...options,args:[`--l=${limit}`]});
-        try {r.execute(source);expect(r.variables.get('Answer')).toBe(0n);}
+        try {r.execute(source);expect(answerOf(r)).toBe(0n);}
         finally {r.dispose();}
     });
 });

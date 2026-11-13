@@ -133,5 +133,4 @@ fun Order rank_of
 end
 
 P = K first_order
-Answer = P rank_of
-return Answer
+return P rank_of

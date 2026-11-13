@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const demos = fileURLToPath(new URL('../../../demos/euler/', import.meta.url));
 type Fraction = readonly [bigint, bigint];
@@ -33,7 +34,7 @@ describe.each([false, true])('capacitor circuits (compilation=%s)', compilation 
         const runtime = new Interpreter(() => {}, { compilation, args: [`--count=${count}`] });
         try {
             runtime.execute(readFileSync(resolve(demos, '155_capacitors.ra'), 'utf8'));
-            expect(runtime.variables.get('Answer')).toBe(BigInt(expected[count]));
+            expect(answerOf(runtime)).toBe(BigInt(expected[count]));
         } finally { runtime.dispose(); }
     });
 

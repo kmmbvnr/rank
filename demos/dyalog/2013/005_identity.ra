@@ -7,5 +7,4 @@ fun N identity
   return Indices Indices outer equal integer
 end
 
-Example = 4 identity
-Example print
+return 4 identity

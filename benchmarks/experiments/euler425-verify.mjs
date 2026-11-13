@@ -8,7 +8,7 @@ for (const options of [{}, { numberLoopCompilation: false }, { compilation: fals
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
     try {
         runtime.execute(source);
-        if (runtime.variables.get('Answer') !== prefix[n]) throw Error(JSON.stringify({ options, n, answer: String(runtime.variables.get('Answer')), expected: String(prefix[n]) }));
+        if ((runtime.variables.get('Answer') ?? runtime.lastResult) !== prefix[n]) throw Error(JSON.stringify({ options, n, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), expected: String(prefix[n]) }));
         checked++;
     } finally { runtime.dispose(); }
 }

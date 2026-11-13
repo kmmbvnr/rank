@@ -19,7 +19,7 @@ for(const [name,source] of Object.entries(sources))for(const compilation of [fal
   const mainStart=source.indexOf(source.includes('fun K X P A B search')?'Answer = 1 1 0':'Answer = 1\n');
   r.execute(source.slice(0,mainStart).replace('arg N integer = 1000000000000','N = 1'));
   const main=source.slice(mainStart);
-  for(const n of ns){r.execute(`N = ${n}\n${main}`);const actual=r.variables.get('Answer'),expected=expectedValues.get(n);if(actual!==expected)throw Error(`${name} ${compilation} ${n}: ${actual} != ${expected}`);checks++;}
+  for(const n of ns){r.execute(`N = ${n}\n${main}`);const actual=(r.variables.get('Answer') ?? r.lastResult),expected=expectedValues.get(n);if(actual!==expected)throw Error(`${name} ${compilation} ${n}: ${actual} != ${expected}`);checks++;}
   console.log(JSON.stringify({name,compilation,cases:ns.length}));
  }finally{r.dispose()}
 }

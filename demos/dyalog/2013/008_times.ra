@@ -7,5 +7,4 @@ fun N timesTable
   return Indices Indices outer *
 end
 
-Example = 5 timesTable
-Example print
+return 5 timesTable

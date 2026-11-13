@@ -15,7 +15,7 @@ for(const variant of ['original','carry','direct','original-scan','strided-table
     for(const cut of [...new Set([1,Math.max(1,Math.floor(Math.sqrt(n))),Math.max(1,n)])]){
      const r=new Interpreter(()=>{},{compilation});
      try { r.execute(source.replace('arg N integer = 10 ** 10',`N = ${n}`).replace('arg Cut integer = 4641589',`Cut = ${cut}`));
-     assert.equal(r.variables.get('Answer'),expected,`${variant}/${compilation}/N=${n}/Cut=${cut}`); comparisons++; } finally { r.dispose(); }
+     assert.equal((r.variables.get('Answer') ?? r.lastResult),expected,`${variant}/${compilation}/N=${n}/Cut=${cut}`); comparisons++; } finally { r.dispose(); }
     }
    }
  }

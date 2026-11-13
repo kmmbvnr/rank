@@ -25,7 +25,7 @@ for (const compilation of [false, true]) {
         const r = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
         try {
             r.execute(readFileSync(main, 'utf8'));
-            assert.equal(r.variables.get('Answer'), answer, `${compilation}: ${limit}`);
+            assert.equal((r.variables.get('Answer') ?? r.lastResult), answer, `${compilation}: ${limit}`);
             assertions++;
         } finally { r.dispose(); }
     }

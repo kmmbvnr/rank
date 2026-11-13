@@ -95,5 +95,4 @@ Ff = F reshape (Np * Np)
 Fh = Ff ((Xl reshape Mn 1) * Np + Xl)
 Ar = N * N - (Xl reshape Mn 1) * Xl
 Tm = ((F N N) - 2 * Fo + Fh) / (Ar * Ar)
-Answer = Tm sum round 4
-return Answer
+return Tm sum round 4

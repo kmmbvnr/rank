@@ -23,7 +23,7 @@ try {
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
     if (fixture && (runtime.testResults.length !== 1 || runtime.testResults.some(test => !test.passed))) throw Error(JSON.stringify(runtime.testResults));
-    const answer = fixture ? 'passed' : String(runtime.variables.get('Answer'));
+    const answer = fixture ? 'passed' : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (process.env.RANK557_EXPECTED && answer !== process.env.RANK557_EXPECTED) throw Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, n, limit: String(runtime.variables.get('N')), node: process.version, arch: process.arch,
         sourceSha256: createHash('sha256').update(source).digest('hex'),

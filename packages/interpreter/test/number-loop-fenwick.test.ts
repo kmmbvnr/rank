@@ -5,6 +5,7 @@ import { RankFenwick } from '../src/fenwick.js';
 import { protectValue } from '../src/value-protection.js';
 import { withDemandBudget, withInterrupt } from '../src/interrupt.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
+import { answerOf } from './support.js';
 
 function execute(source: string, options: InterpreterOptions = {}, setup?: (runtime: Interpreter) => void, scope: (run: () => unknown) => unknown = run => run()) {
     const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false, ...options });
@@ -307,7 +308,7 @@ end`)))).toThrow('Interrupted');
         const runtime = new Interpreter(() => {}, { args: ['--limit=1000'] }), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(11174776n);
+            expect(answerOf(runtime)).toBe(11174776n);
             expect(diagnostics.mixedIntegerLoops).toBe(1);
             expect(diagnostics.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }

@@ -41,5 +41,4 @@ Geometric = Raised * Inverse mod Prime
 Reduced = Coeff mod Prime
 Terms = Reduced * Geometric mod Prime
 Total = Terms sum
-Answer = (2 * Limit + Total) mod Prime
-return Answer
+return (2 * Limit + Total) mod Prime

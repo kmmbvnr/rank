@@ -98,7 +98,7 @@ describe('executable compiler capability matrix', () => {
         if (row.id.startsWith('budgets/')) expect(summary.budgets.length).toBeGreaterThan(0);
         if (row.operator) expect(summary.paths.some(path => path === 'number-loop' || path === 'exact-loop')).toBe(true);
         const demo = demos.find(([name]) => row.id === `euler/${name}`);
-        if (demo) expect(traced.output.join('\n').trim()).toBe(demo[1]);
+        if (demo) expect(traced.result).toBe(demo[1]);
     });
     it('reports the current catalogue and explicitly identifies untested AST nodes', () => {
         const matchingCases = (predicate: (row: CapabilityCase) => boolean) => cases.filter(predicate).map(row => row.id);

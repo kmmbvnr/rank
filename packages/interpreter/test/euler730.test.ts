@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/730_shiftedtriples.ra', import.meta.url), 'utf8');
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
@@ -25,7 +26,7 @@ function run(shifts: number, perimeter: number, budget: number, compilation: boo
         runtime.execute(source.replace('arg Shifts integer = 100', `Shifts = ${shifts}`)
             .replace('arg Perimeter integer = 10 ** 8', `Perimeter = ${perimeter}`)
             .replace(/arg Budget integer = \d+/, `Budget = ${budget}`));
-        return runtime.variables.get('Answer') as bigint;
+        return answerOf(runtime) as bigint;
     } finally { runtime.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 730 (compiled=${compilation})`, () => {

@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/411_uphillpaths.ra', import.meta.url), 'utf8');
 function solve(first: number, count: number, power: number, compilation: boolean) {
     const r = new Interpreter(() => {}, { compilation, args: [`--first=${first}`, `--count=${count}`, `--power=${power}`] }), d = new RuntimeDiagnostics();
-    try { d.run(() => r.execute(source)); return { answer: r.variables.get('Answer'), d }; }
+    try { d.run(() => r.execute(source)); return { answer: answerOf(r), d }; }
     finally { r.dispose(); }
 }
 // All specified points, without multiplicative orders or packed integer keys.

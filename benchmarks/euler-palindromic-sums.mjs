@@ -69,7 +69,7 @@ if (option('worker')) {
         } else {
             const expected = oracle();
             assert.deepEqual(output, ['2906969179']);
-            assert.equal(runtime.variables.get('Answer'), 2906969179n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 2906969179n);
             if (version === 'before') {
                 assert.deepEqual(runtime.variables.get('Cand').items.map(Number).sort((a, b) => a - b), expected.candidates);
             } else {

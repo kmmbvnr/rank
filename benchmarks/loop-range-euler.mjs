@@ -67,7 +67,7 @@ if (process.argv.includes('--child')) {
             if (prime) primes++;
         }
         assert(primes > 0);
-        const answer = formatValue(runtime.variables.get('Answer'));
+        const answer = formatValue((runtime.variables.get('Answer') ?? runtime.lastResult));
         if (n === '1000000000') assert.equal(answer, '10688477');
         console.log(JSON.stringify({ ms, loopMs, arrayMs, residualMs: loopMs ? loopMs - arrayMs : null,
             microsecondsPerPrimeOutsideArrays: loopMs ? (loopMs - arrayMs) * 1000 / primes : null,

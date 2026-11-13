@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {Interpreter, type InterpreterOptions} from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/544_chromaticconundrum.ra', import.meta.url), 'utf8');
 const modulus = 1000000007n;
 function brute(rows: number, columns: number, colours: number) {
@@ -20,7 +21,7 @@ function brute(rows: number, columns: number, colours: number) {
 }
 function solve(rows: number, columns: number, n: number, options: InterpreterOptions) {
     const runtime = new Interpreter(() => {}, {...options, args: [`--r=${rows}`, `--c=${columns}`, `--n=${n}`]});
-    try {runtime.execute(source); return runtime.variables.get('Answer');}
+    try {runtime.execute(source); return answerOf(runtime);}
     finally {runtime.dispose();}
 }
 const modes = [{name: 'Number', options: {}}, {name: 'exact', options: {numberLoopCompilation: false}}, {name: 'reference', options: {compilation: false}}];

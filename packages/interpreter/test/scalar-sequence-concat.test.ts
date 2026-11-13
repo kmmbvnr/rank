@@ -4,6 +4,7 @@ import {Interpreter, RankError, RuntimeDiagnostics, formatValue, type RankSequen
 import {densePrimePlan} from '../src/dense-prime-sieve.js';
 import {metadataBoundLength, registerMetadataBounds} from '../src/sequence-bounds.js';
 import {withDemandBudget, withInterrupt} from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function observe(source: string, compilation: boolean) {
     let calls = 0;
@@ -246,7 +247,7 @@ end`))).toThrow();
         const d = new RuntimeDiagnostics(), r = new Interpreter(() => {}, {args: ['--limit=1000000']});
         try {
             d.run(() => r.execute(source));
-            expect(r.variables.get('Answer')).toBe(4153927n);
+            expect(answerOf(r)).toBe(4153927n);
             expect(d.compilerRejections.some(rejection => rejection.function === 'cnt'
                 && rejection.reason !== 'scalar-function:callee-binding:ApplicationExpression')).toBe(false);
             expect(d.numberLoopOverflows).toBe(0);

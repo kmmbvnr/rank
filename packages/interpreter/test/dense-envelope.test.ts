@@ -4,6 +4,7 @@ import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { borrowArrayStorage, ownedArray, prepareMatrixArrayReader, prepareScalarArrayWriter } from '../src/array-storage.js';
 import { atArray } from '../src/selectors.js';
 import { type RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 describe('dense real envelope DP', () => {
     const source = readFileSync(new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url), 'utf8')
@@ -14,7 +15,7 @@ describe('dense real envelope DP', () => {
         try {
             const diagnostics = new RuntimeDiagnostics();
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBeCloseTo(5.283358681334832, 12);
+            expect(answerOf(runtime)).toBeCloseTo(5.283358681334832, 12);
             if (compilation) {
                 expect(diagnostics.fallbacks['loop:unsupported-op:cross']).toBeUndefined();
                 // The envelope and query loops compile as regions, not thousands

@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = `fun Count table
  Values = array shape Count fill 0
  for I in 0 till Count
@@ -20,13 +21,13 @@ it('keeps an allocating helper on its private Number loop path through a scalar 
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(500500n);
+        expect(answerOf(runtime)).toBe(500500n);
         expect(diagnostics.numberLoops).toBeGreaterThan(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
 });
 it('retains ordinary reference execution for the same allocating call graph', () => {
     const runtime = new Interpreter(() => {}, { compilation: false });
-    try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(500500n); }
+    try { runtime.execute(source); expect(answerOf(runtime)).toBe(500500n); }
     finally { runtime.dispose(); }
 });

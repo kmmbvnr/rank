@@ -45,7 +45,7 @@ if (option('worker')) {
     try {
         interpreter.execute(source);
         const executeMs = performance.now() - start;
-        assert.equal(interpreter.variables.get('Answer'), entry.expected);
+        assert.equal((interpreter.variables.get('Answer') ?? interpreter.lastResult), entry.expected);
         console.log(JSON.stringify({ case: entry.name, executeMs, result: String(entry.expected) }));
     } finally { interpreter.dispose(); }
 } else {

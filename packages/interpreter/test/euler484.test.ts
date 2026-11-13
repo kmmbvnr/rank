@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/484_arithmeticderivative_test.ra', import.meta.url);
 const source = readFileSync(new URL('484_arithmeticderivative.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -23,7 +24,7 @@ const expected = brute(100000);
 it.each([0, 1, 2, 3, 4, 7, 8, 9, 15, 16, 20, 26, 27, 28, 31, 32, 48, 49, 63, 64, 65, 80, 81, 125, 128, 129, 200, 1000, 100000])('matches direct derivatives through %s', n => {
     for (const options of backends) {
         const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-        try { r.execute(source); expect(r.variables.get('Answer')).toBe(expected[n]); }
+        try { r.execute(source); expect(answerOf(r)).toBe(expected[n]); }
         finally { r.dispose(); }
     }
 });
@@ -40,7 +41,7 @@ it.each([1, 7, 31])('splits ragged rows at exact chunk boundaries (%s pairs)', c
     expect(small).not.toBe(source);
     for (const options of backends) {
         const r = new Interpreter(() => {}, { ...options, args: ['--n=1000'] });
-        try { r.execute(small); expect(r.variables.get('Answer')).toBe(expected[1000]); }
+        try { r.execute(small); expect(answerOf(r)).toBe(expected[1000]); }
         finally { r.dispose(); }
     }
 });
@@ -51,6 +52,6 @@ it('retains the negative square-root domain error', () => {
 });
 it('matches the full independent depth-first oracle', () => {
     const r = new Interpreter(() => {});
-    try { r.execute(source); expect(r.variables.get('Answer')).toBe(8907904768686152599n); }
+    try { r.execute(source); expect(answerOf(r)).toBe(8907904768686152599n); }
     finally { r.dispose(); }
 }, 120000);

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { perBallReference } from '../../../benchmarks/experiments/euler426-oracle.mjs';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/426_boxball.ra', import.meta.url), 'utf8');
 
 describe('Euler 426 compressed closing rounds', () => {
@@ -11,7 +12,7 @@ describe('Euler 426 compressed closing rounds', () => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--last=${last}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(expected);
+                expect(answerOf(runtime)).toBe(expected);
             } finally { runtime.dispose(); }
         }
     }, 30000);
@@ -22,7 +23,7 @@ describe('Euler 426 compressed closing rounds', () => {
         try {
             const tiny = source.replace('Capacity = Last + 10 min 1024', 'Capacity = 2');
             diagnostics.run(() => runtime.execute(tiny));
-            expect(runtime.variables.get('Answer')).toBe(BigInt(perBallReference(1000000)));
+            expect(answerOf(runtime)).toBe(BigInt(perBallReference(1000000)));
             expect(diagnostics.numberLoops).toBe(1);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.numberFunctionFallbacks).toBe(0);

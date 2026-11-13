@@ -119,7 +119,7 @@ if (worker) {
         const start = performance.now();
         runtime.execute(sources[variant]);
         const ms = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), BigInt(answer));
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), BigInt(answer));
         assert.equal(runtime.variables.get('Longest'), BigInt(longest));
         if (expectedLengths) {
             runtime.execute('use sequences\nChecked = Lengths copy');

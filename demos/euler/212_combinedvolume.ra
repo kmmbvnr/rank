@@ -206,5 +206,4 @@ for X in 0 to (Xm - 1)
   end
   Total += Area
 end
-Answer = Total
-return Answer
+return Total

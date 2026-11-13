@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isNativeFunction } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/526_largestprime.ra', import.meta.url), 'utf8');
 const definitions = source.slice(0, source.indexOf('\nAnswer ='));
@@ -43,7 +44,7 @@ describe.each(modes)('Euler 526 $name', ({ options }) => {
             const runtime = new Interpreter(() => {}, { ...options, args: [`--l=${limit}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(answer);
+                expect(answerOf(runtime)).toBe(answer);
             } finally { runtime.dispose(); }
         }, 120_000);
 });
@@ -52,6 +53,6 @@ it('certifies the full Euler 526 maximum with exact wide bounds', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(49601160286750947n);
+        expect(answerOf(runtime)).toBe(49601160286750947n);
     } finally { runtime.dispose(); }
 }, 120_000);

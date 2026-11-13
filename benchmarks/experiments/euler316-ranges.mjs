@@ -9,7 +9,7 @@ for(const variant of ['original','grouped','carried','carried-postfix','original
   const expected=String(sumWaiting(top,num)),r=new Interpreter(()=>{},{compilation});
   try {
    r.execute(source.replace('arg Top integer = 999999',`arg Top integer = ${top}`).replace('arg Num integer = 10000000000000000',`arg Num integer = ${num}`));
-   const answer=String(r.variables.get('Answer'));if(answer!==expected)throw Error(`${variant}/${compilation}/${num}/${top}: ${answer} != ${expected}`);
+   const answer=String((r.variables.get('Answer') ?? r.lastResult));if(answer!==expected)throw Error(`${variant}/${compilation}/${num}/${top}: ${answer} != ${expected}`);
    results.push({variant,compilation,num:String(num),top,answer});
   } finally {r.dispose();}
  }

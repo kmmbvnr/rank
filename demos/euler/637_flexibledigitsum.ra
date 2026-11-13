@@ -133,5 +133,4 @@ for Bi in 0 to 1
 end
 Ns = 0 to N
 Eq = Fm 0 equal Fm 1 integer
-Answer = Eq * Ns sum
-return Answer
+return Eq * Ns sum

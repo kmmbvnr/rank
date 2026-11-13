@@ -73,7 +73,7 @@ try {
     if (flag('interrupt')) withInterrupt(new Int32Array(new SharedArrayBuffer(12)), run);
     else run();
     const ms = performance.now() - start;
-    const answer = flag('fixture') ? undefined : String(runtime.variables.get('Answer'));
+    const answer = flag('fixture') ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (flag('fixture')) {
         assert.equal(runtime.testResults.length, 2);
         assert(runtime.testResults.every(test => test.passed));

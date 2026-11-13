@@ -35,7 +35,7 @@ for (const limit of [0, 1, 2, 3, 10, 31, 100, 257]) {
             try {
                 runtime.execute(source.replace('arg Limit integer = 40000000', `arg Limit integer = ${limit}`)
                     .replace('arg Len integer = 25', `arg Len integer = ${length}`));
-                assert.equal(String(runtime.variables.get('Answer')), expected,
+                assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), expected,
                     `Limit=${limit} Len=${length} compilation=${compilation}`);
                 checks++;
             } finally { runtime.dispose(); }

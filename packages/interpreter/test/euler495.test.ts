@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const fixture = new URL('../../../demos/euler/495_distinctproduct_test.ra', import.meta.url);
 const source = readFileSync(new URL('495_distinctproduct.ra', fixture), 'utf8');
@@ -42,7 +43,7 @@ it.each(modes)('matches the original nontrivial fixtures with %j', options => {
     for (const [n, k, answer] of [[100, 10, 287549200n], [1000, 20, 840203305n]] as const) {
         for (const program of [original, source]) {
             const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--k=${k}`] });
-            try { r.execute(program); expect(r.variables.get('Answer')).toBe(answer); }
+            try { r.execute(program); expect(answerOf(r)).toBe(answer); }
             finally { r.dispose(); }
         }
     }
@@ -57,6 +58,6 @@ it.each(modes)('retains the statement fixture with %j', options => {
 });
 it('retains the original full answer', () => {
     const r = new Interpreter(() => {});
-    try { r.execute(source); expect(r.variables.get('Answer')).toBe(789107601n); }
+    try { r.execute(source); expect(answerOf(r)).toBe(789107601n); }
     finally { r.dispose(); }
 }, 120_000);

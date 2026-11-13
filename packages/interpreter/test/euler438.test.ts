@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {Interpreter, isNativeFunction, isRankArray} from '../src/index.js';
 import {readArrayItem, typedArray} from '../src/array-storage.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/438_integerpart.ra', import.meta.url), 'utf8');
 function polynomial(roots: readonly number[]) {
@@ -90,7 +91,7 @@ describe('Euler 438 exact half-open root intervals', () => {
             try {
                 runtime.execute(source);
                 const answer = degree === 0 ? 0 : degree <= 4 ? small[degree]!.total : degree === 5 ? 355734 : 332262442;
-                expect(runtime.variables.get('Answer'), `N=${degree}`).toBe(BigInt(answer));
+                expect(answerOf(runtime), `N=${degree}`).toBe(BigInt(answer));
                 if (degree <= 4) expect(runtime.variables.get('Cnt')).toBe(BigInt(degree ? small[degree]!.accepted.length : 1));
             } finally { runtime.dispose(); }
         }
@@ -113,7 +114,7 @@ describe('Euler 438 exact half-open root intervals', () => {
         const runtime = new Interpreter(() => {});
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(2046409616809n);
+            expect(answerOf(runtime)).toBe(2046409616809n);
             expect(runtime.variables.get('Cnt')).toBe(24883200n);
         } finally { runtime.dispose(); }
     }, 30_000);

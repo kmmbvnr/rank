@@ -10,8 +10,7 @@ use cli
 
 arg Count integer = 4
 
-Answer = Count distinct_factor_run
-return Answer
+return Count distinct_factor_run
 
 
 rem Extend or reset the consecutive run after

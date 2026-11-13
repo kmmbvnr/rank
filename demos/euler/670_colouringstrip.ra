@@ -97,5 +97,4 @@ for Ee greater 0
     Tm = Cm sum axis 1 mod P
   end
 end
-Answer = Vv * Fn sum mod P
-return Answer
+return Vv * Fn sum mod P

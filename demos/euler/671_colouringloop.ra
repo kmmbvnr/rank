@@ -202,5 +202,4 @@ Ik = (Nn mod P) (P - 2) P powmod
 Nm = (Nn - 1) mod P
 Ts0 = Ts 0
 Fs = (Tn + Nm * Ts0) mod P
-Answer = Fs * Ik mod P
-return Answer
+return Fs * Ik mod P

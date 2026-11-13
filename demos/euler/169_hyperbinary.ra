@@ -31,5 +31,4 @@ for Step in 1 to 7
   Rt' = R (1 to # by 2)
   R = L matmul Rt rank 2 2
 end
-Answer = R 0 0 0
-return Answer
+return R 0 0 0

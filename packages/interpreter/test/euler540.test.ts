@@ -2,13 +2,14 @@ import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {Interpreter,isRankArray,type InterpreterOptions} from '../src/index.js';
 import {readArrayItem} from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const source=readFileSync(new URL('../../../demos/euler/540_primitivetriples.ra',import.meta.url),'utf8');
 const gcd=(a:number,b:number):number=>b?gcd(b,a%b):a;
 function brute(limit:number){let count=0;for(let m=2;m*m+1<=limit;m++)for(let n=1;n<m&&m*m+n*n<=limit;n++)if((m-n)%2&&gcd(m,n)===1)count++;return BigInt(count);}
 function mobius(n:number){let value=1;for(let p=2;p*p<=n;p++)if(n%p===0){n/=p;value=-value;if(n%p===0)return 0;while(n%p===0)n/=p;}return n>1?-value:value;}
 function answer(n:number,options:InterpreterOptions,table=1000000,batch=250000){
     const runtime=new Interpreter(()=>{}, {...options,args:[`--n=${n}`,`--table=${table}`,`--batch=${batch}`]});
-    try{runtime.execute(source);return runtime.variables.get('Answer');}finally{runtime.dispose();}
+    try{runtime.execute(source);return answerOf(runtime);}finally{runtime.dispose();}
 }
 const modes=[{name:'Number',options:{}},{name:'exact',options:{numberLoopCompilation:false}},{name:'reference',options:{compilation:false}}];
 describe.each(modes)('Euler 540 $name',({options})=>{

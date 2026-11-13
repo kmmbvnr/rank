@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/740_secretsanta.ra', import.meta.url), 'utf8');
 
 // Label every name and enumerate both allowed draws in their actual order.
@@ -37,7 +38,7 @@ for (const compilation of [false, true]) describe(`Euler 740 (compiled=${compila
         try {
             runtime.execute(source.replace('arg People integer = 100', `People = ${people}`));
             const expected = direct(people);
-            expect(runtime.variables.get('Answer')).toBe(expected.toFixed(10));
+            expect(answerOf(runtime)).toBe(expected.toFixed(10));
             expect(runtime.execute('Table Start')).toBeCloseTo(expected, 13);
             if (people === 3) expect(expected.toFixed(10)).toBe('0.3611111111');
             if (people === 5) expect(expected.toFixed(10)).toBe('0.2476095994');

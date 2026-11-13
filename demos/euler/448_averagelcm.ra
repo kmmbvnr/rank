@@ -122,5 +122,4 @@ GroupTerms = Groups * Delta mod Mod
 GroupedTotal = GroupTerms sum
 Total = (DirectTerms sum) + GroupedTotal
 Reduced = (N + Total) mod Mod
-Answer = Reduced * Inverse2 mod Mod
-return Answer
+return Reduced * Inverse2 mod Mod

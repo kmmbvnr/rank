@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { isRankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/726_fallingbottles.ra', import.meta.url), 'utf8');
 function execute(bottles: number, compilation: boolean, prime = 1000000033) {
@@ -12,7 +13,7 @@ function execute(bottles: number, compilation: boolean, prime = 1000000033) {
             .replace('arg Prime integer = 1000000033', `Prime = ${prime}`)));
         const terms = host.variables.get('Terms');
         if (!terms || !isRankArray(terms)) throw Error('expected terms');
-        return { answer: host.variables.get('Answer'), terms: Array.from({ length: terms.shape[0] }, (_, i) => readArrayItem(terms, i)), diagnostics };
+        return { answer: answerOf(host), terms: Array.from({ length: terms.shape[0] }, (_, i) => readArrayItem(terms, i)), diagnostics };
     } finally { host.dispose(); }
 }
 

@@ -9,8 +9,7 @@ use cli
 
 arg Limit integer = 100
 
-Answer = Limit distinct_powers
-return Answer
+return Limit distinct_powers
 
 
 rem Exact integers make equality sufficient;

@@ -31,7 +31,7 @@ if (args.worker) {
     try {
         const program = parse(source), start = performance.now();
         runtime.executeProgram(program, []);
-        const executionMs = performance.now() - start, answer = String(runtime.variables.get('Answer'));
+        const executionMs = performance.now() - start, answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
         assert.equal(answer, expected);
         if (kind === 'ants') assert.deepEqual(output, [expected]);
         console.log(JSON.stringify({ executionMs, answer, sourceHash: createHash('sha256').update(source).digest('hex'), peakRssKiB: process.resourceUsage().maxRSS }));

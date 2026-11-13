@@ -63,5 +63,4 @@ for H in 2 to Height
   Flat' = Mix reshape (Nh * Nl)
   Ways = Flat Key
 end
-Answer = Ways sum
-return Answer
+return Ways sum

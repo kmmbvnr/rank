@@ -52,5 +52,4 @@ fun N hidden
   return 6 * (N * (N + 1) // 2 - S)
 end
 
-Answer = Limit hidden
-Answer print
+return Limit hidden

@@ -10,8 +10,7 @@ use cli
 
 arg Limit integer = 1000
 
-Answer = Limit right_triangle_perimeter
-return Answer
+return Limit right_triangle_perimeter
 
 
 rem Generate primitive triples with Euclid's

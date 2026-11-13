@@ -188,5 +188,4 @@ for M in 1 to Rt
   end
   Sq += F1 * F2 * F3 * F7
 end
-Answer = Total + Sq
-return Answer
+return Total + Sq

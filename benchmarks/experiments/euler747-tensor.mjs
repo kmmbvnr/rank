@@ -20,7 +20,7 @@ Answer = Terms sum` : `Terms' = Input * 3 + 1\nAnswer = Terms sum`;
     const ms = performance.now() - start, used = process.cpuUsage(cpu), maxRssMiB = process.resourceUsage().maxRSS / 1024;
     let expected = 0n;
     for (let i = 1n; i <= BigInt(size); i++) expected += mode === 'roots' ? (i > 2n ? i - 1n : 0n) : 3n * i + 1n;
-    assert.equal(runtime.variables.get('Answer'), expected);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
     console.log(JSON.stringify({ mode, size, ms, cpuMs: (used.user + used.system) / 1000,
         maxRssMiB, node: process.version, arch: process.arch, ...(diagnostics && { diagnostics }) }));
 } finally { runtime.dispose(); }

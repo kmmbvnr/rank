@@ -359,5 +359,4 @@ fun Limit solve
   return Result 3
 end
 
-Answer = L solve
-return Answer
+return L solve

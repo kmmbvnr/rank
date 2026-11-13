@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/376_dice.ra', import.meta.url), 'utf8');
 const program = (limit: number) => source.replace('arg Limit integer = 30', `Limit = ${limit}`);
@@ -61,7 +62,7 @@ it.each([{}, { numberLoopCompilation: false }, { compilation: false }])('matches
     try {
         for (const limit of 'numberLoopCompilation' in options ? [0, 5, 6] : [0, 1, 2, 3, 4, 5, 6]) {
             r.execute(program(limit));
-            expect(r.variables.get('Answer'), `Limit=${limit}`).toBe(small[limit]);
+            expect(answerOf(r), `Limit=${limit}`).toBe(small[limit]);
         }
     } finally { r.dispose(); }
 }, 90000);
@@ -71,9 +72,9 @@ it('matches the original exact recurrence below, at and beyond 18 labels', () =>
     try {
         for (const limit of [7, 10, 18, 19, 30, 100]) {
             r.execute(program(limit));
-            expect(r.variables.get('Answer'), `Limit=${limit}`).toBe(original(limit));
+            expect(answerOf(r), `Limit=${limit}`).toBe(original(limit));
         }
-        expect(r.variables.get('Answer')).toBe(1886791851742265960399180n);
+        expect(answerOf(r)).toBe(1886791851742265960399180n);
     } finally { r.dispose(); }
 }, 30000);
 
@@ -81,7 +82,7 @@ it('computes the full golden in 18 complete numeric passes', () => {
     const r = new Interpreter(() => {}), d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(973059630185670n);
+        expect(answerOf(r)).toBe(973059630185670n);
         expect(d.numberLoops).toBe(18);
         expect(d.numberLoopOverflows).toBe(0);
         expect(d.typedArrayPublishedCells).toBeLessThan(100000);

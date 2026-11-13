@@ -6,8 +6,7 @@ rem when truncated from either side
 use sequences
 use io
 
-Answer = 1000000 truncatable_prime_sum
-return Answer
+return 1000000 truncatable_prime_sum
 
 
 rem Test every shorter decimal prefix and

@@ -2,6 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import { withInterrupt } from '../src/interrupt.js';
 import * as arguments_ from '../src/jit/compiled-argument-type.js';
+import { answerOf } from './support.js';
 
 const helper = `use algo
 fun N populate Store
@@ -22,7 +23,7 @@ it.each([{compilation: false}, {scalarEntryCompilation: false}])(
             runtime.execute(helper);
             proof.mockClear();
             runtime.execute(call);
-            expect(runtime.variables.get('Answer')).toBe(7n);
+            expect(answerOf(runtime)).toBe(7n);
             expect(proof).not.toHaveBeenCalled();
         } finally {runtime.dispose(); proof.mockRestore();}
     },
@@ -36,10 +37,10 @@ it.each([false, true])('restores compiled container entries after inspection, de
         if (inspected) withInterrupt(signal, () => runtime.execute(helper), () => {});
         else runtime.execute(helper);
         withInterrupt(signal, () => runtime.execute(call), () => {});
-        expect(runtime.variables.get('Answer')).toBe(7n);
+        expect(answerOf(runtime)).toBe(7n);
         expect(compiled).toBe(0);
         runtime.execute(call);
-        expect(runtime.variables.get('Answer')).toBe(7n);
+        expect(answerOf(runtime)).toBe(7n);
         expect(compiled).toBeGreaterThan(0);
     } finally {runtime.dispose();}
 });
@@ -58,7 +59,7 @@ it('checks a mutable entry argument once per invocation', () => {
         for (let i = 0; i < 2; i++) {
             proof.mockClear();
             runtime.execute('Answer = 3 populate Seen');
-            expect(runtime.variables.get('Answer')).toBe(1n);
+            expect(answerOf(runtime)).toBe(1n);
             expect(proof.mock.calls.filter(([value]) => value === store)).toHaveLength(1);
         }
         expect(compiled).toBe(2);

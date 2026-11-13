@@ -8,8 +8,7 @@ use io
 use cli
 arg Limit integer = 40000000
 arg Len integer = 25
-Answer = Limit totientchain_sum
-return Answer
+return Limit totientchain_sum
 
 fun Bound totientchain_sum
   Total = 0

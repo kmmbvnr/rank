@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type RankArray } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/524_firstsort2.ra', import.meta.url), 'utf8');
 const full = 2432925835413407847n;
@@ -10,7 +10,7 @@ function run(k: bigint, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--k=${k}`] });
     try {
         runtime.execute(source);
-        return runtime.variables.get('Answer');
+        return answerOf(runtime);
     } finally { runtime.dispose(); }
 }
 

@@ -3,6 +3,7 @@ import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 // @ts-expect-error Independent sorted-event benchmark oracle.
 import { solve } from '../../../benchmarks/euler644-oracle-sorted.mjs';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/644_squaresontheline.ra', import.meta.url), 'utf8');
 for (const compilation of [false, true]) {
@@ -13,7 +14,7 @@ for (const compilation of [false, true]) {
             try {
                 runtime.execute(source);
                 if (lo === 2 && hi === 10) runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `${lo}..${hi}`).toBe(expected);
+                expect(answerOf(runtime), `${lo}..${hi}`).toBe(expected);
             } finally { runtime.dispose(); }
         }
     }, 45_000);

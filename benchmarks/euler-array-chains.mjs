@@ -20,7 +20,7 @@ if (process.argv[2] === '--worker') {
         const start = performance.now();
         runtime.execute(source);
         const totalMs = performance.now() - start;
-        const answer = runtime.variables.get('Answer');
+        const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         assert.equal(typeof answer, 'bigint');
         assert.deepEqual(output, [answer.toString()]);
         console.log(JSON.stringify({ name, n: Number(n), variant, totalMs, answer: answer.toString(),

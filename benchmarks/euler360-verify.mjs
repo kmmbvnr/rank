@@ -10,7 +10,7 @@ for(const compilation of [false,true]){
  for(const file of ['demos/euler/360_sphere.ra','benchmarks/experiments/euler360-original.ra','benchmarks/experiments/euler360-quarter-helper.ra','benchmarks/experiments/euler360-quarter-inline.ra']){
   const src=readFileSync(resolve(root,file),'utf8');
   for(const radius of [1,5,25,125,625]){
-   const r=new Interpreter(()=>{}, {compilation});try{r.execute(src.replace('Answer = 2 ** 10 * (5 ** 10 sphere)',`Answer = ${radius} sphere`));assert.equal(r.variables.get('Answer'),brute(radius),`${file}: ${compilation}, ${radius}`);checks++;}finally{r.dispose()}
+   const r=new Interpreter(()=>{}, {compilation});try{r.execute(src.replace('Answer = 2 ** 10 * (5 ** 10 sphere)',`Answer = ${radius} sphere`));assert.equal((r.variables.get('Answer') ?? r.lastResult),brute(radius),`${file}: ${compilation}, ${radius}`);checks++;}finally{r.dispose()}
   }
  }
  const fixture=resolve(root,'demos/euler/360_sphere_test.ra');

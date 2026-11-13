@@ -23,7 +23,7 @@ if (process.argv.includes('--worker')) {
     const start = performance.now();
     interpreter.execute(source);
     const ms = performance.now() - start;
-    const answer = String(interpreter.variables.get('Answer'));
+    const answer = String((interpreter.variables.get('Answer') ?? interpreter.lastResult));
     if (workload.answer) assert.equal(answer, workload.answer);
     console.log(JSON.stringify({ id: workload.id, n: workload.n, ms, answer }));
   } finally { interpreter.dispose(); }

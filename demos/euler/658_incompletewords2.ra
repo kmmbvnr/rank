@@ -57,5 +57,4 @@ Gk = Pm * Iv mod P
 G0 = array shape 1 fill 1
 G1 = array shape 1 fill ((Nl + 1) mod P)
 Gs = concat (concat G0 G1) Gk
-Answer = As * Gs mod P sum mod P
-return Answer
+return As * Gs mod P sum mod P

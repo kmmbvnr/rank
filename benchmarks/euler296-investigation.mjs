@@ -11,5 +11,5 @@ const runtime=new Interpreter(()=>{},{compilation:mode==='compiled'});
 const start=performance.now();
 try{const diagnostics=new RuntimeDiagnostics();if(process.env.DIAGNOSTICS)diagnostics.run(()=>runtime.execute(source));else runtime.execute(source);
 const known={30:'25',100:'376',200:'1762',1000:'61339',10000:'8740638',100000:'1137208419'};
-if(known[n]) assert.equal(String(runtime.variables.get('Answer')),known[n]);
-console.log(JSON.stringify({mode,variant,n,answer:String(runtime.variables.get('Answer')),ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAGNOSTICS?{diagnostics}:{})}));}finally{runtime.dispose();}
+if(known[n]) assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)),known[n]);
+console.log(JSON.stringify({mode,variant,n,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAGNOSTICS?{diagnostics}:{})}));}finally{runtime.dispose();}

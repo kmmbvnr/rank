@@ -13,8 +13,7 @@ rem P = 2 ** Exponent
 rem P text integer rank 0 sum
 rem Here, double decimal text instead.
 Value = "1" double repeat Exponent
-Answer = Value integer rank 0 sum
-return Answer
+return Value integer rank 0 sum
 
 
 rem Multiply decimal text by two.

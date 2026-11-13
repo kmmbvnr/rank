@@ -18,7 +18,7 @@ if (process.argv[2] === '--worker') {
         runtime.execute(source);
         const totalMs = performance.now() - start;
         assert.equal(runtime.variables.get('Upper'), 26033n);
-        assert.equal(runtime.variables.get('Answer'), 26033n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 26033n);
         const storedEdges = ['Seed', 'Full'].map(name => {
             const graph = runtime.variables.get(name).entries.get('graph');
             return [...graph.adjacency.values()].reduce((count, edges) => count + edges.length, 0);

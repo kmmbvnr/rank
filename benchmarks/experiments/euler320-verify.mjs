@@ -28,7 +28,7 @@ for(const mode of ['reference','compiled','exact'])for(const variant of (process
    for(const [p,t]of wanted){const need=inverse(BigInt(p),t);if(need>best)best=need;}
    if(i>=10)expected=(expected+best)%1000000000000000000n;
   }
-  try{r.variables.set('Upper',BigInt(upper));r.execute(sourceFor(variant));assert.equal(r.variables.get('Answer'),expected);programs++;}finally{r.dispose()}
+  try{r.variables.set('Upper',BigInt(upper));r.execute(sourceFor(variant));assert.equal((r.variables.get('Answer') ?? r.lastResult),expected);programs++;}finally{r.dispose()}
  }
 }
 console.log(JSON.stringify({helpers,programs,failures:0}));

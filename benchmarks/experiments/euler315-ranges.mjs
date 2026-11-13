@@ -9,7 +9,7 @@ for(const variant of ['original','overlap','table','split','array','chunk100','c
   const [from,to]=ranges[i],r=new Interpreter(()=>{},{compilation});
   try {
    r.execute(source.replace('arg From integer = 10000000',`arg From integer = ${from}`).replace('arg To integer = 20000000',`arg To integer = ${to}`));
-   const answer=String(r.variables.get('Answer'));
+   const answer=String((r.variables.get('Answer') ?? r.lastResult));
    if(answer!==String(expected[i].answer)) throw Error(`${variant}/${compilation}/${from}/${to}: ${answer} != ${expected[i].answer}`);
    results.push({variant,compilation,from,to,answer});
   } finally {r.dispose();}

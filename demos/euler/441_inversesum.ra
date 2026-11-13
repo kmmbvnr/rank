@@ -128,5 +128,4 @@ Starts = 0 till Size by 262144
 Correction = Starts block_sum rank 0 sum
 Base = N max 2
 Raw = Base / 2.0 - 1.0 + Correction
-Answer = Raw round Digits
-return Answer
+return Raw round Digits

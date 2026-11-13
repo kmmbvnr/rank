@@ -29,6 +29,6 @@ const r=new Interpreter(()=>{},{scalarEntryCompilation:false});const d=new Runti
 try{
  const start=performance.now();
  if(process.argv.includes('--diagnostic'))d.run(()=>r.execute(source));else r.execute(source);
- const ms=performance.now()-start;assert.equal(r.variables.get('Answer'),BigInt(expected));
+ const ms=performance.now()-start;assert.equal((r.variables.get('Answer') ?? r.lastResult),BigInt(expected));
  console.log(JSON.stringify({case:name,sourceHash:createHash('sha256').update(source).digest('hex'),ms,rssMiB:process.resourceUsage().maxRSS/1024,answer:expected,...(process.argv.includes('--diagnostic')?{diagnostics:d}:{})}));
 }finally{r.dispose();}

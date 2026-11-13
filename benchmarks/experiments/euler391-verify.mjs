@@ -33,12 +33,12 @@ for(const file of files)for(const compilation of [false,true]) {
   try {
     r.execute(source.replace('Answer += Val ** 3','Val print\n      Answer += Val ** 3'));
     assert.deepEqual(output.slice(0,14).map(Number),moves,`${file}, compiled=${compilation}`);
-    assert.equal(r.variables.get('Answer'),moves.reduce((s,v)=>s+BigInt(v)**3n,0n));
+    assert.equal((r.variables.get('Answer') ?? r.lastResult),moves.reduce((s,v)=>s+BigInt(v)**3n,0n));
     cases+=14;
   }finally{r.dispose();}
   for(const [limit,answer] of [[0,0n],[2,8n],[7,90n],[20,8150n]]) {
     const check=new Interpreter(()=>{},{compilation,args:[`--limit=${limit}`]});
-    try {check.execute(source);assert.equal(check.variables.get('Answer'),answer,`${file}, limit=${limit}`);cases++;}
+    try {check.execute(source);assert.equal((check.variables.get('Answer') ?? check.lastResult),answer,`${file}, limit=${limit}`);cases++;}
     finally{check.dispose();}
   }
 }

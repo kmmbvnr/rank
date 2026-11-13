@@ -80,7 +80,7 @@ if (!option('worker')) {
     try {
         if (workload === 'demo') {
             runtime.execute(source);
-            answer = runtime.variables.get('Answer');
+            answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
         } else if (workload === 'sieve') {
             operation.call([BigInt(limit)]);
         } else for (let n = 1; n <= limit; n++) {

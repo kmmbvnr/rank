@@ -5599,20 +5599,12 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
       "reason": "scalar-expression:unsupported-op:till",
     },
     {
-      "category": "runtime-guard",
-      "reason": "tensor:binding:Mask",
-    },
-    {
       "category": "missing-lowering",
       "reason": "tensor:deferred-binding:AssignmentStatement",
     },
     {
       "category": "failed-proof",
       "reason": "tensor:reduction-or-copy-terminal-required",
-    },
-    {
-      "category": "cost-limit",
-      "reason": "tensor:too-small",
     },
     {
       "category": "missing-lowering",
@@ -5624,9 +5616,7 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "233168",
-  ],
+  "output": [],
   "regions": [
     "10:1 statement-dispatch: statement-dispatch",
     "10:21 direct-expression: direct-expression",
@@ -5636,12 +5626,11 @@ exports[`executable compiler capability matrix > euler/001_multiples 1`] = `
     "15:1 statement-dispatch: statement-dispatch",
     "17:1 statement-dispatch: direct-expression, native-call, number-tensor",
     "17:10 direct-expression: direct-expression",
-    "17:10 interpreted-expression: direct-expression, native-call, number-tensor",
-    "17:10 native-call: native-call",
-    "17:10 number-tensor: number-tensor",
-    "17:12 direct-expression: direct-expression",
-    "17:17 direct-expression: direct-expression",
-    "18:1 statement-dispatch: statement-dispatch",
+    "17:15 direct-expression: direct-expression",
+    "17:8 direct-expression: direct-expression",
+    "17:8 interpreted-expression: direct-expression, native-call, number-tensor",
+    "17:8 native-call: native-call",
+    "17:8 number-tensor: number-tensor",
     "5:1 block-dispatch: direct-expression, native-call, native-operator, native-range, number-tensor, statement-dispatch",
     "5:1 statement-dispatch: statement-dispatch",
     "6:1 statement-dispatch: statement-dispatch",
@@ -5696,9 +5685,7 @@ exports[`executable compiler capability matrix > euler/002_evenfib 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "4613732",
-  ],
+  "output": [],
   "regions": [
     "10:1 statement-dispatch: statement-dispatch",
     "10:21 direct-expression: direct-expression",
@@ -5712,11 +5699,15 @@ exports[`executable compiler capability matrix > euler/002_evenfib 1`] = `
     "15:1 statement-dispatch: native-call",
     "15:8 interpreted-expression: native-call",
     "15:8 native-call: native-call",
-    "16:1 tensor: tensor",
-    "17:1 statement-dispatch: statement-dispatch",
+    "16:1 statement-dispatch: direct-expression, native-call",
+    "16:12 direct-expression: direct-expression",
+    "16:17 direct-expression: direct-expression",
+    "16:8 direct-expression: direct-expression",
+    "16:8 interpreted-expression: direct-expression, native-call",
+    "16:8 native-call: native-call",
+    "20:3 statement-dispatch: statement-dispatch",
     "21:3 statement-dispatch: statement-dispatch",
-    "22:3 statement-dispatch: statement-dispatch",
-    "5:1 block-dispatch: direct-expression, host-call, native-bound, native-call, native-operator, statement-dispatch, tensor",
+    "5:1 block-dispatch: direct-expression, host-call, native-bound, native-call, native-operator, statement-dispatch",
     "5:1 statement-dispatch: statement-dispatch",
     "6:1 statement-dispatch: statement-dispatch",
     "7:1 statement-dispatch: statement-dispatch",
@@ -5754,9 +5745,7 @@ exports[`executable compiler capability matrix > euler/003_primefactor 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "6857",
-  ],
+  "output": [],
   "regions": [
     "11:1 statement-dispatch: statement-dispatch",
     "12:1 statement-dispatch: statement-dispatch",
@@ -5814,10 +5803,6 @@ exports[`executable compiler capability matrix > euler/004_palproduct 1`] = `
       "reason": "tensor:scalar-evaluation-timing",
     },
     {
-      "category": "cost-limit",
-      "reason": "tensor:too-small",
-    },
-    {
       "category": "missing-lowering",
       "reason": "tensor:unsupported-expression",
     },
@@ -5831,9 +5816,7 @@ exports[`executable compiler capability matrix > euler/004_palproduct 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "906609",
-  ],
+  "output": [],
   "regions": [
     "12:1 statement-dispatch: statement-dispatch",
     "12:22 direct-expression: direct-expression",
@@ -5854,15 +5837,14 @@ exports[`executable compiler capability matrix > euler/004_palproduct 1`] = `
     "21:15 interpreted-expression: direct-expression, host-call",
     "21:30 direct-expression: direct-expression",
     "23:1 statement-dispatch: direct-expression, interpreted-expression, native-call, native-operator, scalar-function-number",
-    "23:10 direct-expression: direct-expression",
-    "23:10 interpreted-expression: direct-expression, interpreted-expression",
-    "23:28 interpreted-expression: interpreted-expression",
-    "23:39 direct-expression: direct-expression",
-    "23:39 interpreted-expression: direct-expression, interpreted-expression, native-call, native-operator, scalar-function-number",
-    "23:39 native-call: native-call, native-operator, scalar-function-number",
-    "23:39 native-operator: native-operator",
-    "24:1 statement-dispatch: statement-dispatch",
-    "28:1 scalar-function-number: scalar-function-number",
+    "23:26 interpreted-expression: interpreted-expression",
+    "23:37 direct-expression: direct-expression",
+    "23:37 interpreted-expression: direct-expression, interpreted-expression, native-call, native-operator, scalar-function-number",
+    "23:37 native-call: native-call, native-operator, scalar-function-number",
+    "23:37 native-operator: native-operator",
+    "23:8 direct-expression: direct-expression",
+    "23:8 interpreted-expression: direct-expression, interpreted-expression",
+    "27:1 scalar-function-number: scalar-function-number",
     "7:1 block-dispatch: direct-expression, interpreted-expression, native-call, native-operator, native-range, scalar-expression, scalar-function-number, statement-dispatch",
     "7:1 statement-dispatch: statement-dispatch",
     "8:1 statement-dispatch: statement-dispatch",
@@ -5917,9 +5899,7 @@ exports[`executable compiler capability matrix > euler/006_sumsquarediff 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "25164150",
-  ],
+  "output": [],
   "regions": [
     "10:1 statement-dispatch: statement-dispatch",
     "10:21 direct-expression: direct-expression",
@@ -5943,8 +5923,8 @@ exports[`executable compiler capability matrix > euler/006_sumsquarediff 1`] = `
     "17:16 interpreted-expression: direct-expression, native-call",
     "17:16 native-call: native-call",
     "17:24 direct-expression: direct-expression",
-    "19:1 statement-dispatch: statement-dispatch",
-    "20:1 statement-dispatch: statement-dispatch",
+    "19:1 statement-dispatch: direct-expression",
+    "19:8 direct-expression: direct-expression",
     "6:1 block-dispatch: direct-expression, native-call, native-operator, native-range, statement-dispatch",
     "6:1 statement-dispatch: statement-dispatch",
     "7:1 statement-dispatch: statement-dispatch",
@@ -5956,10 +5936,6 @@ exports[`executable compiler capability matrix > euler/006_sumsquarediff 1`] = `
 exports[`executable compiler capability matrix > euler/009_pythagorean 1`] = `
 {
   "boundaries": [
-    {
-      "category": "failed-proof",
-      "reason": "bounded-tensor:array-input-required",
-    },
     {
       "category": "missing-lowering",
       "reason": "bounded-tensor:unsupported-ir:binary",
@@ -6010,9 +5986,7 @@ exports[`executable compiler capability matrix > euler/009_pythagorean 1`] = `
     },
   ],
   "error": undefined,
-  "output": [
-    "31875000",
-  ],
+  "output": [],
   "regions": [
     "11:1 statement-dispatch: statement-dispatch",
     "11:22 direct-expression: direct-expression",
@@ -6041,8 +6015,8 @@ exports[`executable compiler capability matrix > euler/009_pythagorean 1`] = `
     "19:5 native-call: native-call",
     "19:5 scalar-expression: scalar-expression",
     "20:1 statement-dispatch: scalar-expression",
-    "20:10 scalar-expression: scalar-expression",
-    "22:1 statement-dispatch: statement-dispatch",
+    "20:8 direct-expression: scalar-expression",
+    "20:8 scalar-expression: scalar-expression",
     "6:1 block-dispatch: bounded-tensor, direct-expression, interpreted-expression, native-array-map, native-call, native-operator, native-range, scalar-expression, statement-dispatch, tensor",
     "6:1 statement-dispatch: statement-dispatch",
     "7:1 statement-dispatch: statement-dispatch",

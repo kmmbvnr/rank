@@ -58,5 +58,4 @@ fun G L N constrained
   return Sum
 end
 
-Answer = G L N constrained
-return Answer
+return G L N constrained

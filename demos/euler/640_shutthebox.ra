@@ -42,5 +42,4 @@ for Dl greater 0.00000000001
   Dl = (En - Ee abs) max
   Ee = En
 end
-Answer = Ee 0 text ".6f"
-return Answer
+return Ee 0 text ".6f"

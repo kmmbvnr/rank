@@ -53,7 +53,7 @@ if (option('worker') || option('checks')) {
                 const check = makeRuntime();
                 try {
                     check.execute(program.replace('arg Count integer = 18', `arg Count integer = ${count}`));
-                    assert.equal(check.variables.get('Answer'), BigInt(expected.all.size));
+                    assert.equal((check.variables.get('Answer') ?? check.lastResult), BigInt(expected.all.size));
                     // Compare complete attainable sets and the exact-count level.
                     const store = Array.from(check.variables.get('Store').items);
                     const key = value => `${value / 8192n}/${value % 8192n}`;
@@ -78,10 +78,10 @@ if (option('worker') || option('checks')) {
             if (fixture) { assert.equal(r.testResults.length, 2); assert(r.testResults.every(t => t.passed), JSON.stringify(r.testResults)); }
             else {
                 const expected = { 10: 2525n, 12: 15463n, 15: 241519n, 18: 3857447n }[option('count') ?? '18'];
-                assert(expected !== undefined); assert.equal(r.variables.get('Answer'), expected);
+                assert(expected !== undefined); assert.equal((r.variables.get('Answer') ?? r.lastResult), expected);
             }
             console.log(JSON.stringify({ case: option('worker'), engine: option('engine') ?? 'compiled',
-                ms, peakRssMiB, answer: String(r.variables.get('Answer')), sourceHash: hash(source), programHash: hash(program),
+                ms, peakRssMiB, answer: String((r.variables.get('Answer') ?? r.lastResult)), sourceHash: hash(source), programHash: hash(program),
                 tests: r.testResults.map(({ name, passed }) => ({ name, passed })),
                 ...(!fixture ? { work: { pairs: String(r.variables.get('Pairs')), used: String(r.variables.get('Used')),
                     stored: r.variables.get('Store').shape[0] } } : {}),

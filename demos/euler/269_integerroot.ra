@@ -112,5 +112,4 @@ for Mask in 1 to 511
   Sign = 1 - 2 * ((Rs len + 1) mod 2)
   Total += Sign * Count
 end
-Answer = Total
-return Answer
+return Total

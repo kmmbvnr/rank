@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
-import { MemoryIo } from './support.js';
+import { MemoryIo, answerOf } from './support.js';
 const url = new URL('../../../demos/euler/424_kakuro.ra', import.meta.url);
 const source = readFileSync(url, 'utf8');
 const input = fileURLToPath(new URL('../../../demos/euler/fixtures/0424_kakuro200.txt', import.meta.url));
@@ -16,7 +16,7 @@ describe('Euler 424 constrained Kakuro maps', () => {
         ('preserves the first %s maps in all execution modes', (count, expected) => {
             for (const options of [{}, { numberLoopCompilation: false }, { compilation: false }]) {
                 const r = runtime(count, options);
-                try { r.execute(source); expect(r.variables.get('Answer')).toBe(expected); }
+                try { r.execute(source); expect(answerOf(r)).toBe(expected); }
                 finally { r.dispose(); }
             }
         });
@@ -25,7 +25,7 @@ describe('Euler 424 constrained Kakuro maps', () => {
         const r = runtime(200), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => r.execute(source));
-            expect(r.variables.get('Answer')).toBe(1059760019628n);
+            expect(answerOf(r)).toBe(1059760019628n);
             expect(diagnostics.numberFunctions).toBeGreaterThan(1000);
             expect(diagnostics.numberFunctionFallbacks).toBe(0);
             expect(diagnostics.numberLoopOverflows).toBe(0);

@@ -8,7 +8,7 @@ let comparisons=0;
 for(const limit of limits){const expected=oracle(limit);
  for(const file of sources)for(const compilation of [false,true]){
   const r=new Interpreter(()=>{},{compilation,args:[`--limit=${limit}`]});
-  try{r.execute(readFileSync(file,'utf8'));assert.equal(r.variables.get('Answer'),expected,`${file} ${limit} ${compilation}`);comparisons++;}finally{r.dispose();}
+  try{r.execute(readFileSync(file,'utf8'));assert.equal((r.variables.get('Answer') ?? r.lastResult),expected,`${file} ${limit} ${compilation}`);comparisons++;}finally{r.dispose();}
  }
 }
 console.log(JSON.stringify({limits,variants:sources,comparisons,oracle:'independent divisor enumeration and BigInt sum'}));

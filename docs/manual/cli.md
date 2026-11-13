@@ -116,6 +116,11 @@ Use `--message=--hello` for a value that
 starts with `--`. For positional text,
 put `--` before such a value.
 
+A program that ends with `return` gives
+its result to the caller. `rank` shows
+it only with the first option `--print`:
+`rank --print program.ra 10`.
+
 Named inputs bind first. Positional
 values fill the remaining inputs in
 declaration order. An input without a

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { isRankArray, isRankRecord } from '../src/value.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/551_sumofdigitssequence.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler551-original.ra', import.meta.url), 'utf8');
 const sums = (n: number) => { let sum = 0; for (; n; n = Math.floor(n / 10)) sum += n % 10; return sum; };
@@ -10,7 +11,7 @@ const values = [1n, 1n];
 for (let n = 2, value = 1; n <= 1000000; n++) { value += sums(value); values[n] = BigInt(value); }
 function solve(n: number | string, options: InterpreterOptions, program = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(program); return runtime.variables.get('Answer'); }
+    try { runtime.execute(program); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const modes = [{ name: 'Number', options: {} }, { name: 'exact', options: { numberLoopCompilation: false } }, { name: 'reference', options: { compilation: false } }];

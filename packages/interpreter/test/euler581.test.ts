@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/581_smoothtriangular.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler581-original.ra', import.meta.url), 'utf8');
@@ -15,7 +16,7 @@ function smooth(n: number) {
 for (let n = 1; n < prefix.length; n++) prefix[n] = prefix[n - 1] + (smooth(n) && smooth(n + 1) ? n : 0);
 function run(b: number | bigint, options: InterpreterOptions = {}, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--b=${b}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { scalarFunctionCompilation: false, numberLoopCompilation: false }])('Euler 581 %j', options => {
@@ -34,7 +35,7 @@ it.each([[1000, 216276n], [10000000000000, 2227616372734n]] as const)('compiles 
     const runtime = new Interpreter(() => {}, { args: [`--b=${bound}`], onScalarFunctionExecuted: () => calls++ });
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(expected);
+        expect(answerOf(runtime)).toBe(expected);
         const parts = runtime.variables.get('Parts');
         if (!parts || !isRankArray(parts)) throw Error('expected squarefree parts');
         expect(calls).toBeGreaterThanOrEqual(parts.shape[0]);

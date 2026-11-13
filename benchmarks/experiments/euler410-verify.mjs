@@ -26,7 +26,7 @@ for (const [r, x, blocks] of [...inputs.map(([r, x]) => [r, x, [1, 17, 1000]]),
         const runtime = new Interpreter(() => {}, { compilation, args: [`--r=${r}`, `--x=${x}`, `--block=${block}`] });
         try {
             runtime.execute(source);
-            const value = runtime.variables.get('Answer');
+            const value = (runtime.variables.get('Answer') ?? runtime.lastResult);
             if (value !== oracle(r, x)) throw Error(`${r}/${x}/${block}/${compilation}: ${value}`);
             count++;
         } finally { runtime.dispose(); }

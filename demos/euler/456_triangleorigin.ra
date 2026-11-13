@@ -66,5 +66,4 @@ S2 = W * W sum
 S3 = W * W * W sum
 T = Tw ** 3 - 3 * Tw * S2 + 2 * S3
 T //= 6
-Answer = T - O - B
-return Answer
+return T - O - B

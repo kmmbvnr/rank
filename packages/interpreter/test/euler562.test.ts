@@ -2,13 +2,14 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, demandValue, isRankArray, type InterpreterOptions, type NativeFunction } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/562_maximalperimeter.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler562-original.ra', import.meta.url), 'utf8');
 const { solve: oracle } = await import(new URL('../../../benchmarks/euler562-oracle.mjs', import.meta.url).href);
 const small = Array.from({ length: 8 }, (_, i) => ({ radius: i + 1, answer: oracle(i + 1).answer }));
 function solve(radius: number, options: InterpreterOptions = {}, band = 2000000, text = source) {
     const r = new Interpreter(() => {}, { ...options, args: [`--r=${radius}`, `--dm=${band}`] });
-    try { r.execute(text); return { answer: r.variables.get('Answer'), norm: r.variables.get('Norm'), q: r.variables.get('Q') }; }
+    try { r.execute(text); return { answer: answerOf(r), norm: r.variables.get('Norm'), q: r.variables.get('Q') }; }
     finally { r.dispose(); }
 }
 for (const options of [{}, { compilation: false }, { numberLoopCompilation: false }]) describe(`Euler 562 ${JSON.stringify(options)}`, () => {

@@ -90,5 +90,4 @@ Lost = Powers sum
 Lost = Lost mod Mod * Inverse mod Mod
 Items = (N - 1) max 0
 All = Items K Mod powmod
-Answer = (All - Lost) mod Mod
-return Answer
+return (All - Lost) mod Mod

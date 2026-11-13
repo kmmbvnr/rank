@@ -16,7 +16,7 @@ if(process.argv[2]==='child'){
  const source=readFileSync('demos/euler/275_balancedsculptures.ra','utf8').replace('arg N integer = 18',`arg N integer = ${n}`);
  const diagnostics=new RuntimeDiagnostics(),cpu=process.cpuUsage(),t=performance.now();
  try{if(diagnostic==='true')diagnostics.run(()=>runtime.execute(source));else runtime.execute(source);
- const ms=performance.now()-t,cpuMs=Object.values(process.cpuUsage(cpu)).reduce((a,b)=>a+b,0)/1000,calibrationAfter=process.env.CALIBRATION?calibrate():undefined,answer=String(runtime.variables.get('Answer'));assert.equal(answer,n==='18'?'15030564':'360505');
+ const ms=performance.now()-t,cpuMs=Object.values(process.cpuUsage(cpu)).reduce((a,b)=>a+b,0)/1000,calibrationAfter=process.env.CALIBRATION?calibrate():undefined,answer=String((runtime.variables.get('Answer') ?? runtime.lastResult));assert.equal(answer,n==='18'?'15030564':'360505');
  console.log(JSON.stringify({revision,n:+n,answer,ms,cpuMs,calibrationBefore,calibrationAfter,load:loadavg(),rssMiB:process.resourceUsage().maxRSS/1024,...(diagnostic==='true'?{compiled,diagnostics}:{})}));}finally{runtime.dispose();}
 }else{
  const followup=process.argv[2]==='followup';

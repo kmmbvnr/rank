@@ -8,7 +8,7 @@ const source = readFileSync(new URL('../../demos/euler/234_semidivisible.ra', im
 const runtime = new Interpreter(() => {});
 try {
     const start = performance.now(); runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     assert.equal(answer, '1259187438574927161');
     console.log(JSON.stringify({ workload: 'Euler 234 default', answer, ms: performance.now() - start,
         maxRssMiB: process.resourceUsage().maxRSS / 1024 }));

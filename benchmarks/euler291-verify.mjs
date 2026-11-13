@@ -10,7 +10,7 @@ for(let n=1;n<35;n++)if(prime(2*n*(n+1)+1))for(const d of [-1,0,1])limits.push(2
 const failures=[];
 for(const limit of [...new Set(limits)]){
  const runtime=new Interpreter(()=>{},{compilation:mode==='compiled'});
- try{runtime.execute(source.replace(/arg Limit integer = \d+/,`arg Limit integer = ${limit}`)); const actual=String(runtime.variables.get('Answer')), expected=String(oracle(limit));if(actual!==expected)failures.push({limit,actual,expected});}
+ try{runtime.execute(source.replace(/arg Limit integer = \d+/,`arg Limit integer = ${limit}`)); const actual=String((runtime.variables.get('Answer') ?? runtime.lastResult)), expected=String(oracle(limit));if(actual!==expected)failures.push({limit,actual,expected});}
  catch(e){failures.push({limit,error:String(e)});}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({variant,mode,cases:new Set(limits).size,failures}));

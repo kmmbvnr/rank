@@ -36,5 +36,4 @@ Numerator = Weighted sum
 Carry = Numerator // 3 ** Terms
 Whole = Quotients sum
 Digits = (Whole + Carry) mod 10 ** 10
-Answer = Digits text
-return Answer
+return Digits text

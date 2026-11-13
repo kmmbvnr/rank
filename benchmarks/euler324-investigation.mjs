@@ -14,7 +14,7 @@ let session;
 try{
  if(process.env.PROFILE){session=new Session();session.connect();await session.post('Profiler.enable');await session.post('Profiler.start');}
  const t=performance.now();if(process.env.DIAGNOSTICS)diagnostics.run(()=>r.execute(source));else r.execute(source);
- console.log(JSON.stringify({mode,digits,variant,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),...(process.env.DIAGNOSTICS?{diagnostics}:{} )}));
+ console.log(JSON.stringify({mode,digits,variant,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),...(process.env.DIAGNOSTICS?{diagnostics}:{} )}));
  if(session){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
  if(process.env.SOURCES)writeFileSync(process.env.SOURCES,JSON.stringify(sources,null,2));
 }finally{session?.disconnect();r.dispose()}

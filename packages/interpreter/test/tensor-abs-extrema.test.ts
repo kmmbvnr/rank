@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, formatValue, type NativeFunction, type RankArray } from '../src/index.js';
+import { answerOf } from './support.js';
 
 function run(source: string, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation });
@@ -60,7 +61,7 @@ Answer = Again sum`,
                 runtime.execute('use numbers');
                 runtime.variables.set('Input', { kind: 'array', shape: [5], items: [-0, 0, -Infinity, Infinity, NaN] });
                 runtime.execute('Answer = (Input * 1.0) abs');
-                const answer = runtime.variables.get('Answer') as RankArray;
+                const answer = answerOf(runtime) as RankArray;
                 expect([...answer.items]).toEqual([0, 0, Infinity, Infinity, NaN]);
                 expect(Object.is(answer.items[0], -0)).toBe(false);
             } finally { runtime.dispose(); }
@@ -77,7 +78,7 @@ Answer = Again sum`,
                 Reflect.set(fn, 'call', () => 42n);
                 try {
                     runtime.execute('Answer = ((Input * 2) abs) sum');
-                    expect(runtime.variables.get('Answer')).toBe(84n);
+                    expect(answerOf(runtime)).toBe(84n);
                 } finally { Reflect.set(fn, 'call', original); }
             } finally { runtime.dispose(); }
         }
@@ -92,7 +93,7 @@ Answer = Again sum`,
                 runtime.execute("use numbers\nLater' = (Input * 2) abs");
                 expect(reads).toEqual([]);
                 runtime.execute('Answer = Later sum');
-                return { reads, answer: runtime.variables.get('Answer') };
+                return { reads, answer: answerOf(runtime) };
             } finally { runtime.dispose(); }
         };
         expect(execute(true)).toEqual(execute(false));

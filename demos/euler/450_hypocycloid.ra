@@ -178,5 +178,4 @@ if N mod 2 equal 1
   Trivial += 7 * Half * Half + 3 * Half
 end
 Total = Nontrivial + Trivial
-Answer = Total + Correction
-return Answer
+return Total + Correction

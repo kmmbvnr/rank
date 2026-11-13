@@ -46,5 +46,4 @@ for Kk in 0 to 7
   Zr += Wk ** C
 end
 Tot = (N * N) ** C
-Answer = (Tot - Zr // 8) mod 1000000000
-return Answer
+return (Tot - Zr // 8) mod 1000000000

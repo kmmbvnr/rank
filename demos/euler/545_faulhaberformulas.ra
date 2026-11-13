@@ -59,5 +59,4 @@ fun Count solve
   return Final 1
 end
 
-Answer = Q solve
-return Answer
+return Q solve

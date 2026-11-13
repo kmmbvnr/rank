@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
-import { withoutReturn } from './support.js';
+import { withoutReturn, answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/316_decimals.ra', import.meta.url), 'utf8');
 const definition = withoutReturn(source.slice(source.indexOf('fun N waiting')));
@@ -44,7 +44,7 @@ end`);
             try {
                 r.execute(source.replace('arg Top integer = 999999', 'Top = 999')
                     .replace('arg Num integer = 10000000000000000', 'Num = 1000000'));
-                expect(r.variables.get('Answer')).toBe(27280188n);
+                expect(answerOf(r)).toBe(27280188n);
             } finally { r.dispose(); }
         });
     }
@@ -54,7 +54,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => r.execute(source));
-            expect(r.variables.get('Answer')).toBe(542934735751917735n);
+            expect(answerOf(r)).toBe(542934735751917735n);
             expect(diagnostics.compiledLoops).toBe(1);
         } finally { r.dispose(); }
     });

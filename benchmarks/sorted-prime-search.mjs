@@ -58,7 +58,7 @@ if (option('worker')) {
             runtime.execute(`Limit = ${limit}`);
             const start = performance.now();
             runtime.execute(source);
-            const answer = runtime.variables.get('Answer');
+            const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
             const expected = option('expected');
             if (expected) assert.equal(answer, BigInt(expected));
             console.log(JSON.stringify({ variant, limit, executeMs: performance.now() - start, answer: String(answer) }));

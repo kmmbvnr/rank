@@ -248,5 +248,4 @@ for N in Lo to Kk
   Vv = (Vv * Pg + Pg - 1) mod P
   Total = (Total + Vv) mod P
 end
-Answer = Total
-return Answer
+return Total

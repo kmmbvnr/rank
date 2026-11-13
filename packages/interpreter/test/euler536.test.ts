@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/536_modulopower.ra', import.meta.url), 'utf8');
 function factors(n: number) { const result: number[] = []; for (let p = 2; p * p <= n; p++) while (n % p === 0) { result.push(p); n /= p; } if (n > 1) result.push(n); return result; }
 function gcd(a: number, b: number): number { return b ? gcd(b, a % b) : a; }
@@ -18,7 +19,7 @@ describe.each(modes)('Euler 536 $name', ({ options }) => {
             const actual = [...read(runtime, 'Solutions'), ...read(runtime, 'Base')].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
             const wanted = values(limit);
             expect(actual).toEqual(wanted);
-            expect(runtime.variables.get('Answer')).toBe(wanted.reduce((a, b) => a + b, 0n));
+            expect(answerOf(runtime)).toBe(wanted.reduce((a, b) => a + b, 0n));
         } finally { runtime.dispose(); }
     });
     it.each([{ cut: 0, threshold: 1, batch: 7 }, { cut: 1, threshold: 2, batch: 1 }, { cut: 10, threshold: 5, batch: 13 }, { cut: 10000, threshold: 10000, batch: 262144 }])('preserves CRT branching and chunk boundaries with %j', ({ cut, threshold, batch }) => {
@@ -48,7 +49,7 @@ describe.each(modes)('Euler 536 $name', ({ options }) => {
 });
 it('matches the full exact result', () => {
     const runtime = new Interpreter(() => {});
-    try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(3557005261906288n); }
+    try { runtime.execute(source); expect(answerOf(runtime)).toBe(3557005261906288n); }
     finally { runtime.dispose(); }
 }, 120_000);
 

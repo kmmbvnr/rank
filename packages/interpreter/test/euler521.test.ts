@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const fixture = new URL('../../../demos/euler/521_smallestprime_test.ra', import.meta.url);
 const source = readFileSync(new URL('521_smallestprime.ra', fixture), 'utf8');
@@ -16,7 +17,7 @@ const inputs = [...Array.from({ length: 41 }, (_, n) => n), 63, 64, 65, 99, 100,
 it.each(modes)('matches independent smallest-factor sums with %j', options => {
     for (const n of inputs) {
         const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-        try { r.execute(source); expect(r.variables.get('Answer'), `N=${n}`).toBe(totals[n]); }
+        try { r.execute(source); expect(answerOf(r), `N=${n}`).toBe(totals[n]); }
         finally { r.dispose(); }
     }
 }, 30_000);
@@ -30,6 +31,6 @@ it.each(modes)('retains the statement fixture with %j', options => {
 });
 it('compiles the prime sieve loop with named ranges', () => {
     const r = new Interpreter(() => {}, { args: ['--n=10000'] }), d = new RuntimeDiagnostics();
-    try { d.run(() => r.execute(source)); expect(r.variables.get('Answer')).toBe(totals[10000]); expect(d.numberLoops).toBe(1); }
+    try { d.run(() => r.execute(source)); expect(answerOf(r)).toBe(totals[10000]); expect(d.numberLoops).toBe(1); }
     finally { r.dispose(); }
 });

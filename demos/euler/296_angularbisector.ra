@@ -48,5 +48,4 @@ for S in 2 to (Limit // 3)
     end
   end
 end
-Answer = Total
-return Answer
+return Total

@@ -147,5 +147,4 @@ Best = Errors min
 Winner = Errors first index where (
   Errors equal Best)
 Winning = Quads Winner
-Answer = Winning * Winning sum
-return Answer
+return Winning * Winning sum

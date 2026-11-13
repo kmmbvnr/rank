@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/743_windowmatrix.ra', import.meta.url), 'utf8');
 // Enumerate actual pairs of binary rows and test each sliding window.
 function matrices(width: number, length: number): bigint {
@@ -34,7 +35,7 @@ function run(width: number, length: number, chunk: number, prime: number, compil
             .replace('arg Length integer = 10 ** 16', `Length = ${length}`)
             .replace(/arg Chunk integer = \d+/, `Chunk = ${chunk}`)
             .replace('arg Prime integer = 1000000007', `Prime = ${prime}`));
-        return r.variables.get('Answer');
+        return answerOf(r);
     } finally { r.dispose(); }
 }
 const small = [[1, 1], [1, 3], [2, 2], [2, 4], [2, 6], [3, 3], [3, 6], [3, 9], [4, 4], [4, 8]]

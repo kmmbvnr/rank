@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/364_distance.ra', import.meta.url), 'utf8');
 
@@ -29,7 +30,7 @@ function execute(n: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: ['--n', String(n)] });
     try {
         const result = runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(result);
+        expect(answerOf(runtime)).toBe(result);
         return result;
     } finally { runtime.dispose(); }
 }

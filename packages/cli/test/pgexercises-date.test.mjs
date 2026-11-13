@@ -15,7 +15,7 @@ const directory = path.join(root, 'demos/pgexercises/date');
 
 function run(name, ...args) {
     const result = spawnSync(process.execPath,
-        [cli, path.join(directory, name), ...args],
+        [cli, '--print', path.join(directory, name), ...args],
         { cwd: root, encoding: 'utf8', timeout: 15_000 });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim();

@@ -81,7 +81,7 @@ const start = performance.now();
 try {
     if (process.env.DIAGNOSTICS) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const golden = {'20': '80', '40': '12006', '60': '2579619', '150': '2032447591196869022'}[limit];
     if (golden) assert.equal(answer, golden);
     console.log(JSON.stringify({mode, variant, limit, ms: performance.now() - start, answer,

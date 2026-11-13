@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/578_decreasingprimepowers.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler578-original.ra', import.meta.url), 'utf8');
@@ -21,7 +22,7 @@ for (let n = 1; n <= bound; n++) {
 }
 function run(n: number, options: InterpreterOptions = {}, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { scalarFunctionCompilation: false, numberLoopCompilation: false }])('Euler 578 %j', options => {

@@ -260,5 +260,4 @@ Wm = Hc * Wg
 Wf = Wm * Ft
 Jj = Wf sum
 Pp = Jj / 4.0
-Answer = Pp text ".10f"
-return Answer
+return Pp text ".10f"

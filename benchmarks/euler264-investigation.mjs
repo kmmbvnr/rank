@@ -28,7 +28,7 @@ const runtime = new Interpreter(() => {}, {
 const started = performance.now();
 try {
     diagnostics.run(() => runtime.execute(source));
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (limit === '100000') assert.equal(answer, '2816417.1055');
     console.log(JSON.stringify({ mode, limit, variant, ms: performance.now() - started, answer,
         nc: String(runtime.variables.get('Nc')), lm: String(runtime.variables.get('Lm')),

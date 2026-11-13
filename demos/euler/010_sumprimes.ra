@@ -16,6 +16,4 @@ for P in 2 to (Limit sqrt integer)
     Prime (P * P till Limit by P) = false
   end
 end
-Answer = Prime indices sum
-
-return Answer
+return Prime indices sum

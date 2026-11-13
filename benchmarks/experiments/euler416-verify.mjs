@@ -26,6 +26,6 @@ cases.push([2,100,429619151n]);
 let checked=0;
 for(const compilation of [false,true])for(const [m,n,expected]of cases){
  const runtime=new Interpreter(()=>{},{compilation,args:[`--m=${m}`,`--n=${n}`]});
- try{runtime.execute(source);const actual=runtime.variables.get('Answer');if(actual!==expected)throw Error(JSON.stringify({compilation,m,n,expected:String(expected),actual:String(actual)}));checked++;}finally{runtime.dispose();}
+ try{runtime.execute(source);const actual=(runtime.variables.get('Answer') ?? runtime.lastResult);if(actual!==expected)throw Error(JSON.stringify({compilation,m,n,expected:String(expected),actual:String(actual)}));checked++;}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({checked,smallCases:21,statementCheckpoint:true}));

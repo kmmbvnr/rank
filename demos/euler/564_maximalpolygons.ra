@@ -268,5 +268,4 @@ end
 Final = Seed grow repeat Steps till done
 Means = Final .total
 Total = Means reduce + with 0.0
-Answer = Total round 6
-return Answer
+return Total round 6

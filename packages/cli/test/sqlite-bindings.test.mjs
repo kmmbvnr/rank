@@ -208,12 +208,11 @@ end`);
 
     test(`TPC-H Q6 pilot keeps SQL pushdown (compilation=${compilation})`, { timeout: 10000 }, t => {
         const data = fixture(t);
-        const output = [];
-        const runtime = new Interpreter(text => output.push(text), { io: data.io, compilation });
+        const runtime = new Interpreter(() => {}, { io: data.io, compilation });
         t.after(() => runtime.dispose());
         const source = readFileSync(new URL('../../../demos/tpch/001_q6_sqlite.ra', import.meta.url), 'utf8');
-        runtime.executeProgram(parse(source), [data.path]);
-        assert.deepEqual(output, ['19']);
+        const result = runtime.executeProgram(parse(source), [data.path]);
+        assert.equal(formatValue(result), '19');
         assert.equal(data.reads(), 1);
         data.balanced();
     });

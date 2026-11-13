@@ -46,8 +46,8 @@ if (option('worker')) {
             }
             answer = '12000000';
         } else {
-            assert.equal(runtime.variables.get('Answer'), 1966666166408794329n);
-            answer = String(runtime.variables.get('Answer'));
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 1966666166408794329n);
+            answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
         }
         if (diagnostics) {
             assert.equal(diagnostics.typedUnpacks, 0);

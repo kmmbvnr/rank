@@ -39,7 +39,7 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(load(file)));
     const ms = performance.now() - start;
-    const answer = flag('fixture') ? undefined : String(runtime.variables.get('Answer'));
+    const answer = flag('fixture') ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (flag('fixture')) {
         assert.equal(runtime.testResults.length, 1);
         assert(runtime.testResults.every(test => test.passed));

@@ -84,5 +84,4 @@ for Front len greater 0
   Left = Safe filter Alive
   First = 0
 end
-Answer = (Hits * Squares) sum
-return Answer
+return (Hits * Squares) sum

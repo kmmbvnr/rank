@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/590_setswithlcm.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler590-original.ra', import.meta.url), 'utf8');
 function run(text: string, n: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${n}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 function gcd(a: number, b: number): number { return b ? gcd(b, a % b) : a; }

@@ -254,6 +254,6 @@ end`);
 
     it('compiles the unchanged full Euler 30 entrypoint', () => {
         const source = readFileSync(new URL('../../../demos/euler/030_digitpowers.ra', import.meta.url), 'utf8');
-        expect(evaluate(source, true)).toMatchObject({ output: ['443839'], calls: 354294 });
+        expect(evaluate(source, true)).toMatchObject({ value: '443839', calls: 354294 });
     });
 });

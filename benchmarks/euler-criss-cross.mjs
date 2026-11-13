@@ -38,7 +38,7 @@ if (option('worker')) {
             assert(r.testResults.every(test => test.passed), JSON.stringify(r.testResults));
             assert.deepEqual(r.testResults.map(test => test.output), [['7130034'], ['34']]);
         } else {
-            assert.equal(r.variables.get('Answer'), 7130034n);
+            assert.equal((r.variables.get('Answer') ?? r.lastResult), 7130034n);
             assert.deepEqual(output, ['7130034']);
         }
         console.log(JSON.stringify({ case: name, version, executeMs, peakRssMiB,

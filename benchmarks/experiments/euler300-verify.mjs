@@ -19,7 +19,7 @@ for(let n=2;n<=12;n++) {
  let total=0;for(let mask=0;mask<original.length;mask++){let score=original[mask];for(let i=0;i<n-1;i++)if((mask&(3<<i))===(3<<i))score++;total+=score;}
  for(const variant of ['original','maximal','maximal-scalar','production'])for(const compilation of [false,true]){
   const source=readFileSync(variant==='production'?'demos/euler/300_proteinfolding.ra':`benchmarks/experiments/euler300-${variant}.ra`,'utf8').replace('arg N integer = 15',`arg N integer = ${n}`);
-  const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(Number(r.variables.get('Answer')),total/2**n,JSON.stringify({n,variant,compilation}));assert.deepEqual(Array.from(r.variables.get('Best').items,Number),Array.from(original),JSON.stringify({n,variant,compilation,field:'Best'}));if(variant!=='original')assert.equal(Number(r.variables.get('Count')),maximal.length);}finally{r.dispose();}
+  const r=new Interpreter(()=>{},{compilation});try{r.execute(source);assert.equal(Number((r.variables.get('Answer') ?? r.lastResult)),total/2**n,JSON.stringify({n,variant,compilation}));assert.deepEqual(Array.from(r.variables.get('Best').items,Number),Array.from(original),JSON.stringify({n,variant,compilation,field:'Best'}));if(variant!=='original')assert.equal(Number(r.variables.get('Count')),maximal.length);}finally{r.dispose();}
  }
  records.push({n,maps:maps.length,maximal:maximal.length,proteins:2**n,numerator:total,answer:total/2**n,rankChecks:8});
 }

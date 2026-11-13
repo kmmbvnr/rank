@@ -10,8 +10,7 @@ arg Limit integer = 10000000
 
 Pr = primes to Limit array
 Ps = Pr (Pr mod 4 equal 1)
-Answer = Limit raysum Ps 0 1 1 1 true
-return Answer
+return Limit raysum Ps 0 1 1 1 true
 
 rem Divisor weights use F=prod(6e),
 rem W=2^number_of_primes, for p=1 mod4.

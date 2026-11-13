@@ -16,7 +16,7 @@ try {
     if (process.env.DIAGNOSTICS) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start;
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (+p === 61 && +q === 10000000 && +exp === 10) assert.equal(answer, '605857431263981935');
     if (+p === 3 && +q === 10000 && +exp === 20) assert.equal(answer, '624955285');
     console.log(JSON.stringify({mode, variant, p: +p, q: +q, exp: +exp, ms, answer,

@@ -18,6 +18,6 @@ try{if(process.env.PROFILE){session=new Session();session.connect();await sessio
  const ms=performance.now()-t,after=process.memoryUsage();
  if(process.env.MEMORY)global.gc?.();
  const afterGc=process.memoryUsage();
- console.log(JSON.stringify({mode,n,variant,ms,rssMiB:process.resourceUsage().maxRSS/1024,interrupted,answer:interrupted?undefined:String(r.variables.get('Answer')),...(process.env.MEMORY?{memory:{before,after,afterGc}}:{}),...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));
+ console.log(JSON.stringify({mode,n,variant,ms,rssMiB:process.resourceUsage().maxRSS/1024,interrupted,answer:interrupted?undefined:String((r.variables.get('Answer') ?? r.lastResult)),...(process.env.MEMORY?{memory:{before,after,afterGc}}:{}),...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));
  if(session){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
 }finally{session?.disconnect();r.dispose()}

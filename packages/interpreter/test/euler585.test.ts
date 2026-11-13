@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/585_nestedsquareroots.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler585-original.ra', import.meta.url), 'utf8');
@@ -9,7 +10,7 @@ function run(n: number, options: InterpreterOptions = {}, text = source) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
     try {
         runtime.execute(text);
-        return ['Answer', 'C1', 'C2', 'C3'].map(name => runtime.variables.get(name));
+        return [answerOf(runtime), ...['C1', 'C2', 'C3'].map(name => runtime.variables.get(name))];
     } finally { runtime.dispose(); }
 }
 

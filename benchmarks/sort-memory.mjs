@@ -43,7 +43,7 @@ if (options.worker) {
     const start = performance.now();
     runtime.execute(source);
     const ms = performance.now() - start;
-    if (testCase === 'euler') assert.equal(runtime.variables.get('Answer'), 2699929328n);
+    if (testCase === 'euler') assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 2699929328n);
     else {
         const name = testCase === 'sort' ? 'A' : testCase === 'slice' ? 'S' : 'Ints';
         const result = runtime.variables.get(name);

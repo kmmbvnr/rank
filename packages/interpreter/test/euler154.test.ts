@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/154_pascalpyramid.ra', import.meta.url), 'utf8');
 // Exact multinomial coefficients: independent of valuation tables, pruning,
@@ -24,7 +25,7 @@ describe.each([false, true])('Euler 154 (compilation=%s)', compilation => {
             try {
                 const result = r.execute(source);
                 const answer = oracle(n, power);
-                expect(r.variables.get('Answer')).toBe(answer);
+                expect(answerOf(r)).toBe(answer);
                 expect(result).toBe(answer);
             } finally { r.dispose(); }
         });
@@ -35,7 +36,7 @@ it('keeps the candidate traversal and inner search in one Number region', () => 
     const d = new RuntimeDiagnostics();
     try {
         d.run(() => r.execute(source));
-        expect(r.variables.get('Answer')).toBe(6762n);
+        expect(answerOf(r)).toBe(6762n);
         expect(d.numberLoops).toBe(1);
         expect(d.compiledLoops).toBe(1);
         expect(d.numberLoopOverflows).toBe(0);

@@ -74,5 +74,4 @@ for Dx in 1 to N
     end
   end
 end
-Answer = 2.0 * P * P * Tot round 5
-return Answer
+return 2.0 * P * P * Tot round 5

@@ -14,7 +14,7 @@ try {
     runtime.execute(source);
     const ms = performance.now() - start;
     const used = process.cpuUsage(cpu);
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.equal(answer, nt === 20000 ? '1.5276527929' : '1.5276530109');
     console.log(JSON.stringify({ nt, ms,
         cpuMs: (used.user + used.system) / 1000,

@@ -45,5 +45,4 @@ for Row in 2 to Rows
   end
   V = W
 end
-Answer = V sum
-return Answer
+return V sum

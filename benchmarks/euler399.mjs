@@ -41,7 +41,7 @@ if (process.argv.includes('--worker')) {
             runtime.execute(`use numbers\nuse bits\n${helper}`);
             const program = 'Answer = 0\nfor P in 2 till 10002\n Answer += 12345 fibmod P\nend';
             run('fibmod-10000', program);
-            assert.equal(runtime.variables.get('Answer'), 24604978n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 24604978n);
         } else {
             const selection = source.indexOf('rem Find the Count-th');
             const inclusion = source.indexOf('rem Group inclusion-exclusion');
@@ -65,16 +65,16 @@ if (process.argv.includes('--worker')) {
                 run('selection-and-format', source.slice(selection, source.indexOf('rem Fast doubling')));
                 if (count === 200 && limit === 300 && primeLimit === 53) {
                     assert.equal(runtime.variables.get('Index'), 260n);
-                    assert.equal(runtime.variables.get('Answer'), '1608739584170445,9.7e53');
+                    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), '1608739584170445,9.7e53');
                 }
                 if (count === 100000000 && limit === 200000000 && primeLimit === 5714285) {
                     assert.equal(runtime.variables.get('Index'), 130775524n);
-                    assert.equal(runtime.variables.get('Answer'), '1508395636674243,6.5e27330467');
+                    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), '1508395636674243,6.5e27330467');
                 }
             }
         }
         console.log(JSON.stringify({ phases, compiledCalls, verification, modCount: String(runtime.variables.get('ModCount') ?? ''),
-            index: String(runtime.variables.get('Index') ?? ''), answer: String(runtime.variables.get('Answer') ?? ''),
+            index: String(runtime.variables.get('Index') ?? ''), answer: String((runtime.variables.get('Answer') ?? runtime.lastResult) ?? ''),
             maxRssKiB: process.resourceUsage().maxRSS }));
     } finally { runtime.dispose(); }
 } else {

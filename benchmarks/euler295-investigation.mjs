@@ -26,7 +26,7 @@ try {
             begin = end;
         }
     } else diagnostics.run(() => runtime.execute(source));
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = {10: '30', 100: '3442', 1000: '393451', 100000: '4884650818'}[n];
     if (expected) assert.equal(answer, expected);
     const counts = Object.fromEntries(['Nf', 'Tt', 'Dist', 'Ng', 'Pm', 'Nj'].map(name => [name, String(runtime.variables.get(name))]));

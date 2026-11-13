@@ -50,5 +50,4 @@ Gs = concat (concat G0 G1) Gk
 Tm = Bn * Gs mod P
 Ng = (Al - Ks + 1) mod 2 equal 1
 Tm = Ng choose (P - Tm) Tm
-Answer = Tm sum mod P
-return Answer
+return Tm sum mod P

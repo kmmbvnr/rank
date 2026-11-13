@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, parse } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/361_thuemorse.ra', import.meta.url), 'utf8');
 const program = parse(source);
@@ -22,7 +23,7 @@ describe.each([true, false])('Euler 361 scalar memoization (compilation=%s)', co
         const runtime = new Interpreter(line => output.push(line), { compilation });
         try {
             runtime.execute(source);
-            expect(output).toEqual(['178476944']);
+            expect(answerOf(runtime)).toBe(178476944n);
         } finally { runtime.dispose(); }
     });
 

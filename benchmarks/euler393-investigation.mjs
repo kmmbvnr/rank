@@ -21,7 +21,7 @@ try {
     const source = readFileSync(resolve(file), 'utf8'), start = performance.now();
     const execute = () => runtime.execute(source);
     if (process.env.DIAG) diagnostics.run(execute); else execute();
-    const ms = performance.now() - start, answer = runtime.variables.get('Answer');
+    const ms = performance.now() - start, answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     if (expected.has(Number(n))) assert.equal(answer, expected.get(Number(n)));
     if (session) {
         const {profile} = await session.post('Profiler.stop');

@@ -6,8 +6,7 @@ rem six multiples share their digits
 use sequences
 use io
 
-Answer = solve
-return Answer
+return solve
 
 
 rem Search decimal widths in order.

@@ -138,5 +138,4 @@ Product = Powers reduce * with 1 mod Mod
 Square = Product * Product
 Moment = 2 * Product * Moment1
 Bad = 1 + Moment - Moment2
-Answer = (Square - Bad) mod Mod
-return Answer
+return (Square - Bad) mod Mod

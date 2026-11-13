@@ -11,7 +11,7 @@ const runtime = new Interpreter(() => {}, {
 try {
     const source = readFileSync(file, 'utf8'), start = performance.now();
     if (process.env.DIAG) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const ms = performance.now() - start, answer = String(runtime.variables.get('Answer'));
+    const ms = performance.now() - start, answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = {0:'0',1:'1',2:'2',6:'7',7:'8',8:'9',10:'12',100:'178',1000:'2385',1000000:'4153927',100000000:'528755790'}[limit];
     if (expected !== undefined && !process.env.ORIGINAL) assert.equal(answer, expected);
     console.log(JSON.stringify({file, limit, mode, answer, ms, rssMiB: process.resourceUsage().maxRSS / 1024,

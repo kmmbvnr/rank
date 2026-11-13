@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
 import { arrayValues } from '../src/array-storage.js';
 import { isRankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/550_divisorgame.ra', import.meta.url), 'utf8');
 const modulus = 987654321n;
 // Independent game oracle: enumerate proper divisors and every legal split.
@@ -29,7 +30,7 @@ function solve(n: number, k: number | string, options: InterpreterOptions) {
         runtime.execute(source);
         const histogram = runtime.variables.get('Histogram');
         if (histogram === undefined || !isRankArray(histogram)) throw Error('missing histogram');
-        return { answer: runtime.variables.get('Answer'), histogram: [...arrayValues(histogram)] };
+        return { answer: answerOf(runtime), histogram: [...arrayValues(histogram)] };
     } finally { runtime.dispose(); }
 }
 const modes = [{ name: 'Number', options: {} }, { name: 'exact', options: { numberLoopCompilation: false } }, { name: 'reference', options: { compilation: false } }];

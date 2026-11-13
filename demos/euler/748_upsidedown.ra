@@ -87,5 +87,4 @@ for Block in 0 to Top // Rows
   Added = Both sum
   Total = (Total + Added) mod Digits
 end
-Answer = Total
-return Answer
+return Total

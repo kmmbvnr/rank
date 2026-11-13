@@ -177,5 +177,4 @@ for Ai in 0 till N
     end
   end
 end
-Answer = Best / 2
-return Answer
+return Best / 2

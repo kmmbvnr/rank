@@ -15,7 +15,7 @@ try {
     if (process.env.PROFILE) { profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.start'); }
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
     console.log(JSON.stringify({ size, answer, ms: performance.now() - start,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, arch: process.arch, diagnostics }));

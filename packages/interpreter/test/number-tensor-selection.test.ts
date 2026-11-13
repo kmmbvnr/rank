@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, RankError, formatValue } from '../src/index.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function run(source: string, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation }), diagnostics = new RuntimeDiagnostics();
@@ -8,7 +9,7 @@ function run(source: string, compilation: boolean) {
         let error: string | undefined;
         try { diagnostics.run(() => runtime.execute('use sequences\nuse numbers\n' + source)); }
         catch (cause) { error = cause instanceof RankError ? cause.format() : String(cause); }
-        const answer = runtime.variables.get('Answer');
+        const answer = answerOf(runtime);
         return { answer: answer === undefined ? undefined : formatValue(answer), error, diagnostics };
     } finally { runtime.dispose(); }
 }
@@ -67,7 +68,7 @@ Answer = array First Second (Saved sum)`;
                 runtime.execute("Mask' = Input greater 1\nValues' = Input * 2");
                 expect(reads).toEqual([]);
                 runtime.execute('Answer = (Values filter Mask) sum');
-                return { answer: runtime.variables.get('Answer'), reads };
+                return { answer: answerOf(runtime), reads };
             } finally { runtime.dispose(); }
         };
         expect(execute(true)).toEqual(execute(false));
@@ -82,7 +83,7 @@ Answer = array First Second (Saved sum)`;
             selected.plan.iterate = function* () { yield 77n; };
             runtime.variables.set('Replaced', selected);
             runtime.execute('Answer = Replaced sum');
-            expect(runtime.variables.get('Answer')).toBe(77n);
+            expect(answerOf(runtime)).toBe(77n);
         } finally { runtime.dispose(); }
     });
 
@@ -93,7 +94,7 @@ Answer = array First Second (Saved sum)`;
             expect(() => withDemandBudget(5000, () => runtime.execute('Answer = (Values filter Mask) sum'))).toThrow(DemandBudgetExhausted);
             expect(runtime.variables.has('Answer')).toBe(false);
             runtime.execute('Answer = (Values filter Mask) sum');
-            expect(runtime.variables.get('Answer')).toBe(50015000n);
+            expect(answerOf(runtime)).toBe(50015000n);
         } finally { runtime.dispose(); }
     });
 

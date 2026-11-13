@@ -66,5 +66,4 @@ for Piece in 0 to Chunks - 1
   NumCarry = NumCarry * Final mod Prime
   DenCarry = Whole
 end
-Answer = Total
-return Answer
+return Total

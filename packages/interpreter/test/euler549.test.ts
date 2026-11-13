@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/549_divisibilityfactorials.ra', import.meta.url), 'utf8');
 // Independent oracle: multiply factorial residues until n divides m!.
 const sums = [0n, 0n];
@@ -12,7 +13,7 @@ for (let n = 2; n <= 2000; n++) {
 }
 function solve(n: number, options: InterpreterOptions, block = 1048576) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(source.replace('Block = 1048576', `Block = ${block}`)); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source.replace('Block = 1048576', `Block = ${block}`)); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const modes = [

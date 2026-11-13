@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/454_diophantinereciprocals.ra', import.meta.url), 'utf8');
 const backends = [{}, { numberLoopCompilation: false }, { compilation: false }];
 // Independent equation check: n = xy/(x+y) must be a positive integer.
@@ -18,7 +19,7 @@ it.each([0, 1, 2, 5, 6, 7, 8, 9, 14, 15, 16, 23, 24, 25, 26, 27, 35, 36, 37,
         const runtime = new Interpreter(() => {}, { ...options, args: [`--l=${limit}`] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(expected);
+            expect(answerOf(runtime)).toBe(expected);
         } finally { runtime.dispose(); }
     }
 });
@@ -39,7 +40,7 @@ it('retains the full answer with no speculative overflow', () => {
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(5435004633092n);
+        expect(answerOf(runtime)).toBe(5435004633092n);
         expect(diagnostics.numberLoops).toBeGreaterThan(1000);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         // Only the global Mobius and quotient tables need publication.

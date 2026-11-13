@@ -111,5 +111,4 @@ Ed = Ed (0 till Ne array)
 Od = Ep argsort
 Ds = Ed Od
 Cs = Ds scan + array
-Answer = Cs reduce max round 4
-return Answer
+return Cs reduce max round 4

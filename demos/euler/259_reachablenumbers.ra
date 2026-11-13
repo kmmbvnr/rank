@@ -111,5 +111,4 @@ Fin = Keys (From till (From + Total))
 Unit' = Fin mod Wide equal 1
 Vals = Fin // Wide - Shift
 Good' = Unit and (Vals greater 0)
-Answer = Vals filter Good sum
-return Answer
+return Vals filter Good sum

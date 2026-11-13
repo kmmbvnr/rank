@@ -41,8 +41,8 @@ if (option('worker')) {
         try {
             runtime.execute(source);
             const executeMs = performance.now() - start;
-            assert.equal(runtime.variables.get('Answer'), 1739023853137n);
-            console.log(JSON.stringify({ case: name, executeMs, answer: String(runtime.variables.get('Answer')) }));
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 1739023853137n);
+            console.log(JSON.stringify({ case: name, executeMs, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)) }));
         } finally { runtime.dispose(); }
     }
 } else {

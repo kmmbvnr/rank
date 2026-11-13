@@ -37,5 +37,4 @@ fun A K M tower
 end
 
 Mod = 10 ** Digits
-Answer = Base Height Mod tower
-return Answer
+return Base Height Mod tower

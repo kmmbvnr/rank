@@ -7,5 +7,5 @@ if(process.env.CAPTURE){const F=globalThis.Function;globalThis.Function=new Prox
 const d=new RuntimeDiagnostics(); const t=performance.now();
 try {const src=readFileSync(file,'utf8'); if(process.env.DIAG)d.run(()=>r.execute(src));else r.execute(src);
 const expected={'0':0n,'1':1n,'2':3n,'10':19n,'100':401n,'10000':262615n,'1000000':524402305n,'100000000':1739023853137n}[limit];
-if(expected!==undefined)assert.equal(r.variables.get('Answer'),expected);
-console.log(JSON.stringify({limit,mode,file,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),...(process.env.DIAG?{diagnostics:d,kernels:kernels.length}:{})}));if(process.env.KERNELS)writeFileSync(process.env.KERNELS,kernels.join('\n\n'));}finally{r.dispose()}
+if(expected!==undefined)assert.equal((r.variables.get('Answer') ?? r.lastResult),expected);
+console.log(JSON.stringify({limit,mode,file,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),...(process.env.DIAG?{diagnostics:d,kernels:kernels.length}:{})}));if(process.env.KERNELS)writeFileSync(process.env.KERNELS,kernels.join('\n\n'));}finally{r.dispose()}

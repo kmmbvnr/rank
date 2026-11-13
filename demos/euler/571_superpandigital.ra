@@ -113,5 +113,4 @@ for Prefix in Prefixes
   Hits = concat Hits Found
 end
 Positions = 0 till T copy
-Answer = Hits Positions sum
-return Answer
+return Hits Positions sum

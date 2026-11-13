@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, isRankArray, isRankTuple, type InterpreterOptions, type RankValue } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/482_incenter_test.ra', import.meta.url);
 const source = readFileSync(new URL('482_incenter.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -25,7 +26,7 @@ function cells(value: RankValue | undefined): bigint[] {
 }
 function solve(p: number, options: InterpreterOptions, check?: (r: Interpreter) => void) {
     const r = new Interpreter(() => {}, { ...options, args: [`--p=${p}`] });
-    try { r.execute(source); check?.(r); return r.variables.get('Answer'); } finally { r.dispose(); }
+    try { r.execute(source); check?.(r); return answerOf(r); } finally { r.dispose(); }
 }
 it.each([0, 1, 11, 12, 99, 100, 200, 500, 999, 1000, 1001])('matches all integer-sided triangles through perimeter %s', p => {
     const expected = brute(p);

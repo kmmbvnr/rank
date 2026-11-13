@@ -8,8 +8,7 @@ use algo
 use io
 
 Digits = "123456789"
-Answer = Digits pandigital_products
-return Answer
+return Digits pandigital_products
 
 
 rem Search the only possible one-by-four and

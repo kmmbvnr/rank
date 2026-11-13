@@ -5,6 +5,6 @@ const runtime = new Interpreter(() => {}, { compilation: mode !== 'reference', .
 const diagnostics = new RuntimeDiagnostics(), start=performance.now();
 try {
  diagnostics.run(() => runtime.execute(readFileSync(file,'utf8')));
- console.log(JSON.stringify({mode,n,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),diagnostics}));
+ console.log(JSON.stringify({mode,n,file,ms:performance.now()-start,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),diagnostics}));
 } catch(e) { console.error(e.format?.()??String(e));process.exitCode=1; }
 finally { runtime.dispose(); }

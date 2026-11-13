@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const fixture = new URL('../../../demos/euler/519_tricolouredcoin_test.ra', import.meta.url);
 const source = readFileSync(new URL('519_tricolouredcoin.ra', fixture), 'utf8');
@@ -73,7 +74,7 @@ it.each(modes)('matches direct enumeration and scalar quotient coefficients with
     for (const n of inputs) {
         const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
         try {
-            r.execute(source); expect(r.variables.get('Answer'), `N=${n}`).toBe(expected[n]);
+            r.execute(source); expect(answerOf(r), `N=${n}`).toBe(expected[n]);
             const inverse = r.variables.get('Inverse')!;
             expect(isRankArray(inverse) && inverse.shape).toEqual([n + 1]);
         }
@@ -90,6 +91,6 @@ it.each(modes)('retains the statement fixture with %j', options => {
 });
 it('compiles the strided q-series prefix loop', () => {
     const r = new Interpreter(() => {}, { args: ['--n=1234'] }), d = new RuntimeDiagnostics();
-    try { d.run(() => r.execute(source)); expect(r.variables.get('Answer')).toBe(881371376n); expect(d.numberLoops).toBe(1); expect(d.cellsComputed).toBe(0); }
+    try { d.run(() => r.execute(source)); expect(answerOf(r)).toBe(881371376n); expect(d.numberLoops).toBe(1); expect(d.cellsComputed).toBe(0); }
     finally { r.dispose(); }
 });

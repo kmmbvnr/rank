@@ -24,6 +24,6 @@ cases.push([111,30,'13500401'],[100000,400,'63259062']);
 let checked=0;
 for(const file of files)for(const compilation of [false,true])for(const [n,l,expected] of cases){
  const runtime=new Interpreter(()=>{},{compilation,args:[`--n=${n}`,`--l=${l}`]});
- try{runtime.execute(sourceFor(file));const answer=String(runtime.variables.get('Answer'));if(answer!==expected)throw Error(JSON.stringify({file,compilation,n,l,expected,answer}));checked++;}finally{runtime.dispose();}
+ try{runtime.execute(sourceFor(file));const answer=String((runtime.variables.get('Answer') ?? runtime.lastResult));if(answer!==expected)throw Error(JSON.stringify({file,compilation,n,l,expected,answer}));checked++;}finally{runtime.dispose();}
 }
 console.log(JSON.stringify({checked,oracle:cases.slice(0,8),files}));

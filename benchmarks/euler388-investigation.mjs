@@ -13,7 +13,7 @@ try {
  if(process.env.DIAG) diagnostics.run(()=>runtime.execute(source)); else runtime.execute(source);
  const ms=performance.now()-start;
  const expected={0:0n,1:7n,40:56335n,1000000:831909254469114121n,10000000000:831907372771451255456805129931n}[n];
- if(expected!==undefined) assert.equal(runtime.variables.get('Answer'),expected);
+ if(expected!==undefined) assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult),expected);
  if(session){const {profile}=await session.post('Profiler.stop');writeFileSync(process.env.PROFILE,JSON.stringify(profile));}
- console.log(JSON.stringify({file,n,cut,mode,answer:String(runtime.variables.get('Answer')),token:runtime.variables.get('Token'),ms,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAG?{diagnostics}:{})}));
+ console.log(JSON.stringify({file,n,cut,mode,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),token:runtime.variables.get('Token'),ms,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAG?{diagnostics}:{})}));
 }finally{session?.disconnect();runtime.dispose();}

@@ -127,5 +127,4 @@ for K in 2 to Nr
   end
   Pr = Pr + Pm * Dk K
 end
-Answer = Pr text ".10f"
-return Answer
+return Pr text ".10f"

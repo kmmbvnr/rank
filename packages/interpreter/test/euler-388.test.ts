@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
 import type { RankArray } from '../src/value.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/388_lines.ra', import.meta.url), 'utf8');
 function mobius(value: number) {
@@ -30,7 +31,7 @@ describe.each([false, true])('Euler 388 quotient tables (compilation=%s)', compi
                 const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${n}`, `--cut=${cut}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer'), `N=${n}, Cut=${cut}`).toBe(expected);
+                    expect(answerOf(runtime), `N=${n}, Cut=${cut}`).toBe(expected);
                     const root = runtime.variables.get('Root') as bigint;
                     expect(runtime.variables.get('Top') as bigint).toBeLessThanOrEqual(root);
                     expect(runtime.variables.get('Bound') as bigint).toBeGreaterThanOrEqual(root);
@@ -44,7 +45,7 @@ describe.each([false, true])('Euler 388 quotient tables (compilation=%s)', compi
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=1000000', '--cut=1'] });
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(831909254469114121n);
+            expect(answerOf(runtime)).toBe(831909254469114121n);
             expect(runtime.variables.get('Token')).toBe('831909254469114121');
             expect((runtime.variables.get('Mu') as RankArray).shape).toEqual([1001]);
             expect((runtime.variables.get('Cache') as RankArray).shape).toEqual([1000]);

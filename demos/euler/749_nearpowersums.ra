@@ -110,5 +110,4 @@ for Exponent in 2 to 52 by 2
   Found = concat Found Keep
 end
 Unique = Found unique
-Answer = Unique sum
-return Answer
+return Unique sum

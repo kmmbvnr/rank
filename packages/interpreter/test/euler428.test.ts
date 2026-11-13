@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { necklacePrefix } from '../../../benchmarks/experiments/euler428-oracle.mjs';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/428_necklacetriplets.ra', import.meta.url), 'utf8');
 const expected = necklacePrefix(3000);
 
@@ -12,7 +13,7 @@ describe('Euler 428 necklace triplets', () => {
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(expected[n]);
+                    expect(answerOf(runtime)).toBe(expected[n]);
                 } finally { runtime.dispose(); }
             }
         });
@@ -21,7 +22,7 @@ describe('Euler 428 necklace triplets', () => {
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(747215561862n);
+            expect(answerOf(runtime)).toBe(747215561862n);
             expect(diagnostics.compiledArrayFunctions).toBeGreaterThanOrEqual(31622);
             expect(diagnostics.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }

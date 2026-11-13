@@ -26,16 +26,22 @@ Mask' or= N mod 5 equal 0
 return N Mask sum
 `;
 
-test('the host prints the value a file returns', t => {
+test('--print shows the value a file returns', t => {
     const file = program(t, 'multiples.ra', multiples);
-    assert.equal(run([file]).stdout, '233168\n');
-    assert.equal(run([file, '10']).stdout, '23\n');
-    assert.equal(run([file, '--limit', '5']).stdout, '3\n');
+    assert.equal(run(['--print', file]).stdout, '233168\n');
+    assert.equal(run(['--print', file, '10']).stdout, '23\n');
+    assert.equal(run(['--print', file, '--limit', '5']).stdout, '3\n');
 });
 
-test('a file with its own print and a return shows both', t => {
+test('without --print a returned value is not shown', t => {
+    const file = program(t, 'multiples.ra', multiples);
+    assert.equal(run([file]).stdout, '');
+});
+
+test('a file with its own print and a return shows both under --print', t => {
     const file = program(t, 'both.ra', 'use io\n"first" print\nreturn 7\n');
-    assert.equal(run([file]).stdout, 'first\n7\n');
+    assert.equal(run(['--print', file]).stdout, 'first\n7\n');
+    assert.equal(run([file]).stdout, 'first\n');
 });
 
 test('a file without a return prints only what it prints', t => {
@@ -52,7 +58,7 @@ test('an argument of the wrong type is reported', t => {
 
 test('a returned deferred value is completed and fused into one pass', t => {
     const file = program(t, 'multiples.ra', multiples);
-    const result = run(['--diagnostics=all', file]);
+    const result = run(['--print', '--diagnostics=all', file]);
     assert.equal(result.stdout, '233168\n');
     assert.doesNotMatch(result.stderr, /native-array-map/);
 });

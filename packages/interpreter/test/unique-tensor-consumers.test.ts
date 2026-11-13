@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, RankError, formatValue, type NativeFunction, type RankValue } from '../src/index.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function execute(source: string, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation });
@@ -76,7 +77,7 @@ Answer = Saved`;
             runtime.execute("use sequences\nInput = 1 to 10000 array\nPlan' = Input mod 3");
             expect(() => withDemandBudget(100, () => runtime.execute(`Answer = Plan ${consumer}`)))
                 .toThrow(DemandBudgetExhausted);
-            expect(runtime.variables.get('Answer')).toBeUndefined();
+            expect(answerOf(runtime)).toBeUndefined();
             expect(formatValue(runtime.execute(`Plan ${consumer}`)!)).toBe(
                 consumer === 'unique len' ? '3' : consumer === 'unique sort' ? '0 1 2' : '1 2 0');
         } finally { runtime.dispose(); }

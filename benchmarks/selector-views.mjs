@@ -8,7 +8,7 @@ try {
     runtime.execute('use sequences\nSize = 1000000\nMask = array shape Size fill true\nValues = 0 till Size copy');
     const start = performance.now(), cpu = process.cpuUsage();
     for (let i = 0; i < 10; i++) runtime.execute('Answer = Values (Mask (0 till Size)) sum');
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (answer !== '499999500000') throw Error(`Wrong answer: ${answer}`);
     console.log(JSON.stringify({ mode, node: process.version, arch: process.arch,
         ms: performance.now() - start, cpu: process.cpuUsage(cpu),

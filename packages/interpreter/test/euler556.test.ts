@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type NativeFunction, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/556_squarefreegaussian.ra', import.meta.url), 'utf8');
 
 // Enumerate Gaussian square divisors directly, without the Mobius formula.
@@ -20,7 +21,7 @@ function oracle(limit: number) {
 }
 function solve(n: number, options: InterpreterOptions) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-    try { runtime.execute(source); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 556 %j', options => {

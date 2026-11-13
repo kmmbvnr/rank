@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL(
     '../../../demos/euler/671_colouringloop.ra',
@@ -21,7 +22,7 @@ it.each([
                 .replace(
                     'arg Nn integer = 10004003002001',
                     `arg Nn integer = ${n}`));
-            expect(runtime.variables.get('Answer'))
+            expect(answerOf(runtime))
                 .toBe(answer);
         } finally {
             runtime.dispose();

@@ -15,5 +15,5 @@ try {
     global.gc();
     const after = process.memoryUsage();
     console.log(JSON.stringify({ runtime: url.href, mode, before, after,
-        answer: String(runtime.variables.get('Answer')), rssMiB: process.resourceUsage().maxRSS / 1024 }));
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), rssMiB: process.resourceUsage().maxRSS / 1024 }));
 } finally { runtime.dispose(); }

@@ -4,6 +4,7 @@ import { arrayRange, registerArrayRange } from '../src/range-plan.js';
 import { prepareIntegerRange } from '../src/integer-view.js';
 import { readArrayItem, typedArray, writeArrayCell, writeIntegerSelection } from '../src/array-storage.js';
 import { withDemandBudget, withInterrupt, InterruptedError } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 describe.each([false, true])('affine integer updates (compilation=%s)', compilation => {
     it('keeps repeated zero-stride addresses as snapshot writes', () => {
@@ -15,7 +16,7 @@ K = 0 till 64 array
 At' = 0 * K + 3
 A At += K
 Answer = A 3`);
-            expect(r.variables.get('Answer')).toBe(73n);
+            expect(answerOf(r)).toBe(73n);
             expect(r.execute('A sum')).toBe(1343n);
         } finally { r.dispose(); }
     });

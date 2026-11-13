@@ -13,7 +13,7 @@ const r = new Interpreter(() => {}, { tensorFusion: mode === 'on' }), d = new Ru
 try {
     const start = performance.now(), cpu = process.cpuUsage();
     d.run(() => r.execute(source));
-    const ms = performance.now() - start, used = process.cpuUsage(cpu), answer = r.variables.get('Answer');
+    const ms = performance.now() - start, used = process.cpuUsage(cpu), answer = (r.variables.get('Answer') ?? r.lastResult);
     assert.equal(answer, answers[n]);
     assert.equal(d.compiledLoops, 2);
     assert.equal(d.fusedArrayRegions > 0, mode === 'on');

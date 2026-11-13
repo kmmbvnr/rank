@@ -63,5 +63,4 @@ fun Signs violations Weights
 end
 unpack Signs Weights = N signs
 Bad = Signs violations Weights
-Answer = N * (N + 1) // 2 - Bad
-return Answer
+return N * (N + 1) // 2 - Bad

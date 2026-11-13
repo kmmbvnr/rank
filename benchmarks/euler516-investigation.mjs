@@ -23,7 +23,7 @@ try {
  if(process.env.PROFILE){session=new Session();session.connect();await session.post('Profiler.enable');await session.post('Profiler.start');}
  const d=new RuntimeDiagnostics(),t=performance.now();
  if(process.env.DIAGNOSTICS)d.run(()=>r.execute(source));else r.execute(source);
- const answer=String(r.variables.get('Answer'));
+ const answer=String((r.variables.get('Answer') ?? r.lastResult));
  const expected={'100':'3728','1000000000000':'939087315'}[limit];
  if(expected!==undefined&&answer!==expected)throw Error(`answer ${answer} != ${expected}`);
  const values={};for(const name of ['Answer','H','Pr','Q']){const v=r.variables.get(name);values[name]=name==='Answer'?String(v):String(v?.length??v?.shape??'');}

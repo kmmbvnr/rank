@@ -32,4 +32,4 @@ end`);
 const start=performance.now(),cpu=process.cpuUsage();
 const r=new Interpreter(()=>{},{compilation:mode!=='reference',args:[`--m=${m}`,`--k=${k}`,`--chunk=${process.env.RANK412_CHUNK??4000000}`]});
 const d=new RuntimeDiagnostics();
-try{d.run(()=>r.execute(src));const c=process.cpuUsage(cpu);console.log(JSON.stringify({mode,m,k,variant,scalar:!!process.env.RANK412_SCALAR,ms:performance.now()-start,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),d}));}finally{r.dispose();}
+try{d.run(()=>r.execute(src));const c=process.cpuUsage(cpu);console.log(JSON.stringify({mode,m,k,variant,scalar:!!process.env.RANK412_SCALAR,ms:performance.now()-start,cpuMs:(c.user+c.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,answer:String((r.variables.get('Answer') ?? r.lastResult)),d}));}finally{r.dispose();}

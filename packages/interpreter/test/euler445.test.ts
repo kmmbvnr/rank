@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/445_retractionsa.ra', import.meta.url), 'utf8');
 
@@ -28,7 +29,7 @@ it.each([0, 1, 2, 3, 10, 31, 32, 63, 64, 65, 99, 100, 101])(
             const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${limit}`] });
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer')).toBe(expected);
+                expect(answerOf(runtime)).toBe(expected);
             } finally { runtime.dispose(); }
         }
     });
@@ -38,7 +39,7 @@ it('compiles the sieve and the factor walk without copying their large tables', 
     const diagnostics = new RuntimeDiagnostics();
     try {
         diagnostics.run(() => runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(628701600n);
+        expect(answerOf(runtime)).toBe(628701600n);
         expect(diagnostics.numberLoops).toBe(2);
         expect(diagnostics.numberLoopOverflows).toBe(0);
         expect(diagnostics.numberLoopCopyProbes).toBe(1);
@@ -54,6 +55,6 @@ it('preserves the full default Euler 445 answer', () => {
     const runtime = new Interpreter(() => {});
     try {
         runtime.execute(source);
-        expect(runtime.variables.get('Answer')).toBe(659104042n);
+        expect(answerOf(runtime)).toBe(659104042n);
     } finally { runtime.dispose(); }
 }, 30000);

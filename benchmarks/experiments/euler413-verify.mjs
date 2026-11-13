@@ -22,7 +22,7 @@ for(let n=0;n<=11;n++){
  let expected=totals[n]===undefined?undefined:BigInt(totals[n]);
  for(const compilation of [false,true])for(const src of [original,lookup,readFileSync(new URL('../../demos/euler/413_onechild.ra',import.meta.url),'utf8')]){
   const r=new Interpreter(()=>{},{compilation,args:[`--digits=${n}`]});
-  try{r.execute(src);const answer=r.variables.get('Answer');if(expected===undefined)expected=answer;assert.equal(answer,expected,`digits=${n}, compiled=${compilation}, lookup=${src===lookup}`);checked++;}finally{r.dispose();}
+  try{r.execute(src);const answer=(r.variables.get('Answer') ?? r.lastResult);if(expected===undefined)expected=answer;assert.equal(answer,expected,`digits=${n}, compiled=${compilation}, lookup=${src===lookup}`);checked++;}finally{r.dispose();}
  }
  if(n===7)assert.equal(expected,277674n);
  if(n===11)assert.equal(expected,86585017n);

@@ -7,5 +7,5 @@ const start=performance.now();
 try {
     r.execute(readFileSync(file,'utf8'));
     console.log(JSON.stringify({file,args,ms:performance.now()-start,
-        rssMiB:process.resourceUsage().maxRSS/1024,answer:formatValue(r.variables.get('Answer'))}));
+        rssMiB:process.resourceUsage().maxRSS/1024,answer:formatValue((r.variables.get('Answer') ?? r.lastResult))}));
 } finally {r.dispose();}

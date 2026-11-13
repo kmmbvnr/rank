@@ -20,7 +20,7 @@ if (process.argv[2] === 'child') {
         if (fixture === 'true') {
             assert.equal(runtime.testResults.length, 4);
             for (const result of runtime.testResults) assert.equal(result.passed, true, JSON.stringify(result));
-        } else assert.equal(runtime.variables.get('Answer'), 789184709n);
+        } else assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 789184709n);
         console.log(JSON.stringify({mode, fixture: fixture === 'true', ms: performance.now() - start,
             rssMiB: process.resourceUsage().maxRSS / 1024}));
     } finally {runtime.dispose();}

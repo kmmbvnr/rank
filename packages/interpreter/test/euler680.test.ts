@@ -2,13 +2,14 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/680_yarragnisrever.ra', import.meta.url), 'utf8');
 function run(n: bigint, k: number, compilation = true) {
     const r = new Interpreter(() => {}, { compilation });
     try {
         r.execute(source.replace('arg Nn integer = 1000000000000000000', `arg Nn integer = ${n}`)
             .replace('arg Kk integer = 1000000', `arg Kk integer = ${k}`));
-        return r.variables.get('Answer');
+        return answerOf(r);
     } finally { r.dispose(); }
 }
 function reference(n: number, k: number) {

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/574_verifyingprimes.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler574-original.ra', import.meta.url), 'utf8');
@@ -24,7 +25,7 @@ function run(n: number, options: InterpreterOptions = {}, text = source) {
     try {
         diagnostics.run(() => runtime.execute(text));
         const values = runtime.variables.get('Values');
-        return { answer: runtime.variables.get('Answer'), values: values !== undefined && isRankArray(values) ? [...values.items] : [], diagnostics };
+        return { answer: answerOf(runtime), values: values !== undefined && isRankArray(values) ? [...values.items] : [], diagnostics };
     } finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 574 %j', options => {

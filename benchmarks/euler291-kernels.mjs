@@ -27,6 +27,6 @@ if(kind==='powmod'){expected=0n;for(let i=1n;i<=200000n;i++)expected+=i**3n%17n;
 const runtime=new Interpreter(()=>{},{compilation:mode==='compiled',scalarEntryCompilation:false});
 const start=performance.now();
 try{
- runtime.execute(source);const answer=runtime.variables.get('Answer');assert.equal(answer,expected);
+ runtime.execute(source);const answer=(runtime.variables.get('Answer') ?? runtime.lastResult);assert.equal(answer,expected);
  console.log(JSON.stringify({kind,mode,ms:performance.now()-start,answer:String(answer),rssMiB:process.resourceUsage().maxRSS/1024}));
 }finally{runtime.dispose();}

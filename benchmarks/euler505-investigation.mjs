@@ -41,7 +41,7 @@ let session;
 try{
  if(process.env.PROFILE){session=new Session();session.connect();await session.post('Profiler.enable');await session.post('Profiler.start');}
  const start=performance.now(); if(process.env.DIAGNOSTICS)d.run(()=>r.execute(source));else r.execute(source);
- const ms=performance.now()-start,answer=String(r.variables.get('Answer'));
+ const ms=performance.now()-start,answer=String((r.variables.get('Answer') ?? r.lastResult));
  const expected=({501:{full:'197912312715'},507:{full:'316558047002627270'},513:{full:'2925619196'},505:{1000:'101881',1000000:'12541668533',1000000000:'1551491048361091',1000000000000:'714591308667615832',full:'714591308667615832'},504:{4:'42',100:'694687',full:'694687'},511:{1024:'833781248',4321:'935247012',full:'935247012'},502:{150:'631001246',full:'749485217'}})[id]?.[size];
  if(expected!==undefined && answer!==expected)throw Error(`answer ${answer} != ${expected}`);
  console.log(JSON.stringify({id,size,mode,variant,controls,args,ms,answer,sourceHash:createHash('sha256').update(source).digest('hex'),arch:process.arch,node:process.version,cpu:cpus()[0]?.model,rssMiB:process.resourceUsage().maxRSS/1024,...(process.env.DIAGNOSTICS?{diagnostics:d}:{})}));

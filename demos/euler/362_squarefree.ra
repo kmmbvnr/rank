@@ -89,5 +89,4 @@ for N in 2 to Bound
 end
 Q = new index
 C = new index
-Answer = Mu Cs Sq Q C Limit 0 fac
-Answer print
+return Mu Cs Sq Q C Limit 0 fac

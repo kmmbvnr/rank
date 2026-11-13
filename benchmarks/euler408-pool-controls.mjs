@@ -5,5 +5,5 @@ const runtime = new Interpreter(() => {}, { args }), diagnostics = new RuntimeDi
 try {
     diagnostics.run(() => runtime.execute(readFileSync(file, 'utf8')));
     console.log(JSON.stringify({ file, args, ms: performance.now() - start, rssMiB: process.resourceUsage().maxRSS / 1024,
-        answer: String(runtime.variables.get('Answer')), diagnostics }));
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), diagnostics }));
 } finally { runtime.dispose(); }

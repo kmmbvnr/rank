@@ -49,5 +49,4 @@ for Size in 2 to Cards
   Weight = (Before - After) abs
   Weighted Row = Best + Weight
 end
-Answer = Table (Cards * Wide + 1)
-return Answer
+return Table (Cards * Wide + 1)

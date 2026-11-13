@@ -30,7 +30,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[1, '1'], [2, '7'], [3, '1015'], [10000, '578040951']]);
     if (expected.has(bottles)) assert.equal(answer, expected.get(bottles));
     console.log(JSON.stringify({ bottles, answer, ms: performance.now() - start, maxRssMiB: process.resourceUsage().maxRSS / 1024,

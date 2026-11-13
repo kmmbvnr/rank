@@ -19,7 +19,7 @@ if (process.argv[2] === '--worker') {
     const cpu = process.cpuUsage(), start = performance.now();
     try {
         diagnostics.run(() => runtime.execute(source));
-        console.log(JSON.stringify({ size, answer: String(runtime.variables.get('Answer')),
+        console.log(JSON.stringify({ size, answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
             executionMs: performance.now() - start, cpu: process.cpuUsage(cpu),
             peakRss: process.resourceUsage().maxRSS * 1024,
             states: runtime.variables.get('Memo')?.entries.size ?? diagnostics.indexWrites,

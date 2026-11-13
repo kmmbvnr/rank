@@ -53,5 +53,4 @@ for S in 1 to Mm by Bl
 end
 Sm = Sm - Last
 Pp = 0.5 + Sm * Ds / 3.0 / Pi
-Answer = Pp text ".8f"
-return Answer
+return Pp text ".8f"

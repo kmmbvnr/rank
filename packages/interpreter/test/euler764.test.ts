@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/764_asymmetricdiophantine.ra', import.meta.url), 'utf8');
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
 // Enumerate the original equation, independently of the three parameter grids.
@@ -19,7 +20,7 @@ for (const compilation of [false, true]) describe(`Euler 764 (compiled=${compila
             try {
                 r.execute(source.replace('arg Limit integer = 10 ** 16', `Limit = ${limit}`)
                     .replace(/arg Block integer = \d+/, `Block = ${block}`));
-                expect(r.variables.get('Answer')).toBe(direct(limit));
+                expect(answerOf(r)).toBe(direct(limit));
             } finally { r.dispose(); }
         }
     });
@@ -27,7 +28,7 @@ for (const compilation of [false, true]) describe(`Euler 764 (compiled=${compila
         const r = new Interpreter(() => {}, { compilation });
         try {
             r.execute(source.replace('arg Limit integer = 10 ** 16', `Limit = ${limit}`));
-            expect(r.variables.get('Answer')).toBe(expected);
+            expect(answerOf(r)).toBe(expected);
         } finally { r.dispose(); }
     });
 });

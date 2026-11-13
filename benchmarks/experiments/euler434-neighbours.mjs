@@ -8,7 +8,7 @@ for(const options of [{},{numberLoopCompilation:false},{compilation:false}]){
   try{r.execute(readFileSync(id,'utf8'));if(!r.testResults.length||r.testResults.some(x=>!x.passed))throw Error(JSON.stringify(r.testResults));fixtures+=r.testResults.length;}finally{r.dispose();}
  }
  for(const[name,arg,answer]of [['648_skippingsquares','--n=10','53964'],['648_skippingsquares','--n=50','842418857'],['709_evenstevens','--order=4','5'],['709_evenstevens','--order=8','1385']]){
-  const r=new Interpreter(()=>{},{...options,args:[arg]});try{r.execute(readFileSync(`demos/euler/${name}.ra`,'utf8'));if(String(r.variables.get('Answer'))!==answer)throw Error(name);smallRuns++;}finally{r.dispose();}
+  const r=new Interpreter(()=>{},{...options,args:[arg]});try{r.execute(readFileSync(`demos/euler/${name}.ra`,'utf8'));if(String((r.variables.get('Answer') ?? r.lastResult))!==answer)throw Error(name);smallRuns++;}finally{r.dispose();}
  }
 }
 console.log(JSON.stringify({fixtureTests:fixtures,smallRuns,modes:3,passed:true}));

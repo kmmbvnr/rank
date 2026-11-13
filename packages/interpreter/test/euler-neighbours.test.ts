@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const names = { 501: 'eightdivisors', 502: 'countingcastles', 504: 'squareinside', 505: 'bidirectional',
     507: 'shortestlattice', 511: 'nicesequences', 513: 'integralmedian' };
@@ -8,7 +9,7 @@ const sources = new Map(Object.entries(names).map(([id, name]) => [id,
     readFileSync(new URL(`../../../demos/euler/${id}_${name}.ra`, import.meta.url), 'utf8')]));
 function run(id: keyof typeof names, inputs: Record<string, number>, compilation = true) {
     const runtime = new Interpreter(() => {}, { compilation, args: Object.entries(inputs).map(([name, n]) => `--${name.toLowerCase()}=${n}`) });
-    try { runtime.execute(sources.get(String(id))!); return runtime.variables.get('Answer'); }
+    try { runtime.execute(sources.get(String(id))!); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
@@ -104,7 +105,7 @@ it('compiles the unmodified array-style square lookup with packed gathers', () =
     const diagnostics = new RuntimeDiagnostics(), runtime = new Interpreter(() => {});
     try {
         diagnostics.run(() => runtime.execute(sources.get('504')!));
-        expect(runtime.variables.get('Answer')).toBe(694687n);
+        expect(answerOf(runtime)).toBe(694687n);
         expect(diagnostics.packedBooleanGathers).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 });

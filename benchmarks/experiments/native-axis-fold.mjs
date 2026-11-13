@@ -23,6 +23,6 @@ try {
     const start = performance.now();
     diagnostics.run(() => runtime.execute(source));
     const ms = performance.now() - start;
-    assert.equal(runtime.variables.get('Answer'), count * (count + 1n) / 2n + count);
+    assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), count * (count + 1n) / 2n + count);
     console.log(JSON.stringify({case: name, ms, rssMiB: process.resourceUsage().maxRSS / 1024, diagnostics}));
 } finally {runtime.dispose();}

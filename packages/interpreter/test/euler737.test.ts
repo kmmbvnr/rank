@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/737_coinloops.ra', import.meta.url), 'utf8');
 // Direct harmonic recurrence; no chunks or asymptotic harmonic estimate.
@@ -22,7 +23,7 @@ for (const compilation of [false, true]) describe(`Euler 737 (compiled=${compila
                 .replace('Chunk = 1048576', 'Chunk = 8192')
                 .replace('256 4096', '2 4096'));
             const expected = direct(loops);
-            expect(Number(runtime.variables.get('Answer'))).toBe(expected);
+            expect(Number(answerOf(runtime))).toBe(expected);
             if (loops === 1) expect(expected).toBe(31);
             if (loops === 2) expect(expected).toBe(154);
             if (loops === 10) expect(expected).toBe(6947);

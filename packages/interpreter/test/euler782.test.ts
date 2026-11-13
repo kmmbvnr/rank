@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/782_distinctrowscolumns.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler782-original.ra', import.meta.url), 'utf8');
 // Enumerate every binary matrix; no templates or group-size quadratic forms.
@@ -24,7 +25,7 @@ function run(code: string, size: number, compilation: boolean): unknown {
     const r = new Interpreter(() => {}, { compilation });
     try {
         r.execute(code.replace('arg Size integer = 10000', `Size = ${size}`));
-        return r.variables.get('Answer');
+        return answerOf(r);
     } finally { r.dispose(); }
 }
 for (const compilation of [false, true]) describe(`Euler 782 (compiled=${compilation})`, () => {

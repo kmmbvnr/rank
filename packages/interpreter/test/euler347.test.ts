@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/347_twoprimes.ra', import.meta.url), 'utf8');
 const helpers = source.slice(0, source.indexOf('\nAnswer ='));
@@ -31,7 +32,7 @@ describe('Euler 347 two-prime maxima', () => {
             const output: string[] = [];
             const runtime = new Interpreter(text => output.push(text.trim()), { compilation });
             try {
-                runtime.execute(helpers + '\n' + sums.map((_, n) => `${n} twoprimes print`).join('\n'));
+                runtime.execute(withoutReturn(helpers) + '\n' + sums.map((_, n) => `${n} twoprimes print`).join('\n'));
                 expect(output).toEqual(sums.map(String));
             } finally { runtime.dispose(); }
         });

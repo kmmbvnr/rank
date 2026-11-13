@@ -12,7 +12,7 @@ const runtime = new Interpreter(() => {}, { compilation: mode !== 'reference', a
 const diagnostics = new RuntimeDiagnostics(), start = performance.now(), cpu = process.cpuUsage();
 try {
     diagnostics.run(() => runtime.execute(source));
-    if (process.env.RANK486_EXPECTED && String(runtime.variables.get('Answer')) !== process.env.RANK486_EXPECTED) {
+    if (process.env.RANK486_EXPECTED && String((runtime.variables.get('Answer') ?? runtime.lastResult)) !== process.env.RANK486_EXPECTED) {
         throw Error('Wrong answer');
     }
     console.log(JSON.stringify({
@@ -20,7 +20,7 @@ try {
         sourceSha256: createHash('sha256').update(source).digest('hex'),
         ms: performance.now() - start, cpu: process.cpuUsage(cpu),
         rssMiB: process.resourceUsage().maxRSS / 1024,
-        answer: String(runtime.variables.get('Answer')),
+        answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)),
         diagnostics,
     }, null, 2));
 } finally { runtime.dispose(); }

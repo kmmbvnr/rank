@@ -7,11 +7,11 @@ const cases=[[2,5274369n],[18,400668930299n],[40,40372025866559n],[100,903218001
 let checked=0;
 for(const compilation of [false,true])for(const source of [original,triangle,four,delivered])for(const [k,expected] of cases){
  const r=new Interpreter(()=>{},{compilation,args:[`--first=${k}`,`--last=${k}`]});
- try{r.execute(source);const answer=r.variables.get('Answer');if(answer!==expected)throw Error(`${compilation} ${k}: ${answer}`);checked++;}finally{r.dispose();}
+ try{r.execute(source);const answer=(r.variables.get('Answer') ?? r.lastResult);if(answer!==expected)throw Error(`${compilation} ${k}: ${answer}`);checked++;}finally{r.dispose();}
 }
 for(const compilation of [false,true])for(const variant of ['original','triangle','combined'])for(const [first,last,mod,expected] of [[2,1,1000000,0n],[2,2,1,0n],[40,40,1000000,866559n]]){
  const r=new Interpreter(()=>{},{compilation,args:[`--first=${first}`,`--last=${last}`,`--mod=${mod}`]});
- try{r.execute(source(variant));if(r.variables.get('Answer')!==expected)throw Error('modulus/empty range');checked++;}finally{r.dispose();}
+ try{r.execute(source(variant));if((r.variables.get('Answer') ?? r.lastResult)!==expected)throw Error('modulus/empty range');checked++;}finally{r.dispose();}
 }
 // Independent sorted five-digit tuples and their multinomial weights.
 // Decimal subtraction in base b supplies the actual routine transition.
@@ -41,7 +41,7 @@ for(const b of [15,21,27]){
   const expected=next(u,v);if(x!==expected[0]||y!==expected[1])throw Error('transition');
  }
  const r=new Interpreter(()=>{},{args:[`--first=${(b-3)/6}`,`--last=${(b-3)/6}`]});
- try{r.execute(original);if(r.variables.get('Answer')!==total-1n)throw Error('oracle total');}finally{r.dispose();}
+ try{r.execute(original);if((r.variables.get('Answer') ?? r.lastResult)!==total-1n)throw Error('oracle total');}finally{r.dispose();}
  console.log(JSON.stringify({b,total:String(total-1n),states:weights.size}));
 }
 console.log(JSON.stringify({checked}));

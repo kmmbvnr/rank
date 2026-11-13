@@ -31,5 +31,4 @@ Split' = Top binomial Low
 Spots' = Place binomial K
 Ways' = Split * Spots
 Total' = Fits choose Ways 0 sum
-Answer = Total + 1
-return Answer
+return Total + 1

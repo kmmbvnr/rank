@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/400_fibtree.ra', import.meta.url), 'utf8');
 
@@ -41,7 +42,7 @@ function solve(order: number, compilation: boolean): { answer: unknown; kernels:
     const runtime = new Interpreter(() => {}, { compilation, onTensorKernelExecuted: () => kernels++ });
     try {
         runtime.execute(source.replace('arg K integer = 10000', `arg K integer = ${order}`));
-        return { answer: runtime.variables.get('Answer'), kernels };
+        return { answer: answerOf(runtime), kernels };
     } finally { runtime.dispose(); }
 }
 

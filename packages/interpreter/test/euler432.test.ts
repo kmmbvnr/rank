@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { totientPrefix } from '../../../benchmarks/experiments/euler432-oracle.mjs';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/432_totientsum.ra', import.meta.url), 'utf8');
 const expected = totientPrefix(10000);
 
@@ -10,7 +11,7 @@ describe('Euler 432 totient prefix and quotient tables', () => {
         'matches direct phi(510510*i) factorization at N=%s', n => {
             for (const options of [{}, { numberLoopCompilation: false }, { compilation: false }]) for (const limit of [0, 1000]) {
                 const runtime = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--l=${limit}`] });
-                try { runtime.execute(source); expect(runtime.variables.get('Answer')).toBe(expected[n]); }
+                try { runtime.execute(source); expect(answerOf(runtime)).toBe(expected[n]); }
                 finally { runtime.dispose(); }
             }
         });
@@ -19,7 +20,7 @@ describe('Euler 432 totient prefix and quotient tables', () => {
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(754862080n);
+            expect(answerOf(runtime)).toBe(754862080n);
             expect(diagnostics.numberLoops).toBe(2);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.numberLoopSliceCopies).toBe(0);

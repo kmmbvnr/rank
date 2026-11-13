@@ -7,8 +7,7 @@ use numbers
 use io
 
 Digits = "0123456789"
-Answer = Digits substring_divisible_sum
-return Answer
+return Digits substring_divisible_sum
 
 
 rem Build prefixes and reject each branch as

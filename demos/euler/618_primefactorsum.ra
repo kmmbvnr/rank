@@ -28,5 +28,4 @@ for P in primes to K
     G Iw = (G Iw + Ds) mod M
   end
 end
-Answer = G Fb sum mod M
-return Answer
+return G Fb sum mod M

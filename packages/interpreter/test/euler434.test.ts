@@ -3,6 +3,7 @@ import {describe, expect, it} from 'vitest';
 import {Interpreter, isRankArray} from '../src/index.js';
 import {readArrayItem} from '../src/array-storage.js';
 import {connectedCounts, squareTotal, bruteConnected} from '../../../benchmarks/experiments/euler434-oracle.mjs';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/434_rigidgrid.ra', import.meta.url), 'utf8');
 const expected = connectedCounts(65);
 const modes = [{}, {numberLoopCompilation: false}, {compilation: false}];
@@ -17,7 +18,7 @@ describe('Euler 434 normalized convolution rows', () => {
                 const runtime = new Interpreter(() => {}, {...options, args: [`--n=${n}`]});
                 try {
                     runtime.execute(source);
-                    expect(runtime.variables.get('Answer')).toBe(squareTotal(expected, n));
+                    expect(answerOf(runtime)).toBe(squareTotal(expected, n));
                     const rows = runtime.variables.get('Rg');
                     if (!rows || !isRankArray(rows)) throw Error('expected matrix');
                     expect(rows.shape).toEqual([n + 1, n + 1]);
@@ -29,7 +30,7 @@ describe('Euler 434 normalized convolution rows', () => {
         const runtime = new Interpreter(() => {}, options);
         try {
             runtime.execute(source);
-            expect(runtime.variables.get('Answer')).toBe(863253606n);
+            expect(answerOf(runtime)).toBe(863253606n);
         } finally { runtime.dispose(); }
     }, 30000);
 });

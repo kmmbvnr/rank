@@ -27,7 +27,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const ms = performance.now() - start, answer = String(runtime.variables.get('Answer'));
+    const ms = performance.now() - start, answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[10000, '41333'], [1e12, '128088830547982']]);
     if (expected.has(limit)) assert.equal(answer, expected.get(limit));
     console.log(JSON.stringify({ limit, compilation: process.argv[3] !== 'reference', answer, ms, maxRssMiB: process.resourceUsage().maxRSS / 1024,

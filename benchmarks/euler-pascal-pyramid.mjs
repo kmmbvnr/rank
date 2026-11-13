@@ -68,7 +68,7 @@ if (option('worker')) {
             assert.deepEqual(r.testResults[0].output, ['2121', '6216', '6762']);
         } else {
             const n = name === 'medium' ? 10000 : 200000, expected = name === 'medium' ? 40876875 : 479742450;
-            assert.equal(r.variables.get('Answer'), BigInt(expected));
+            assert.equal((r.variables.get('Answer') ?? r.lastResult), BigInt(expected));
             assert.deepEqual(output, [String(expected)]);
             // Validation after the timed demand; observing a plan here is a new
             // observation and is deliberately outside the diagnostic scope too.

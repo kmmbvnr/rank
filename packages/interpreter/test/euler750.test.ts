@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/750_cardstacking.ra', import.meta.url), 'utf8');
 // Original scalar recurrence, with no weighted table or flattened indexing.
 function direct(cards: number): bigint {
@@ -26,7 +27,7 @@ for (const compilation of [false, true]) describe(`Euler 750, compilation=${comp
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source.replace('arg Cards integer = 976', `Cards = ${cards}`));
-            expect(runtime.variables.get('Answer')).toBe(direct(cards));
+            expect(answerOf(runtime)).toBe(direct(cards));
         } finally { runtime.dispose(); }
     });
 });

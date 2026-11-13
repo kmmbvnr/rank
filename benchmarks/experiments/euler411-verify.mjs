@@ -12,6 +12,6 @@ if(variant==='append')src=src.replace('      Lo = 0\n      Hi = Ln', '      if L
 if(variant==='three')src=src.replace('  Len = 2 * N', '  if N3 equal 1\n    Tot += T\n    continue\n  end\n  Len = 2 * N');
 if(variant==='axis')src=src.replace('  Len = 2 * N', '  if N2 equal 1 or N3 equal 1\n    Tot += T\n    continue\n  end\n  Len = 2 * N');
 
- for(const compilation of [false,true])for(const n of cases){const r=new Interpreter(()=>{},{compilation,args:[`--first=${n}`,`--count=${n}`,'--power=1']});try{r.execute(src);assert.equal(r.variables.get('Answer'),oracle(n),`${variant} ${compilation} n=${n}`);checks++;}finally{r.dispose();}}
+ for(const compilation of [false,true])for(const n of cases){const r=new Interpreter(()=>{},{compilation,args:[`--first=${n}`,`--count=${n}`,'--power=1']});try{r.execute(src);assert.equal((r.variables.get('Answer') ?? r.lastResult),oracle(n),`${variant} ${compilation} n=${n}`);checks++;}finally{r.dispose();}}
 }
 console.log(JSON.stringify({checks,cases:cases.length,variants:4,engines:2}));

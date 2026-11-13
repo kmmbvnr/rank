@@ -17,5 +17,4 @@ fun Grades passRate
   return 100.0 * Passed / Total
 end
 
-Example = (array 25 90 100 64 65) passRate
-Example print
+return (array 25 90 100 64 65) passRate

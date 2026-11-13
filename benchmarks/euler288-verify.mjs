@@ -30,7 +30,7 @@ for (const variant of ['original', 'split', 'reduced', 'shipping']) {
                 runtime.execute(source.replace('arg P integer = 61', `arg P integer = ${p}`)
                     .replace('arg Q integer = 10000000', `arg Q integer = ${q}`)
                     .replace('arg Exp integer = 10', `arg Exp integer = ${exp}`));
-                assert.equal(runtime.variables.get('Answer'), expected, JSON.stringify({variant,p,q,exp,compilation}));
+                assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected, JSON.stringify({variant,p,q,exp,compilation}));
                 comparisons++;
             } finally { runtime.dispose(); }
         }

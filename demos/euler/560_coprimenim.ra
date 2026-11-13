@@ -56,5 +56,4 @@ Powers = Residues K Mod powmod
 Exponent = Mod - 2
 Inverse = Width Exponent Mod powmod
 Total = Powers sum mod Mod
-Answer = Total * Inverse mod Mod
-return Answer
+return Total * Inverse mod Mod

@@ -63,7 +63,7 @@ if (option('worker')) {
         } else {
             assert.deepEqual(output, ['26033']);
             assert.equal(runtime.variables.get('Upper'), 26033n);
-            assert.equal(runtime.variables.get('Answer'), 26033n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 26033n);
         }
         console.log(JSON.stringify({ case: entry.name, executeMs, peakRssKiB,
             heapUsedAfterGc: memory.heapUsed, externalAfterGc: memory.external,

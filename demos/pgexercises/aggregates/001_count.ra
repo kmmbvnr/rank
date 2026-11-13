@@ -9,5 +9,4 @@ arg DbPath path = "demos/pgexercises/data/club.sqlite3"
 
 Db = DbPath sqlite
 F' = Db .facilities
-Count = F len
-Count print
+return F len

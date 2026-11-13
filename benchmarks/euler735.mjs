@@ -31,7 +31,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[1, '1'], [15, '63'], [1000, '15066'], [1000000000000, '174848216767932']]);
     if (expected.has(limit)) assert.equal(answer, expected.get(limit));
     const used = process.cpuUsage(cpu);

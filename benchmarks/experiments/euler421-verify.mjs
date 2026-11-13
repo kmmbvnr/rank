@@ -10,7 +10,7 @@ let checked=0;
 for(const variant of variants){const source=readFileSync(new URL(`./euler421-${variant}.ra`,import.meta.url),'utf8');
  for(const compilation of [false,true])for(let i=0;i<cases.length;i++){
   const [n,m]=cases[i],runtime=new Interpreter(()=>{},{compilation,args:[`--n=${n}`,`--m=${m}`]});
-  try{runtime.execute(source);const answer=runtime.variables.get('Answer');if(answer!==expected[i])throw Error(JSON.stringify({variant,compilation,n,m,expected:String(expected[i]),answer:String(answer)}));checked++;}finally{runtime.dispose();}
+  try{runtime.execute(source);const answer=(runtime.variables.get('Answer') ?? runtime.lastResult);if(answer!==expected[i])throw Error(JSON.stringify({variant,compilation,n,m,expected:String(expected[i]),answer:String(answer)}));checked++;}finally{runtime.dispose();}
  }
 }
 console.log(JSON.stringify({checked,variants,oracle:'direct positive x enumeration and exact divisibility of x^15+1',cases:cases.map(([n,m],i)=>({n,m,answer:String(expected[i])}))}));

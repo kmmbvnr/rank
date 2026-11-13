@@ -51,5 +51,4 @@ for K in 0 till 20
   Count += 1
 end
 Low = Ds take Count
-Answer = Alpha (Low reverse)
-return Answer
+return Alpha (Low reverse)

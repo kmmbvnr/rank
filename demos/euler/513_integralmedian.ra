@@ -187,5 +187,4 @@ for X in Vs
   end
   Fd X = Fv
 end
-Answer = Fd N
-return Answer
+return Fd N

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type NativeFunction, type InterpreterOptions } from '../src/index.js';
 import { ownedArray } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/554_centaurs.ra', import.meta.url), 'utf8');
 const mod = (x: bigint, p: bigint) => (x % p + p) % p;
 function choose(n: bigint, k: bigint): bigint {
@@ -30,7 +31,7 @@ function oracle(top: number, p = 100000007n, digits = false) {
 }
 function solve(top: number, options: InterpreterOptions, p = 100000007) {
     const runtime = new Interpreter(() => {}, { ...options, args: [`--top=${top}`] });
-    try { runtime.execute(source.replace('Prime = 100000007', `Prime = ${p}`)); return runtime.variables.get('Answer'); }
+    try { runtime.execute(source.replace('Prime = 100000007', `Prime = ${p}`)); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 describe.each([{}, { compilation: false }, { numberLoopCompilation: false }])('Euler 554 %j', options => {

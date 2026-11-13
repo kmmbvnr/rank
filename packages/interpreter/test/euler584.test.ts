@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/584_birthdayrevisited.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler584-original.ra', import.meta.url), 'utf8');
 function run(n: number, k: number, d: number, options: InterpreterOptions = {}, text = source) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`, `--k=${k}`, `--d=${d}`] });
-    try { r.execute(text); return { answer: r.variables.get('Answer'), raw: r.variables.get('Raw') }; }
+    try { r.execute(text); return { answer: answerOf(r), raw: r.variables.get('Raw') }; }
     finally { r.dispose(); }
 }
 // Enumerate labelled birthdays directly, including ties and wrapped windows.

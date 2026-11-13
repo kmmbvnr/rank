@@ -36,7 +36,7 @@ try {
     if (flag('diag')) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start, rssMiB = process.resourceUsage().maxRSS / 1024;
-    const answer = flag('fixture') ? undefined : String(runtime.variables.get('Answer'));
+    const answer = flag('fixture') ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (flag('fixture')) { assert.equal(runtime.testResults.length, 1); assert(runtime.testResults.every(t => t.passed)); }
     else if (!option('R') || option('R') === '1000000000') assert.equal(answer, '1598174770174689458');
     console.log(JSON.stringify({ args: process.argv.slice(2), ms, rssMiB, answer,

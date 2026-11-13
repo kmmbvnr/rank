@@ -82,7 +82,7 @@ for(const [name,source] of Object.entries(cases)){
  const runtime=new Interpreter();
  for(let i=0;i<samples+3;i++){
   const start=performance.now();runtime.execute(source);
-  if(runtime.variables.get('Answer')!==expected)throw Error(`${name}: ${runtime.variables.get('Answer')}`);
+  if((runtime.variables.get('Answer') ?? runtime.lastResult)!==expected)throw Error(`${name}: ${(runtime.variables.get('Answer') ?? runtime.lastResult)}`);
   if(i>=3)results.push(performance.now()-start);
  }
  const d=new RuntimeDiagnostics();if(options.instrument)d.run(()=>runtime.execute(source));

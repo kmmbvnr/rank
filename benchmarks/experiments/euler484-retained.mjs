@@ -13,7 +13,7 @@ try {
     const before = process.memoryUsage();
     global.gc();
     const after = process.memoryUsage();
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (answer !== '4.993401567e22') throw Error('Wrong answer');
     console.log(JSON.stringify({ runtime: url.href, node: process.version, arch: process.arch,
         before, after, answer, rssMiB: process.resourceUsage().maxRSS / 1024 }));

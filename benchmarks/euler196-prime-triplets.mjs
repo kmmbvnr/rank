@@ -42,7 +42,7 @@ try {
     if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(source));
     else runtime.execute(source);
     const ms = performance.now() - start, rssMiB = process.resourceUsage().maxRSS / 1024;
-    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));
+    const answer = fixture ? undefined : String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (fixture) {
         assert.equal(runtime.testResults.length, 2);
         assert(runtime.testResults.every(test => test.passed));

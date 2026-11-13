@@ -2,6 +2,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
+    isAssignmentStatement, isReturnStatement,
     functionScopeDiagnostics, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
     fileCallArities, fileCallName, fileCallSignature, fileFunctionInputs, isFileFunction,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
@@ -13,7 +14,6 @@ import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnv
 import { bindInputs } from './cli-args.js';
 import { ReturnSignal } from './control-signals.js';
 import { demandValue } from './plan.js';
-import { printedText } from './modules/io.js';
 import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
@@ -297,6 +297,9 @@ export class Interpreter {
         };
     }
 
+    /** What the last run of a program returned (a host reads it after `execute`). */
+    lastResult: RankValue | undefined;
+
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
@@ -335,6 +338,8 @@ export class Interpreter {
     }
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean, returnOnly = false): RankValue | undefined {
+        if (!returnOnly) this.lastResult = undefined;
+        deferPrivateMasks(program);
         validateFunctionPlacement(program.statements, 'top');
         const scopeError = functionScopeDiagnostics(program)[0];
         if (scopeError) throw this.locateError(new RankError(scopeDiagnosticMessage(scopeError, this.options.sourceId ?? '<input>'), 'Scope'), scopeError.node);
@@ -360,14 +365,14 @@ export class Interpreter {
         });
         try {
             const value = this.blocks.run(program.statements, assertBooleanExpressions);
+            if (!returnOnly) this.lastResult = value;
             return returnOnly ? undefined : value;
         } catch (error) {
             // A top-level `return` unwinds to here with its value.
             // Like a function result, a lazy value is completed on the way out.
             if (error instanceof ReturnSignal) {
                 const value = error.value === undefined ? undefined : demandValue(error.value);
-                // A run shows what the program returns; a call from Rank code only returns it.
-                if (value !== undefined && !returnOnly) this.output(printedText(value));
+                if (!returnOnly) this.lastResult = value;
                 return value;
             }
             throw error;
@@ -780,3 +785,28 @@ export {
     type CompilerCapabilities, type CompilerCapabilitiesConfig,
     type InterpreterOptions, type LoadedModule, type RankTestResult,
 } from './interpreter-options.js';
+
+
+const LOGICAL_UPDATES = new Set(['and=', 'or=', 'xor=']);
+
+/** A program that ends with `return` is a function: its other names are private.
+ * A name built by `Name = …` and then only combined by `and=`, `or=`, `xor=`
+ * has no outside reader, so it is bound as `Name' = …` and the whole chain
+ * compiles to one pass. */
+function deferPrivateMasks(program: Program): void {
+    const statements = program.statements;
+    if (!statements.some(isReturnStatement)) return;
+    for (let i = 0; i < statements.length; i++) {
+        const first = statements[i];
+        if (!isAssignmentStatement(first) || first.operator !== '=' || first.deferred || first.name.includes('.')) continue;
+        let end = i + 1;
+        while (end < statements.length) {
+            const next = statements[end];
+            if (!isAssignmentStatement(next) || next.name !== first.name || !LOGICAL_UPDATES.has(next.operator)) break;
+            end++;
+        }
+        if (end === i + 1) continue;
+        for (const statement of statements.slice(i, end)) (statement as { deferred?: boolean }).deferred = true;
+        i = end - 1;
+    }
+}

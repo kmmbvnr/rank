@@ -29,7 +29,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(); last = start;
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const words = runtime.variables.get('Lyndon')?.shape?.[0];
     const expected = new Map([[2, '2.8284'], [3, '14.6461'], [5, '124.1056'], [25, '308896374.2502']]);
     if (expected.has(period)) assert.equal(answer, expected.get(period));

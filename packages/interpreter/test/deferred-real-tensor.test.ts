@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, RankError, isRankArray } from '../src/index.js';
 import { readArrayItem, typedArray } from '../src/array-storage.js';
 import { withDemandBudget, withInterrupt } from '../src/interrupt.js';
+import { answerOf } from './support.js';
 
 function observe(body: string, compilation: boolean, input = Float64Array.from({ length: 4096 }, (_, i) => i + 1)) {
     const runtime = new Interpreter(() => {}, { compilation });
@@ -10,7 +11,7 @@ function observe(body: string, compilation: boolean, input = Float64Array.from({
         runtime.variables.set('Input', typedArray(input.slice()));
         try {
             diagnostics.run(() => runtime.execute('use numbers\nuse sequences\n' + body));
-            const result = runtime.variables.get('Answer');
+            const result = answerOf(runtime);
             return { value: result && isRankArray(result)
                 ? Array.from({ length: result.shape.reduce((a, b) => a * b, 1) }, (_, i) => readArrayItem(result, i)) : result,
                 error: undefined, diagnostics };

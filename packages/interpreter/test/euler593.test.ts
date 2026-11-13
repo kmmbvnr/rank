@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { answerOf } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/593_fleetingmedians.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler593-original.ra', import.meta.url), 'utf8');
 function run(text: string, n: number, k: number, compilation: boolean) {
     const runtime = new Interpreter(() => {}, { compilation, args: [`--n=${n}`, `--k=${k}`] });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 function brute(n: number, width: number) {

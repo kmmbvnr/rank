@@ -42,5 +42,4 @@ Facts = concat (array 1) Run
 Back = Facts reverse
 Weights = Lehmer * Back mod Prime
 Total = Weights sum
-Answer = (1 + Total) mod Prime
-return Answer
+return (1 + Total) mod Prime

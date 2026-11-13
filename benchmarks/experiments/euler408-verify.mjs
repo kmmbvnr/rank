@@ -22,7 +22,7 @@ for (const n of limits) {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source);
-            const observed = { answer: String(runtime.variables.get('Answer')), x: formatValue(runtime.variables.get('X')), y: formatValue(runtime.variables.get('Y')) };
+            const observed = { answer: String((runtime.variables.get('Answer') ?? runtime.lastResult)), x: formatValue(runtime.variables.get('X')), y: formatValue(runtime.variables.get('Y')) };
             if (JSON.stringify(observed) !== JSON.stringify(expected)) throw new Error(JSON.stringify({ file, n, compilation, observed, expected }));
             comparisons++;
         } finally { runtime.dispose(); }

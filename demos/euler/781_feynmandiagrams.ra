@@ -30,5 +30,4 @@ for Layer in 2 to Pairs
 end
 Total = Profile sum mod Mod
 Even = Count mod 2 equal 0
-Answer = Even choose Total 0
-return Answer
+return Even choose Total 0

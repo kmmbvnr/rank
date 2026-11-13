@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/483_repeatedpermutation_test.ra', import.meta.url);
 const source = readFileSync(new URL('483_repeatedpermutation.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -43,7 +44,7 @@ it.each([0, 1, 2, 3, 4, 5, 7, 10, 12, 20, 25, 30])('matches all cycle types at n
     const expected = cycleTypes(n), answer = scientific(expected, factorial(n));
     for (const options of backends) {
         const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
-        try { r.execute(source); expect(r.variables.get('Total')).toBe(expected); expect(r.variables.get('Answer')).toBe(answer); }
+        try { r.execute(source); expect(r.variables.get('Total')).toBe(expected); expect(answerOf(r)).toBe(answer); }
         finally { r.dispose(); }
     }
 });
@@ -56,6 +57,6 @@ it.each(backends)('retains all statement fixtures with options=%j', options => {
 });
 it('keeps the full default mean exactly rounded', () => {
     const r = new Interpreter(() => {});
-    try { r.execute(source); expect(r.variables.get('Answer')).toBe('4.993401567e22'); }
+    try { r.execute(source); expect(answerOf(r)).toBe('4.993401567e22'); }
     finally { r.dispose(); }
 }, 60000);

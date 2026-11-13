@@ -24,5 +24,4 @@ for L in 1 to Root by 65536
 end
 R2 = Root * (Root + 1) * (2 * Root + 1)
 Tot -= Root * (R2 // 6)
-Answer = Tot mod Mod
-return Answer
+return Tot mod Mod

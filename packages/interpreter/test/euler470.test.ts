@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 const fixture = new URL('../../../demos/euler/470_superramvok_test.ra', import.meta.url);
 const source = readFileSync(new URL('470_superramvok.ra', fixture), 'utf8');
 const backends: InterpreterOptions[] = [{}, { compilation: false }, { numberLoopCompilation: false }];
@@ -36,7 +37,7 @@ function solve(n: number, options: InterpreterOptions) {
         runtime.execute(source);
         const costs = runtime.variables.get('Sd');
         if (!costs || typeof costs !== 'object' || !('items' in costs)) throw Error('Missing Sd');
-        return { answer: runtime.variables.get('Answer'), scores: Array.from(costs.items, Number) };
+        return { answer: answerOf(runtime), scores: Array.from(costs.items, Number) };
     } finally { runtime.dispose(); }
 }
 it.each([0, 1, 3, 4, 5, 6, 7, 8, 10])('matches independent per-subset profits at N=%s', n => {

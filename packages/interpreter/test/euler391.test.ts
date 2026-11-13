@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe,expect,it} from 'vitest';
 import {Interpreter,RuntimeDiagnostics} from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source=readFileSync(new URL('../../../demos/euler/391_hopping.ra',import.meta.url),'utf8');
 
@@ -35,12 +36,12 @@ describe.each([{}, {numberLoopCompilation:false}, {compilation:false}])('Euler 3
         try {
             runtime.execute(source.replace('Answer += Val ** 3','Val print\n      Answer += Val ** 3'));
             expect(output.slice(0,14).map(Number)).toEqual(moves);
-            expect(runtime.variables.get('Answer')).toBe(moves.reduce((s,v)=>s+BigInt(v)**3n,0n));
+            expect(answerOf(runtime)).toBe(moves.reduce((s,v)=>s+BigInt(v)**3n,0n));
         }finally{runtime.dispose();}
     });
     it.each([[0,0n],[1,0n],[2,8n],[7,90n],[20,8150n]])('matches boundary/statement Limit%s', (limit,answer)=>{
         const runtime=new Interpreter(()=>{},{...options,args:[`--limit=${limit}`]});
-        try {runtime.execute(source);expect(runtime.variables.get('Answer')).toBe(answer);}
+        try {runtime.execute(source);expect(answerOf(runtime)).toBe(answer);}
         finally{runtime.dispose();}
     });
 });
@@ -49,7 +50,7 @@ it('compiles the full Euler 391 search without rotating array snapshots',()=>{
     const runtime=new Interpreter(()=>{}),diagnostics=new RuntimeDiagnostics();
     try {
         diagnostics.run(()=>runtime.execute(source));
-        expect(runtime.variables.get('Answer')).toBe(61029882288n);
+        expect(answerOf(runtime)).toBe(61029882288n);
         expect(diagnostics.compiledLoops).toBe(2);
         expect(diagnostics.cowCopies).toBe(0);
         expect(diagnostics.numberLoopOverflows).toBe(0);

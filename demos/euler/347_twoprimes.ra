@@ -39,5 +39,4 @@ fun Limit twoprimes
   return Sum
 end
 
-Answer = Limit twoprimes
-return Answer
+return Limit twoprimes

@@ -89,5 +89,4 @@ Lifted = Start + Shift * Primes
 rem The other lifted root sums to 3.
 Square = Primes * Primes
 Other = (3 - Lifted) mod Square
-Answer = Lifted min Other sum
-return Answer
+return Lifted min Other sum

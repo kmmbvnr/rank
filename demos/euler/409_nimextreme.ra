@@ -50,5 +50,4 @@ end
 Cn = Sign * Fact * Bin mod P
 Lose = All + (T - 1) * Cn
 Lose = Lose mod P * (T (P - 2) P powmod)
-Answer = (All - Lose) mod P
-return Answer
+return (All - Lose) mod P

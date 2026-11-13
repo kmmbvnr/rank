@@ -2,6 +2,7 @@ import { fullScale } from './full-scale.js';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type InterpreterOptions } from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/580_squarefreehilbert.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler580-original.ra', import.meta.url), 'utf8');
@@ -16,7 +17,7 @@ for (let n = 1; n <= bound; n++) prefix[n] = prefix[n - 1] + (n % 4 === 1 ? flag
 function run(n: number | bigint, options: InterpreterOptions = {}, batch?: number, text = source) {
     const args = [`--n=${n}`, ...batch === undefined ? [] : [`--batch=${batch}`]];
     const runtime = new Interpreter(() => {}, { ...options, args });
-    try { runtime.execute(text); return runtime.variables.get('Answer'); }
+    try { runtime.execute(text); return answerOf(runtime); }
     finally { runtime.dispose(); }
 }
 const modes: InterpreterOptions[] = [{}, { compilation: false }, { scalarFunctionCompilation: false, numberLoopCompilation: false }];

@@ -11,7 +11,7 @@ const entry = source.slice(start + 1);
 try {
  for (let i = 0; i < 3; i++) {
   runtime.execute(i === 0 ? source : entry);
-  if (runtime.variables.get('Answer') !== 1791954757162n) throw Error('Wrong answer');
+  if ((runtime.variables.get('Answer') ?? runtime.lastResult) !== 1791954757162n) throw Error('Wrong answer');
   for (let j = 0; j < 3; j++) { global.gc(); await new Promise(resolve => setImmediate(resolve)); }
   const memory = process.memoryUsage();
   runs.push({ heapMiB: memory.heapUsed / 2 ** 20, arrayBuffersMiB: memory.arrayBuffers / 2 ** 20 });

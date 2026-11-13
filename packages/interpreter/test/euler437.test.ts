@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 import {readArrayItem} from '../src/array-storage.js';
 import {Interpreter, RuntimeDiagnostics, isNativeFunction, isRankArray} from '../src/index.js';
+import { answerOf } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/437_fibonacciprimitive.ra', import.meta.url), 'utf8');
 
@@ -33,7 +34,7 @@ describe('Euler 437 primitive Fibonacci roots', () => {
             const runtime = new Interpreter(() => {}, {...options, args: [`--n=${limit}`]});
             try {
                 runtime.execute(source);
-                expect(runtime.variables.get('Answer'), `N=${limit}`).toBe(expected(limit));
+                expect(answerOf(runtime), `N=${limit}`).toBe(expected(limit));
             } finally { runtime.dispose(); }
         }
     });
@@ -43,7 +44,7 @@ describe('Euler 437 primitive Fibonacci roots', () => {
         const stats = new RuntimeDiagnostics();
         try {
             stats.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(74204709657207n);
+            expect(answerOf(runtime)).toBe(74204709657207n);
             expect(stats.compiledTensors).toBeGreaterThan(0);
             expect(stats.numberLoopOverflows).toBe(0);
         } finally { runtime.dispose(); }
@@ -54,7 +55,7 @@ describe('Euler 437 primitive Fibonacci roots', () => {
         const stats = new RuntimeDiagnostics();
         try {
             stats.run(() => runtime.execute(source));
-            expect(runtime.variables.get('Answer')).toBe(70549n);
+            expect(answerOf(runtime)).toBe(70549n);
             expect(stats.compiledTensors).toBeGreaterThan(0);
             expect(stats.numberLoopOverflows).toBe(0);
             const fn = runtime.variables.get('primitive');

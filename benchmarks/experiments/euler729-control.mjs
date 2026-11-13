@@ -12,7 +12,7 @@ function run(version, sample) {
     const host = new version.Interpreter(() => {}), cpu = process.cpuUsage(), start = performance.now();
     try {
         host.execute(source);
-        if (host.variables.get('Answer') !== 578040951n) throw Error('wrong control answer');
+        if ((host.variables.get('Answer') ?? host.lastResult) !== 578040951n) throw Error('wrong control answer');
         const elapsed = process.cpuUsage(cpu);
         return { version: version.name, sample, ms: performance.now() - start, cpuMs: (elapsed.user + elapsed.system) / 1000 };
     } finally { host.dispose(); }

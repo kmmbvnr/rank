@@ -20,7 +20,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[110, '1.104700000000e4'], [150, '5.331200000000e4'],
         [500, '2.957098800000e7'], [50000, '2.452767775565e20']]);
     if (expected.has(count)) assert.equal(answer, expected.get(count));

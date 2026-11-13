@@ -53,5 +53,4 @@ Tag' = concat (Hi * 0) (Cap * 0 + 1)
 Sorted = Tag (Keys argsort)
 Below' = 1 - Sorted scan +
 Query' = Sorted equal 1
-Answer = Below filter Query sum
-return Answer
+return Below filter Query sum

@@ -27,7 +27,7 @@ if (!mode) {
         const start = performance.now();
         diagnostics.run(() => runtime.executeProgram(program));
         const ms = performance.now() - start;
-        assert.equal(runtime.variables.get('Answer'), 20101196798n);
+        assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 20101196798n);
         console.log(JSON.stringify({ mode, ms, answer: '20101196798',
             fused: diagnostics.numericUniqueSorts, rssAtEnd: process.memoryUsage().rss, node: process.version }));
     } finally { runtime.dispose(); }

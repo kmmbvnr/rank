@@ -23,7 +23,7 @@ Answer = Angles atan copy`;
     const result = { size, ms: performance.now() - start, cpuMs: (used.user + used.system) / 1000,
         maxRssMiB: process.resourceUsage().maxRSS / 1024, node: process.version, arch: process.arch,
         ...(diagnostics && { diagnostics }) };
-    const answer = runtime.variables.get('Answer');
+    const answer = (runtime.variables.get('Answer') ?? runtime.lastResult);
     assert.ok(isRankArray(answer));
     for (let i = 0; i < size; i++) {
         const coin = input[i], harmonic = Math.log(coin) + 0.5772156649015329 + 0.5 / coin - 1 / (12 * coin * coin);

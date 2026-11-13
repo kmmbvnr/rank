@@ -430,8 +430,6 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
     for (const [site, expected] of [
         ["Candidates' =", 'Candidates · c<integer>'],
         ['Candidates filter', 'Candidates · c<integer>'],
-        ['Answer =', 'Answer · integer'],
-        ['return Answer', 'Answer · integer'],
         ['Original =', 'Original · integer'],
         ['Original equal', 'Original · integer'],
         ['Reversed *', 'Reversed · integer'],
@@ -479,11 +477,9 @@ it('keeps Euler 1 computed integer arrays and boolean masks, including compound 
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
         ['N =', 'N · c[#]<integer>'],
-        ["Mask' =", 'Mask · c[#]<boolean>'],
-        ["Mask' or=", 'Mask · c[#]<boolean>'],
+        ["Mask =", 'Mask · c[#]<boolean>'],
+        ["Mask or=", 'Mask · c[#]<boolean>'],
         ['Mask sum', 'Mask · c[#]<boolean>'],
-        ['Answer =', 'Answer · integer'],
-        ['return Answer', 'Answer · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site) + (site.startsWith('return ') ? 7 : 0))!)).toBe(expected);
 });
 

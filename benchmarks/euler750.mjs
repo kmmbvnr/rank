@@ -16,7 +16,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);
     const used = process.cpuUsage(cpu);
     console.log(JSON.stringify({ cards, answer,

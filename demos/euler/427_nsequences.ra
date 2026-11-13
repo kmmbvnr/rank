@@ -99,5 +99,4 @@ fun N solve
   Top = N (N + 1) Prime powmod
   return (Top - N * Total) mod Prime
 end
-Answer = N solve
-return Answer
+return N solve

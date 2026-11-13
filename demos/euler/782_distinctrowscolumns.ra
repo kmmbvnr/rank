@@ -120,5 +120,4 @@ Total = Area + 1
 Twos = Pair count
 Seen = Marked count
 Fours = Total - Seen
-Answer = 3 * Total - 4 - Twos + Fours
-return Answer
+return 3 * Total - 4 - Twos + Fours

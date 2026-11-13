@@ -69,5 +69,4 @@ for U in 1 to (Max isqrt)
     end
   end
 end
-Answer = Total
-return Answer
+return Total

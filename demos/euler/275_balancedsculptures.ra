@@ -143,5 +143,4 @@ for
   Fr (D + 1) = Nr
   D += 1
 end
-Answer = (CountA + CountS) // 2
-return Answer
+return (CountA + CountS) // 2

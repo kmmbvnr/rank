@@ -13,5 +13,5 @@ const times=[];
 for(let i=0;i<5;i++){const start=performance.now();diagnostics.run(()=>runtime.execute(source));times.push(performance.now()-start);}
 let expected=0n;
 for(const cell of cells){const value=BigInt(cell);let a=value,b=37n;while(b)[a,b]=[b,a%b];expected+=value/a*37n;}
-if(runtime.variables.get('Answer')!==expected)throw Error('Incorrect LCM checksum');
-console.log(JSON.stringify({kind,n,times,answer:String(runtime.variables.get('Answer')),diagnostics}));runtime.dispose();
+if((runtime.variables.get('Answer') ?? runtime.lastResult)!==expected)throw Error('Incorrect LCM checksum');
+console.log(JSON.stringify({kind,n,times,answer:String((runtime.variables.get('Answer') ?? runtime.lastResult)),diagnostics}));runtime.dispose();

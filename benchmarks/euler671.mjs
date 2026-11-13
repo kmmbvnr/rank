@@ -19,7 +19,7 @@ try {
     runtime.execute(source);
     const ms = performance.now() - start;
     const used = process.cpuUsage(cpu);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     assert.equal(answer, '946106780');
     console.log(JSON.stringify({ mode, ms,
         cpuMs: (used.user + used.system) / 1000,

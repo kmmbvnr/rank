@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Interpreter, type RankArray } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
+import { answerOf } from './support.js';
 
 const limit = 200;
 const source = readFileSync(new URL('../../../demos/euler/126_cuboidlayers.ra',import.meta.url),'utf8')
@@ -21,6 +22,6 @@ for (const compilation of [false,true]) it(`matches every cuboid layer frequency
         runtime.execute(source);
         const counts=runtime.variables.get('Cnt') as RankArray;
         expect(expected.map((_,i)=>readArrayItem(counts,i))).toEqual(expected);
-        expect(runtime.variables.get('Answer')).toBe(154n);
+        expect(answerOf(runtime)).toBe(154n);
     } finally { runtime.dispose(); }
 });

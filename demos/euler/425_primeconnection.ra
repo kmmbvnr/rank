@@ -115,5 +115,4 @@ Edges = Primes edge_keys PrimeMask
 Flags = Edges prime_flags Base
 Connected = Flags Primes
 Missing = Primes (not Connected)
-Answer = Missing sum
-return Answer
+return Missing sum

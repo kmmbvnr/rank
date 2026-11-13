@@ -13,9 +13,9 @@ for(const compilation of [false,true]){
  const r=new Interpreter(()=>{},{compilation,loadModule:name=>({id:name,source:name==='original'?original:name==='compact'?compact:name==='production'?production:source})});
  try{r.execute('use "original"\nuse "pruned"');
  for(const [K,X] of [[0,5],[1,0],[1,1],[1,10],[2,3],[3,5],[8,7],[10,10],[25,12],[30,1],[100,15]]){
-  for(const name of ['original','pruned','compact','production']){r.execute(`use "${name}"\nK = ${K}\nX = ${X}\nrun`);assert.equal(r.variables.get('Answer'),brute(K,X),`${compilation} ${name} ${K} ${X}`);cases++;}
+  for(const name of ['original','pruned','compact','production']){r.execute(`use "${name}"\nK = ${K}\nX = ${X}\nrun`);assert.equal((r.variables.get('Answer') ?? r.lastResult),brute(K,X),`${compilation} ${name} ${K} ${X}`);cases++;}
  }
- for(const name of ['original','pruned','compact','production']){r.execute(`use "${name}"\nK = 1\nX = 10 ** 20\nrun`);assert.equal(r.variables.get('Answer'),400000000000000000001n);cases++;}
+ for(const name of ['original','pruned','compact','production']){r.execute(`use "${name}"\nK = 1\nX = 10 ** 20\nrun`);assert.equal((r.variables.get('Answer') ?? r.lastResult),400000000000000000001n);cases++;}
  }finally{r.dispose();}
 }
 // Independently verify the proposed buffer bound for every supported N.

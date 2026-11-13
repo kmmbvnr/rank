@@ -16,7 +16,7 @@ try {
     if (process.env.PROFILE) { session.connect(); await session.post('Profiler.enable'); await session.post('Profiler.start'); }
     const start = performance.now(), cpu = process.cpuUsage();
     if (diagnostics) diagnostics.run(() => runtime.execute(source)); else runtime.execute(source);
-    const answer = String(runtime.variables.get('Answer'));
+    const answer = String((runtime.variables.get('Answer') ?? runtime.lastResult));
     const expected = new Map([[1, '31'], [2, '154'], [10, '6947']]);
     if (expected.has(loops)) assert.equal(answer, expected.get(loops));
     if (process.env.EXPECTED) assert.equal(answer, process.env.EXPECTED);

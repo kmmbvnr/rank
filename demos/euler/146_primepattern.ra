@@ -45,5 +45,4 @@ for K in array 19 21
   Q' = C * C + K
   C = C filter not Q in primes array
 end
-Answer = C sum
-return Answer
+return C sum

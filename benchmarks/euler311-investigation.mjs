@@ -26,7 +26,7 @@ const diagnostics = new RuntimeDiagnostics();
 try {
     const start = performance.now(), cpuStart = process.cpuUsage();
     diagnostics.run(() => interpreter.execute(source));
-    const cpu = process.cpuUsage(cpuStart), answer = String(interpreter.variables.get('Answer'));
+    const cpu = process.cpuUsage(cpuStart), answer = String((interpreter.variables.get('Answer') ?? interpreter.lastResult));
     if (limit === '10000000000' && answer !== '2466018557') throw Error('full answer mismatch');
     console.log(JSON.stringify({mode, limit, block, variant, ms: performance.now() - start,
         cpuMs: (cpu.user + cpu.system) / 1000, rssMiB: process.resourceUsage().maxRSS / 1024,

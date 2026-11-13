@@ -47,7 +47,7 @@ if (process.argv.includes('--worker')) {
         const start = performance.now();
         diagnostics.run(() => runtime.execute(source));
         const executeMs = performance.now() - start;
-        assert.equal(String(runtime.variables.get('Answer')), expected);
+        assert.equal(String((runtime.variables.get('Answer') ?? runtime.lastResult)), expected);
         if (name.includes('103')) {
             assert.equal(String(runtime.execute('Found sum')), '255');
         }

@@ -43,7 +43,7 @@ if (option('worker')) {
         const name = option('worker');
         if (name === 'full') {
             const start = performance.now(); execute(source);
-            assert.equal(runtime.variables.get('Answer'), 2466018557n);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), 2466018557n);
             console.log(JSON.stringify({ name, totalMs: performance.now() - start, answer: '2466018557', ...(diagnostic ? { diagnostics } : {}) }));
         } else {
             const block = blocks.find(block => block.name === name); assert.ok(block);
@@ -54,7 +54,7 @@ if (option('worker')) {
             const accumulateMs = performance.now() - start;
             const scanStart = performance.now(); execute(scan);
             const scanMs = performance.now() - scanStart;
-            assert.equal(runtime.variables.get('Answer'), expected);
+            assert.equal((runtime.variables.get('Answer') ?? runtime.lastResult), expected);
             console.log(JSON.stringify({ name, accumulateMs, scanMs, totalMs: accumulateMs + scanMs,
                 answer: String(expected), maxRssMiB: process.resourceUsage().maxRSS / 1024, ...(diagnostic ? { diagnostics } : {}) }));
         }

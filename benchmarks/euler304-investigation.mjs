@@ -14,7 +14,7 @@ const r=new Interpreter(()=>{},{compilation:mode==='compiled'}),d=new RuntimeDia
 try{
  d.run(()=>r.execute(source.slice(0,split)));const primeMs=performance.now()-start;
  d.run(()=>r.execute(source.slice(split)));const elapsed=performance.now()-start,usage=process.cpuUsage(cpu);
- const answer=String(r.variables.get('Answer'));
+ const answer=String((r.variables.get('Answer') ?? r.lastResult));
  if(!process.env.RANK304_START&&!process.env.RANK304_MOD&&count==='100000'&&answer!=='283988410192')throw Error(`Answer ${answer}`);
  console.log(JSON.stringify({mode,count:Number(count),variant,answer,primeMs,fibonacciMs:elapsed-primeMs,ms:elapsed,cpuMs:(usage.user+usage.system)/1000,rssMiB:process.resourceUsage().maxRSS/1024,diagnostics:d}));
 }finally{r.dispose()}
