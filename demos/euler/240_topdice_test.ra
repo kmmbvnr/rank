@@ -1,19 +1,15 @@
 use testing
 
 test "default input"
-  use "240_topdice"
-  run
+  use "240_topdice" as solve
+  Answer = solve
 
   Answer equal 7448717393364181966
 end
 
 test "five six-sided dice"
-  use "240_topdice"
-  N = 5
-  S = 6
-  Top = 3
-  Sum = 15
-  run
+  use "240_topdice" as solve
+  Answer = solve 5 6 3 15
 
   Answer equal 1111
 end

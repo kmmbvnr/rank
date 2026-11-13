@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "207_partitionequations"
-  run
+  use "207_partitionequations" as solve
+  Answer = solve
 
   Answer equal 44043947822
 end
 
 test "small ratios"
-  use "207_partitionequations"
-  Q = 2
-  run
+  use "207_partitionequations" as solve
+  Answer = solve 2
 
   Answer equal 30
-  Q = 3
-  run
+  Answer = solve 3
 
   Answer equal 110
 end

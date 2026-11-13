@@ -1,21 +1,21 @@
 use testing
 
 test "statement values"
-  use "462_smoothpermutations"
-  N = 6
-  run
+  use "462_smoothpermutations" as solve
+  Out = solve 6
+  F = Out .f
   F equal 5
-  N = 8
-  run
+  Out = solve 8
+  F = Out .f
   F equal 9
-  N = 20
-  run
+  Out = solve 20
+  F = Out .f
   F equal 450
 end
 
 test "n = 1000"
-  use "462_smoothpermutations"
-  N = 1000
-  run
+  use "462_smoothpermutations" as solve
+  Out = solve 1000
+  Answer = Out .answer
   Answer equal "8.8521816557e21"
 end

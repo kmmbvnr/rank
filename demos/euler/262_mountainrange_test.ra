@@ -3,17 +3,16 @@ use testing
 rem Retain the coarse-grid regression;
 rem the default is checked separately.
 test "coarse grid"
-  use "262_mountainrange"
-  Step = 8
-  run
+  use "262_mountainrange" as solve
+  Answer = solve 8
 
   Answer equal 2531.2
 end
 
 
 test "default grid"
-  use "262_mountainrange"
-  run
+  use "262_mountainrange" as solve
+  Answer = solve
 
   Answer equal 2531.205
 end

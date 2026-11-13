@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "599_rubikcolourings"
-  run
+  use "599_rubikcolourings" as solve
+  Answer = solve
   Answer equal 12395526079546335
 end
 
 test "statement and trivial values"
-  use "599_rubikcolourings"
-  N = 2
-  run
+  use "599_rubikcolourings" as solve
+  Answer = solve 2
   Answer equal 183
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 1
 end

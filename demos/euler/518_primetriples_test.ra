@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "518_primetriples"
-  N = 100
-  run
+  use "518_primetriples" as solve
+  Answer = solve 100
   Answer equal 1035
 end

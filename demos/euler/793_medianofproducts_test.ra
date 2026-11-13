@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "793_medianofproducts"
-  Count = 3
-  run
+  use "793_medianofproducts" as solve
+  Answer = solve 3
   Answer equal 3878983057768
-  Count = 103
-  run
+  Answer = solve 103
   Answer equal 492700616748525
 end

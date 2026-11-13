@@ -30,4 +30,4 @@ Rm = (Cc - Dd) / (2.0 * Qq * Aa)
 Rp = (Cc + Dd) / (2.0 * Qq * Aa)
 Ee = (1.0 - Rm) / (Tt * Qq * (Rp - Rm))
 Answer = Ee sum text ".4f"
-Answer print
+return Answer

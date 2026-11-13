@@ -2,7 +2,6 @@ use testing
 
 test "first example"
   use "001_twosums"
-  run
 
   A = array 2 7 11 15
   Answer = A two_sum 9
@@ -12,7 +11,6 @@ end
 
 test "later indices"
   use "001_twosums"
-  run
 
   A = array 3 2 4
   Answer = A two_sum 6
@@ -22,7 +20,6 @@ end
 
 test "duplicate values"
   use "001_twosums"
-  run
 
   A = array 3 3
   Answer = A two_sum 6
@@ -32,7 +29,6 @@ end
 
 test "negative values"
   use "001_twosums"
-  run
 
   A = array -3 4 3 90
   Answer = A two_sum 0

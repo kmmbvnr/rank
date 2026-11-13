@@ -126,4 +126,4 @@ Flat = Products reshape 861
 Values = Flat (Flat at most N)
 Smooth = Values sort
 Answer = Factors Smooth cycle_sum N
-Answer print
+return Answer

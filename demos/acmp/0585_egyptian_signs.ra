@@ -60,4 +60,4 @@ end
 
 Num = (Input words real) 0
 Result = Num solve_egyptian
-Result print
+return Result

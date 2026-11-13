@@ -2,10 +2,11 @@ use testing
 use numbers
 
 test "small threshold"
-  use "532_nanobots"
-  Lt = 10
-  Mx = 50
-  run
+  use "532_nanobots" as solve
+  use numbers
+  Out = solve 10 50
+  Answer = Out .answer
+  L = Out .l
   Er = (L 0 - 2.840190629) abs
   Er less 0.000001
   Answer equal 95.57

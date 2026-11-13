@@ -2,25 +2,21 @@ use testing
 
 rem Retain the full default and independent small selections.
 test "default input"
-  use "221_alexandrian"
-  run
+  use "221_alexandrian" as solve
+  Answer = solve
 
   Answer equal 1884161251122450
 end
 
 test "first six"
-  use "221_alexandrian"
-  N = 1
-  Limit = 10
-  run
+  use "221_alexandrian" as solve
+  Answer = solve 1 10
 
   Answer equal 6
-  N = 4
-  run
+  Answer = solve 4 10
 
   Answer equal 156
-  N = 6
-  run
+  Answer = solve 6 10
 
   Answer equal 630
 end

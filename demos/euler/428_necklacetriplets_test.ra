@@ -1,38 +1,31 @@
 use testing
 
 test "statement values"
-  use "428_necklacetriplets"
-  N = 1
-  run
+  use "428_necklacetriplets" as solve
+  Answer = solve 1
   Answer equal 9
-  N = 20
-  run
+  Answer = solve 20
   Answer equal 732
 end
 
 test "published checkpoint"
-  use "428_necklacetriplets"
-  N = 3000
-  run
+  use "428_necklacetriplets" as solve
+  Answer = solve 3000
   Answer equal 438106
 end
 
 test "brute force over divisors"
-  use "428_necklacetriplets"
-  N = 300
-  run
+  use "428_necklacetriplets" as solve
+  Answer = solve 300
   Answer equal 25992
 end
 
 test "empty and square boundaries"
-  use "428_necklacetriplets"
-  N = 0
-  run
+  use "428_necklacetriplets" as solve
+  Answer = solve 0
   Answer equal 0
-  N = 24
-  run
+  Answer = solve 24
   Answer equal 942
-  N = 25
-  run
+  Answer = solve 25
   Answer equal 989
 end

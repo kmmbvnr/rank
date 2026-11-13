@@ -24,4 +24,8 @@ Ok' = Num mod Den equal 0 and A at least 10 ** (L - 2) and A less 10 ** (L - 1)
 N' = (10 * A + D) filter Ok array
 Total' = N sum
 Answer = Total mod 100000
-Answer print
+return record
+  .answer = Answer
+  .n = N
+  .total = Total
+end

@@ -2,14 +2,10 @@ use testing
 use numbers
 
 test "statement values"
-  use "701_randomconnectedarea"
-  Width = 2
-  Height = 2
-  run
+  use "701_randomconnectedarea" as solve
+  Answer = solve 2 2
   Answer equal 1.875
-  Width = 4
-  Height = 4
-  run
+  Answer = solve 4 4
   use numbers
   Rounded = Answer round 8
   Rounded equal 5.76487732

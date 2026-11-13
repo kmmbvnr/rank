@@ -96,4 +96,4 @@ for Sx in 0 till Wx
   end
 end
 Answer = Total - 1 - Digons
-Answer print
+return Answer

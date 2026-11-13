@@ -431,11 +431,11 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
         ["Candidates' =", 'Candidates · c<integer>'],
         ['Candidates filter', 'Candidates · c<integer>'],
         ['Answer =', 'Answer · integer'],
-        ['Answer print', 'Answer · integer'],
+        ['return Answer', 'Answer · integer'],
         ['Original =', 'Original · integer'],
         ['Original equal', 'Original · integer'],
         ['Reversed *', 'Reversed · integer'],
-    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site) + (site.startsWith('return ') ? 7 : 0))!)).toBe(expected);
 });
 
 
@@ -483,8 +483,8 @@ it('keeps Euler 1 computed integer arrays and boolean masks, including compound 
         ["Mask' or=", 'Mask · c[#]<boolean>'],
         ['Mask sum', 'Mask · c[#]<boolean>'],
         ['Answer =', 'Answer · integer'],
-        ['Answer print', 'Answer · integer'],
-    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);
+        ['return Answer', 'Answer · integer'],
+    ]) expect(formatNameFacts(factsAt(source, source.indexOf(site) + (site.startsWith('return ') ? 7 : 0))!)).toBe(expected);
 });
 
 

@@ -25,4 +25,4 @@ for Start in 3 to N by Batch
   Values = Moduli gcd Residues
   Answer += 6 * Values sum
 end
-Answer print
+return Answer

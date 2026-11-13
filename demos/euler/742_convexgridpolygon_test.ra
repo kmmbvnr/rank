@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "742_convexgridpolygon"
-  Vertices = 4
-  run
+  use "742_convexgridpolygon" as solve
+  Answer = solve 4
   Answer equal 1
-  Vertices = 8
-  run
+  Answer = solve 8
   Answer equal 7
-  Vertices = 40
-  run
+  Answer = solve 40
   Answer equal 1039
-  Vertices = 100
-  run
+  Answer = solve 100
   Answer equal 17473
 end

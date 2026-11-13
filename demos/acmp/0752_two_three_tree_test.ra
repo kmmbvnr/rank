@@ -1,56 +1,50 @@
 use testing
 
 test "sample 1: 6 leaves -> 2"
-  use "0752_two_three_tree"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve
 
   (T 6) equal 2
 end
 
 test "sample 2: 7 leaves -> 3"
-  use "0752_two_three_tree"
-  Input = "7 1000000000"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "7 1000000000"
 
   (T 7) equal 3
 end
 
 test "single leaf tree"
-  use "0752_two_three_tree"
-  Input = "1 1000000000"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "1 1000000000"
 
   (T 1) equal 1
 end
 
 test "10 and 20 leaves"
-  use "0752_two_three_tree"
-  Input = "10 1000000000"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "10 1000000000"
 
   (T 10) equal 8
 end
 
 test "modulus 1 gives 0"
-  use "0752_two_three_tree"
-  Input = "6 1"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "6 1"
 
   (T 6) equal 0
 end
 
 test "100 leaves modulo 1e9"
-  use "0752_two_three_tree"
-  Input = "100 1000000000"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "100 1000000000"
 
   (T 100) equal 790316062
 end
 
 test "maximum L = 5000"
-  use "0752_two_three_tree"
-  Input = "5000 1000000000"
-  run
+  use "0752_two_three_tree" as solve
+  T = solve "5000 1000000000"
 
   (T 5000) equal 278752778
 end

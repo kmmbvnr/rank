@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "760_bitwisesum"
-  Limit = 10
-  run
+  use "760_bitwisesum" as solve
+  Answer = solve 10
   Answer equal 754
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 583766
 end

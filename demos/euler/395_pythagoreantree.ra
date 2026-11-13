@@ -12,7 +12,7 @@ MinY = 0.0 support -1.0
 MaxY = 0.0 support 1.0
 Answer = (MaxX + MinX) * (MaxY + MinY)
 Answer = Answer round 10
-Answer print
+return Answer
 
 fun DX support DY
   Work = new heap .descending

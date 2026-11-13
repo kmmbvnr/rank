@@ -216,4 +216,7 @@ if N greater 1
   ) + "\n" + JoinedCols
 end
 
-(Output) print
+return record
+  .ans = Ans
+  .output = Output
+end

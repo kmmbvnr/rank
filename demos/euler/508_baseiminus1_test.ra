@@ -1,23 +1,17 @@
 use testing
 
 test "statement values"
-  use "508_baseiminus1"
-  L = 1
-  run
+  use "508_baseiminus1" as solve
+  Answer = solve 1
   Answer equal 20
-  L = 2
-  run
+  Answer = solve 2
   Answer equal 75
 end
 
 test "recursion against brute force"
-  use "508_baseiminus1"
-  L = 20
-  Bl = 1
-  run
+  use "508_baseiminus1" as solve
+  Answer = solve 20 1
   Answer equal 10235
-  L = 1000
-  Bl = 1024
-  run
+  Answer = solve 1000 1024
   Answer equal 47138470
 end

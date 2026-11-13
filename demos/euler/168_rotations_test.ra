@@ -1,16 +1,18 @@
 use testing
 
 test "default input"
-  use "168_rotations"
-  run
+  use "168_rotations" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 59206
 end
 
 test "numbers below ten to the fifth"
-  use "168_rotations"
-  Digits = 5
-  run
+  use "168_rotations" as solve
+  Out = solve 5
+  N = Out .n
+  Total = Out .total
 
   Total equal 555480
   N len equal 36

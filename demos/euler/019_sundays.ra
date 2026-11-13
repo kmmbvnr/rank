@@ -27,4 +27,4 @@ rem keep 1901-2000.
 Start' = Flat scan + with 1
 Cent' = Start drop 12 take 1200
 Answer = Cent mod 7 equal 0 count
-Answer print
+return Answer

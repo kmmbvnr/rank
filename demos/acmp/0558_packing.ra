@@ -63,4 +63,4 @@ if N greater 2
   end
 end
 
-(Ans text) print
+return Ans

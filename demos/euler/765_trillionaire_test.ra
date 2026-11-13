@@ -1,12 +1,9 @@
 use testing
 
 test "two rounds"
-  use "765_trillionaire"
-  Rounds = 2
-  Target = 2
-  run
+  use "765_trillionaire" as solve
+  Answer = solve 2 2
   Answer equal 0.6
-  Target = 4
-  run
+  Answer = solve 2 4
   Answer equal 0.36
 end

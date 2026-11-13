@@ -1,25 +1,28 @@
 use testing
 
 test "default input"
-  use "066_diophantine"
-  run
+  use "066_diophantine" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 661
 end
 
 test "statement example up to 7"
-  use "066_diophantine"
-  Limit = 7
-  run
+  use "066_diophantine" as solve
+  Out = solve 7
+  Answer = Out .answer
+  Best = Out .best
 
   Answer equal 5
   Best equal 9
 end
 
 test "least solution of 61"
-  use "066_diophantine"
-  Limit = 61
-  run
+  use "066_diophantine" as solve
+  Out = solve 61
+  Answer = Out .answer
+  Best = Out .best
 
   Best equal 1766319049
   Answer equal 61

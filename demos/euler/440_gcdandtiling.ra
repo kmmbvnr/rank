@@ -69,4 +69,4 @@ for Start in 1 to L by 128
 end
 Fixed = Baseline * Different
 Answer = (Fixed + Sum) mod Mod
-Answer print
+return Answer

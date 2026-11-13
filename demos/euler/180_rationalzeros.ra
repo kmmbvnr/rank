@@ -56,4 +56,4 @@ All' = concat S1 S2 S3 S4 unique
 Total = All sum
 G = Total gcd L
 Answer = Total // G + L // G
-Answer print
+return Answer

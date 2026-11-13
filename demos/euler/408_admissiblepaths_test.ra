@@ -1,26 +1,27 @@
 use testing
 
 test "statement values"
-  use "408_admissiblepaths"
-  N = 5
-  run
+  use "408_admissiblepaths" as solve
+  Out = solve 5
+  Answer = Out .answer
   Answer equal 252
-  N = 16
-  run
+  Out = solve 16
+  Answer = Out .answer
   Answer equal 596994440
 end
 
 test "forbidden points"
-  use "408_admissiblepaths"
-  N = 16
-  run
+  use "408_admissiblepaths" as solve
+  Out = solve 16
+  X = Out .x
+  Y = Out .y
   X equal (array 9 16)
   Y equal (array 16 9)
 end
 
 test "one thousand"
-  use "408_admissiblepaths"
-  N = 1000
-  run
+  use "408_admissiblepaths" as solve
+  Out = solve 1000
+  Answer = Out .answer
   Answer equal 341920854
 end

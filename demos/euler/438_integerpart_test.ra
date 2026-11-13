@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "438_integerpart"
-  N = 4
-  run
+  use "438_integerpart" as solve
+  Answer = solve 4
   Answer equal 2087
 end
 
 test "degrees five and six"
-  use "438_integerpart"
-  N = 5
-  run
+  use "438_integerpart" as solve
+  Answer = solve 5
   Answer equal 355734
-  N = 6
-  run
+  Answer = solve 6
   Answer equal 332262442
 end

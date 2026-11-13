@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "725_digitsumnumbers"
-  Length = 3
-  run
+  use "725_digitsumnumbers" as solve
+  Answer = solve 3
   Answer equal 63270
-  Length = 7
-  run
+  Answer = solve 7
   Answer equal 85499991450
 end
 
 test "default input"
-  use "725_digitsumnumbers"
-  run
+  use "725_digitsumnumbers" as solve
+  Answer = solve
   Answer equal 4598797036650685
 end

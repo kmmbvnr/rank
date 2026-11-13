@@ -166,4 +166,7 @@ end
 
 Rhs = Parts join "+"
 Result = (N text) + "=" + Rhs
-Result print
+return record
+  .m = M
+  .result = Result
+end

@@ -25,4 +25,4 @@ All' = ((X + 1) / 2) round 0
 Blue' = ((Y + 1) / 2) round 0
 Past' = All greater Limit
 Answer = Blue Past first integer
-Answer print
+return Answer

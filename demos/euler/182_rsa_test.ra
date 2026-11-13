@@ -1,23 +1,24 @@
 use testing
 
 test "default input"
-  use "182_rsa"
-  run
+  use "182_rsa" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 399788195976
 end
 
 test "statement primes"
-  use "182_rsa"
-  P = 19
-  Q = 37
-  run
+  use "182_rsa" as solve
+  Out = solve 19 37
+  Answer = Out .answer
+  Least = Out .least_value
 
   Answer equal 17766
   Least equal 9
-  P = 11
-  Q = 23
-  run
+  Out = solve 11 23
+  Answer = Out .answer
+  Least = Out .least_value
 
   Answer equal 5912
 end

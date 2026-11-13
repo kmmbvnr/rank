@@ -60,4 +60,4 @@ fun Count solve
 end
 
 Answer = Q solve
-Answer print
+return Answer

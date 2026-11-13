@@ -51,4 +51,4 @@ Terms = SinePart * Reversed mod Prime
 Summed = Terms sum
 Total = Summed mod Prime
 Answer = Total * Fact Order mod Prime
-Answer print
+return Answer

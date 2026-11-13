@@ -1,29 +1,23 @@
 use testing
 
 test "default input"
-  use "624_twoheads"
-  run
+  use "624_twoheads" as solve
+  Answer = solve
   Answer equal 984524441
 end
 
 test "statement values"
-  use "624_twoheads"
-  P = 109
-  N = 2
-  run
+  use "624_twoheads" as solve
+  Answer = solve 2 109
   Answer equal 66
-  N = 3
-  run
+  Answer = solve 3 109
   Answer equal 46
 end
 
 test "series check"
-  use "624_twoheads"
-  P = 1000003
-  N = 4
-  run
+  use "624_twoheads" as solve
+  Answer = solve 4 1000003
   Answer equal 503450
-  N = 5
-  run
+  Answer = solve 5 1000003
   Answer equal 107303
 end

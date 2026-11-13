@@ -1,49 +1,49 @@
 use testing
 
 test "sample 1: valve 8"
-  use "0484_pipeline"
-  Input = "8"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "8"
+  Answer = Out .answer
 
   Answer equal "8 4 2 1"
 end
 
 test "sample 2: valve 5"
-  use "0484_pipeline"
-  Input = "5"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "5"
+  Answer = Out .answer
 
   Answer equal "5 2 1"
 end
 
 test "sample 3: valve 6"
-  use "0484_pipeline"
-  Input = "6"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "6"
+  Answer = Out .answer
 
   Answer equal "6 3 1"
 end
 
 test "sample 4: valve 10"
-  use "0484_pipeline"
-  Input = "10"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "10"
+  Answer = Out .answer
 
   Answer equal "10 6 3 1"
 end
 
 test "base valve 1"
-  use "0484_pipeline"
-  Input = "1"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "1"
+  Answer = Out .answer
 
   Answer equal "1"
 end
 
 test "maximum valve layer 40"
-  use "0484_pipeline"
-  Input = "433494435"
-  run
+  use "0484_pipeline" as solve
+  Out = solve "433494435"
+  Path = Out .path
 
   (Path len) equal 40
   (Path 0) equal 433494435

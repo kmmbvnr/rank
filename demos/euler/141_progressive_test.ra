@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "141_progressive"
-  run
+  use "141_progressive" as solve
+  Answer = solve
 
   Answer equal 878454337159
 end
 
 test "smaller limits"
-  use "141_progressive"
-  Limit = 100000
-  run
+  use "141_progressive" as solve
+  Answer = solve 100000
 
   Answer equal 124657
-  Limit = 10000000000
-  run
+  Answer = solve 10000000000
 
   Answer equal 21630503507
 end

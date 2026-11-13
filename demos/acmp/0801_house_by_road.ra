@@ -270,4 +270,9 @@ end
 StrX = BestX text
 StrY = BestY text
 Result = StrX + " " + StrY
-Result print
+return record
+  .best_d = BestD
+  .best_x = BestX
+  .best_y = BestY
+  .result = Result
+end

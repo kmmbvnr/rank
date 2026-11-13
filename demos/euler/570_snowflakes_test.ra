@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "570_snowflakes"
-  run
+  use "570_snowflakes" as solve
+  Answer = solve
   Answer equal 271197444
 end
 
 test "statement values"
-  use "570_snowflakes"
-  N = 3
-  run
+  use "570_snowflakes" as solve
+  Answer = solve 3
   Answer equal 6
-  N = 500
-  run
+  Answer = solve 500
   Answer equal 5124
 end

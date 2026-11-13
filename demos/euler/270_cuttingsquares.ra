@@ -66,4 +66,4 @@ for Len in 2 to (Size - 1)
   end
 end
 Answer = T 0 (Size - 1)
-Answer print
+return Answer

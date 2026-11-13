@@ -87,4 +87,4 @@ else
   end
   Answer = V Nm 0 mod Md
 end
-Answer print
+return Answer

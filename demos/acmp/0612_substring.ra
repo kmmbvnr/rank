@@ -117,4 +117,4 @@ Rpart = (array InvQprime Xright) join ""
 Parts = array Lpart Y Rpart
 Answer = Parts join ""
 
-Answer print
+return Answer

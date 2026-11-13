@@ -1,8 +1,11 @@
 use testing
 
 test "weak Goodstein sequence"
-  use "396_weakgoodstein"
-  run
+  use "396_weakgoodstein" as solve
+  Out = solve
+  Answer = Out .answer
+  Small = Out .small
+  Vals = Out .vals
   Small 2 equal 3
   Small 4 equal 21
   Small 6 equal 381

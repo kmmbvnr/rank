@@ -85,4 +85,4 @@ end
 S0 = V0 sum
 S1 = V1 sum
 Answer = (S0 + S1) mod Mod
-Answer print
+return Answer

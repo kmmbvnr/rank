@@ -103,4 +103,7 @@ for Ix less N
   Ix = Ex
 end
 Answer = Fixed // 8
-Answer print
+return record
+  .answer = Answer
+  .fixed = Fixed
+end

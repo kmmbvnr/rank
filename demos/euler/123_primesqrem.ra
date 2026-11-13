@@ -22,4 +22,4 @@ Big' = 2 * N * Ps mod (Ps * Ps)
 R' = Odd choose Big 2
 Hit' = R greater Limit
 Answer = N Hit first
-Answer print
+return Answer

@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "278_linearcombos"
-  run
+  use "278_linearcombos" as solve
+  Answer = solve
 
   Answer equal 1228215747273908452
 end
 
 test "small limits"
-  use "278_linearcombos"
-  Limit = 20
-  run
+  use "278_linearcombos" as solve
+  Answer = solve 20
 
   Answer equal 68928
-  Limit = 50
-  run
+  Answer = solve 50
 
   Answer equal 7955105
 end

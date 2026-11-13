@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "735_divisorsoftwo"
-  Limit = 15
-  run
+  use "735_divisorsoftwo" as solve
+  Answer = solve 15
   Answer equal 63
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 15066
-  Limit = 10000000
-  run
+  Answer = solve 10000000
   Answer equal 645876084
 end

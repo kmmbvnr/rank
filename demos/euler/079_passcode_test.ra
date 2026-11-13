@@ -1,17 +1,22 @@
 use testing
 
 test "default input"
-  use "079_passcode"
+  use "079_passcode" as solve
   use sequences
-  run
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 73162890
 end
 
 test "every attempt is a subsequence"
-  use "079_passcode"
+  use "079_passcode" as solve
   use sequences
-  run
+  Out = solve
+  A = Out .a
+  B = Out .b
+  C = Out .c
+  Seq = Out .seq
 
   Seq .possible equal true
   Seq .order len equal 8

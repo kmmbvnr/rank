@@ -41,4 +41,4 @@ for P in primes to (Limit + 1)
     Answer += N
   end
 end
-Answer print
+return Answer

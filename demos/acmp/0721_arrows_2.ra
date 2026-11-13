@@ -204,3 +204,7 @@ end
 for Line in MaxGrid
   Line print
 end
+return record
+  .max_cycles = MaxCycles
+  .min_cycles = MinCycles
+end

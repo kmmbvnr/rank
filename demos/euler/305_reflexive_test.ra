@@ -1,9 +1,8 @@
 use testing
 
 test "small reflexive positions"
-  use "305_reflexive"
-  Power = 1
-  run
+  use "305_reflexive" as entry
+  Answer = entry 1
 
   rem The occurrences of 3 start at 3, 17, 37, ...
   Answer equal 37

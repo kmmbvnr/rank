@@ -1,35 +1,29 @@
 use testing
 
 test "official example"
-  use "0104_pattern"
-  run
+  use "0104_pattern" as solve
+  Answer = solve
 
   Answer equal "YES"
 end
 
 test "mismatch"
-  use "0104_pattern"
-  First = "ABBCDA"
-  Second = "A*Z"
-  run
+  use "0104_pattern" as solve
+  Answer = solve "ABBCDA" "A*Z"
 
   Answer equal "NO"
 end
 
 test "exact letters match"
-  use "0104_pattern"
-  First = "HELLO"
-  Second = "HELLO"
-  run
+  use "0104_pattern" as solve
+  Answer = solve "HELLO" "HELLO"
 
   Answer equal "YES"
 end
 
 test "star matches empty"
-  use "0104_pattern"
-  First = "A*B*C"
-  Second = "ABC"
-  run
+  use "0104_pattern" as solve
+  Answer = solve "A*B*C" "ABC"
 
   Answer equal "YES"
 end

@@ -1,23 +1,17 @@
 use testing
 
 test "statement values"
-  use "714_duodigits"
-  Count = 110
-  Longest = 8
-  run
+  use "714_duodigits" as solve
+  Answer = solve 110 8
   Answer equal "1.104700000000e4"
-  Count = 150
-  run
+  Answer = solve 150 8
   Answer equal "5.331200000000e4"
-  Count = 500
-  run
+  Answer = solve 500 8
   Answer equal "2.957098800000e7"
 end
 
 test "residue search for the long cases"
-  use "714_duodigits"
-  Count = 500
-  Longest = 3
-  run
+  use "714_duodigits" as solve
+  Answer = solve 500 3
   Answer equal "2.957098800000e7"
 end

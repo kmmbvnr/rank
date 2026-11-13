@@ -3,68 +3,63 @@ rem Tests for ACMP 0928: Birch Alley
 use testing
 
 test "ACMP 928: Sample 1"
-  use "0928_birch_alley"
-  Input = "18 4
+  use "0928_birch_alley" as solve
+  Result = solve "18 4
 3
 0 3 6
 4
 0 3 6 10"
-  run
 
   Result equal 5
 end
 
 test "ACMP 928: Sample 2 Impossible"
-  use "0928_birch_alley"
-  Input = "5 3
+  use "0928_birch_alley" as solve
+  Result = solve "5 3
 1
 0
 1
 0"
-  run
 
   Result equal 0
 end
 
 test "ACMP 928: Exact fit"
-  use "0928_birch_alley"
-  Input = "6 3
+  use "0928_birch_alley" as solve
+  Result = solve "6 3
 1
 0
 1
 0"
-  run
 
   Result equal 2
 end
 
 test "ACMP 928: Left three Right one"
-  use "0928_birch_alley"
-  Input = "14 3
+  use "0928_birch_alley" as solve
+  Result = solve "14 3
 3
 0 2 4
 1
 0"
-  run
 
   Result equal 4
 end
 
 test "ACMP 928: Symmetric four trees"
-  use "0928_birch_alley"
-  Input = "18 4
+  use "0928_birch_alley" as solve
+  Result = solve "18 4
 2
 0 5
 2
 0 5"
-  run
 
   Result equal 4
 end
 
 test "ACMP 928: Default input"
-  use "0928_birch_alley"
-  run
+  use "0928_birch_alley" as solve
+  Result = solve
 
   Result equal 5
 end

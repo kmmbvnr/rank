@@ -32,4 +32,4 @@ B0 = B0 Kp
 Tm = N // B0
 Su = S2 * M * M + B0 + M * M * Q * Q
 Answer = (Su * Tm * (Tm + 1) // 2) sum
-Answer print
+return Answer

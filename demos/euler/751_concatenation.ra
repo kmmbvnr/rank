@@ -35,4 +35,4 @@ if Digits greater 0
   Answer = Text take 1 + "."
   Answer += Text drop 1
 end
-Answer print
+return Answer

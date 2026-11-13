@@ -48,4 +48,4 @@ if N greater 2
   Extra = Extra * (N - 1) mod Mod
   Answer = (Answer + Extra) mod Mod
 end
-Answer print
+return Answer

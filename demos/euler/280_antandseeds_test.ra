@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "280_antandseeds"
-  run
+  use "280_antandseeds" as solve
+  Answer = solve
 
   Answer equal 430.088247
 end
 
 test "fewer digits"
-  use "280_antandseeds"
-  Digits = 2
-  run
+  use "280_antandseeds" as solve
+  Answer = solve 2
 
   Answer equal 430.09
 end

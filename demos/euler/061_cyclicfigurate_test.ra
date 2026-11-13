@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "061_cyclicfigurate"
-  run
+  use "061_cyclicfigurate" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 28684
 end
 
 test "figurate numbers"
-  use "061_cyclicfigurate"
-  run
+  use "061_cyclicfigurate" as solve
+  Out = solve
+  Grid = Out .grid
 
   Grid 0 4 equal 15
   Grid 1 4 equal 25
@@ -20,8 +22,9 @@ test "figurate numbers"
 end
 
 test "example cycle from the statement"
-  use "061_cyclicfigurate"
-  run
+  use "061_cyclicfigurate" as solve
+  Out = solve
+  Vals = Out .vals
 
   8128 in Vals
   8281 in Vals

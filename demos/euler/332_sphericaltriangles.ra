@@ -9,7 +9,7 @@ Answer = 0.0
 for R in 1 to 50
   Answer += R sphere
 end
-Answer print
+return Answer
 
 fun R sphere
   Points = R sphere_points

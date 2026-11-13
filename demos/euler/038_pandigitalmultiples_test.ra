@@ -1,8 +1,8 @@
 use testing
 
 test "largest concatenated product"
-  use "038_pandigitalmultiples"
-  run
+  use "038_pandigitalmultiples" as solve
+  Answer = solve
 
   Answer equal 932718654
 end

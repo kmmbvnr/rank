@@ -20,4 +20,7 @@ Sets' = Letters binomial N
 Ways' = 2 ** N - N - 1
 Counts' = Sets * Ways
 Answer = Counts max
-Answer print
+return record
+  .answer = Answer
+  .counts = Counts
+end

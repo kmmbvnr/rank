@@ -1,32 +1,29 @@
 use testing
 
 test "default input"
-  use "125_palindromicsums"
-  run
+  use "125_palindromicsums" as solve
+  Answer = solve
 
   Answer equal 2906969179
 end
 
 test "statement value for 1000"
-  use "125_palindromicsums"
-  Limit = 1000
-  run
+  use "125_palindromicsums" as solve
+  Answer = solve 1000
 
   Answer equal 4164
 end
 
 test "exclude a sum equal to the limit"
-  use "125_palindromicsums"
-  Limit = 5
-  run
+  use "125_palindromicsums" as solve
+  Answer = solve 5
 
   Answer equal 0
 end
 
 test "include the first sum of two squares"
-  use "125_palindromicsums"
-  Limit = 6
-  run
+  use "125_palindromicsums" as solve
+  Answer = solve 6
 
   Answer equal 5
 end

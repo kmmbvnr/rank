@@ -88,4 +88,4 @@ Total = Weighted sum
 Count = Weight sum
 Mean = Total / Count
 Answer = Mean text ".8f"
-Answer print
+return Answer

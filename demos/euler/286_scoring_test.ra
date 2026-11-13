@@ -1,24 +1,18 @@
 use testing
 
 test "default input"
-  use "286_scoring"
-  run
+  use "286_scoring" as solve
+  Answer = solve
 
   Answer equal 52.6494571953
 end
 
 test "fewer shots"
-  use "286_scoring"
-  Shots = 20
-  Hits = 8
-  Target = 0.05
-  run
+  use "286_scoring" as solve
+  Answer = solve 20 8 0.05
 
   Answer equal 24.0870606398
-  Shots = 10
-  Hits = 3
-  Target = 0.02
-  run
+  Answer = solve 10 3 0.02
 
   Answer equal 14.8143393221
 end

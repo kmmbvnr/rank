@@ -7,7 +7,7 @@ use sequences
 use io
 
 Answer = 1000000 truncatable_prime_sum
-Answer print
+return Answer
 
 
 rem Test every shorter decimal prefix and

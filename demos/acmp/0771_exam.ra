@@ -214,3 +214,4 @@ end
 
 Result = Lines join "\n"
 Result
+return Result

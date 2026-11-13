@@ -70,4 +70,7 @@ Up = Skew2 transpose best
 Answer = Rows max Cols
 Answer = Answer max Down
 Answer = Answer max Up
-Answer print
+return record
+  .answer = Answer
+  .s = S
+end

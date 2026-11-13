@@ -34,4 +34,4 @@ for J in Nb - 2 to 0 by -1
   end
 end
 Answer = S
-Answer print
+return Answer

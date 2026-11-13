@@ -20,4 +20,7 @@ Pair' = Sq Cb outer +
 Sums' = Pair Fo outer +
 Few' = Sums (Sums less Limit)
 Answer = Few unique len
-Answer print
+return record
+  .answer = Answer
+  .few = Few
+end

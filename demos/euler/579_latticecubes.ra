@@ -157,4 +157,4 @@ Largest = 1 to Root
 Totals = Largest batch
 Answer = Totals sum
 Answer = Answer mod 1000000000
-Answer print
+return Answer

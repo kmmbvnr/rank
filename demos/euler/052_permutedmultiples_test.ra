@@ -1,8 +1,8 @@
 use testing
 
 test "smallest permuted multiple"
-  use "052_permutedmultiples"
-  run
+  use "052_permutedmultiples" as solve
+  Answer = solve
 
   Answer equal 142857
 end

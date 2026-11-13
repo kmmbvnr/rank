@@ -25,7 +25,7 @@ for P at most Limit
   A += 1
   P *= 5
 end
-Answer print
+return Answer
 
 rem Count m with fewer than A carries.
 fun Pos Carry Used Rel A Ds Memo tally

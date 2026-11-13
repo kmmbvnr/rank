@@ -92,4 +92,4 @@ Result = "YES"
 if IsSep
   Result = "NO"
 end
-Result print
+return Result

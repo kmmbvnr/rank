@@ -51,4 +51,4 @@ for M in 1 to 2
   end
 end
 Answer = Total
-Answer print
+return Answer

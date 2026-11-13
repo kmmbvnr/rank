@@ -1,46 +1,36 @@
 use testing
 
 test "sample 1: 5! in base 10"
-  use "0200_martian_factorials"
-  N = 5
-  K = 10
-  run
+  use "0200_martian_factorials" as solve
+  Answer = solve 5 10
 
   Answer equal 1
 end
 
 test "sample 2: 100! in base 10"
-  use "0200_martian_factorials"
-  N = 100
-  K = 10
-  run
+  use "0200_martian_factorials" as solve
+  Answer = solve 100 10
 
   Answer equal 24
 end
 
 test "sample 3: 100! in base 6"
-  use "0200_martian_factorials"
-  N = 100
-  K = 6
-  run
+  use "0200_martian_factorials" as solve
+  Answer = solve 100 6
 
   Answer equal 48
 end
 
 test "sample 4: 3! in base 10"
-  use "0200_martian_factorials"
-  N = 3
-  K = 10
-  run
+  use "0200_martian_factorials" as solve
+  Answer = solve 3 10
 
   Answer equal 0
 end
 
 test "large N = 10^9, K = 1000"
-  use "0200_martian_factorials"
-  N = 1000000000
-  K = 1000
-  run
+  use "0200_martian_factorials" as solve
+  Answer = solve 1000000000 1000
 
   Answer equal 83333332
 end

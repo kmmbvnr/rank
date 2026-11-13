@@ -90,4 +90,4 @@ rem The other lifted root sums to 3.
 Square = Primes * Primes
 Other = (3 - Lifted) mod Square
 Answer = Lifted min Other sum
-Answer print
+return Answer

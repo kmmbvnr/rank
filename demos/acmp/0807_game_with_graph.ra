@@ -41,4 +41,4 @@ end
 
 Ans = DP N
 Result = Ans text
-Result print
+return Result

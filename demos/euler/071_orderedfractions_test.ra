@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "071_orderedfractions"
-  run
+  use "071_orderedfractions" as solve
+  Answer = solve
 
   Answer equal 428570
 end
 
 test "statement example"
-  use "071_orderedfractions"
-  Limit = 8
-  run
+  use "071_orderedfractions" as solve
+  Answer = solve 8
 
   Answer equal 2
 end
 
 test "denominator seven only"
-  use "071_orderedfractions"
-  Limit = 7
-  run
+  use "071_orderedfractions" as solve
+  Answer = solve 7
 
   Answer equal 2
 end

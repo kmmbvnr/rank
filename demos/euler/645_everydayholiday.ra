@@ -33,4 +33,4 @@ Ok = (Ks at most (D // 2)) integer
 Rt = Rt * Ok
 Tm = (1.0 - Rt) * D / Ks
 Answer = Tm sum text ".4f"
-Answer print
+return Answer

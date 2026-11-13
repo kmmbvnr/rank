@@ -1,48 +1,42 @@
 use testing
 
 test "default input"
-  use "298_selectiveamnesia"
-  run
+  use "298_selectiveamnesia" as solve
+  Answer = solve
 
   Answer equal 1.76882294
 end
 
 test "fewer turns"
-  use "298_selectiveamnesia"
-  Turns = 5
-  run
+  use "298_selectiveamnesia" as solve
+  Answer = solve 5
 
   Answer equal 0
 end
 
 test "exact rounding after 22 turns"
-  use "298_selectiveamnesia"
-  Turns = 22
-  run
+  use "298_selectiveamnesia" as solve
+  Answer = solve 22
 
   Answer equal 0.89655952
 end
 
 test "empty and first differing scores"
-  use "298_selectiveamnesia"
-  Turns = 0
-  run
+  use "298_selectiveamnesia" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Turns = 7
-  run
+  Answer = solve 7
 
   Answer equal 0
-  Turns = 8
-  run
+  Answer = solve 8
 
   Answer equal 0.012096
 end
 
 test "full-scale checkpoint"
-  use "298_selectiveamnesia"
-  Turns = 20
-  run
+  use "298_selectiveamnesia" as solve
+  Answer = solve 20
 
   Answer equal 0.79884191
 end

@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "011_gridproduct"
-  run
+  use "011_gridproduct" as entry
+  Answer = entry
 
   Answer equal 70600674
 end

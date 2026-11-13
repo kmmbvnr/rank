@@ -88,4 +88,4 @@ for S in Ss
     C2 = C2 (0 till 0)
   end
 end
-Answer print
+return Answer

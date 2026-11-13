@@ -138,4 +138,8 @@ ResCakes Order = Cakes
 CakesLine = ResCakes join " "
 Line1 = MinCost text
 Result = Line1 + "\n" + CakesLine
-Result print
+return record
+  .min_cost = MinCost
+  .res_cakes = ResCakes
+  .result = Result
+end

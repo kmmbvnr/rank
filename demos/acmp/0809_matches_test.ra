@@ -1,46 +1,43 @@
 use testing
 
 test "sample 1: 5 matches -> 3"
-  use "0809_matches"
-  run
+  use "0809_matches" as solve
+  Ans = solve
 
   Ans equal 3
 end
 
 test "identical images -> 0"
-  use "0809_matches"
-  Input = "3
+  use "0809_matches" as solve
+  Ans = solve "3
 0 0 1 0
 1 0 1 1
 1 1 0 1
 0 0 1 0
 1 0 1 1
 1 1 0 1"
-  run
 
   Ans equal 0
 end
 
 test "pure translation -> 0"
-  use "0809_matches"
-  Input = "2
+  use "0809_matches" as solve
+  Ans = solve "2
 0 0 1 1
 1 1 2 2
 5 5 6 6
 6 6 7 7"
-  run
 
   Ans equal 0
 end
 
 test "reversed orientations -> 0"
-  use "0809_matches"
-  Input = "2
+  use "0809_matches" as solve
+  Ans = solve "2
 1 1 0 0
 2 2 1 1
 5 5 6 6
 7 7 6 6"
-  run
 
   Ans equal 0
 end

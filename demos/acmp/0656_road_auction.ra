@@ -363,3 +363,4 @@ end
 
 Result = Sol join "\n"
 Result text
+return Result

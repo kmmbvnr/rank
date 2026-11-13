@@ -23,7 +23,7 @@ test "empty and short decks"
 end
 
 test "full Badugi count"
-  use "369_badugi"
-  run
+  use "369_badugi" as solve
+  Answer = solve
   Answer equal 862400558448
 end

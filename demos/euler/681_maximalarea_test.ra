@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "681_maximalarea"
-  Nn = 10
-  run
+  use "681_maximalarea" as solve
+  Answer = solve 10
   Answer equal 186
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 23238
 end
 
 test "full-scale checkpoint"
-  use "681_maximalarea"
-  Nn = 100000
-  run
+  use "681_maximalarea" as solve
+  Answer = solve 100000
   Answer equal 26927556378
 end

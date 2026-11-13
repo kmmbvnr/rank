@@ -1,16 +1,18 @@
 use testing
 
 test "default input"
-  use "021_amicable_sieve"
-  run
+  use "021_amicable_sieve" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 31626
 end
 
 test "first pair and square divisor sums"
-  use "021_amicable_sieve"
-  Limit = 300
-  run
+  use "021_amicable_sieve" as solve
+  Out = solve 300
+  Answer = Out .answer
+  Sums = Out .sums
 
   Answer equal 504
   Sums 9 equal 4
@@ -20,9 +22,9 @@ test "first pair and square divisor sums"
 end
 
 test "only pairs entirely below the limit"
-  use "021_amicable_sieve"
-  Limit = 250
-  run
+  use "021_amicable_sieve" as solve
+  Out = solve 250
+  Answer = Out .answer
 
   Answer equal 0
 end

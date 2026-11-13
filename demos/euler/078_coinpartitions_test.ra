@@ -1,29 +1,29 @@
 use testing
 
 test "default input"
-  use "078_coinpartitions"
-  run
+  use "078_coinpartitions" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 55374
 end
 
 test "small moduli"
-  use "078_coinpartitions"
-  Modulus = 7
-  run
+  use "078_coinpartitions" as solve
+  Out = solve 7
+  Answer = Out .answer
 
   Answer equal 5
-  Modulus = 1000
-  run
+  Out = solve 1000
+  Answer = Out .answer
 
   Answer equal 449
 end
 
 test "partition numbers"
-  use "078_coinpartitions"
-  Modulus = 1000000007
-  Limit = 100
-  run
+  use "078_coinpartitions" as solve
+  Out = solve 1000000007 100
+  Ways = Out .ways
 
   Ways 5 equal 7
   Ways 10 equal 42
@@ -31,24 +31,24 @@ test "partition numbers"
 end
 
 test "no multiple within the limit"
-  use "078_coinpartitions"
-  Modulus = 1000000
-  Limit = 100
-  run
+  use "078_coinpartitions" as solve
+  Out = solve 1000000 100
+  Answer = Out .answer
 
   Answer equal -1
 end
 
 test "empty search and the first term"
-  use "078_coinpartitions"
-  Limit = 0
-  run
+  use "078_coinpartitions" as solve
+  Out = solve 1000000 0
+  Answer = Out .answer
+  Ways = Out .ways
 
   Answer equal -1
   Ways 0 equal 1
-  Limit = 1
-  Modulus = 1
-  run
+  Out = solve 1 1
+  Answer = Out .answer
+  Ways = Out .ways
 
   Answer equal 1
   Ways 0 equal 1

@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "745_sumofsquares2"
-  Limit = 10
-  run
+  use "745_sumofsquares2" as solve
+  Answer = solve 10
   Answer equal 24
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 767
 end
 
 test "default input"
-  use "745_sumofsquares2"
-  run
+  use "745_sumofsquares2" as solve
+  Answer = solve
   Answer equal 94586478
 end

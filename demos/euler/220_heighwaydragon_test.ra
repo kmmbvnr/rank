@@ -1,22 +1,18 @@
 use testing
 
 test "default input"
-  use "220_heighwaydragon"
-  run
+  use "220_heighwaydragon" as solve
+  Answer = solve
 
   Answer equal "139776,963904"
 end
 
 test "problem example"
-  use "220_heighwaydragon"
-  Order = 10
-  Steps = 500
-  run
+  use "220_heighwaydragon" as solve
+  Answer = solve 10 500
 
   Answer equal "18,16"
-  Order = 1
-  Steps = 2
-  run
+  Answer = solve 1 2
 
   Answer equal "1,1"
 end

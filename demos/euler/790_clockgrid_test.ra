@@ -1,18 +1,13 @@
 use testing
 
 test "statement values"
-  use "790_clockgrid"
-  Steps = 0
-  run
+  use "790_clockgrid" as solve
+  Answer = solve 0
   Answer equal 30621295449583788
-  Steps = 1
-  run
+  Answer = solve 1
   Answer equal 30613048345941659
-  Steps = 10
-  Chunk = 4
-  run
+  Answer = solve 10 50515093 4
   Answer equal 21808930308198471
-  Steps = 100
-  run
+  Answer = solve 100 50515093 4
   Answer equal 16190667393984172
 end

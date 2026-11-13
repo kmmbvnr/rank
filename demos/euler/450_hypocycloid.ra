@@ -179,4 +179,4 @@ if N mod 2 equal 1
 end
 Total = Nontrivial + Trivial
 Answer = Total + Correction
-Answer print
+return Answer

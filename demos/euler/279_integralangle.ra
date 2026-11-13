@@ -44,4 +44,4 @@ for M in 2 to Top
   end
 end
 Answer = Total
-Answer print
+return Answer

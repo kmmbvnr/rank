@@ -117,4 +117,4 @@ rem Each nonempty half is duplicated;
 rem two orientations account for the
 rem identity cases too. Divide by four.
 Answer = Total // 4
-Answer print
+return Answer

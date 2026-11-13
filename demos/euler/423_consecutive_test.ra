@@ -1,41 +1,33 @@
 use testing
 
 test "sums of the first terms"
-  use "423_consecutive"
-  L = 3
-  run
+  use "423_consecutive" as solve
+  Answer = solve 3
   Answer equal 258
-  L = 4
-  run
+  Answer = solve 4
   Answer equal 1548
 end
 
 test "statement checkpoints"
-  use "423_consecutive"
-  L = 11
-  run
+  use "423_consecutive" as solve
+  Answer = solve 11
   Answer equal 433880568
-  L = 50
-  run
+  Answer = solve 50
   Answer equal 832833871
 end
 
 test "wide prime gaps"
-  use "423_consecutive"
-  L = 24
-  run
+  use "423_consecutive" as solve
+  Answer = solve 24
   Answer equal 399105404
 end
 
 test "empty and initial sums"
-  use "423_consecutive"
-  L = 0
-  run
+  use "423_consecutive" as solve
+  Answer = solve 0
   Answer equal 0
-  L = 1
-  run
+  Answer = solve 1
   Answer equal 6
-  L = 2
-  run
+  Answer = solve 2
   Answer equal 42
 end

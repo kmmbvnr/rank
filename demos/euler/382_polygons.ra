@@ -47,7 +47,7 @@ if Limit at most 5
   Small = array 0 0 0 2 7
   Answer = Small (Limit - 1)
 end
-Answer print
+return Answer
 
 fun A mul B
   C = array shape 12 12 fill 0

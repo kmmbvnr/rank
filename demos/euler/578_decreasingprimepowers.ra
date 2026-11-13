@@ -176,4 +176,4 @@ fun Limit solve Start Cap
   return Total
 end
 Answer = N solve 0 Cap
-Answer print
+return Answer

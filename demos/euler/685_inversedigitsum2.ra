@@ -249,4 +249,4 @@ for N in Lo to Kk
   Total = (Total + Vv) mod P
 end
 Answer = Total
-Answer print
+return Answer

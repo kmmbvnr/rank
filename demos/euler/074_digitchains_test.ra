@@ -1,8 +1,10 @@
 use testing
 
 test "default input"
-  use "074_digitchains"
-  run
+  use "074_digitchains" as solve
+  Out = solve
+  Answer = Out .answer
+  Next = Out .next
 
   Answer equal 402
   Next 0 equal 1
@@ -15,8 +17,9 @@ test "default input"
 end
 
 test "statement chain lengths"
-  use "074_digitchains"
-  run
+  use "074_digitchains" as solve
+  Out = solve
+  Lens = Out .lens
 
   Lens 68 equal 5
   Lens 77 equal 4
@@ -26,14 +29,13 @@ test "statement chain lengths"
 end
 
 test "smaller limits and term counts"
-  use "074_digitchains"
-  Limit = 100000
-  run
+  use "074_digitchains" as solve
+  Out = solve 100000
+  Answer = Out .answer
 
   Answer equal 42
-  Limit = 10000
-  Terms = 30
-  run
+  Out = solve 10000 30
+  Answer = Out .answer
 
   Answer equal 146
 end

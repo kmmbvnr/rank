@@ -1,12 +1,9 @@
 use testing
 
 test "statement value and brute force"
-  use "785_symmetricdiophantine"
-  Limit = 100
-  Block = 50
-  run
+  use "785_symmetricdiophantine" as solve
+  Answer = solve 100 50
   Answer equal 184
-  Limit = 400
-  run
+  Answer = solve 400 50
   Answer equal 4488
 end

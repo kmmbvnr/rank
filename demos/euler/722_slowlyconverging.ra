@@ -32,4 +32,4 @@ Exponent = Total log / Ten floor
 Mantissa = Total / 10.0 ** Exponent
 Answer = (Mantissa text ".12f") + "e"
 Answer += Exponent text
-Answer print
+return Answer

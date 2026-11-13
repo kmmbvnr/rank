@@ -89,4 +89,4 @@ for I in Lo + 1 to Up
   end
   Answer += Ms 1
 end
-Answer print
+return Answer

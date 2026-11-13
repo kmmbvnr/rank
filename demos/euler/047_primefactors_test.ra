@@ -1,8 +1,8 @@
 use testing
 
 test "four values and factors"
-  use "047_primefactors"
-  run
+  use "047_primefactors" as solve
+  Answer = solve
 
   Answer equal 134043
 end

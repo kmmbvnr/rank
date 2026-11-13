@@ -1,15 +1,16 @@
 use testing
 
 test "sample 1: L-shaped 6 vertices"
-  use "0434_glass_fence"
-  Input = "6
+  use "0434_glass_fence" as solve
+  Out = solve "6
 0 0
 2 0
 2 1
 1 1
 1 2
 0 2"
-  run
+  AnswerCount = Out .answer_count
+  AnswerVertices = Out .answer_vertices
 
   AnswerCount equal 6
   AnswerVertices equal (array shape 6 2
@@ -23,11 +24,12 @@ test "sample 1: L-shaped 6 vertices"
 end
 
 test "U-shaped swamp dent filled"
-  use "0434_glass_fence"
+  use "0434_glass_fence" as solve
   I1 = "8\n0 0\n3 0\n3 2\n"
   I2 = "2 2\n2 1\n1 1\n1 2\n0 2"
-  Input = I1 + I2
-  run
+  Out = solve (I1 + I2)
+  AnswerCount = Out .answer_count
+  AnswerVertices = Out .answer_vertices
 
   AnswerCount equal 4
   AnswerVertices equal (array shape 4 2
@@ -39,9 +41,10 @@ test "U-shaped swamp dent filled"
 end
 
 test "rectangle swamp unchanged"
-  use "0434_glass_fence"
-  Input = "4\n0 0\n5 0\n5 3\n0 3"
-  run
+  use "0434_glass_fence" as solve
+  Out = solve "4\n0 0\n5 0\n5 3\n0 3"
+  AnswerCount = Out .answer_count
+  AnswerVertices = Out .answer_vertices
 
   AnswerCount equal 4
   AnswerVertices equal (array shape 4 2
@@ -53,11 +56,12 @@ test "rectangle swamp unchanged"
 end
 
 test "staircase 3 steps"
-  use "0434_glass_fence"
+  use "0434_glass_fence" as solve
   I1 = "8\n0 0\n3 0\n3 1\n"
   I2 = "2 1\n2 2\n1 2\n1 3\n0 3"
-  Input = I1 + I2
-  run
+  Out = solve (I1 + I2)
+  AnswerCount = Out .answer_count
+  AnswerVertices = Out .answer_vertices
 
   AnswerCount equal 8
   AnswerVertices equal (array shape 8 2

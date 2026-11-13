@@ -1,19 +1,15 @@
 use testing
 
 test "statement values"
-  use "655_divisiblepalindromes"
-  Mo = 109
-  Ml = 3
-  run
+  use "655_divisiblepalindromes" as solve
+  Answer = solve 109 3
   Answer equal 1
-  Ml = 5
-  run
+  Answer = solve 109 5
   Answer equal 9
 end
 
 test "twenty digits"
-  use "655_divisiblepalindromes"
-  Ml = 20
-  run
+  use "655_divisiblepalindromes" as solve
+  Answer = solve 10000019 20
   Answer equal 1835
 end

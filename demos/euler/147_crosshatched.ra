@@ -43,4 +43,4 @@ Soy' = Oy sum axis 0
 Diag' = Sex * Sey + Sox * Soy
 Cnt' = Diag sum
 Answer = Top + Cnt
-Answer print
+return Answer

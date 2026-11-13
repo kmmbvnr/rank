@@ -157,4 +157,4 @@ for Running
 end
 
 Answer = (Pos not equal ".") count
-Answer print
+return Answer

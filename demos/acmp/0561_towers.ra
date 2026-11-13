@@ -129,4 +129,4 @@ end
 Ord = Keys argsort
 Ids = (1 to N) Ord
 Result = Ids join " "
-Result print
+return Result

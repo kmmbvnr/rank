@@ -1,23 +1,17 @@
 use testing
 
 test "statement values"
-  use "585_nestedsquareroots"
-  N = 10
-  run
+  use "585_nestedsquareroots" as solve
+  Answer = solve 10
   Answer equal 17
-  N = 15
-  run
+  Answer = solve 15
   Answer equal 46
-  N = 20
-  run
+  Answer = solve 20
   Answer equal 86
-  N = 30
-  run
+  Answer = solve 30
   Answer equal 213
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 2918
-  N = 5000
-  run
+  Answer = solve 5000
   Answer equal 11134074
 end

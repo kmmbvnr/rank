@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "501_eightdivisors"
-  N = 100
-  run
+  use "501_eightdivisors" as solve
+  Answer = solve 100
   Answer equal 10
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 180
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 224427
 end

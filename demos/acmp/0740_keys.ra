@@ -172,4 +172,4 @@ if NumRects greater 0
   end
 end
 
-MaxHoles text print
+return MaxHoles

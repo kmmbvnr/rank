@@ -182,4 +182,4 @@ Half = P // 2
 Triples = P triples
 Windows = Half windows Triples
 Answer = Half total Triples Windows
-Answer print
+return Answer

@@ -4,25 +4,26 @@ use testing
 use sequences
 
 test "ACMP 802: N=1"
-  use "0802_magic_square"
-  Input = "1"
-  run
+  use "0802_magic_square" as solve
+  Out = solve "1"
+  Sq = Out .sq
 
   (Sq 0 0) equal 1
 end
 
 test "ACMP 802: N=2 is Impossible"
-  use "0802_magic_square"
-  Input = "2"
-  run
+  use "0802_magic_square" as solve
+  Out = solve "2"
+  N = Out .n
 
   N equal 2
 end
 
 test "ACMP 802: N=3 magic sums"
-  use "0802_magic_square"
-  Input = "3"
-  run
+  use "0802_magic_square" as solve
+  use sequences
+  Out = solve "3"
+  Sq = Out .sq
 
   Tgt = 3 * (9 + 1) // 2
   RowSums = (Sq reduce + axis 1) unique
@@ -32,9 +33,10 @@ test "ACMP 802: N=3 magic sums"
 end
 
 test "ACMP 802: N=4 doubly-even"
-  use "0802_magic_square"
-  Input = "4"
-  run
+  use "0802_magic_square" as solve
+  use sequences
+  Out = solve "4"
+  Sq = Out .sq
 
   Tgt = 4 * (16 + 1) // 2
   RowSums = (Sq reduce + axis 1) unique
@@ -44,9 +46,10 @@ test "ACMP 802: N=4 doubly-even"
 end
 
 test "ACMP 802: N=6 singly-even"
-  use "0802_magic_square"
-  Input = "6"
-  run
+  use "0802_magic_square" as solve
+  use sequences
+  Out = solve "6"
+  Sq = Out .sq
 
   Tgt = 6 * (36 + 1) // 2
   RowSums = (Sq reduce + axis 1) unique
@@ -56,8 +59,9 @@ test "ACMP 802: N=6 singly-even"
 end
 
 test "ACMP 802: default N=100"
-  use "0802_magic_square"
-  run
+  use "0802_magic_square" as solve
+  Out = solve
+  Sq = Out .sq
 
   (Sq 0 0) equal 1
   (Sq 99 99) equal 10000

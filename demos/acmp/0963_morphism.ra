@@ -60,4 +60,4 @@ if P at most (Word len)
   Ch = (Word (P - 1)) + 65
   Ans = Ch character
 end
-Ans print
+return Ans

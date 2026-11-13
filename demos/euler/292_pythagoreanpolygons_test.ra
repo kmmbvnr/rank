@@ -1,41 +1,33 @@
 use testing
 
 test "small perimeters"
-  use "292_pythagoreanpolygons"
-  N = 4
-  run
+  use "292_pythagoreanpolygons" as solve
+  Answer = solve 4
 
   Answer equal 1
-  N = 30
-  run
+  Answer = solve 30
 
   Answer equal 3655
-  N = 60
-  run
+  Answer = solve 60
 
   Answer equal 891045
 end
 
 test "empty and odd bounds"
-  use "292_pythagoreanpolygons"
-  N = 0
-  run
+  use "292_pythagoreanpolygons" as solve
+  Answer = solve 0
 
   Answer equal 0
-  N = 3
-  run
+  Answer = solve 3
 
   Answer equal 0
-  N = 5
-  run
+  Answer = solve 5
 
   Answer equal 1
-  N = 12
-  run
+  Answer = solve 12
 
   Answer equal 35
-  N = 13
-  run
+  Answer = solve 13
 
   Answer equal 35
 end

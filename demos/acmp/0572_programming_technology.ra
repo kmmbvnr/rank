@@ -97,4 +97,4 @@ if Count greater 0
   Answer = CntTxt + "\n" + ChTxt
 end
 
-Answer print
+return Answer

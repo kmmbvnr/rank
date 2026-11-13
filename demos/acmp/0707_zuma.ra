@@ -243,4 +243,4 @@ Tokens = (
 StartStr = Tokens 0
 
 Ans = StartStr solve_zuma
-Ans print
+return Ans

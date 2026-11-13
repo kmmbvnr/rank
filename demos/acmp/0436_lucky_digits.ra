@@ -104,3 +104,7 @@ if BestL equal 0
 end
 
 (tuple BestD BestL) print
+return record
+  .best_d = BestD
+  .best_l = BestL
+end

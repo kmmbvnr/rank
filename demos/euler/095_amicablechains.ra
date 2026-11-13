@@ -42,4 +42,7 @@ Cycle = Lens equal Back copy
 Long = Lens Cycle max
 Best = Cycle and Lens equal Long copy
 Answer = Best indices first + 1
-Answer print
+return record
+  .answer = Answer
+  .long = Long
+end

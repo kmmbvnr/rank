@@ -62,4 +62,4 @@ if D less M and M at most N
     end
   end
 end
-Answer print
+return Answer

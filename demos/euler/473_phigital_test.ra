@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "473_phigital"
-  L = 1000
-  run
+  use "473_phigital" as solve
+  Answer = solve 1000
   Answer equal 4345
 end
 
 test "brute force limits"
-  use "473_phigital"
-  L = 100
-  run
+  use "473_phigital" as solve
+  Answer = solve 100
   Answer equal 281
-  L = 5000
-  run
+  Answer = solve 5000
   Answer equal 61601
 end

@@ -2,51 +2,45 @@ rem ACMP 0861: Shards tests
 use testing
 
 test "ACMP 861: N = 1"
-  use "0861_shards"
-  Input = "1"
-  run
+  use "0861_shards" as solve
+  Result = solve "1"
   Result equal "1"
 end
 
 test "ACMP 861: N = 6"
-  use "0861_shards"
-  Input = "6"
-  run
+  use "0861_shards" as solve
+  Result = solve "6"
   Result equal "15"
 end
 
 test "ACMP 861: N = 12"
-  use "0861_shards"
-  Input = "12"
-  run
+  use "0861_shards" as solve
+  Result = solve "12"
   Result equal "40"
 end
 
 test "ACMP 861: Prime N = 17"
-  use "0861_shards"
-  Input = "17"
-  run
+  use "0861_shards" as solve
+  Result = solve "17"
   Result equal "33"
 end
 
 test "ACMP 861: Power of two N = 64"
-  use "0861_shards"
-  Input = "64"
-  run
+  use "0861_shards" as solve
+  Result = solve "64"
   Result equal "256"
 end
 
 test "Max constraint N = 10^18"
-  use "0861_shards"
-  Input = "1000000000000000000"
-  run
+  use "0861_shards" as solve
+  Result = solve "1000000000000000000"
   Exp = "154000000000000000000"
   Result equal Exp
 end
 
 test "Large N = 999999999999999999"
-  use "0861_shards"
-  run
+  use "0861_shards" as solve
+  Result = solve
   Exp = "384206296931793861525"
   Result equal Exp
 end

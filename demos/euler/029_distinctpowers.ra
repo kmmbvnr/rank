@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 100
 
 Answer = Limit distinct_powers
-Answer print
+return Answer
 
 
 rem Exact integers make equality sufficient;

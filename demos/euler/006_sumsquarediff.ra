@@ -17,4 +17,4 @@ Squares' = Range ** 2
 SumOfSquares = Squares sum
 
 Answer = SquareOfSum - SumOfSquares
-Answer print
+return Answer

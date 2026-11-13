@@ -85,4 +85,4 @@ Pows = Vec Suits Mod powmod
 Total = Pows sum mod Mod
 Scale = Wide (Mod - 2) Mod powmod
 Answer = Total * Scale mod Mod
-Answer print
+return Answer

@@ -14,4 +14,4 @@ rem over primes p of n. More primes win,
 rem so take the largest primorial.
 Prods' = primes scan * with 1
 Answer = Prods till greater Limit last
-Answer print
+return Answer

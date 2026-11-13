@@ -294,3 +294,8 @@ end
 
 WinText = AnsLines join "\n"
 Ans = Won choose WinText "IMPOSSIBLE"
+return record
+  .ans = Ans
+  .num_moves = NumMoves
+  .won = Won
+end

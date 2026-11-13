@@ -14,10 +14,8 @@ test "sqrt two plus sqrt three"
 end
 
 test "small sum"
-  use "318_nines"
-  Top = 5
-  Nines = 1
-  run
+  use "318_nines" as solve
+  Answer = solve 5 1
 
   Answer equal 8
 end

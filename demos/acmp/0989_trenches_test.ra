@@ -1,13 +1,23 @@
 use testing
 
 test "sample 1: vertical separation"
-  use "0989_trenches"
-  Input = "0 1 1 2
+  use "0989_trenches" as solve
+  Out = solve "0 1 1 2
 0 -1 1 0
 
 0 0 0 0
 0 0 0 0"
-  run
+  AnsA = Out .ans_a
+  AnsB = Out .ans_b
+  AnsC = Out .ans_c
+  U1 = Out .u1
+  U2 = Out .u2
+  V1 = Out .v1
+  V2 = Out .v2
+  X1 = Out .x1
+  X2 = Out .x2
+  Y1 = Out .y1
+  Y2 = Out .y2
 
   XAll = array X1 X2 U1 U2
   YAll = array Y1 Y2 V1 V2
@@ -33,13 +43,23 @@ test "sample 1: vertical separation"
 end
 
 test "sample 2: separating crossed"
-  use "0989_trenches"
-  Input = "0 1 -1 2
+  use "0989_trenches" as solve
+  Out = solve "0 1 -1 2
 0 -1 -1 0
 
 0 0 0 0
 0 0 0 0"
-  run
+  AnsA = Out .ans_a
+  AnsB = Out .ans_b
+  AnsC = Out .ans_c
+  U1 = Out .u1
+  U2 = Out .u2
+  V1 = Out .v1
+  V2 = Out .v2
+  X1 = Out .x1
+  X2 = Out .x2
+  Y1 = Out .y1
+  Y2 = Out .y2
 
   XAll = array X1 X2 U1 U2
   YAll = array Y1 Y2 V1 V2
@@ -65,13 +85,23 @@ test "sample 2: separating crossed"
 end
 
 test "parallel segments along x axis"
-  use "0989_trenches"
-  Input = "0 5 10 5
+  use "0989_trenches" as solve
+  Out = solve "0 5 10 5
 0 -5 10 -5
 
 0 0 0 0
 0 0 0 0"
-  run
+  AnsA = Out .ans_a
+  AnsB = Out .ans_b
+  AnsC = Out .ans_c
+  U1 = Out .u1
+  U2 = Out .u2
+  V1 = Out .v1
+  V2 = Out .v2
+  X1 = Out .x1
+  X2 = Out .x2
+  Y1 = Out .y1
+  Y2 = Out .y2
 
   XAll = array X1 X2 U1 U2
   YAll = array Y1 Y2 V1 V2
@@ -97,13 +127,23 @@ test "parallel segments along x axis"
 end
 
 test "collinear separated segments"
-  use "0989_trenches"
-  Input = "0 1 0 3
+  use "0989_trenches" as solve
+  Out = solve "0 1 0 3
 0 5 0 8
 
 0 0 0 0
 0 0 0 0"
-  run
+  AnsA = Out .ans_a
+  AnsB = Out .ans_b
+  AnsC = Out .ans_c
+  U1 = Out .u1
+  U2 = Out .u2
+  V1 = Out .v1
+  V2 = Out .v2
+  X1 = Out .x1
+  X2 = Out .x2
+  Y1 = Out .y1
+  Y2 = Out .y2
 
   XAll = array X1 X2 U1 U2
   YAll = array Y1 Y2 V1 V2

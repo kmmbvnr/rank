@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "791_averagevariance"
-  Limit = 5
-  run
+  use "791_averagevariance" as solve
+  Answer = solve 5
   Answer equal 48
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 37048340
 end

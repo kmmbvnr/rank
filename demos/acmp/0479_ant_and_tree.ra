@@ -79,3 +79,4 @@ else
   Answer = Dist round 3
   Answer print
 end
+return Answer

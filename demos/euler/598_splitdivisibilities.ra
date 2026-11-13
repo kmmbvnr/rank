@@ -145,4 +145,4 @@ for J in 0 till (K1 len)
   end
 end
 Answer = M // 2
-Answer print
+return Answer

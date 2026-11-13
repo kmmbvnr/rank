@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "797_cyclogenic"
-  Limit = 10
-  run
+  use "797_cyclogenic" as solve
+  Answer = solve 10
   Answer equal 5598
 end

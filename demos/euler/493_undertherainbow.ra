@@ -16,4 +16,4 @@ Q = ((C - 1) * B) binomial D
 T = C * B binomial D
 E = C * (1.0 - Q * 1.0 / T)
 Answer = E text ".9f"
-Answer print
+return Answer

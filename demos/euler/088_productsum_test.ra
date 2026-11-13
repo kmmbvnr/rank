@@ -1,32 +1,28 @@
 use testing
 
 test "default input"
-  use "088_productsum"
-  run
+  use "088_productsum" as solve
+  Answer = solve
 
   Answer equal 7587457
 end
 
 test "statement sizes up to 6 and 12"
-  use "088_productsum"
-  Limit = 6
-  run
+  use "088_productsum" as solve
+  Answer = solve 6
 
   Answer equal 30
-  Limit = 12
-  run
+  Answer = solve 12
 
   Answer equal 61
 end
 
 test "smallest sizes"
-  use "088_productsum"
-  Limit = 2
-  run
+  use "088_productsum" as solve
+  Answer = solve 2
 
   Answer equal 4
-  Limit = 3
-  run
+  Answer = solve 3
 
   Answer equal 10
 end

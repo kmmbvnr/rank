@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "070_totientperm"
-  run
+  use "070_totientperm" as solve
+  Answer = solve
 
   Answer equal 8319823
 end
 
 test "smaller limit"
-  use "070_totientperm"
-  Limit = 1000000
-  run
+  use "070_totientperm" as solve
+  Answer = solve 1000000
 
   Answer equal 783169
 end

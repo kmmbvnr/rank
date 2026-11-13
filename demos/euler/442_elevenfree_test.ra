@@ -1,27 +1,23 @@
 use testing
 
 test "statement values"
-  use "442_elevenfree"
-  N = 3
-  run
+  use "442_elevenfree" as solve
+  Answer = solve 3
   Answer equal 3
-  N = 200
-  run
+  Answer = solve 200
   Answer equal 213
-  N = 500000
-  run
+  Answer = solve 500000
   Answer equal 531563
 end
 
 test "forbidden powers of eleven"
-  use "442_elevenfree"
-  N = 120
-  run
+  use "442_elevenfree" as solve
+  Answer = solve 120
   Answer equal 132
 end
 
 test "default input"
-  use "442_elevenfree"
-  run
+  use "442_elevenfree" as solve
+  Answer = solve
   Answer equal 1295552661530920149
 end

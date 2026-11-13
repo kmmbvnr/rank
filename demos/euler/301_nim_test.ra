@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "301_nim"
-  run
+  use "301_nim" as solve
+  Answer = solve
 
   Answer equal 2178309
 end
 
 test "small bit counts"
-  use "301_nim"
-  Bits = 3
-  run
+  use "301_nim" as solve
+  Answer = solve 3
 
   Answer equal 5
-  Bits = 10
-  run
+  Answer = solve 10
 
   Answer equal 144
 end

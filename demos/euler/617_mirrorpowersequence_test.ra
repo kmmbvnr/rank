@@ -1,26 +1,21 @@
 use testing
 
 test "default input"
-  use "617_mirrorpowersequence"
-  run
+  use "617_mirrorpowersequence" as solve
+  Answer = solve
   Answer equal 1001133757
 end
 
 test "statement values"
-  use "617_mirrorpowersequence"
-  N = 10
-  run
+  use "617_mirrorpowersequence" as solve
+  Answer = solve 10
   Answer equal 2
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 21
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 69
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 1303
-  N = 1000000000000
-  run
+  Answer = solve 1000000000000
   Answer equal 1014800
 end

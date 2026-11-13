@@ -38,4 +38,4 @@ Answer = Sv sum mod P
 if Kk greater 0
   Answer = Sv 0
 end
-Answer print
+return Answer

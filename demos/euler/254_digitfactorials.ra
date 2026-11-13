@@ -41,7 +41,7 @@ for I in 1 to Top
   Total += I digit_factorial_score Fa Dd Length
 end
 Answer = Total
-Answer print
+return Answer
 
 fun I digit_factorial_score Fa Dd Length
   Sg = 0

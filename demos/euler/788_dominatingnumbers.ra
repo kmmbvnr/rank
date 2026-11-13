@@ -46,4 +46,4 @@ for Len in 1 to Digits
   Total = Add sum
   Answer = (Answer + Total) mod Mod
 end
-Answer print
+return Answer

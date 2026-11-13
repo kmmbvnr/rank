@@ -196,4 +196,4 @@ if N equal 0
   Answer = 0
 end
 Answer = Answer mod Mod
-Answer print
+return Answer

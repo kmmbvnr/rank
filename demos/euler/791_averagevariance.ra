@@ -67,4 +67,4 @@ for Index in 0 to (Last - 1) // 2
   Part = Part1 + Part2
   Answer = (Answer + Part) mod Mod
 end
-Answer print
+return Answer

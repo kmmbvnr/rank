@@ -24,4 +24,4 @@ Answer = Mod3 count
 Answer += By4 count
 Answer += By16 count
 Answer += Fix count
-Answer print
+return Answer

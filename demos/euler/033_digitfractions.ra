@@ -7,7 +7,7 @@ use numbers
 use io
 
 Answer = 10 digit_fraction_denominator 99
-Answer print
+return Answer
 
 
 rem Test every proper fraction once and keep

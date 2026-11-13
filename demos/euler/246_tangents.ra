@@ -51,4 +51,4 @@ Zero' = Low equal 0
 Per' = 2 * Cnt - (Zero choose 1 0)
 Used' = Ok and (Top at least Low)
 Answer = Used choose Per 0 sum
-Answer print
+return Answer

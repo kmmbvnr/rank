@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "598_splitdivisibilities"
-  N = 10
-  run
+  use "598_splitdivisibilities" as solve
+  Answer = solve 10
   Answer equal 3
 end

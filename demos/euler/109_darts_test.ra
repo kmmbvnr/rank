@@ -1,31 +1,32 @@
 use testing
 
 test "default input"
-  use "109_darts"
+  use "109_darts" as solve
   use sequences
-  run
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 38182
 end
 
 test "smaller limits"
-  use "109_darts"
+  use "109_darts" as solve
   use sequences
-  Limit = 7
-  run
+  Out = solve 7
+  Answer = Out .answer
 
   Answer equal 22
-  Limit = 8
-  run
+  Out = solve 8
+  Answer = Out .answer
 
   Answer equal 34
 end
 
 test "ways to check out with six"
-  use "109_darts"
+  use "109_darts" as solve
   use sequences
-  Limit = 7
-  run
+  Out = solve 7
+  Direct = Out .direct
 
   Direct count equal 3
 end

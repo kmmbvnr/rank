@@ -139,4 +139,4 @@ Square = Product * Product
 Moment = 2 * Product * Moment1
 Bad = 1 + Moment - Moment2
 Answer = (Square - Bad) mod Mod
-Answer print
+return Answer

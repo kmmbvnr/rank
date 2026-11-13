@@ -14,7 +14,6 @@ Weights = english_weights
 Key = Cipher best_key Weights
 Plain = Cipher decrypt Key
 Answer = Plain sum
-Answer print
 
 
 rem Stream the three-letter keys without building a matrix.
@@ -84,4 +83,10 @@ fun Cipher best_key Weights
   B1 = ((Cipher (1 till Size by 3)) copy) best_byte Weights
   B2 = ((Cipher (2 till Size by 3)) copy) best_byte Weights
   return array B0 B1 B2
+end
+return record
+  .answer = Answer
+  .cipher = Cipher
+  .key = Key
+  .plain = Plain
 end

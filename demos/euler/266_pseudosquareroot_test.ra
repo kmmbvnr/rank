@@ -3,17 +3,14 @@ use testing
 rem Small limits independently check
 rem the divisor search.
 test "small limits"
-  use "266_pseudosquareroot"
-  Limit = 20
-  run
+  use "266_pseudosquareroot" as solve
+  Answer = solve 20
 
   Answer equal 3094
-  Limit = 30
-  run
+  Answer = solve 30
 
   Answer equal 79534
-  Limit = 40
-  run
+  Answer = solve 40
 
   Answer equal 2714690
 end

@@ -1,49 +1,43 @@
 use testing
 
 test "sample 1: N = 1, K = 1 -> 2"
-  use "0644_time_key_2"
-  Input = "1 1"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "1 1"
 
   Ans equal 2
 end
 
 test "sample 2: N = 1, K = 10 -> 22"
-  use "0644_time_key_2"
-  Input = "1 10"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "1 10"
 
   Ans equal 22
 end
 
 test "sample 3: N = 2, K = 3 -> 7"
-  use "0644_time_key_2"
-  Input = "2 3"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "2 3"
 
   Ans equal 7
 end
 
 test "boundary: N = 6, K = 1 -> 8"
-  use "0644_time_key_2"
-  Input = "6 1"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "6 1"
 
   Ans equal 8
 end
 
 test "stress test: N = 1, K = 2*10^9"
-  use "0644_time_key_2"
-  Input = "1 2000000000"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "1 2000000000"
 
   Ans equal 34179892637
 end
 
 test "stress: N = 2*10^9, K = 2*10^9"
-  use "0644_time_key_2"
-  Input = "2000000000 2000000000"
-  run
+  use "0644_time_key_2" as solve
+  Ans = solve "2000000000 2000000000"
 
   Ans equal 36359345582
 end

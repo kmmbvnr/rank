@@ -90,4 +90,4 @@ Ln = En - St + 1
 Sg = Ln mod 2 equal 1 integer
 Sg = Sg * (1 - 2 * (St mod 2))
 Answer = Sg * Mv sum
-Answer print
+return Answer

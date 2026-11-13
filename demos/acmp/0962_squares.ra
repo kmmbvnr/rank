@@ -235,3 +235,4 @@ if not (N less 4)
 end
 
 TotalPairs text
+return TotalPairs

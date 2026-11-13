@@ -130,4 +130,4 @@ for R in 0 till N
   Total = Total + RowTotal
 end
 
-Total text print
+return Total

@@ -1,25 +1,21 @@
 use testing
 
 test "statement value"
-  use "637_flexibledigitsum"
-  N = 100
-  run
+  use "637_flexibledigitsum" as solve
+  Answer = solve 100
   Answer equal 3302
 end
 
 test "brute force"
-  use "637_flexibledigitsum"
-  N = 1000
-  run
+  use "637_flexibledigitsum" as solve
+  Answer = solve 1000
   Answer equal 422582
 end
 
 test "full-scale checkpoint"
-  use "637_flexibledigitsum"
-  N = 100000
-  run
+  use "637_flexibledigitsum" as solve
+  Answer = solve 100000
   Answer equal 4727592381
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 482603537896
 end

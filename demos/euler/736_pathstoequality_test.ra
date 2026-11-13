@@ -1,17 +1,13 @@
 use testing
 
 test "shortest path of the example"
-  use "736_pathstoequality"
-  Least = 1
-  Step = 1
-  run
+  use "736_pathstoequality" as solve
+  Answer = solve 98 1 1
   Answer equal 1476
 end
 
 test "default input"
-  use "736_pathstoequality"
-  Least = 2
-  Step = 2
-  run
+  use "736_pathstoequality" as solve
+  Answer = solve 98 2 2
   Answer equal 25332747903959376
 end

@@ -1,22 +1,18 @@
 use testing
 
 test "default input"
-  use "200_primeproofsqube"
-  run
+  use "200_primeproofsqube" as solve
+  Answer = solve
 
   Answer equal 229161792008
 end
 
 test "first prime-proof squbes"
-  use "200_primeproofsqube"
-  N = 1
-  Bound = 200
-  run
+  use "200_primeproofsqube" as solve
+  Answer = solve 1 200
 
   Answer equal 200
-  N = 2
-  Bound = 2000000
-  run
+  Answer = solve 2 2000000
 
   Answer equal 1992008
 end

@@ -1,16 +1,18 @@
 use testing
 
 test "default input"
-  use "138_isosceles"
-  run
+  use "138_isosceles" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 1118049290473932
 end
 
 test "first legs"
-  use "138_isosceles"
-  Count = 3
-  run
+  use "138_isosceles" as solve
+  Out = solve 3
+  Answer = Out .answer
+  Legs = Out .legs
 
   Legs equal (array 17 305 5473)
   Answer equal 5795

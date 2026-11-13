@@ -128,4 +128,4 @@ end
 
 Offsets = 0 to 5
 Answer = Offsets subtotal rank 0 sum
-Answer print
+return Answer

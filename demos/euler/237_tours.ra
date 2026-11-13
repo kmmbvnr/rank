@@ -36,4 +36,4 @@ for B in 0 to 40
 end
 Last' = Acc matmul Start
 Answer = (Last 0) mod Mod
-Answer print
+return Answer

@@ -33,4 +33,4 @@ for Size greater 0
 end
 
 Answer = Result
-Answer print
+return Answer

@@ -215,4 +215,4 @@ Dm = (array Half) dvec 0
 Ab = 4 * (Aval - Bval)
 Whole = 2 * (Dm 0) + Ab - 4 * Cval
 Answer = Whole mod Mod
-Answer print
+return Answer

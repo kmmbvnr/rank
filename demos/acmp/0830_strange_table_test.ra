@@ -2,44 +2,38 @@ rem ACMP 0830: Strange Table tests
 use testing
 
 test "ACMP 830: Sample 1 (1 1)"
-  use "0830_strange_table"
-  Input = "1 1"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "1 1"
   Result equal "2"
 end
 
 test "ACMP 830: Sample 2 (1 2)"
-  use "0830_strange_table"
-  Input = "1 2"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "1 2"
   Result equal "7"
 end
 
 test "ACMP 830: 3x3 table (2 2)"
-  use "0830_strange_table"
-  Input = "2 2"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "2 2"
   Result equal "12"
 end
 
 test "ACMP 830: Asymmetric (3 5)"
-  use "0830_strange_table"
-  Input = "3 5"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "3 5"
   Result equal "68"
 end
 
 test "ACMP 830: Power of two (7 7)"
-  use "0830_strange_table"
-  Input = "7 7"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "7 7"
   Result equal "224"
 end
 
 test "ACMP 830: Max constraints (10^9)"
-  use "0830_strange_table"
-  Input = "1000000000 1000000000"
-  run
+  use "0830_strange_table" as solve
+  Result = solve "1000000000 1000000000"
   Exp = "534192392660090329447216640"
   Result equal Exp
 end

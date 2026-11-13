@@ -2,15 +2,18 @@ use testing
 use sequences
 
 test "default input"
-  use "230_fibonaccwords"
-  run
+  use "230_fibonaccwords" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 850481152593119296
 end
 
 test "digits of the sum"
-  use "230_fibonaccwords"
-  run
+  use "230_fibonaccwords" as solve
+  use sequences
+  Out = solve
+  Digit = Out .digit
 
   Lo = array 6 9 2 9 1 1 3 9 5
   Hi = array 2 5 1 1 8 4 0 5 8

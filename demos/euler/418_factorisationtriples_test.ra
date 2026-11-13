@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "418_factorisationtriples"
-  Num = 165
-  run
+  use "418_factorisationtriples" as solve
+  Answer = solve 43 165
   Answer equal 19
-  Num = 100100
-  run
+  Answer = solve 43 100100
   Answer equal 142
 end
 
 test "twenty factorial"
-  use "418_factorisationtriples"
-  Fact = 20
-  run
+  use "418_factorisationtriples" as solve
+  Answer = solve 20
   Answer equal 4034872
 end

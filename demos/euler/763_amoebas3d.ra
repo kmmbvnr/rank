@@ -125,4 +125,4 @@ for Step in 1 to Last
   Bbuf Where = RowB
 end
 Answer = Qarr Last
-Answer print
+return Answer

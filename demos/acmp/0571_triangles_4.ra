@@ -122,4 +122,4 @@ for VRow in (H - 2) till -1 by -1
   end
 end
 
-Total print
+return Total

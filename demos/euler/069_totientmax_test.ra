@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "069_totientmax"
-  run
+  use "069_totientmax" as solve
+  Answer = solve
 
   Answer equal 510510
 end
 
 test "statement limit"
-  use "069_totientmax"
-  Limit = 10
-  run
+  use "069_totientmax" as solve
+  Answer = solve 10
 
   Answer equal 6
 end
 
 test "limit below the first primorial"
-  use "069_totientmax"
-  Limit = 1
-  run
+  use "069_totientmax" as solve
+  Answer = solve 1
 
   Answer equal 1
 end

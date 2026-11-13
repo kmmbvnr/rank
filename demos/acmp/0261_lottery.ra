@@ -83,4 +83,7 @@ fun get_cost Left Right Depth
 end
 
 Answer = get_cost 0 N 0
-Answer print
+return record
+  .answer = Answer
+  .delta = Delta
+end

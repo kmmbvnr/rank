@@ -99,4 +99,4 @@ for Trace in 2 to MaxTrace
   end
 end
 Answer = Total
-Answer print
+return Answer

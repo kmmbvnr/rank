@@ -31,4 +31,4 @@ if N greater 1
   Ans = Terms reduce *
   Result = Ans text
 end
-Result print
+return Result

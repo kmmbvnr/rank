@@ -70,4 +70,4 @@ for Jj in J to 0 by -1
   Gs Jj = F - Sb
 end
 Answer = Gs 0
-Answer print
+return Answer

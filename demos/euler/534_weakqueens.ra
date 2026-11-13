@@ -126,4 +126,4 @@ for Turn in 0 till N * (N - 1)
     end
   end
 end
-Answer print
+return Answer

@@ -1,65 +1,57 @@
 use testing
 
 test "sample 1: 0.1(6) * 3"
-  use "0455_fraction_multiplication"
-  Input = "0.1(6)\n3"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.1(6)\n3"
 
   Answer equal "0.5"
 end
 
 test "sample 2: 12.(3) * 2"
-  use "0455_fraction_multiplication"
-  Input = "12.(3)\n2"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "12.(3)\n2"
 
   Answer equal "24.(6)"
 end
 
 test "period completes: 0.(3) * 3"
-  use "0455_fraction_multiplication"
-  Input = "0.(3)\n3"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.(3)\n3"
 
   Answer equal "1"
 end
 
 test "shift period left: 0.5(3) * 5"
-  use "0455_fraction_multiplication"
-  Input = "0.5(3)\n5"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.5(3)\n5"
 
   Answer equal "2.(6)"
 end
 
 test "6-digit period: 0.(142857) * 7"
-  use "0455_fraction_multiplication"
-  Input = "0.(142857)\n7"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.(142857)\n7"
 
   Answer equal "1"
 end
 
 test "permuted: 0.(142857) * 2"
-  use "0455_fraction_multiplication"
-  Input = "0.(142857)\n2"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.(142857)\n2"
 
   Answer equal "0.(285714)"
 end
 
 test "trailing zero non-periodic"
-  use "0455_fraction_multiplication"
-  Input = "0.0(3)\n3"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "0.0(3)\n3"
 
   Answer equal "0.1"
 end
 
 test "non-periodic part: 1.25(3) * 3"
-  use "0455_fraction_multiplication"
-  Input = "1.25(3)\n3"
-  run
+  use "0455_fraction_multiplication" as solve
+  Answer = solve "1.25(3)\n3"
 
   Answer equal "3.76"
 end

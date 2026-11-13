@@ -562,4 +562,4 @@ else
   Ans = MinTotalAns
 end
 
-Ans print
+return Ans

@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "004_palproduct"
-  run
+  use "004_palproduct" as solve
+  Answer = solve
 
   Answer equal 906609
 end
 
 test "two-digit factors"
-  use "004_palproduct"
-  Digits = 2
-  run
+  use "004_palproduct" as solve
+  Answer = solve 2
 
   Answer equal 9009
 end
 
 test "one-digit factors"
-  use "004_palproduct"
-  Digits = 1
-  run
+  use "004_palproduct" as solve
+  Answer = solve 1
 
   Answer equal 9
 end

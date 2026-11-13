@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "582_nearlyisosceles"
-  run
+  use "582_nearlyisosceles" as solve
+  Answer = solve
   Answer equal 19903
 end
 
 test "statement values"
-  use "582_nearlyisosceles"
-  E = 3
-  run
+  use "582_nearlyisosceles" as solve
+  Answer = solve 3
   Answer equal 235
-  E = 8
-  run
+  Answer = solve 8
   Answer equal 1245
 end

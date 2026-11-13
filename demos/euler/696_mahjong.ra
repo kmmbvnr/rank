@@ -193,4 +193,4 @@ for Ee greater 0
   Ee = Ee // 2
 end
 Answer = (Ss mod P) * Rs Tt mod P
-Answer print
+return Answer

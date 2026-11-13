@@ -71,4 +71,7 @@ Cnt (Side Heads) = Sums
 Run' = Cnt scan +
 Over2' = Run greater Target
 Answer = Run first index where Over2
-Answer print
+return record
+  .answer = Answer
+  .run_value = Run
+end

@@ -26,4 +26,4 @@ for I in 1 to Terms
   Answer += Mat 0 9
   Answer mod= Mod
 end
-Answer print
+return Answer

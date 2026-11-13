@@ -1,37 +1,30 @@
 use testing
 
 test "small top"
-  use "283_integertriangles"
-  Top = 1
-  run
+  use "283_integertriangles" as solve
+  Answer = solve 1
 
   Answer equal 192
-  Top = 2
-  run
+  Answer = solve 2
 
   Answer equal 2796
-  Top = 5
-  run
+  Answer = solve 5
 
   Answer equal 140098
-  Top = 10
-  run
+  Answer = solve 10
 
   Answer equal 3781786
 end
 
 test "empty input and reduced factors"
-  use "283_integertriangles"
-  Top = 0
-  run
+  use "283_integertriangles" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Top = 3
-  run
+  Answer = solve 3
 
   Answer equal 17644
-  Top = 100
-  run
+  Answer = solve 100
 
   Answer equal 289620027474
 end

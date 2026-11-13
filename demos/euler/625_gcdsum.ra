@@ -75,4 +75,4 @@ Tl = Le // 2 mod M * (Lw mod M) mod M
 Sd = (Th - Tl) mod M
 Answer += Sd * Fs Qs mod M sum
 Answer = Answer mod M
-Answer print
+return Answer

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, type RankArray } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/524_firstsort2.ra', import.meta.url), 'utf8');
 const full = 2432925835413407847n;
@@ -59,7 +60,7 @@ describe.each([true, false])('Euler 524 (compilation=%s)', compilation => {
     it('matches all costs from permutations of at most eight elements', () => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
-            const declared = source.replace('arg K integer = 8916100448256', 'K = 0');
+            const declared = withoutReturn(source).replace('arg K integer = 8916100448256', 'K = 0');
             runtime.execute(declared + `
 fun Steps tested_rank rank 0
   Order = Steps first_order

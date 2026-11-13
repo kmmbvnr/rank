@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "601_divisibilitystreaks"
-  run
+  use "601_divisibilitystreaks" as solve
+  Answer = solve
   Answer equal 1617243
 end
 
 test "brute force"
-  use "601_divisibilitystreaks"
-  Top = 5
-  run
+  use "601_divisibilitystreaks" as solve
+  Answer = solve 5
   Answer equal 28
-  Top = 8
-  run
+  Answer = solve 8
   Answer equal 159
 end

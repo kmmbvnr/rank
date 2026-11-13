@@ -46,4 +46,4 @@ Won' = Pair filter (Vp greater V)
 Ways' = Won sum
 All = 4 ** Pn * 6 ** Cn
 Answer = Ways / All round 7
-Answer print
+return Answer

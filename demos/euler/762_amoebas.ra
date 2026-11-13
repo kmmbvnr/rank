@@ -29,4 +29,4 @@ Early = array 1 1 2 4 9 20 46 105 243
 Known = Early (Count min 8)
 Small = Count less 9
 Answer = Small choose Known (Window 7)
-Answer print
+return Answer

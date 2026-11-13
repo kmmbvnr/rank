@@ -82,4 +82,4 @@ fun solve_sabotage Input
 end
 
 Result = solve_sabotage Input
-Result print
+return Result

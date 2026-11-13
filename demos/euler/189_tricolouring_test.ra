@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "189_tricolouring"
-  run
+  use "189_tricolouring" as solve
+  Answer = solve
 
   Answer equal 10834893628237824
 end
 
 test "small grids"
-  use "189_tricolouring"
-  Rows = 2
-  run
+  use "189_tricolouring" as solve
+  Answer = solve 2
 
   Answer equal 24
-  Rows = 3
-  run
+  Answer = solve 3
 
   Answer equal 528
-  Rows = 4
-  run
+  Answer = solve 4
 
   Answer equal 31968
 end

@@ -1,18 +1,15 @@
 use testing
 
 test "default input"
-  use "561_divisorpairs"
-  run
+  use "561_divisorpairs" as solve
+  Answer = solve
   Answer equal 452480999988235494
 end
 
 test "statement and brute-force values"
-  use "561_divisorpairs"
-  N = 8
-  run
+  use "561_divisorpairs" as solve
+  Answer = solve 904961 8
   Answer equal 2714886
-  M = 3
-  N = 100
-  run
+  Answer = solve 3 100
   Answer equal 188
 end

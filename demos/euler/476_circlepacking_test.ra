@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "476_circlepacking"
-  N = 2
-  run
+  use "476_circlepacking" as solve
+  Answer = solve 2
   Answer equal 0.31998
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 1.25899
 end
 
 test "n = 50"
-  use "476_circlepacking"
-  N = 50
-  run
+  use "476_circlepacking" as solve
+  Answer = solve 50
   Answer equal 90.43267
 end

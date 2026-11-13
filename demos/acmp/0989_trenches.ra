@@ -103,3 +103,16 @@ for T in 0 till Total
   Line = array AnsA AnsB AnsC
   (Line join " ") print
 end
+return record
+  .ans_a = AnsA
+  .ans_b = AnsB
+  .ans_c = AnsC
+  .u1 = U1
+  .u2 = U2
+  .v1 = V1
+  .v2 = V2
+  .x1 = X1
+  .x2 = X2
+  .y1 = Y1
+  .y2 = Y2
+end

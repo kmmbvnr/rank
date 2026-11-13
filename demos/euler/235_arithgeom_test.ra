@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "235_arithgeom"
-  run
+  use "235_arithgeom" as solve
+  Answer = solve
 
   Answer equal 1.002322108633
 end
 
 test "another target"
-  use "235_arithgeom"
-  Target = -500000000000
-  run
+  use "235_arithgeom" as solve
+  Answer = solve 5000 -500000000000
 
   Answer equal 1.002282459509
 end

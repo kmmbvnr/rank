@@ -1,25 +1,21 @@
 use testing
 
 test "statement value for three"
-  use "155_capacitors"
-  Count = 3
-  run
+  use "155_capacitors" as solve
+  Answer = solve 3
 
   Answer equal 7
 end
 
 test "smaller counts"
-  use "155_capacitors"
-  Count = 10
-  run
+  use "155_capacitors" as solve
+  Answer = solve 10
 
   Answer equal 2525
-  Count = 12
-  run
+  Answer = solve 12
 
   Answer equal 15463
-  Count = 15
-  run
+  Answer = solve 15
 
   Answer equal 241519
 end

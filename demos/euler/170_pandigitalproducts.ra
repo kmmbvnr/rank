@@ -119,4 +119,4 @@ for P in Digs permutations
     break
   end
 end
-Answer print
+return Answer

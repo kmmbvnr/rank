@@ -22,7 +22,8 @@ fun Ang norm_ang
 end
 
 fun solve_bike Input
-  Raw1 = Input split "" join " "
+  Raw1 = Input split "
+" join " "
   Raw2 = Raw1 split "
 " join " "
   RawToks = Raw2 split " "
@@ -202,4 +203,4 @@ fun solve_bike Input
 end
 
 Result = solve_bike Input
-Result print
+return Result

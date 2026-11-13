@@ -1,26 +1,22 @@
 use testing
 
 test "published counts"
-  use "302_strongachilles"
-  Limit = 10000
-  run
+  use "302_strongachilles" as solve
+  Answer = solve 10000
 
   Answer equal 7
-  Limit = 100000000
-  run
+  Answer = solve 100000000
 
   Answer equal 656
 end
 
 
 test "small powerful non-powers"
-  use "302_strongachilles"
-  Limit = 1000
-  run
+  use "302_strongachilles" as solve
+  Answer = solve 1000
 
   Answer equal 2
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 99
 end

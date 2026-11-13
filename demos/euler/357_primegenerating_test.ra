@@ -1,23 +1,17 @@
 use testing
 
 test "prime generators"
-  use "357_primegenerating"
-  Limit = 0
-  run
+  use "357_primegenerating" as solve
+  Answer = solve 0
   Answer equal 0
-  Limit = 1
-  run
+  Answer = solve 1
   Answer equal 1
-  Limit = 2
-  run
+  Answer = solve 2
   Answer equal 3
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 19
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 401
-  Limit = 10000
-  run
+  Answer = solve 10000
   Answer equal 262615
 end

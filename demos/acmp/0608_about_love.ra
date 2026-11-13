@@ -321,10 +321,15 @@ Ans = "NO"
 if Found
   Ans = "YES"
 end
-Ans print
 if Found
   TxtX = AnsX text
   TxtY = AnsY text
   PosStr = TxtX + " " + TxtY
   PosStr print
+end
+return record
+  .ans = Ans
+  .ans_x = AnsX
+  .ans_y = AnsY
+  .found = Found
 end

@@ -362,4 +362,4 @@ Base = Small (Small at most N)
 Total = Solutions sum
 Extra = Base sum
 Answer = Total + Extra
-Answer print
+return Answer

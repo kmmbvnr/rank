@@ -1,24 +1,19 @@
 use testing
 
 test "statement value and brute force"
-  use "534_weakqueens"
-  N = 4
-  run
+  use "534_weakqueens" as solve
+  Answer = solve 4
   Answer equal 276
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 3347
 end
 
 test "small and impossible fronts"
-  use "534_weakqueens"
-  N = 1
-  run
+  use "534_weakqueens" as solve
+  Answer = solve 1
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 4
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 29
 end

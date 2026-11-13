@@ -82,4 +82,4 @@ end
 A = N C P0 solvep
 B = N C P1 solvep
 Answer = A crt B
-Answer print
+return Answer

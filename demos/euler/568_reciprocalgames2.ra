@@ -31,4 +31,4 @@ Fl = Fr floor
 Fr = Fr - Fl
 Pw = 10.0 ** (Fr + 6)
 Answer = Pw floor integer
-Answer print
+return Answer

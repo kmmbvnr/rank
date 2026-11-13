@@ -66,4 +66,4 @@ for
   B = concat B1 B2 B3 copy
   C = concat C1 C2 C3 copy
 end
-Answer print
+return Answer

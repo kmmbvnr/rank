@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "116_tiles1"
-  run
+  use "116_tiles1" as solve
+  Answer = solve
 
   Answer equal 20492570929
 end
 
 test "statement row of five"
-  use "116_tiles1"
-  Size = 5
-  run
+  use "116_tiles1" as solve
+  Answer = solve 5
 
   Answer equal 12
 end
 
 test "row too short for any tile"
-  use "116_tiles1"
-  Size = 1
-  run
+  use "116_tiles1" as solve
+  Answer = solve 1
 
   Answer equal 0
 end

@@ -96,4 +96,4 @@ Iy = Gy (P - 2) P powmod
 Tot = Sg * Xn * Ix + Xd * Ix
 Tot += Sg * Yn * Iy + Xd * Iy
 Answer = Tot mod P
-Answer print
+return Answer

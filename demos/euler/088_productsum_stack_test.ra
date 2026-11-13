@@ -2,34 +2,38 @@ use testing
 use sequences
 
 test "default input"
-  use "088_productsum_stack"
-  run
+  use "088_productsum_stack" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 7587457
 end
 
 test "statement sizes up to 6 and 12"
-  use "088_productsum_stack"
-  Limit = 6
-  run
+  use "088_productsum_stack" as solve
+  use sequences
+  Out = solve 6
+  Answer = Out .answer
+  Best = Out .best
 
   Answer equal 30
   ((Best drop 2) equal (array 4 6 8 8 12)) all
-  Limit = 12
-  run
+  Out = solve 12
+  Answer = Out .answer
+  Best = Out .best
 
   Answer equal 61
   ((Best drop 2) equal (array 4 6 8 8 12 12 12 15 16 16 16)) all
 end
 
 test "smallest sizes"
-  use "088_productsum_stack"
-  Limit = 2
-  run
+  use "088_productsum_stack" as solve
+  Out = solve 2
+  Answer = Out .answer
 
   Answer equal 4
-  Limit = 3
-  run
+  Out = solve 3
+  Answer = Out .answer
 
   Answer equal 10
 end

@@ -83,4 +83,4 @@ for Bt in Nb - 2 to 0 by -1
 end
 Se = Sa (Ev + 2 * (0 to K - 1))
 Answer = Rs * Se mod P sum mod P
-Answer print
+return Answer

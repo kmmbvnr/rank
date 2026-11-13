@@ -1,15 +1,13 @@
 use testing
 
 test "statement values"
-  use "741_binarygrid"
-  Small = 7
-  Large = 8
-  run
+  use "741_binarygrid" as solve
+  Answer = solve 7 8
   Answer equal 23853163
 end
 
 test "default input"
-  use "741_binarygrid"
-  run
+  use "741_binarygrid" as solve
+  Answer = solve
   Answer equal 512895223
 end

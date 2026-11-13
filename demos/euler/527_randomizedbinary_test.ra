@@ -2,9 +2,11 @@ use testing
 use numbers
 
 test "n = 6"
-  use "527_randomizedbinary"
-  N = 6
-  run
+  use "527_randomizedbinary" as solve
+  use numbers
+  Out = solve 6
+  Bn = Out .bn
+  Rn = Out .rn
   ((Bn - 7 / 3) abs) less 0.000000001
   Er = (Rn - 163 / 60) abs
   Er less 0.000000001

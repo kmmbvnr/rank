@@ -40,4 +40,4 @@ Fs = fibonacci take (S + 2) array
 Fib = concat (array 0 1) Fs
 Luc' = (Fib take S) + (Fib drop 2 take S)
 Answer = (Luc (Lens - 1)) reduce *
-Answer print
+return Answer

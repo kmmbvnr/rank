@@ -1,14 +1,11 @@
 use testing
 
 test "brute-force sums"
-  use "581_smoothtriangular"
-  B = 100
-  run
+  use "581_smoothtriangular" as solve
+  Answer = solve 100
   Answer equal 9315
-  B = 1000
-  run
+  Answer = solve 1000
   Answer equal 216276
-  B = 5000
-  run
+  Answer = solve 5000
   Answer equal 1337437
 end

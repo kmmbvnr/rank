@@ -1,32 +1,28 @@
 use testing
 
 test "default input"
-  use "269_integerroot"
-  run
+  use "269_integerroot" as solve
+  Answer = solve
 
   Answer equal 1311109198529286
 end
 
 test "few digits"
-  use "269_integerroot"
-  K = 3
-  run
+  use "269_integerroot" as solve
+  Answer = solve 3
 
   Answer equal 172
-  K = 5
-  run
+  Answer = solve 5
 
   Answer equal 14696
 end
 
 test "fewer digits than divisor degree"
-  use "269_integerroot"
-  K = 1
-  run
+  use "269_integerroot" as solve
+  Answer = solve 1
 
   Answer equal 1
-  K = 2
-  run
+  Answer = solve 2
 
   Answer equal 33
 end

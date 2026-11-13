@@ -1,21 +1,15 @@
 use testing
 
 test "statement value"
-  use "485_maxdivisors"
-  U = 1000
-  K = 10
-  run
+  use "485_maxdivisors" as solve
+  Answer = solve 1000 10
   Answer equal 17176
 end
 
 test "window across blocks"
-  use "485_maxdivisors"
-  U = 1000003
-  K = 1000
-  Bs = 1000000
-  run
+  use "485_maxdivisors" as solve
+  Answer = solve 1000003 1000 1000000
   Answer equal 140671598
-  Bs = 77777
-  run
+  Answer = solve 1000003 1000 77777
   Answer equal 140671598
 end

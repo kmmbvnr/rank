@@ -1,57 +1,50 @@
 use testing
 
 test "sample 1: 4 boxes K=3 -> 8"
-  use "0646_sweet_treats"
-  Input = "4 3\n1 2 3 2"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "4 3\n1 2 3 2"
 
   Ways equal 8
 end
 
 test "sample 2: 5 boxes K=67 -> 6"
-  use "0646_sweet_treats"
-  Input = "5 67\n10 22 30 41 50"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "5 67\n10 22 30 41 50"
 
   Ways equal 6
 end
 
 test "sample 3: insufficient candies"
-  use "0646_sweet_treats"
-  Input = "3 6\n4 1 5"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "3 6\n4 1 5"
 
   Ways equal 0
 end
 
 test "exact boundary: sum = 2*K"
-  use "0646_sweet_treats"
-  Input = "2 5\n5 5"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "2 5\n5 5"
 
   Ways equal 2
 end
 
 test "all boxes exceed K individually"
-  use "0646_sweet_treats"
-  Input = "3 10\n20 30 40"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "3 10\n20 30 40"
 
   Ways equal 6
 end
 
 test "single box cannot satisfy both"
-  use "0646_sweet_treats"
-  Input = "1 5\n10"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "1 5\n10"
 
   Ways equal 0
 end
 
 test "uniform boxes combinatorial"
-  use "0646_sweet_treats"
-  Input = "6 3\n1 1 1 1 1 1"
-  run
+  use "0646_sweet_treats" as solve
+  Ways = solve "6 3\n1 1 1 1 1 1"
 
   Ways equal 20
 end

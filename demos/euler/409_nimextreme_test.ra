@@ -1,37 +1,31 @@
 use testing
 
 test "statement values"
-  use "409_nimextreme"
-  N = 1
-  run
+  use "409_nimextreme" as solve
+  Answer = solve 1
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 6
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 168
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 19764360
 end
 
 test "brute force for four heaps"
-  use "409_nimextreme"
-  N = 4
-  run
+  use "409_nimextreme" as solve
+  Answer = solve 4
   Answer equal 30240
 end
 
 test "one hundred heaps"
-  use "409_nimextreme"
-  N = 100
-  run
+  use "409_nimextreme" as solve
+  Answer = solve 100
   Answer equal 384777056
 end
 
 test "default input"
-  use "409_nimextreme"
-  run
+  use "409_nimextreme" as solve
+  Answer = solve
   Answer equal 253223948
 end

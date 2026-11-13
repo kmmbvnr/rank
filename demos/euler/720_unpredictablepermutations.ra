@@ -43,4 +43,4 @@ Back = Facts reverse
 Weights = Lehmer * Back mod Prime
 Total = Weights sum
 Answer = (1 + Total) mod Prime
-Answer print
+return Answer

@@ -318,4 +318,4 @@ if N at least 11
   Results = Triples icing
   Answer = Results sum
 end
-Answer print
+return Answer

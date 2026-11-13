@@ -1,10 +1,15 @@
 use testing
 
 test "default input, statement indices and candidates"
-  use "104_pandigitalfib"
+  use "104_pandigitalfib" as solve
   use numbers
   use sequences
-  run
+  Out = solve
+  Answer = Out .answer
+  Cands = Out .cands
+  Good = Out .good
+  Heads = Out .heads
+  Tail = Out .tail
 
   Answer equal 329468
   Cands 0 equal 541

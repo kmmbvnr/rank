@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "277_modifiedcollatz"
-  run
+  use "277_modifiedcollatz" as solve
+  Answer = solve
 
   Answer equal 1125977393124310
 end
 
 test "smaller limit"
-  use "277_modifiedcollatz"
-  Limit = 1000000
-  run
+  use "277_modifiedcollatz" as solve
+  Answer = solve 1000000
 
   Answer equal 96521732651065
 end

@@ -45,4 +45,4 @@ Mixed = (Terms sum) mod Mod
 Extra = 5 * Phi mod Mod
 Both = (Mixed + Extra) mod Mod
 Answer = Prod * Both mod Mod
-Answer print
+return Answer

@@ -92,4 +92,4 @@ if Kc greater 0
   Ga = (Ta + Da) // 2
   Answer = Ga + Kc * (Answer - Ga)
 end
-Answer print
+return Answer

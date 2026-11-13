@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "464_mobiusintervals"
-  N = 10
-  run
+  use "464_mobiusintervals" as solve
+  Answer = solve 10
   Answer equal 13
-  N = 500
-  run
+  Answer = solve 500
   Answer equal 16676
 end
 
 test "n = 10000"
-  use "464_mobiusintervals"
-  N = 10000
-  run
+  use "464_mobiusintervals" as solve
+  Answer = solve 10000
   Answer equal 20155319
 end

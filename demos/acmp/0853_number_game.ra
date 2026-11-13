@@ -155,3 +155,7 @@ else
   Out = Line1 + "\n" + Line2
   Out print
 end
+return record
+  .win_count = WinCount
+  .winners = Winners
+end

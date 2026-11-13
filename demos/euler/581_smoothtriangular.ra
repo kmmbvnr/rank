@@ -74,4 +74,4 @@ fun D subtotal
 end
 Totals = Parts subtotal rank 0
 Answer = Totals sum
-Answer print
+return Answer

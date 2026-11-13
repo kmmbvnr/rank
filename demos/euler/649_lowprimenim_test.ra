@@ -1,34 +1,25 @@
 use testing
 
 test "statement values"
-  use "649_lowprimenim"
-  N = 3
-  C = 1
-  run
+  use "649_lowprimenim" as solve
+  Answer = solve 3 1
   Answer equal 4
-  C = 2
-  run
+  Answer = solve 3 2
   Answer equal 40
-  N = 9
-  C = 3
-  run
+  Answer = solve 9 3
   Answer equal 450304
 end
 
 test "brute force"
-  use "649_lowprimenim"
-  N = 20
-  C = 3
-  run
+  use "649_lowprimenim" as solve
+  Answer = solve 20 3
   Answer equal 53901312
-  N = 31
-  C = 2
-  run
+  Answer = solve 31 2
   Answer equal 758912
 end
 
 test "default input"
-  use "649_lowprimenim"
-  run
+  use "649_lowprimenim" as solve
+  Answer = solve
   Answer equal 924668016
 end

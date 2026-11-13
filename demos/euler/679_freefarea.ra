@@ -44,4 +44,4 @@ for I in 4 to Nn
 end
 Fl = Dd (15 to 1023 by 16)
 Answer = Fl sum
-Answer print
+return Answer

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "128_hexagonaltiles"
-  run
+  use "128_hexagonaltiles" as solve
+  Answer = solve
 
   Answer equal 14516824220
 end
 
 test "statement value for the tenth"
-  use "128_hexagonaltiles"
-  Nth = 10
-  run
+  use "128_hexagonaltiles" as solve
+  Answer = solve 10
 
   Answer equal 271
 end

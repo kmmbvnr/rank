@@ -3,57 +3,52 @@ use testing
 use text
 
 test "Triangle graph (3 trees)"
-  use "0824_transport_company"
-  Input = "3 3
+  use "0824_transport_company" as solve
+  Ans = solve "3 3
 1 2
 2 3
 1 3"
-  run
   Ans equal 3
 end
 
 test "ACMP 824: Complete graph K4 (16)"
-  use "0824_transport_company"
-  Input = "4 6
+  use "0824_transport_company" as solve
+  Ans = solve "4 6
 1 2
 1 3
 1 4
 2 3
 2 4
 3 4"
-  run
   Ans equal 16
 end
 
 test "Multigraph with parallel edges"
-  use "0824_transport_company"
-  Input = "3 4
+  use "0824_transport_company" as solve
+  Ans = solve "3 4
 1 2
 1 2
 2 3
 2 3"
-  run
   Ans equal 4
 end
 
 test "ACMP 824: Disconnected graph (0)"
-  use "0824_transport_company"
-  Input = "4 2
+  use "0824_transport_company" as solve
+  Ans = solve "4 2
 1 2
 3 4"
-  run
   Ans equal 0
 end
 
 test "ACMP 824: Single vertex N=1"
-  use "0824_transport_company"
-  Input = "1 0"
-  run
+  use "0824_transport_company" as solve
+  Ans = solve "1 0"
   Ans equal 1
 end
 
 test "ACMP 824: BigInt > 2^53"
-  use "0824_transport_company"
+  use "0824_transport_company" as solve
   use text
   Row = (
     "1 2 2 3 3 4 4 5 5 " +
@@ -61,8 +56,7 @@ test "ACMP 824: BigInt > 2^53"
   )
   R10 = array shape 100 fill Row
   Body = R10 join " "
-  Input = "10 900 " + Body
-  run
+  Ans = solve ("10 900 " + Body)
   Exp = 100 ** 9
   Ans equal Exp
 end

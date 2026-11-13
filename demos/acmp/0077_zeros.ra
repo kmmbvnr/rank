@@ -35,4 +35,4 @@ if ZerosCount equal K
   Answer += 1
 end
 
-Answer print
+return Answer

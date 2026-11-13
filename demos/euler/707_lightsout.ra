@@ -118,4 +118,4 @@ Total = Width * Fibs - Nullity
 Exponent = Total mod Cycle
 Powers = 2 Exponent Prime powmod
 Answer = Powers sum mod Prime
-Answer print
+return Answer

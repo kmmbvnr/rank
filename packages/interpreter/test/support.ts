@@ -133,3 +133,8 @@ class MemoryFile implements RankFileHandle {
     }
 }
 
+
+/** A demo's source without its closing `return`, for tests that append probes to it. */
+export function withoutReturn(source: string): string {
+    return source.replace(/\nreturn (?:record\n(?:  \..*\n)*end|[^\n]*)\n*$/, '\n');
+}

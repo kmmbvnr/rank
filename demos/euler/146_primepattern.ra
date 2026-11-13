@@ -46,4 +46,4 @@ for K in array 19 21
   C = C filter not Q in primes array
 end
 Answer = C sum
-Answer print
+return Answer

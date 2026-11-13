@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "413_onechild"
-  Digits = 1
-  run
+  use "413_onechild" as solve
+  Answer = solve 1
   Answer equal 9
-  Digits = 3
-  run
+  Answer = solve 3
   Answer equal 389
-  Digits = 7
-  run
+  Answer = solve 7
   Answer equal 277674
 end
 
 test "eleven digits"
-  use "413_onechild"
-  Digits = 11
-  run
+  use "413_onechild" as solve
+  Answer = solve 11
   Answer equal 86585017
 end

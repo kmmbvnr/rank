@@ -1,28 +1,19 @@
 use testing
 
 test "statement values"
-  use "411_uphillpaths"
-  Power = 1
-  First = 22
-  Count = 22
-  run
+  use "411_uphillpaths" as solve
+  Answer = solve 22 22 1
   Answer equal 5
-  First = 123
-  Count = 123
-  run
+  Answer = solve 123 123 1
   Answer equal 14
-  First = 10000
-  Count = 10000
-  run
+  Answer = solve 10000 10000 1
   Answer equal 48
 end
 
 test "sums of fifth powers"
-  use "411_uphillpaths"
-  Count = 8
-  run
+  use "411_uphillpaths" as solve
+  Answer = solve 1 8
   Answer equal 9052
-  Count = 13
-  run
+  Answer = solve 1 13
   Answer equal 50705
 end

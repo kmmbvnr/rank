@@ -48,4 +48,10 @@ LDs' = Lead digits Bases
 LSort = LDs transpose sort
 Heads' = LSort Want equal rank 1
 Answer = Cands Heads first
-Answer print
+return record
+  .answer = Answer
+  .cands = Cands
+  .good = Good
+  .heads = Heads
+  .tail = Tail
+end

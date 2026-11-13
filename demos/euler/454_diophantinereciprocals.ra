@@ -82,4 +82,4 @@ if Limits len greater 0
   Counts = Limits pair_count rank 0
   Answer = (Weights * Counts) sum
 end
-Answer print
+return Answer

@@ -158,4 +158,4 @@ for Go equal 1
   end
 end
 Answer = Best
-Answer print
+return Answer

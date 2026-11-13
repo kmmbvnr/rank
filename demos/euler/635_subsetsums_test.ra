@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "635_subsetsums"
-  L = 10
-  run
+  use "635_subsetsums" as solve
+  Answer = solve 10
   Answer equal 17807
-  L = 100
-  run
+  Answer = solve 100
   Answer equal 956051910
 end
 
 test "brute force"
-  use "635_subsetsums"
-  L = 29
-  run
+  use "635_subsetsums" as solve
+  Answer = solve 29
   Answer equal 617152415
-  L = 299
-  run
+  Answer = solve 299
   Answer equal 899996864
 end

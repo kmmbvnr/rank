@@ -25,4 +25,7 @@ for U in 1 to Limit - 1
   end
 end
 Answer = Cnt equal Ways count
-Answer print
+return record
+  .answer = Answer
+  .cnt = Cnt
+end

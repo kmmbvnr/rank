@@ -56,4 +56,4 @@ for E in 2 to Lg
     U += 1
   end
 end
-Answer print
+return Answer

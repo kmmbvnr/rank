@@ -52,4 +52,4 @@ for Low less High
 end
 
 Answer = Low
-Answer print
+return Answer

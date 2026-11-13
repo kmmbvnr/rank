@@ -38,4 +38,4 @@ Lim = Top - 1 isqrt
 Roots = 1 to Lim array
 Pick' = Sum (Roots * Roots)
 Answer = Pick sum mod Mod
-Answer print
+return Answer

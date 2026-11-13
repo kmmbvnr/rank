@@ -1,15 +1,19 @@
 use testing
 
 test "statement pairs"
-  use "674_iequations"
-  Num = 3
-  run
+  use "674_iequations" as solve
+  Answer = solve (
+  "demos/euler/fixtures/"
+  + "0674_i_expressions.txt"
+) 3
   Answer equal 26
 end
 
 test "default input"
-  use "674_iequations"
-  Num = 149
-  run
+  use "674_iequations" as solve
+  Answer = solve (
+  "demos/euler/fixtures/"
+  + "0674_i_expressions.txt"
+) 149
   Answer equal 416678753
 end

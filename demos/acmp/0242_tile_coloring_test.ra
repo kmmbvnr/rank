@@ -1,31 +1,22 @@
 use testing
 
 test "sample 1: 3x3 grid, K=2 -> 4 1"
-  use "0242_tile_coloring"
-  N = 3
-  K = 2
-  GridText = "1 2 1\n2 1 1\n1 2 2"
-  run
+  use "0242_tile_coloring" as solve
+  Answer = solve 3 2 "1 2 1\n2 1 1\n1 2 2"
 
   Answer equal "4 1"
 end
 
 test "sample 2: 2x2 grid, K=1 -> 2 1"
-  use "0242_tile_coloring"
-  N = 2
-  K = 1
-  GridText = "1 1\n1 1"
-  run
+  use "0242_tile_coloring" as solve
+  Answer = solve 2 1 "1 1\n1 1"
 
   Answer equal "2 1"
 end
 
 test "3x3 all rows satisfied (L=3)"
-  use "0242_tile_coloring"
-  N = 3
-  K = 2
-  GridText = "1 2 2\n2 1 2\n2 2 1"
-  run
+  use "0242_tile_coloring" as solve
+  Answer = solve 3 2 "1 2 2\n2 1 2\n2 2 1"
 
   Answer equal "3 2"
 end

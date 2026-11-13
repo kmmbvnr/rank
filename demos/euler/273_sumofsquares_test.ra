@@ -2,34 +2,28 @@ use testing
 
 rem Small cases and strict prime bounds.
 test "small limits"
-  use "273_sumofsquares"
-  Limit = 20
-  run
+  use "273_sumofsquares" as solve
+  Answer = solve 20
 
   Answer equal 80
-  Limit = 40
-  run
+  Answer = solve 40
 
   Answer equal 12006
-  Limit = 60
-  run
+  Answer = solve 60
 
   Answer equal 2579619
 end
 
 test "prime boundaries"
-  use "273_sumofsquares"
-  Limit = 5
-  run
+  use "273_sumofsquares" as solve
+  Answer = solve 5
   Answer equal 0
-  Limit = 6
-  run
+  Answer = solve 6
   Answer equal 1
 end
 
 test "full-scale checkpoint"
-  use "273_sumofsquares"
-  Limit = 150
-  run
+  use "273_sumofsquares" as solve
+  Answer = solve 150
   Answer equal 2032447591196869022
 end

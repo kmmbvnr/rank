@@ -157,4 +157,4 @@ for Zr all equal false
 end
 Answer += Cn * Pc mod Md sum
 Answer = Answer mod Md
-Answer print
+return Answer

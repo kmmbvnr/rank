@@ -47,4 +47,4 @@ end
 Fibs = fibonacci to Limit copy
 Last = Fibs len
 Answer = Last cnt Limit
-Answer print
+return Answer

@@ -32,4 +32,4 @@ Moves = Sign * Binom * Free sum
 Pick = P binomial Keep
 Total = Fact N
 Answer = Pick * Moves / Total round 12
-Answer print
+return Answer

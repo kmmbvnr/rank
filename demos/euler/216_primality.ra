@@ -72,4 +72,4 @@ Answer = 0
 if Limit at least 2
   Answer = Limit count_primes
 end
-Answer print
+return Answer

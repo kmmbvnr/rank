@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "704_factorsoftwo"
-  Limit = 100
-  run
+  use "704_factorsoftwo" as solve
+  Answer = solve 100
   Answer equal 389
-  Limit = 10000000
-  run
+  Answer = solve 10000000
   Answer equal 203222840
 end
 
 test "default input"
-  use "704_factorsoftwo"
-  run
+  use "704_factorsoftwo" as solve
+  Answer = solve
   Answer equal 501985601490518144
 end

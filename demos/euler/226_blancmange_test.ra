@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "226_blancmange"
-  run
+  use "226_blancmange" as solve
+  Answer = solve
 
   Answer equal 0.11316017
 end
 
 test "fewer digits"
-  use "226_blancmange"
-  Digits = 4
-  run
+  use "226_blancmange" as solve
+  Answer = solve 4
 
   Answer equal 0.1132
 end

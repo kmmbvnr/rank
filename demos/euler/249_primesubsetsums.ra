@@ -39,7 +39,7 @@ else
   Pr = primes till Max + 1 array
   Answer = Ways Pr sum mod Mod
 end
-Answer print
+return Answer
 
 rem Store residues in [-Low, High). Move
 rem across Mod = Low + High before adding,

@@ -1,36 +1,31 @@
 use testing
 
 test "empty totient stairs"
-  use "337_totientstairs"
-  Limit = 0
-  run
+  use "337_totientstairs" as solve
+  Answer = solve 0
   Answer equal 0
 end
 
 test "totient stairs seed"
-  use "337_totientstairs"
-  Limit = 6
-  run
+  use "337_totientstairs" as solve
+  Answer = solve 6
   Answer equal 1
 end
 
 test "small totient stairs"
-  use "337_totientstairs"
-  Limit = 10
-  run
+  use "337_totientstairs" as solve
+  Answer = solve 10
   Answer equal 4
 end
 
 test "given totient stairs"
-  use "337_totientstairs"
-  Limit = 100
-  run
+  use "337_totientstairs" as solve
+  Answer = solve 100
   Answer equal 82073668
 end
 
 test "medium totient stairs"
-  use "337_totientstairs"
-  Limit = 10000
-  run
+  use "337_totientstairs" as solve
+  Answer = solve 10000
   Answer equal 73808307
 end

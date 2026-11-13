@@ -3,59 +3,54 @@ rem Tests for ACMP 0959: Tree Protection
 use testing
 
 test "ACMP 959: Sample 1"
-  use "0959_tree_protection"
-  Input = "5
+  use "0959_tree_protection" as solve
+  Result = solve "5
 3 4 6
 6 0
 0 0
 1 2
 2 3
 6 1"
-  run
 
   Result equal 3
 end
 
 test "ACMP 959: Single point"
-  use "0959_tree_protection"
-  Input = "1
+  use "0959_tree_protection" as solve
+  Result = solve "1
 3 4 5
 10 20"
-  run
 
   Result equal 1
 end
 
 test "ACMP 959: Two points close"
-  use "0959_tree_protection"
-  Input = "2
+  use "0959_tree_protection" as solve
+  Result = solve "2
 3 4 5
 0 0
 3 4"
-  run
 
   Result equal 2
 end
 
 test "ACMP 959: Two points far"
-  use "0959_tree_protection"
-  Input = "2
+  use "0959_tree_protection" as solve
+  Result = solve "2
 3 4 5
 0 0
 10 10"
-  run
 
   Result equal 1
 end
 
 test "ACMP 959: Triangle vertices"
-  use "0959_tree_protection"
-  Input = "3
+  use "0959_tree_protection" as solve
+  Result = solve "3
 3 4 5
 0 0
 3 0
 0 4"
-  run
 
   Result equal 3
 end

@@ -1,49 +1,43 @@
 use testing
 
 test "sample 1: 1 2 3 4 -> YES"
-  use "0813_game_24"
-  Input = "1 2 3 4"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "1 2 3 4"
 
   Ans equal "YES"
 end
 
 test "sample 2: 1 1 1 1 -> NO"
-  use "0813_game_24"
-  Input = "1 1 1 1"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "1 1 1 1"
 
   Ans equal "NO"
 end
 
 test "needs subtraction: 1 1 5 30"
-  use "0813_game_24"
-  Input = "30 5 1 1"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "30 5 1 1"
 
   Ans equal "YES"
 end
 
 test "no division: 1 5 5 5 is NO"
-  use "0813_game_24"
-  Input = "1 5 5 5"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "1 5 5 5"
 
   Ans equal "NO"
 end
 
 test "all thirties: 30 30 30 30 -> NO"
-  use "0813_game_24"
-  Input = "30 30 30 30"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "30 30 30 30"
 
   Ans equal "NO"
 end
 
 test "product only: 2 2 2 3"
-  use "0813_game_24"
-  Input = "2 2 2 3"
-  run
+  use "0813_game_24" as solve
+  Ans = solve "2 2 2 3"
 
   Ans equal "YES"
 end

@@ -38,7 +38,6 @@ Ways = State .ways
 Best = State .best
 Sum = Ways * Best sum
 Answer = Sum real / (2 ** Cells)
-Answer print
 
 fun State blank Row
   Tags = State .tags
@@ -138,3 +137,4 @@ fun Labels Areas Best pack
   Key = Tags + Packed
   return (Key shl 6) + Best
 end
+return Answer

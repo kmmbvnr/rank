@@ -34,4 +34,4 @@ Ce = K greater 0 choose Ce 0
 N = Pk - Ce + K
 T = N K M binomialmod
 Answer = T sum mod M
-Answer print
+return Answer

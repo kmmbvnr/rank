@@ -97,4 +97,4 @@ Found = new set
 Start = Found Target (0 - 1) 1 walk
 Sols = Found array sort
 Answer = Sols (Rank - 1)
-Answer print
+return Answer

@@ -45,4 +45,7 @@ for B at most Limit // 2
 end
 Rest = Best drop 2
 Answer = Rest sum
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+end

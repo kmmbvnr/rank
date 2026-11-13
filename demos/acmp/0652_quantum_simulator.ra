@@ -182,3 +182,4 @@ Ans = (AnsQ reverse) reverse
 for X in Ans
   X print
 end
+return Ans

@@ -46,7 +46,7 @@ T1 = Tw * S1 mod Md
 T2 = (Rd * S2 + Md) mod Md
 Tt = T0 + T1 + T2
 Answer = Tt sum mod Md
-Answer print
+return Answer
 
 fun Size reversal_runs Count
   Order = 0 till Size rope

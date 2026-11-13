@@ -7,15 +7,13 @@ test "small digit DP"
 end
 
 test "statement sample"
-  use "322_binomial"
-  Top = 1000000000
-  Pick = 9999990
-  run
+  use "322_binomial" as solve
+  Answer = solve 1000000000 9999990
   Answer equal 989697000
 end
 
 test "full carry count"
-  use "322_binomial"
-  run
+  use "322_binomial" as solve
+  Answer = solve
   Answer equal 999998760323313995
 end

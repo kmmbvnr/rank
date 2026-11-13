@@ -45,4 +45,4 @@ for Db in 0 to Nb
   end
 end
 Answer = Cnt Nb Nw
-Answer print
+return Answer

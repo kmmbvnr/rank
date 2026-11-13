@@ -44,4 +44,4 @@ for C in 0 till Rows
   Extra = C // 100 + Mid + C mod 10
   Answer += Now C (Off - Extra)
 end
-Answer print
+return Answer

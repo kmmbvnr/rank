@@ -144,7 +144,10 @@ for I in 0 till AnswerCount
   AnswerVertices I 1 = SimpY I
 end
 
-AnswerCount print
 for I in 0 till AnswerCount
   (tuple (SimpX I) (SimpY I)) print
+end
+return record
+  .answer_count = AnswerCount
+  .answer_vertices = AnswerVertices
 end

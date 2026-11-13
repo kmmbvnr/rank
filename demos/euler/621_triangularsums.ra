@@ -86,4 +86,4 @@ for J in 0 to Nd - 1
 end
 W = 2 + 4 * (M equal 3 integer)
 Answer = 6 * H * S // W
-Answer print
+return Answer

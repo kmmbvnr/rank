@@ -1,7 +1,7 @@
 use testing
 
 test "Pythagorean tree"
-  use "395_pythagoreantree"
-  run
+  use "395_pythagoreantree" as solve
+  Answer = solve
   Answer equal 28.2453753155
 end

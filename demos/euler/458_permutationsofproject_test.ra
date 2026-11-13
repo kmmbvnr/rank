@@ -1,17 +1,15 @@
 use testing
 
 test "short words"
-  use "458_permutationsofproject"
-  N = 7
-  run
+  use "458_permutationsofproject" as solve
+  Answer = solve 7
   Answer equal 818503
-  N = 8
-  run
+  Answer = solve 8
   Answer equal 5699281
 end
 
 test "default input"
-  use "458_permutationsofproject"
-  run
+  use "458_permutationsofproject" as solve
+  Answer = solve
   Answer equal 423341841
 end

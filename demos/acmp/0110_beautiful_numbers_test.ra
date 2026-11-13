@@ -2,30 +2,30 @@ rem ACMP 0110: Beautiful Numbers tests
 use testing
 
 test "ACMP 110: Sample 1"
-  use "0110_beautiful_numbers"
-  Input = "69 3"
-  run
+  use "0110_beautiful_numbers" as solve
+  Out = solve "69 3"
+  Result = Out .result
   Result equal "69=3+33+33"
 end
 
 test "ACMP 110: Sample 2"
-  use "0110_beautiful_numbers"
-  Input = "6 5"
-  run
+  use "0110_beautiful_numbers" as solve
+  Out = solve "6 5"
+  Result = Out .result
   Result equal "6=0.5+5.5"
 end
 
 test "ACMP 110: Sample 3"
-  use "0110_beautiful_numbers"
-  Input = "10 9"
-  run
+  use "0110_beautiful_numbers" as solve
+  Out = solve "10 9"
+  Result = Out .result
   Result equal "10=9.(9)"
 end
 
 test "ACMP 110: K=6 mixed period"
-  use "0110_beautiful_numbers"
-  Input = "1 6"
-  run
+  use "0110_beautiful_numbers" as solve
+  Out = solve "1 6"
+  Result = Out .result
   Part1 = "1=0.0(6)+0.0(6)+0.0(6)+"
   Part2 = "0.0(6)+0.0(6)+0.(6)"
   Expected = Part1 + Part2
@@ -33,7 +33,8 @@ test "ACMP 110: K=6 mixed period"
 end
 
 test "ACMP 110: Default stress K=7"
-  use "0110_beautiful_numbers"
-  run
+  use "0110_beautiful_numbers" as solve
+  Out = solve
+  M = Out .m
   M greater 0
 end

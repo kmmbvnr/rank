@@ -97,4 +97,4 @@ if M greater 0
   Ans = Costs sum
 end
 
-Ans print
+return Ans

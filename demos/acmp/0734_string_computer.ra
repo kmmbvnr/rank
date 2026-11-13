@@ -43,5 +43,7 @@ else
   end
 end
 
-MaxStrings print
-CountSets print
+return record
+  .count_sets = CountSets
+  .max_strings = MaxStrings
+end

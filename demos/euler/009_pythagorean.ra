@@ -19,4 +19,4 @@ B = Bs Valid first
 C = A ** 2 + B ** 2 sqrt
 Answer = A * B * C
 
-Answer print
+return Answer

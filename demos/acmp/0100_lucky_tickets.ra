@@ -25,4 +25,4 @@ end
 
 Squares = DP * DP
 Answer = Squares sum
-Answer print
+return Answer

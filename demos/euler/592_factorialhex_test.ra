@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "592_factorialhex"
-  run
+  use "592_factorialhex" as solve
+  Answer = solve
   Answer equal "13415DF2BE9C"
 end
 
 test "statement and exact factorials"
-  use "592_factorialhex"
-  N = 20
-  run
+  use "592_factorialhex" as solve
+  Answer = solve 20
   Answer equal "21C3677C82B4"
-  N = 100
-  run
+  Answer = solve 100
   Answer equal "02EA2735C61A"
-  N = 70000
-  run
+  Answer = solve 70000
   Answer equal "43E723BEF344"
 end

@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "786_billiard"
-  Bounces = 10
-  Cut = 40
-  run
+  use "786_billiard" as solve
+  Answer = solve 10 40
   Answer equal 6
-  Bounces = 100
-  Cut = 320
-  run
+  Answer = solve 100 320
   Answer equal 478
-  Bounces = 1000
-  Cut = 400
-  run
+  Answer = solve 1000 400
   Answer equal 45790
 end

@@ -71,4 +71,4 @@ for W in 1 to Top
     end
   end
 end
-Answer print
+return Answer

@@ -3,14 +3,14 @@ use testing
 use text
 
 test "ACMP 962: Maximal 60 test"
-  use "0962_squares"
-  run
+  use "0962_squares" as solve
+  TotalPairs = solve
   TotalPairs equal 2252
 end
 
 test "ACMP 962: Sample 1"
-  use "0962_squares"
-  Input = (
+  use "0962_squares" as solve
+  TotalPairs = solve (
     "4
 " +
     "0 0 3
@@ -21,13 +21,12 @@ test "ACMP 962: Sample 1"
 " +
     "1 1 3"
   )
-  run
   TotalPairs equal 6
 end
 
 test "ACMP 962: Sample 2"
-  use "0962_squares"
-  Input = (
+  use "0962_squares" as solve
+  TotalPairs = solve (
     "4
 " +
     "0 0 3
@@ -38,13 +37,12 @@ test "ACMP 962: Sample 2"
 " +
     "4 4 3"
   )
-  run
   TotalPairs equal 0
 end
 
 test "ACMP 962: Four disjoint"
-  use "0962_squares"
-  Input = (
+  use "0962_squares" as solve
+  TotalPairs = solve (
     "4
 " +
     "0 0 2
@@ -55,13 +53,11 @@ test "ACMP 962: Four disjoint"
 " +
     "15 15 2"
   )
-  run
   TotalPairs equal 24
 end
 
 test "ACMP 962: Fewer than 4"
-  use "0962_squares"
-  Input = "3 0 0 1 2 2 1 4 4 1"
-  run
+  use "0962_squares" as solve
+  TotalPairs = solve "3 0 0 1 2 2 1 4 4 1"
   TotalPairs equal 0
 end

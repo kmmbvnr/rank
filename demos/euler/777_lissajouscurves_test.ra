@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "777_lissajouscurves"
-  Limit = 10
-  run
+  use "777_lissajouscurves" as solve
+  Answer = solve 10
   Answer equal "1.602500000e3"
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal "2.425650500e7"
 end

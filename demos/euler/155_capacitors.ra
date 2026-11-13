@@ -66,4 +66,4 @@ for M in 2 to Count
   Off = concat Off End copy
 end
 Answer = Store unique len
-Answer print
+return Answer

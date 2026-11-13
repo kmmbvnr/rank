@@ -16,4 +16,7 @@ rem of (2^(j - 1) - 1) / j for j <= n.
 J = 1 to N copy
 E = ((2.0 ** (J - 1) - 1) / J) sum
 Answer = E round 2
-Answer print
+return record
+  .answer = Answer
+  .e = E
+end

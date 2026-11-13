@@ -22,4 +22,4 @@ for I in 2 to N
 end
 
 Ans = DP N
-Ans print
+return Ans

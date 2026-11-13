@@ -26,4 +26,4 @@ if Grundy not equal 0
   Answer = "Alice wins the game."
 end
 
-Answer print
+return Answer

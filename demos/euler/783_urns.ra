@@ -49,4 +49,7 @@ Rate = Pairs / (Count * (Count - 1.0))
 Total = Mean + Rate * Pair * Run
 Mass = Total sum
 Answer = Mass round 0
-Answer print
+return record
+  .answer = Answer
+  .mass = Mass
+end

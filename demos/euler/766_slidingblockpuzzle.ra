@@ -88,4 +88,4 @@ for Level in 1 to 1000
   Frontier = Grid (Key find Brand)
 end
 Answer = Seen len
-Answer print
+return Answer

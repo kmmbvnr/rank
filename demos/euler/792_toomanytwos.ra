@@ -64,4 +64,4 @@ Lg2 = (Lb * 1.0) log
 Tz = (Lg2 / Two + 0.5) integer
 Total = (Lead + Emin + Tz) sum
 Answer = Total
-Answer print
+return Answer

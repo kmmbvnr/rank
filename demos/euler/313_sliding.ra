@@ -17,4 +17,4 @@ Count' = 2 * (High - Low + 1)
 Ways' = Fit choose Count 0
 Ways' = Ps equal 2 choose 0 Ways
 Answer = Ways sum
-Answer print
+return Answer

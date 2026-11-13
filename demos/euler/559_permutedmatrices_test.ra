@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "559_permutedmatrices"
-  N = 5
-  run
+  use "559_permutedmatrices" as solve
+  Answer = solve 5
   Answer equal 879391168
-  N = 50
-  run
+  Answer = solve 50
   Answer equal 819573537
 end

@@ -28,4 +28,7 @@ Least = Cand min
 Best' = Fixed equal Least
 Pick' = E filter (Coprime and Best)
 Answer = Pick sum
-Answer print
+return record
+  .answer = Answer
+  .least_value = Least
+end

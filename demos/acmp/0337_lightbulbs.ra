@@ -77,4 +77,4 @@ end
 TermsCount = N // TermsV
 Contributions = TermsCount * TermsC
 Answer = Contributions sum
-Answer print
+return Answer

@@ -104,4 +104,4 @@ for Gi in 0 to Count - 1
   Exp = (Got // Unit) mod 256
   Answer = Answer * (Ps Gi) ** Exp
 end
-Answer print
+return Answer

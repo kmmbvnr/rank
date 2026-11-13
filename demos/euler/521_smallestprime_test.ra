@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "521_smallestprime"
-  N = 100
-  run
+  use "521_smallestprime" as solve
+  Answer = solve 100
   Answer equal 1257
 end

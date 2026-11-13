@@ -67,4 +67,4 @@ Ib = Bg indices
 Tv = Tb (N // Ts Ib)
 Answer += Tv mod M * Ws Ib mod M sum
 Answer = Answer mod M
-Answer print
+return Answer

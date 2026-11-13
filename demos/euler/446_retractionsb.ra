@@ -126,4 +126,4 @@ for Start in 1 to N by Block
   Answer += Start block Stop
 end
 Answer = Answer mod Mod
-Answer print
+return Answer

@@ -1,26 +1,30 @@
 use testing
 
 test "default input"
-  use "095_amicablechains"
-  run
+  use "095_amicablechains" as solve
+  Out = solve
+  Answer = Out .answer
+  Long = Out .long
 
   Answer equal 14316
   Long equal 28
 end
 
 test "statement chain below twenty thousand"
-  use "095_amicablechains"
-  Limit = 20000
-  run
+  use "095_amicablechains" as solve
+  Out = solve 20000
+  Answer = Out .answer
+  Long = Out .long
 
   Answer equal 12496
   Long equal 5
 end
 
 test "amicable pair below three hundred"
-  use "095_amicablechains"
-  Limit = 300
-  run
+  use "095_amicablechains" as solve
+  Out = solve 300
+  Answer = Out .answer
+  Long = Out .long
 
   Answer equal 220
   Long equal 2

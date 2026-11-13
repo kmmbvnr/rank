@@ -360,4 +360,4 @@ fun Limit solve
 end
 
 Answer = L solve
-Answer print
+return Answer

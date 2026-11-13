@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "643_twofriendly"
-  N = 100
-  run
+  use "643_twofriendly" as solve
+  Answer = solve 100
   Answer equal 1031
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 321418433
 end

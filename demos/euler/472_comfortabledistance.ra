@@ -65,4 +65,4 @@ if K less 5 and T greater 0
   G = Cs (Of + T) - Cs Of
 end
 Answer = (Answer + G) mod 100000000
-Answer print
+return Answer

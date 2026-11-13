@@ -2,8 +2,11 @@ use testing
 use sequences
 
 test "count of double pandigitals"
-  use "491_doublepandigital"
-  run
+  use "491_doublepandigital" as solve
+  use sequences
+  Out = solve
+  Answer = Out .answer
+  K = Out .k
   Answer equal 194505988824000
   rem Every kept vector has ten odd
   rem places.

@@ -4,8 +4,10 @@ use testing
 use sequences
 
 test "default N=20 K=2"
-  use "0609_set_partitions"
-  run
+  use "0609_set_partitions" as solve
+  use sequences
+  use algo
+  Ans = solve
 
   Q = new queue
   Q push "20 3"
@@ -17,13 +19,14 @@ test "default N=20 K=2"
 end
 
 test "sample 1: {1,2,3},{4,5}"
-  use "0609_set_partitions"
-  Input = "5 2
+  use "0609_set_partitions" as solve
+  use sequences
+  use algo
+  Ans = solve "5 2
 1 2 3
 4 5
 
 0 0"
-  run
 
   Q = new queue
   Q push "5 2"
@@ -34,13 +37,14 @@ test "sample 1: {1,2,3},{4,5}"
 end
 
 test "sample 2: {1,3,5},{2,4}"
-  use "0609_set_partitions"
-  Input = "5 2
+  use "0609_set_partitions" as solve
+  use sequences
+  use algo
+  Ans = solve "5 2
 1 3 5
 2 4
 
 0 0"
-  run
 
   Q = new queue
   Q push "5 4"
@@ -53,12 +57,13 @@ test "sample 2: {1,3,5},{2,4}"
 end
 
 test "sample 3: single block"
-  use "0609_set_partitions"
-  Input = "5 1
+  use "0609_set_partitions" as solve
+  use sequences
+  use algo
+  Ans = solve "5 1
 1 2 3 4 5
 
 0 0"
-  run
 
   Q = new queue
   Q push "5 2"
@@ -69,8 +74,10 @@ test "sample 3: single block"
 end
 
 test "sample 4: wrap around singletons"
-  use "0609_set_partitions"
-  Input = "5 5
+  use "0609_set_partitions" as solve
+  use sequences
+  use algo
+  Ans = solve "5 5
 1
 2
 3
@@ -78,7 +85,6 @@ test "sample 4: wrap around singletons"
 5
 
 0 0"
-  run
 
   Q = new queue
   Q push "5 4"

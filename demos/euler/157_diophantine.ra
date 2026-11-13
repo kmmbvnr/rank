@@ -39,4 +39,4 @@ for N in 1 to Digits
   Ms' = (Rest * (X + Y)) filter Hit array
   Answer += Ms divisors count rank 0 sum
 end
-Answer print
+return Answer

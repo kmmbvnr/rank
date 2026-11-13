@@ -54,4 +54,4 @@ Bd = Hq - Lo R
 Sm = Ps sum
 Bg = Bd sum
 Answer = Nn - Sm - Bg
-Answer print
+return Answer

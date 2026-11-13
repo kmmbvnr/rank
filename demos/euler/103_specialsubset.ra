@@ -81,4 +81,8 @@ for Depth greater -1
 end
 Digits = Found text rank 0
 Answer = Digits join ""
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+  .found = Found
+end

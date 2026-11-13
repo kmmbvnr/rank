@@ -51,4 +51,4 @@ fun K X P A B search
   return V min (Mk - W)
 end
 Answer = 1 1 0 0 Mk search
-Answer print
+return Answer

@@ -1,12 +1,9 @@
 use testing
 
 test "statement values"
-  use "571_superpandigital"
-  B = 5
-  T = 1
-  run
+  use "571_superpandigital" as solve
+  Answer = solve 5 1
   Answer equal 978
-  B = 10
-  run
+  Answer = solve 10 1
   Answer equal 1093265784
 end

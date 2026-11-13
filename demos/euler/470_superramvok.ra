@@ -127,4 +127,7 @@ for Faces in 4 to N
   Total += Sd sum
 end
 Answer = Total + 0.5 floor
-Answer print
+return record
+  .answer = Answer
+  .sd = Sd
+end

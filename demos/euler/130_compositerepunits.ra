@@ -32,4 +32,4 @@ end
 Hit' = Res equal 1 and not (N in primes)
 Found' = N filter Hit array
 Answer = Found take Count sum
-Answer print
+return Answer

@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "717_modularformula"
-  Limit = 100
-  run
+  use "717_modularformula" as solve
+  Answer = solve 100
   Answer equal 474
-  Limit = 10000
-  run
+  Answer = solve 10000
   Answer equal 2819236
 end
 
 test "default input"
-  use "717_modularformula"
-  run
+  use "717_modularformula" as solve
+  Answer = solve
   Answer equal 1603036763131
 end

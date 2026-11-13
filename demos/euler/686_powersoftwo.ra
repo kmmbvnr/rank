@@ -51,4 +51,4 @@ for Hit less Nn
   Hit += Cn
   Base += Bl
 end
-Answer print
+return Answer

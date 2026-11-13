@@ -42,4 +42,4 @@ Mn = 10 ** (Lg - Ex)
 Mt = Mn round Digits
 Parts = array (Mt text) "e" (Ex text)
 Answer = Parts join ""
-Answer print
+return Answer

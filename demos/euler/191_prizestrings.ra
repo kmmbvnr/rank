@@ -28,4 +28,4 @@ for Day in 1 to Days
   V = V matmul Mat
 end
 Answer = V sum
-Answer print
+return Answer

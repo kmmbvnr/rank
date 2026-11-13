@@ -1,9 +1,12 @@
 use testing
 
 test "statement values of S"
-  use "402_integerpolynomials"
-  K = 30
-  run
+  use "402_integerpolynomials" as solve
+  Out = solve 30
+  C0 = Out .c0
+  C1 = Out .c1
+  C2 = Out .c2
+  C3 = Out .c3
   Q = 416
   S = C3 * Q ** 3 + C2 16 * Q ** 2
   S += C1 16 * Q + C0 16
@@ -13,20 +16,21 @@ test "statement values of S"
 end
 
 test "sums of the first Fibonacci terms"
-  use "402_integerpolynomials"
-  K = 30
-  run
+  use "402_integerpolynomials" as solve
+  Out = solve 30
+  Answer = Out .answer
   Answer equal 374086449
-  K = 50
-  run
+  Out = solve 50
+  Answer = Out .answer
   Answer equal 831290082
-  K = 300
-  run
+  Out = solve 300
+  Answer = Out .answer
   Answer equal 547154064
 end
 
 test "default input"
-  use "402_integerpolynomials"
-  run
+  use "402_integerpolynomials" as solve
+  Out = solve
+  Answer = Out .answer
   Answer equal 356019862
 end

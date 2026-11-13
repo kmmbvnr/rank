@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "709_evenstevens"
-  Order = 4
-  run
+  use "709_evenstevens" as solve
+  Answer = solve 4
   Answer equal 5
-  Order = 8
-  run
+  Answer = solve 8
   Answer equal 1385
 end
 
 test "default input"
-  use "709_evenstevens"
-  run
+  use "709_evenstevens" as solve
+  Answer = solve
   Answer equal 773479144
 end

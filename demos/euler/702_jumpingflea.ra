@@ -43,4 +43,4 @@ Phi = Size phi Base
 Cut = (Base - 1) * (Base - 2)
 Gap = Cut - Phi
 Answer += 2 * Gap
-Answer print
+return Answer

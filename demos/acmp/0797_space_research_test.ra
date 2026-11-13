@@ -2,29 +2,25 @@ rem ACMP 0797: Space Research tests
 use testing
 
 test "ACMP 797: Sample 1 (K=1 => 30)"
-  use "0797_space_research"
-  Input = "4 1\n1 1\n10 2\n1 3\n10 4"
-  run
+  use "0797_space_research" as solve
+  Ans = solve "4 1\n1 1\n10 2\n1 3\n10 4"
   Ans equal 30
 end
 
 test "ACMP 797: Sample 2 (K=2 => 10)"
-  use "0797_space_research"
-  Input = "4 2\n1 1\n10 2\n1 3\n10 4"
-  run
+  use "0797_space_research" as solve
+  Ans = solve "4 2\n1 1\n10 2\n1 3\n10 4"
   Ans equal 10
 end
 
 test "ACMP 797: Sample 3 (K=1 => 0)"
-  use "0797_space_research"
-  Input = "1 1\n1 1"
-  run
+  use "0797_space_research" as solve
+  Ans = solve "1 1\n1 1"
   Ans equal 0
 end
 
 test "ACMP 797: Sample 4 (K=3 => 7)"
-  use "0797_space_research"
-  Input = "3 3\n3 3\n3 6\n6 3"
-  run
+  use "0797_space_research" as solve
+  Ans = solve "3 3\n3 3\n3 6\n6 3"
   Ans equal 7
 end

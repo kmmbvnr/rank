@@ -2,8 +2,8 @@ use testing
 use sequences
 
 test "gather, XOR and lookup score each candidate"
-  use "gather-score"
-  run
+  use "gather-score" as solve
+  Scores = solve
   Scores equal (array 335 327 347)
 end
 

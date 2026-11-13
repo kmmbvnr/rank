@@ -34,4 +34,4 @@ Ratio = Series / Root
 Above = Ratio greater Cap
 Count = Above integer sum
 Answer = Start + Count
-Answer print
+return Answer

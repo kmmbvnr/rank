@@ -25,4 +25,4 @@ Ps = Ps filter Cop array
 Ks = array 0 9 0 3 0 0 0 7 0 1
 K' = Ks (Ps mod 10)
 Answer = ((K * Ps + 1) // 10) sum
-Answer print
+return Answer

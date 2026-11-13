@@ -2,7 +2,6 @@ use testing
 
 test "positive integer"
   use "007_revint"
-  run
 
   Answer = 123 reverse
   Answer equal 321
@@ -10,7 +9,6 @@ end
 
 test "negative integer"
   use "007_revint"
-  run
 
   Answer = -123 reverse
   Answer equal -321
@@ -18,7 +16,6 @@ end
 
 test "trailing zero"
   use "007_revint"
-  run
 
   Answer = 120 reverse
   Answer equal 21
@@ -26,7 +23,6 @@ end
 
 test "zero"
   use "007_revint"
-  run
 
   Answer = 0 reverse
   Answer equal 0
@@ -34,7 +30,6 @@ end
 
 test "positive overflow"
   use "007_revint"
-  run
 
   Answer = 1534236469 reverse
   Answer equal 0
@@ -42,7 +37,6 @@ end
 
 test "negative overflow"
   use "007_revint"
-  run
 
   Answer = -1563847412 reverse
   Answer equal 0
@@ -50,7 +44,6 @@ end
 
 test "largest safe reversal"
   use "007_revint"
-  run
 
   Answer = 1463847412 reverse
   Answer equal 2147483641
@@ -58,7 +51,6 @@ end
 
 test "smallest input overflows"
   use "007_revint"
-  run
 
   Answer = -2147483648 reverse
   Answer equal 0

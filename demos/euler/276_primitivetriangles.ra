@@ -37,4 +37,4 @@ A = array 0 2 3 6 8 12 15 20 24 30 35 42
 B = array 0 0 0 1 1 2 3 5 6 9 11 15
 Count' = ((12 * K + 3 * R + 6) * K + A R) * K + B R
 Answer = Weight * Count sum
-Answer print
+return Answer

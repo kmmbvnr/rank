@@ -89,4 +89,4 @@ for Ranges len greater 1
   Ranges = Grid sum axis 1
 end
 Answer = Ranges 0 text ".4f"
-Answer print
+return Answer

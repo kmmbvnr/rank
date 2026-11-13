@@ -53,4 +53,4 @@ for Prod len greater 0
 end
 Mins = Best drop 2 unique
 Answer = Mins sum
-Answer print
+return Answer

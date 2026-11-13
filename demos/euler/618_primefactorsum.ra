@@ -29,4 +29,4 @@ for P in primes to K
   end
 end
 Answer = G Fb sum mod M
-Answer print
+return Answer

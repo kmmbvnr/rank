@@ -41,4 +41,4 @@ fun Limit strong
 end
 
 Answer = Limit strong
-Answer print
+return Answer

@@ -2,7 +2,6 @@ use testing
 
 test "repeating groups"
   use "003_longest"
-  run
 
   Answer = "abcabcbb" longest
   Answer equal 3
@@ -10,7 +9,6 @@ end
 
 test "one repeated character"
   use "003_longest"
-  run
 
   Answer = "bbbbb" longest
   Answer equal 1
@@ -18,7 +16,6 @@ end
 
 test "window moves past a repeat"
   use "003_longest"
-  run
 
   Answer = "pwwkew" longest
   Answer equal 3
@@ -26,7 +23,6 @@ end
 
 test "empty text"
   use "003_longest"
-  run
 
   Answer = "" longest
   Answer equal 0
@@ -34,7 +30,6 @@ end
 
 test "unicode code points"
   use "003_longest"
-  run
 
   Answer = "😀a😀b" longest
   Answer equal 3

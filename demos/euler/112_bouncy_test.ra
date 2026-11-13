@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "112_bouncy"
-  run
+  use "112_bouncy" as solve
+  Answer = solve
 
   Answer equal 1587000
 end
 
 test "statement percentages"
-  use "112_bouncy"
-  Percent = 50
-  run
+  use "112_bouncy" as solve
+  Answer = solve 50
 
   Answer equal 538
-  Percent = 90
-  run
+  Answer = solve 90
 
   Answer equal 21780
 end

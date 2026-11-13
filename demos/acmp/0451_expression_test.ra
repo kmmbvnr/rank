@@ -3,57 +3,50 @@ rem Tests for ACMP 0451: Expression
 use testing
 
 test "ACMP 451: Sample 1"
-  use "0451_expression"
-  Input = "2+3"
-  run
+  use "0451_expression" as solve
+  Result = solve "2+3"
 
   Result equal "5"
 end
 
 test "ACMP 451: Sample 2"
-  use "0451_expression"
-  Input = "7*8 - 120/6 + 4"
-  run
+  use "0451_expression" as solve
+  Result = solve "7*8 - 120/6 + 4"
 
   Result equal "40"
 end
 
 test "ACMP 451: Sample 3"
-  use "0451_expression"
-  Input = "10/(6-2)+8"
-  run
+  use "0451_expression" as solve
+  Result = solve "10/(6-2)+8"
 
   Result equal "10.5"
 end
 
 test "ACMP 451: Sample 5 Error"
-  use "0451_expression"
-  Input = "three plus five"
-  run
+  use "0451_expression" as solve
+  Result = solve "three plus five"
 
   Result equal "Error"
 end
 
 test "ACMP 451: Sample 6 Scientific"
-  use "0451_expression"
-  Input = "6.12e3+2e-2"
-  run
+  use "0451_expression" as solve
+  Result = solve "6.12e3+2e-2"
 
   Result equal "6120.02"
 end
 
 test "ACMP 451: Sample 7 Unary minus"
-  use "0451_expression"
-  Input = "-1"
-  run
+  use "0451_expression" as solve
+  Result = solve "-1"
 
   Result equal "Error"
 end
 
 test "ACMP 451: Division by zero"
-  use "0451_expression"
-  Input = "10 / (2 - 2)"
-  run
+  use "0451_expression" as solve
+  Result = solve "10 / (2 - 2)"
 
   Result equal "Error"
 end

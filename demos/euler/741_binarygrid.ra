@@ -133,4 +133,4 @@ Rest = Total mod Prime
 Count = Rest * Eighth mod Prime
 Result = Count sum mod Prime
 Answer = Result
-Answer print
+return Answer

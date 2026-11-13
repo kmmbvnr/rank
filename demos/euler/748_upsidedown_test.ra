@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "748_upsidedown"
-  Limit = 100
-  run
+  use "748_upsidedown" as solve
+  Answer = solve 100
   Answer equal 124
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 1470
-  Limit = 100000
-  run
+  Answer = solve 100000
   Answer equal 2340084
 end

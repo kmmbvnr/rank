@@ -96,4 +96,4 @@ Result = Start advance repeat Stages
 Q = Result .q
 R = Result .rest
 Answer = Q + R
-Answer print
+return Answer

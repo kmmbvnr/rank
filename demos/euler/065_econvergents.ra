@@ -25,4 +25,7 @@ Down' = Ones diag -1
 Grid' = (Terms diag) + Up - Down
 Num = Grid det
 Answer = Num text integer rank 0 sum
-Answer print
+return record
+  .answer = Answer
+  .num = Num
+end

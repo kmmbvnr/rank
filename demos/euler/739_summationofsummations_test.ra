@@ -1,13 +1,9 @@
 use testing
 
 test "statement values"
-  use "739_summationofsummations"
-  Length = 8
-  Chunk = 3
-  run
+  use "739_summationofsummations" as solve
+  Answer = solve 8 3
   Answer equal 2663
-  Length = 20
-  Chunk = 4
-  run
+  Answer = solve 20 4
   Answer equal 742296999
 end

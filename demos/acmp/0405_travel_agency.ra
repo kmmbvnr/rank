@@ -61,4 +61,4 @@ for A in 1 to N
   Answer (A - 1) = Pairs + RemCount
 end
 
-Answer print
+return Answer

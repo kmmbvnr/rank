@@ -1,8 +1,8 @@
 use testing
 
 test "second arithmetic sequence"
-  use "049_primepermutations"
-  run
+  use "049_primepermutations" as solve
+  Answer = solve
 
   Answer equal 296962999629
 end

@@ -59,4 +59,4 @@ fun G L N constrained
 end
 
 Answer = G L N constrained
-Answer print
+return Answer

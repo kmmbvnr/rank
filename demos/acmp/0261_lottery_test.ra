@@ -1,52 +1,37 @@
 use testing
 
 test "sample 1: 10 bets in binary -> 6"
-  use "0261_lottery"
-  N = 10
-  M = 3
-  K = 2
-  AText = "1 3 100"
+  use "0261_lottery" as solve
   B1 = "000 000 001 010 100 "
   B2 = "100 100 100 110 111"
-  BetsText = B1 + B2
-  run
+  Out = solve 10 3 2 "1 3 100" (B1 + B2)
+  Answer = Out .answer
 
   Answer equal 6
 end
 
 test "sample 2: miss first digit -> 0"
-  use "0261_lottery"
-  N = 1
-  M = 1
-  K = 10
-  AText = "100"
-  BetsText = "0"
-  run
+  use "0261_lottery" as solve
+  Out = solve 1 1 10 "100" "0"
+  Answer = Out .answer
 
   Answer equal 0
 end
 
 test "all identical bets"
-  use "0261_lottery"
-  N = 4
-  M = 2
-  K = 2
-  AText = "5 20"
-  BetsText = "00 00 00 00"
-  run
+  use "0261_lottery" as solve
+  Out = solve 4 2 2 "5 20" "00 00 00 00"
+  Answer = Out .answer
 
   rem Pick 1 -> 0 match first digit
   Answer equal 0
 end
 
 test "complete binary tree depth 2"
-  use "0261_lottery"
-  N = 4
-  M = 2
-  K = 2
-  AText = "10 50"
-  BetsText = "00 01 10 11"
-  run
+  use "0261_lottery" as solve
+  Out = solve 4 2 2 "10 50" "00 01 10 11"
+  Answer = Out .answer
+  Delta = Out .delta
 
   rem Delta=[10, 40]. Either has 2.
   rem At depth 1: 2 bets * 10 = 20.

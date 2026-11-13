@@ -224,4 +224,4 @@ fun solve_macro Input
 end
 
 Result = solve_macro Input
-Result print
+return Result

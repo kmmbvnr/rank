@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "008_seriesproduct"
-  run
+  use "008_seriesproduct" as solve
+  Answer = solve
 
   Answer equal 23514624000
 end
 
 test "workspace input"
-  use "008_seriesproduct"
-  Width = 4
-  run
+  use "008_seriesproduct" as solve
+  Answer = solve 4
 
   Answer equal 5832
 end

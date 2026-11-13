@@ -231,4 +231,4 @@ for Phase less 3
 end
 
 Result = Exprs 0
-Result print
+return Result

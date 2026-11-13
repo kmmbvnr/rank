@@ -54,4 +54,4 @@ for N in 1 to Limit
     Dst = Swap
   end
 end
-Answer print
+return Answer

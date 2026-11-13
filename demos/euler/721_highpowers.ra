@@ -50,4 +50,4 @@ Trace = 2 * ResX mod Prime
 NotSquare = (Square equal false) integer
 Floors = Trace - NotSquare
 Answer = Floors sum mod Prime
-Answer print
+return Answer

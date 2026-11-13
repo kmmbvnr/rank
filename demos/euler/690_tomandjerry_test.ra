@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "690_tomandjerry"
-  Nn = 3
-  run
+  use "690_tomandjerry" as solve
+  Answer = solve 3
   Answer equal 3
-  Nn = 7
-  run
+  Answer = solve 7
   Answer equal 37
-  Nn = 10
-  run
+  Answer = solve 10
   Answer equal 328
-  Nn = 20
-  run
+  Answer = solve 20
   Answer equal 1416269
 end
 
 test "default input"
-  use "690_tomandjerry"
-  Nn = 2019
-  run
+  use "690_tomandjerry" as solve
+  Answer = solve 2019
   Answer equal 415157690
 end

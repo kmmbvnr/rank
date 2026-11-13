@@ -207,4 +207,7 @@ else
   end
 end
 
-Answer text print
+return record
+  .answer = Answer
+  .k = K
+end

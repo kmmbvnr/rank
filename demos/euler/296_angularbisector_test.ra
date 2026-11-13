@@ -3,41 +3,33 @@ use testing
 rem Full compiled input has a golden test.
 rem Keep cross-mode examples bounded.
 test "small limits"
-  use "296_angularbisector"
-  Limit = 30
-  run
+  use "296_angularbisector" as solve
+  Answer = solve 30
 
   Answer equal 25
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 376
-  Limit = 200
-  run
+  Answer = solve 200
 
   Answer equal 1762
 end
 
 test "first feasible perimeters"
-  use "296_angularbisector"
-  Limit = 0
-  run
+  use "296_angularbisector" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 5
-  run
+  Answer = solve 5
 
   Answer equal 0
-  Limit = 6
-  run
+  Answer = solve 6
 
   Answer equal 1
-  Limit = 9
-  run
+  Answer = solve 9
 
   Answer equal 1
-  Limit = 10
-  run
+  Answer = solve 10
 
   Answer equal 2
 end

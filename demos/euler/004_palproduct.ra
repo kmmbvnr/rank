@@ -21,7 +21,7 @@ Products' = Factors Factors outer *
 Candidates' = Products merge .descending
 
 Answer = Candidates filter palindrome first
-Answer print
+return Answer
 
 rem Return true when a nonnegative integer
 rem reads the same in both directions.

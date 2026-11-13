@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "282_ackermann"
-  run
+  use "282_ackermann" as solve
+  Answer = solve
 
   Answer equal 1098988351
 end
 
 test "other moduli"
-  use "282_ackermann"
-  Pow = 3
-  run
+  use "282_ackermann" as solve
+  Answer = solve 14 3
 
   Answer equal 2631
-  Pow = 4
-  run
+  Answer = solve 14 4
 
   Answer equal 21839
 end

@@ -4,25 +4,23 @@ use testing
 use text
 
 test "ACMP 618: Sample N=10"
-  use "0618_young_diagrams"
-  Input = "10"
-  run
+  use "0618_young_diagrams" as solve
+  Result = solve "10"
 
   Result equal "41\n4 2 2 1 1"
 end
 
 test "ACMP 618: Edge case N=1"
-  use "0618_young_diagrams"
-  Input = "1"
-  run
+  use "0618_young_diagrams" as solve
+  Result = solve "1"
 
   Result equal "1\n1"
 end
 
 test "ACMP 618: Maximal N=100"
-  use "0618_young_diagrams"
-  Input = "100"
-  run
+  use "0618_young_diagrams" as solve
+  use text
+  Result = solve "100"
 
   Lines = Result split "\n"
   (Lines 0) equal "22121100"

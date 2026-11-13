@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "685_inversedigitsum2"
-  Kk = 3
-  run
+  use "685_inversedigitsum2" as solve
+  Answer = solve 3
   Answer equal 7128
-  Kk = 10
-  run
+  Answer = solve 10
   Answer equal 32287064
 end
 
 test "default input"
-  use "685_inversedigitsum2"
-  Kk = 10000
-  run
+  use "685_inversedigitsum2" as solve
+  Answer = solve 10000
   Answer equal 662878999
 end

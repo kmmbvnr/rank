@@ -22,4 +22,4 @@ Odd' = 100 * 500 ** Quad
 Odd' = K mod 4 equal 3 choose Odd 0
 Ways' = K mod 2 equal 0 choose Even Odd
 Answer = Ways sum
-Answer print
+return Answer

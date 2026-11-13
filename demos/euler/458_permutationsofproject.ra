@@ -31,4 +31,4 @@ for E greater 0
   E //= 2
 end
 Answer = V sum mod Md
-Answer print
+return Answer

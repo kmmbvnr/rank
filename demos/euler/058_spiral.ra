@@ -24,4 +24,8 @@ for
   end
 end
 
-Side print
+return record
+  .diagonals = Diagonals
+  .prime_count = PrimeCount
+  .side = Side
+end

@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "611_hallwaysquaresteps"
-  N = 5
-  run
+  use "611_hallwaysquaresteps" as solve
+  Answer = solve 5
   Answer equal 1
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 27
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 233
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 112168
 end
 
 test "brute force"
-  use "611_hallwaysquaresteps"
-  N = 10000
-  run
+  use "611_hallwaysquaresteps" as solve
+  Answer = solve 10000
   Answer equal 1812
 end

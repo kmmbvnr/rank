@@ -105,4 +105,4 @@ if N greater 1
 else
   Answer = 0
 end
-Answer print
+return Answer

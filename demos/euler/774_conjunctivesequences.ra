@@ -263,4 +263,4 @@ for Index in 0 to Count - 1
 end
 Fin = Root row 0
 Answer = Fin Length
-Answer print
+return Answer

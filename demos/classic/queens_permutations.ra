@@ -28,3 +28,7 @@ fun Q safe rank 1
   Down = Q - Row unique len
   return Down equal 8
 end
+return record
+  .boards = Boards
+  .sols = Sols
+end

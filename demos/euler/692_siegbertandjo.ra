@@ -34,4 +34,4 @@ for K in 89 to 1 by -1
     X -= Fb K
   end
 end
-Answer print
+return Answer

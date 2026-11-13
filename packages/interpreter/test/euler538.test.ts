@@ -5,7 +5,7 @@ import {readArrayItem} from '../src/array-storage.js';
 const source = readFileSync(new URL('../../../demos/euler/538_maxquadrilaterals.ra', import.meta.url), 'utf8');
 // Publish only the observation needed by the independent prefix oracle.
 const observed = source.replace('Answer = 0\nif', 'Snapshot = tuple (array 0) (array 0) 0\nAnswer = 0\nif')
-    .replace('end\nAnswer print', '  Snapshot = tuple Times Perimeters Best\nend\nAnswer print');
+    .replace('end\nreturn Answer', '  Snapshot = tuple Times Perimeters Best\nend\nreturn Answer');
 const bits = (n: number) => [...n.toString(2)].filter(digit => digit === '1').length;
 function brute(limit: number) {
     const terms: bigint[] = [], best: bigint[] = []; let area = 0n, perimeter = 0n, sum = 0n;

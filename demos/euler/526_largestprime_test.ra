@@ -1,18 +1,15 @@
 use testing
 
 test "official examples"
-  use "526_largestprime"
-  L = 100
-  run
+  use "526_largestprime" as solve
+  Answer = solve 100
   Answer equal 417
-  L = 1000000000
-  run
+  Answer = solve 1000000000
   Answer equal 4896292593
 end
 
 test "exact smaller maximum"
-  use "526_largestprime"
-  L = 100000000000
-  run
+  use "526_largestprime" as solve
+  Answer = solve 100000000000
   Answer equal 491010576113
 end

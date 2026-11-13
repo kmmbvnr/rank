@@ -35,3 +35,4 @@ Ans = (AnsQ reverse) reverse
 for L in Ans
   L print
 end
+return Ans

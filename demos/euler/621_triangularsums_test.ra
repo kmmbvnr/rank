@@ -1,20 +1,17 @@
 use testing
 
 test "statement values"
-  use "621_triangularsums"
-  N = 9
-  run
+  use "621_triangularsums" as solve
+  Answer = solve 9
   Answer equal 7
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 78
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 2106
 end
 
 test "default input"
-  use "621_triangularsums"
-  run
+  use "621_triangularsums" as solve
+  Answer = solve
   Answer equal 11429712
 end

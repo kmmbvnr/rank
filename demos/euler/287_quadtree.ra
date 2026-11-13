@@ -101,4 +101,4 @@ for
   end
 end
 Answer = 2 + 7 * Splits
-Answer print
+return Answer

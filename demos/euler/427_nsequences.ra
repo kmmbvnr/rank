@@ -100,4 +100,4 @@ fun N solve
   return (Top - N * Total) mod Prime
 end
 Answer = N solve
-Answer print
+return Answer

@@ -55,7 +55,7 @@ for Low in Lows
   end
 end
 Answer = Limit - A2 - A5 + Both
-Answer print
+return Answer
 
 fun N Limit Base nocarry
   if Limit equal 0

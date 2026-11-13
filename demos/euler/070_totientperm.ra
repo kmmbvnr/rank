@@ -28,4 +28,4 @@ Same = NKey equal PKey
 Ns = N Same array
 Ratio' = Ns / (Phi Same array)
 Answer = Ns (Ratio min .index)
-Answer print
+return Answer

@@ -1,33 +1,30 @@
 use testing
 
 test "default input"
-  use "127_abchits"
-  run
+  use "127_abchits" as solve
+  Answer = solve
 
   Answer equal 18407904
 end
 
 test "statement value for 1000"
-  use "127_abchits"
-  Limit = 1000
-  run
+  use "127_abchits" as solve
+  Answer = solve 1000
 
   Answer equal 12523
 end
 
 
 test "exclude a hit at the limit"
-  use "127_abchits"
-  Limit = 9
-  run
+  use "127_abchits" as solve
+  Answer = solve 9
 
   Answer equal 0
 end
 
 test "include the first hit"
-  use "127_abchits"
-  Limit = 10
-  run
+  use "127_abchits" as solve
+  Answer = solve 10
 
   Answer equal 9
 end

@@ -1,19 +1,15 @@
 use testing
 
 test "statement values"
-  use "722_slowlyconverging"
-  Order = 3
-  Shift = 8
-  run
+  use "722_slowlyconverging" as solve
+  Answer = solve 3 8
   Answer equal "2.767385314772e10"
-  Order = 7
-  Shift = 15
-  run
+  Answer = solve 7 15
   Answer equal "6.725803486744e39"
 end
 
 test "default input"
-  use "722_slowlyconverging"
-  run
+  use "722_slowlyconverging" as solve
+  Answer = solve
   Answer equal "3.376792776502e132"
 end

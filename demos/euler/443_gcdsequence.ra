@@ -34,4 +34,4 @@ if N greater 9
   rem Between jumps, g(n) = n + 2a.
   Answer = N + 2 * Anchor
 end
-Answer print
+return Answer

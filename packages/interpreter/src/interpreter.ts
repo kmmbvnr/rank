@@ -13,6 +13,7 @@ import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnv
 import { bindInputs } from './cli-args.js';
 import { ReturnSignal } from './control-signals.js';
 import { demandValue } from './plan.js';
+import { printedText } from './modules/io.js';
 import { CheckedInputContracts } from './checked-input.js';
 import { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
@@ -369,7 +370,12 @@ export class Interpreter {
         } catch (error) {
             // A top-level `return` unwinds to here with its value.
             // Like a function result, a lazy value is completed on the way out.
-            if (error instanceof ReturnSignal) return error.value === undefined ? undefined : demandValue(error.value);
+            if (error instanceof ReturnSignal) {
+                const value = error.value === undefined ? undefined : demandValue(error.value);
+                // A run shows what the program returns; a call from Rank code only returns it.
+                if (value !== undefined && !returnOnly) this.output(printedText(value));
+                return value;
+            }
             throw error;
         }
     }
@@ -669,10 +675,9 @@ export class Interpreter {
 
     /** A file with a top-level `return` is also callable: `X name` or `name`. */
     private bindFileFunction(loaded: LoadedProgram, specifier: string, alias?: string): void {
+        // Without a lowercase stem or alias the file is only a module of functions.
         const name = fileCallName(specifier, alias);
-        if (!name) {
-            throw new RankError(`${specifier} returns a value; import it under a lowercase name: use "${specifier}" as name`);
-        }
+        if (!name) return;
         const { left, right } = fileFunctionInputs(loaded.program);
         const names = [...left, ...right].map(input => input.name);
         const fn: NativeFunction = {

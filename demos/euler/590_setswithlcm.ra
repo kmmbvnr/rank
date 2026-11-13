@@ -143,4 +143,4 @@ Low = Answer2 mod 512
 Delta = Answer5 - Low
 Delta = Delta * Inverse mod PrimeMod
 Answer = Low + 512 * Delta
-Answer print
+return Answer

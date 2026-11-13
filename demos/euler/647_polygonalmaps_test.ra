@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "647_polygonalmaps"
-  run
+  use "647_polygonalmaps" as solve
+  Answer = solve
   Answer equal 563132994232918611
 end
 
 test "statement and brute force"
-  use "647_polygonalmaps"
-  N = 1000
-  run
+  use "647_polygonalmaps" as solve
+  Answer = solve 1000
   Answer equal 14993
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 529205796
-  N = 100000000
-  run
+  Answer = solve 100000000
   Answer equal 549150579820
 end

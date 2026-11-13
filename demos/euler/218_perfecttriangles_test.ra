@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "218_perfecttriangles"
-  run
+  use "218_perfecttriangles" as solve
+  Answer = solve
 
   Answer equal 0
 end
 
 test "a stricter modulus fails"
-  use "218_perfecttriangles"
-  Mod = 336
-  run
+  use "218_perfecttriangles" as solve
+  Answer = solve 336
 
   Answer equal 24576
 end

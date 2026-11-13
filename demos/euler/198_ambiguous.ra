@@ -69,4 +69,4 @@ for Top greater 0
     Low = A * 100 less B
   end
 end
-Answer print
+return Answer

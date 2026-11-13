@@ -213,4 +213,4 @@ for Q in 0 to 2
   end
   Answer += Val
 end
-Answer print
+return Answer

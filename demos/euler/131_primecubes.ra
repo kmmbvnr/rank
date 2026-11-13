@@ -18,4 +18,4 @@ P' = 3 * K * K + 3 * K + 1
 Small' = P less Limit
 Cand' = P filter Small array
 Answer = (Cand in primes) count
-Answer print
+return Answer

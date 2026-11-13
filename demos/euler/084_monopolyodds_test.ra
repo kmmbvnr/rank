@@ -1,23 +1,25 @@
 use testing
 
 test "default input"
-  use "084_monopolyodds"
-  run
+  use "084_monopolyodds" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 101524
 end
 
 test "six-sided dice from the statement"
-  use "084_monopolyodds"
-  Sides = 6
-  run
+  use "084_monopolyodds" as solve
+  Out = solve 6
+  Answer = Out .answer
 
   Answer equal 102400
 end
 
 test "landing distributions"
-  use "084_monopolyodds"
-  run
+  use "084_monopolyodds" as solve
+  Out = solve
+  Land = Out .land
 
   Land 30 40 equal 1.0
   Land 2 2 equal 0.875
@@ -29,11 +31,12 @@ test "landing distributions"
 end
 
 test "transition rows are probabilities"
-  use "084_monopolyodds"
+  use "084_monopolyodds" as solve
   use numbers
   use sequences
 
-  run
+  Out = solve
+  Trans = Out .trans
 
   Sums = Trans sum axis 1
   Off0 = Sums 0 - 1.0

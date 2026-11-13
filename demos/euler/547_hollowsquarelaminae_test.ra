@@ -1,11 +1,9 @@
 use testing
 
 test "small squares"
-  use "547_hollowsquarelaminae"
-  N = 3
-  run
+  use "547_hollowsquarelaminae" as solve
+  Answer = solve 3
   Answer equal 1.6514
-  N = 4
-  run
+  Answer = solve 4
   Answer equal 19.6564
 end

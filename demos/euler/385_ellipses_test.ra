@@ -1,17 +1,13 @@
 use testing
 
 test "ellipse triangles"
-  use "385_ellipses"
-  Limit = 8
-  run
+  use "385_ellipses" as solve
+  Answer = solve 8
   Answer equal 72
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 252
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 34632
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 3529008
 end

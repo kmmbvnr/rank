@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "622_riffleshuffles"
-  run
+  use "622_riffleshuffles" as solve
+  Answer = solve
   Answer equal 3010983666182123972
 end
 
 test "statement and brute force"
-  use "622_riffleshuffles"
-  K = 8
-  run
+  use "622_riffleshuffles" as solve
+  Answer = solve 8
   Answer equal 412
-  K = 12
-  run
+  Answer = solve 12
   Answer equal 8628
-  K = 16
-  run
+  Answer = solve 16
   Answer equal 111032
 end

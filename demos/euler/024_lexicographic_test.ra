@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "024_lexicographic"
-  run
+  use "024_lexicographic" as solve
+  Answer = solve
 
   Answer equal "2783915460"
 end
 
 test "fourth permutation"
-  use "024_lexicographic"
-  Position = 4
-  run
+  use "024_lexicographic" as solve
+  Answer = solve 4
 
   Answer equal "0123456897"
 end
 
 test "first permutation keeps leading zero"
-  use "024_lexicographic"
-  Position = 1
-  run
+  use "024_lexicographic" as solve
+  Answer = solve 1
 
   Answer equal "0123456789"
 end

@@ -1,36 +1,30 @@
 use testing
 
 test "default input"
-  use "259_reachablenumbers"
-  run
+  use "259_reachablenumbers" as solve
+  Answer = solve
 
   Answer equal 20101196798
 end
 
 test "fewer digits"
-  use "259_reachablenumbers"
-  Top = 1
-  run
+  use "259_reachablenumbers" as solve
+  Answer = solve 1
 
   Answer equal 1
-  Top = 2
-  run
+  Answer = solve 2
 
   Answer equal 17
-  Top = 3
-  run
+  Answer = solve 3
 
   Answer equal 255
-  Top = 4
-  run
+  Answer = solve 4
 
   Answer equal 4179
-  Top = 5
-  run
+  Answer = solve 5
 
   Answer equal 74689
-  Top = 6
-  run
+  Answer = solve 6
 
   Answer equal 1486823
 end

@@ -64,4 +64,7 @@ end
 
 B = N inverse_roots
 Answer = B sum
-Answer print
+return record
+  .answer = Answer
+  .b = B
+end

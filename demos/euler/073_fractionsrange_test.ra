@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "073_fractionsrange"
-  run
+  use "073_fractionsrange" as solve
+  Answer = solve
 
   Answer equal 7295372
 end
 
 test "statement example up to 8"
-  use "073_fractionsrange"
-  Limit = 8
-  run
+  use "073_fractionsrange" as solve
+  Answer = solve 8
 
   Answer equal 3
 end
 
 test "limit one thousand"
-  use "073_fractionsrange"
-  Limit = 1000
-  run
+  use "073_fractionsrange" as solve
+  Answer = solve 1000
 
   Answer equal 50695
 end

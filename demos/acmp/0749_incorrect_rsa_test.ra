@@ -1,72 +1,80 @@
 use testing
 
 test "sample 1: n = 6 (k=1) has 1"
-  use "0749_incorrect_rsa"
-  Input = "6"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "6"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "1"
   FoundK equal 1
 end
 
 test "sample 2: n = 100 (k=2) has 8"
-  use "0749_incorrect_rsa"
-  Input = "100"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "100"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "8"
   FoundK equal 2
 end
 
 test "n = 216 is 6^3 (k=3)"
-  use "0749_incorrect_rsa"
-  Input = "216"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "216"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "30"
   FoundK equal 3
 end
 
 test "n = 1296 is 6^4 (k=4)"
-  use "0749_incorrect_rsa"
-  Input = "1296"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "1296"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "108"
   FoundK equal 4
 end
 
 test "n = 1000000 is 10^6 (k=6)"
-  use "0749_incorrect_rsa"
-  Input = "1000000"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "1000000"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "1042"
   FoundK equal 6
 end
 
 test "large primes product k=1: 15"
-  use "0749_incorrect_rsa"
-  Input = "15"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "15"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "1"
   FoundK equal 1
 end
 
 test "maximum k = 23 with 6^23"
-  use "0749_incorrect_rsa"
-  Input = "789730223053602816"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "789730223053602816"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "2977831388"
   FoundK equal 23
 end
 
 test "boundary n = 10^18 (k=18)"
-  use "0749_incorrect_rsa"
-  Input = "1000000000000000000"
-  run
+  use "0749_incorrect_rsa" as solve
+  Out = solve "1000000000000000000"
+  Answer = Out .answer
+  FoundK = Out .found_k
 
   Answer equal "62229989"
   FoundK equal 18

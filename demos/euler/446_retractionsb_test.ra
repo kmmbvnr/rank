@@ -1,31 +1,25 @@
 use testing
 
 test "statement values"
-  use "446_retractionsb"
-  N = 0
-  run
+  use "446_retractionsb" as solve
+  Answer = solve 0
   Answer equal 0
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 11
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 34
 end
 
 test "published checkpoint"
-  use "446_retractionsb"
-  N = 1024
-  run
+  use "446_retractionsb" as solve
+  Answer = solve 1024
   Answer equal 376757876
 end
 
 test "sieve of larger primes"
-  use "446_retractionsb"
-  N = 3000
-  run
+  use "446_retractionsb" as solve
+  Answer = solve 3000
   Answer equal 661927618
 end

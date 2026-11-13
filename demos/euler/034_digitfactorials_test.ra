@@ -1,8 +1,8 @@
 use testing
 
 test "all digit factorials"
-  use "034_digitfactorials"
-  run
+  use "034_digitfactorials" as solve
+  Answer = solve
 
   Answer equal 40730
 end

@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "792_toomanytwos"
-  Count = 5
-  run
+  use "792_toomanytwos" as solve
+  Answer = solve 5
   Answer equal 241
 end

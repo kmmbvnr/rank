@@ -21,4 +21,4 @@ Xr = Ks Ks outer bxor reshape 4096
 Cx = (Ck Xr) reshape 64 64
 Ls = ((Ck reshape 64 1) * Ck * Cx) sum
 Answer = (N ** 3 - Ls) mod 1234567890
-Answer print
+return Answer

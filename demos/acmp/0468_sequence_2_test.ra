@@ -2,9 +2,9 @@ use testing
 use bits
 
 test "sample 1: first term is 7"
-  use "0468_sequence_2"
-  N = 1
-  run
+  use "0468_sequence_2" as solve
+  Out = solve 1
+  Answer = Out .answer
 
   Answer equal 7
 end
@@ -22,18 +22,22 @@ test "first 8 terms match"
 end
 
 test "large N power of two"
-  use "0468_sequence_2"
+  use "0468_sequence_2" as solve
   rem N = C(5,3) + 1 = 11 -> 35
-  N = 11
-  run
+  Out = solve 11
+  Answer = Out .answer
 
   Answer equal 35
 end
 
 test "maximum N = 2^31 - 1"
-  use "0468_sequence_2"
-  N = 2147483647
-  run
+  use "0468_sequence_2" as solve
+  use bits
+  Out = solve 2147483647
+  Answer = Out .answer
+  P1 = Out .p1
+  P2 = Out .p2
+  P3 = Out .p3
 
   rem Check exactly 3 set bits
   P3Bit = 1 shl P3

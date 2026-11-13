@@ -1,23 +1,17 @@
 use testing
 
 test "statement values"
-  use "716_gridgraphs"
-  Height = 3
-  Width = 3
-  run
+  use "716_gridgraphs" as solve
+  Answer = solve 3 3
   Answer equal 408
-  Height = 3
-  Width = 6
-  run
+  Answer = solve 3 6
   Answer equal 4696
-  Height = 10
-  Width = 20
-  run
+  Answer = solve 10 20
   Answer equal 988971143
 end
 
 test "default input"
-  use "716_gridgraphs"
-  run
+  use "716_gridgraphs" as solve
+  Answer = solve
   Answer equal 238948623
 end

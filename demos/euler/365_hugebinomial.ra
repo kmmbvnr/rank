@@ -13,7 +13,7 @@ arg Hi integer = 5000
 
 Ps = primes from Lo till Hi array
 Answer = N K Ps triples
-Answer print
+return Answer
 
 fun N K P lucas
   F = array shape P fill 1

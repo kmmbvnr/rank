@@ -5,8 +5,12 @@ use io
 N = 1 to 6 array
 Squares = N * N
 Adjacent = (Squares drop 1) - (Squares take 5)
-Adjacent print
 
 Odd = Squares (0 to # by 2)
 Even = Squares (1 to # by 2)
 Even - Odd print
+return record
+  .adjacent = Adjacent
+  .even = Even
+  .odd = Odd
+end

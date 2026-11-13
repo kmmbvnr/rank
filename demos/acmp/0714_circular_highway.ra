@@ -256,4 +256,10 @@ BYTxt = BestY text
 BRTxt = BestR text
 PosTxt = BXTxt + " " + BYTxt
 Answer2 = PosTxt + " " + BRTxt
-Answer2 print
+return record
+  .answer1 = Answer1
+  .best_r = BestR
+  .best_x = BestX
+  .best_y = BestY
+  .answer2 = Answer2
+end

@@ -40,4 +40,4 @@ for B0 in 1 to Km by Bl
   Bs = Ts sum
   Answer = (Answer + Bs) mod P
 end
-Answer print
+return Answer

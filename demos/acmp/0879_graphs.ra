@@ -74,4 +74,4 @@ fun solve_counts Input
 end
 
 Result = solve_counts Input
-Result print
+return Result

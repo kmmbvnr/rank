@@ -31,4 +31,4 @@ M = (Cs at most (2 * N)) count
 R = 2 * N - Cs (M - 1)
 T = R // (M + 2)
 Answer = Ps (M - 1) + T + 1
-Answer print
+return Answer

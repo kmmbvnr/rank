@@ -131,4 +131,4 @@ if Found less (K - 1)
   .SearchError "increase L" raise
 end
 Answer = Minima sum
-Answer print
+return Answer

@@ -16,7 +16,7 @@ unpack Powers Factors = Limit stages
 Starts = 1 to Limit by Block copy
 Totals = Starts blocksum rank 0
 Answer = 2 * Totals sum
-Answer print
+return Answer
 
 rem Flatten prime powers once; every
 rem stage touches its multiples.

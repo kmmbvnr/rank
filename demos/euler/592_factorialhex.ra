@@ -61,4 +61,4 @@ Pc = N popcount
 Fv = (Tt * 2 ** ((N - Pc) mod 4)) mod Md
 Dg = Fv digits (array shape 12 fill 16)
 Answer = "0123456789ABCDEF" Dg
-Answer print
+return Answer

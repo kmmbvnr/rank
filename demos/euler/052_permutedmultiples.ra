@@ -7,7 +7,7 @@ use sequences
 use io
 
 Answer = solve
-Answer print
+return Answer
 
 
 rem Search decimal widths in order.

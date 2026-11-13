@@ -1572,6 +1572,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 loops.loop(statement, env);
             } else if (isTryStatement(statement)) {
                 if (!paths.returnPaths([statement], env).fallsThrough) return false;
+            } else if (isReturnStatement(statement)) {
+                // A top-level return ends the program; names it reads are unchanged.
+                if (statement.value) { invalidateCalls(statement.value, env); inspect(statement.value, env); }
+                return false;
             } else {
                 // Unsupported statements may mutate bindings through closures or imports.
                 for (const [name, fact] of env) env.set(name, invalidate(fact));

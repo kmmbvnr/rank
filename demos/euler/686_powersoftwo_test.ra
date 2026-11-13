@@ -1,16 +1,11 @@
 use testing
 
 test "statement values"
-  use "686_powersoftwo"
-  Lp = 12
-  Nn = 1
-  run
+  use "686_powersoftwo" as solve
+  Answer = solve 12 1
   Answer equal 7
-  Nn = 2
-  run
+  Answer = solve 12 2
   Answer equal 80
-  Lp = 123
-  Nn = 45
-  run
+  Answer = solve 123 45
   Answer equal 12710
 end

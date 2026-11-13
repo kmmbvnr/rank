@@ -23,4 +23,4 @@ Roots' = N Irrational * Scale isqrt
 Text' = Roots text rank 0
 Digs' = Text join "" integer rank 0
 Answer = Digs sum
-Answer print
+return Answer

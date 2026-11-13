@@ -1,21 +1,17 @@
 use testing
 
 test "partition product sum"
-  use "374_partproduct"
-  Limit = 5
-  run
+  use "374_partproduct" as solve
+  Answer = solve 5
   Answer equal 22
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 254
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 611162873
 end
 
 test "empty partition sum"
-  use "374_partproduct"
-  Limit = 0
-  run
+  use "374_partproduct" as solve
+  Answer = solve 0
   Answer equal 0
 end

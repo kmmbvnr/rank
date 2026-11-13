@@ -44,4 +44,4 @@ for Nb in 2 to N
 end
 Answer = (1 + Sg N Mm) / 2
 Answer = Answer round 10
-Answer print
+return Answer

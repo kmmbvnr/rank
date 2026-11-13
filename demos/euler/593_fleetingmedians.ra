@@ -34,4 +34,4 @@ rem Overlapping windows share one scan.
 Medians = Values window K median axis 1
 Total = Medians sum
 Answer = Total text ".1f"
-Answer print
+return Answer

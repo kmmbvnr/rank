@@ -54,4 +54,4 @@ for Step in 0 to Trolls - 1
   end
 end
 Answer = Best max
-Answer print
+return Answer

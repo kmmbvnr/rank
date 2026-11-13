@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "642_largestprimefactors"
-  N = 10
-  run
+  use "642_largestprimefactors" as solve
+  Answer = solve 10
   Answer equal 32
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 1915
-  N = 10000
-  run
+  Answer = solve 10000
   Answer equal 10118280
 end
 
 test "a larger cutoff"
-  use "642_largestprimefactors"
-  N = 1000000000
-  run
+  use "642_largestprimefactors" as solve
+  Answer = solve 1000000000
   Answer equal 895017934
 end

@@ -2,37 +2,30 @@ use testing
 
 rem Small limits independently checked by direct square sums.
 test "small limits"
-  use "261_pivotalsquare"
-  Limit = 110
-  run
+  use "261_pivotalsquare" as solve
+  Answer = solve 110
 
   Answer equal 355
-  Limit = 200000
-  run
+  Answer = solve 200000
 
   Answer equal 23434786
-  Limit = 3000000
-  run
+  Answer = solve 3000000
 
   Answer equal 1305678503
 end
 
 test "boundary limits"
-  use "261_pivotalsquare"
-  Limit = 0
-  run
+  use "261_pivotalsquare" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 3
-  run
+  Answer = solve 3
 
   Answer equal 0
-  Limit = 4
-  run
+  Answer = solve 4
 
   Answer equal 4
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 9167
 end

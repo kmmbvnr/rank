@@ -1,25 +1,17 @@
 use testing
 
 test "statement values"
-  use "666_polymorphicbacteria"
-  Kk = 2
-  Mm = 2
-  run
+  use "666_polymorphicbacteria" as solve
+  Answer = solve 2 2
   Answer equal "0.07243802"
-  Kk = 4
-  Mm = 3
-  run
+  Answer = solve 4 3
   Answer equal "0.18554021"
-  Kk = 10
-  Mm = 5
-  run
+  Answer = solve 10 5
   Answer equal "0.53466253"
 end
 
 test "default input"
-  use "666_polymorphicbacteria"
-  Kk = 500
-  Mm = 10
-  run
+  use "666_polymorphicbacteria" as solve
+  Answer = solve 500 10
   Answer equal "0.48023168"
 end

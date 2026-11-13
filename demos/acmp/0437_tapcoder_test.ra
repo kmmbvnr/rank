@@ -2,56 +2,51 @@ rem ACMP 0437: Tapcoder tests
 use testing
 
 test "sample: 3 rounds, 3 fixed"
-  use "0437_tapcoder"
-  Input = "3 3 4
+  use "0437_tapcoder" as solve
+  Result = solve "3 3 4
 1 2
 1 3
 4 1
 1 2 3 4"
-  run
   Result equal "3 1 2 3"
 end
 
 test "ACMP 437: No fixed matches (K=60)"
-  use "0437_tapcoder"
-  Input = "60 0 3
+  use "0437_tapcoder" as solve
+  Result = solve "60 0 3
 1 2 1000000000"
-  run
   Result equal "60 60 60"
 end
 
 test "ACMP 437: Single round K=1"
-  use "0437_tapcoder"
-  Input = "1 1 2
+  use "0437_tapcoder" as solve
+  Result = solve "1 1 2
 2 1
 1 2"
-  run
   Result equal "1 1"
 end
 
 test "ACMP 437: Forced loss in round 2"
-  use "0437_tapcoder"
-  Input = "2 3 4
+  use "0437_tapcoder" as solve
+  Result = solve "2 3 4
 2 1
 3 1
 4 1
 1 2 3 4"
-  run
   Result equal "1 2 2 2"
 end
 
 test "ACMP 437: Both opponents beat P1"
-  use "0437_tapcoder"
-  Input = "3 2 4
+  use "0437_tapcoder" as solve
+  Result = solve "3 2 4
 3 1
 4 1
 1 2 3 4"
-  run
   Result equal "2 3 3 3"
 end
 
 test "ACMP 437: Default 4-round stress"
-  use "0437_tapcoder"
-  run
+  use "0437_tapcoder" as solve
+  Result = solve
   Result not equal ""
 end

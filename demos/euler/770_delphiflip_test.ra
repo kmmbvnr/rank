@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "770_delphiflip"
-  Target = 1.7
-  run
+  use "770_delphiflip" as solve
+  Answer = solve 1.7
   Answer equal 10
 end

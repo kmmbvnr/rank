@@ -1,17 +1,16 @@
 use testing
 
 test "default input"
-  use "012_triangledivisors"
-  run
+  use "012_triangledivisors" as solve
+  Ans = solve
 
   Ans equal 76576500
 end
 
 test "more than five divisors"
-  use "012_triangledivisors"
+  use "012_triangledivisors" as solve
 
-  Min = 5
-  run
+  Ans = solve 5
 
   Ans equal 28
 end

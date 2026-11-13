@@ -1,33 +1,27 @@
 use testing
 
 test "short proteins"
-  use "300_proteinfolding"
-  N = 2
-  run
+  use "300_proteinfolding" as solve
+  Answer = solve 2
 
   Answer equal 0.25
-  N = 4
-  run
+  Answer = solve 4
 
   Answer equal 1
-  N = 5
-  run
+  Answer = solve 5
 
   Answer equal 1.4375
-  N = 8
-  run
+  Answer = solve 8
 
   Answer equal 3.3203125
-  N = 10
-  run
+  Answer = solve 10
 
   Answer equal 4.6220703125
 end
 
 test "twelve acids"
-  use "300_proteinfolding"
-  N = 12
-  run
+  use "300_proteinfolding" as solve
+  Answer = solve 12
 
   Answer equal 5.994873046875
 end

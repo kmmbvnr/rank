@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "297_zeckendorf"
-  run
+  use "297_zeckendorf" as solve
+  Answer = solve
 
   Answer equal 2252639041804718029
 end
 
 test "smaller limits"
-  use "297_zeckendorf"
-  N = 1000000
-  run
+  use "297_zeckendorf" as solve
+  Answer = solve 1000000
 
   Answer equal 7894453
-  N = 10
-  run
+  Answer = solve 10
 
   Answer equal 13
 end

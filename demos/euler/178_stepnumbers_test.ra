@@ -1,28 +1,24 @@
 use testing
 
 test "default input"
-  use "178_stepnumbers"
-  run
+  use "178_stepnumbers" as solve
+  Answer = solve
 
   Answer equal 126461847755
 end
 
 test "short lengths"
-  use "178_stepnumbers"
-  Len = 10
-  run
+  use "178_stepnumbers" as solve
+  Answer = solve 10
 
   Answer equal 1
-  Len = 11
-  run
+  Answer = solve 11
 
   Answer equal 4
-  Len = 12
-  run
+  Answer = solve 12
 
   Answer equal 18
-  Len = 14
-  run
+  Answer = solve 14
 
   Answer equal 172
 end

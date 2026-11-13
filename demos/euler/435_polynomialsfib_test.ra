@@ -1,23 +1,19 @@
 use testing
 
 test "statement checkpoint"
-  use "435_polynomialsfib"
-  N = 20
-  Top = 10
-  run
+  use "435_polynomialsfib" as solve
+  Answer = solve 20 10
   Answer equal 1044074802100
 end
 
 test "small degree sums"
-  use "435_polynomialsfib"
-  N = 7
-  Top = 11
-  run
+  use "435_polynomialsfib" as solve
+  Answer = solve 7 11
   Answer equal 520417062
 end
 
 test "default input"
-  use "435_polynomialsfib"
-  run
+  use "435_polynomialsfib" as solve
+  Answer = solve
   Answer equal 252541322550
 end

@@ -11,9 +11,8 @@ test "smallest multiples"
 end
 
 test "published sum"
-  use "303_smalldigits"
-  Limit = 100
-  run
+  use "303_smalldigits" as solve
+  Answer = solve 100
 
   Answer equal 11363107
 end

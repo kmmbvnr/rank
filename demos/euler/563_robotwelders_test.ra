@@ -1,12 +1,9 @@
 use testing
 
 test "statement and brute-force sums"
-  use "563_robotwelders"
-  L = 3000000
-  K = 3
-  run
+  use "563_robotwelders" as solve
+  Answer = solve 3000000 3
   Answer equal 1083240
-  K = 10
-  run
+  Answer = solve 3000000 10
   Answer equal 3813201480
 end

@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "151_papersheets"
-  run
+  use "151_papersheets" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 0.464399
 end
 
 test "first pick from four sheets"
-  use "151_papersheets"
-  run
+  use "151_papersheets" as solve
+  Out = solve
+  Mat = Out .mat
 
   Mat 190 110 equal 0.25
   Mat 190 190 equal 0.0

@@ -59,4 +59,4 @@ for S in 0 to Mid
     Answer += Ways
   end
 end
-Answer print
+return Answer

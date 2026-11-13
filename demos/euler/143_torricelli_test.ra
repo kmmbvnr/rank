@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "143_torricelli"
-  run
+  use "143_torricelli" as solve
+  Answer = solve
 
   Answer equal 30758397
 end
 
 test "statement triangle"
-  use "143_torricelli"
-  Limit = 1000
-  run
+  use "143_torricelli" as solve
+  Answer = solve 1000
 
   Answer equal 784
 end

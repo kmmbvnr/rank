@@ -31,4 +31,4 @@ Ten = 2 ** 14 * 5 ** 6
 Ends' = Ten mod Den equal 0
 Sign' = Ends choose (0 - Ns) Ns
 Answer = Sign sum
-Answer print
+return Answer

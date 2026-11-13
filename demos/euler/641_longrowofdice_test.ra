@@ -1,33 +1,27 @@
 use testing
 
 test "statement values"
-  use "641_longrowofdice"
-  N = 100
-  run
+  use "641_longrowofdice" as solve
+  Answer = solve 100
   Answer equal 2
-  N = 100000000
-  run
+  Answer = solve 100000000
   Answer equal 69
 end
 
 test "brute force and large cutoffs"
-  use "641_longrowofdice"
-  N = 1000000
-  run
+  use "641_longrowofdice" as solve
+  Answer = solve 1000000
   Answer equal 20
-  N = 1000000000000
-  run
+  Answer = solve 1000000000000
   Answer equal 740
-  N = 100000000000000000000
-  run
+  Answer = solve 100000000000000000000
   Answer equal 78220
-  N = 1000000000000000000000000000000
-  run
+  Answer = solve 1000000000000000000000000000000
   Answer equal 25055676
 end
 
 test "default input"
-  use "641_longrowofdice"
-  run
+  use "641_longrowofdice" as solve
+  Answer = solve
   Answer equal 793525366
 end

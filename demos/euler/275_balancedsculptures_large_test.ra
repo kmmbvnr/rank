@@ -1,9 +1,8 @@
 use testing
 
 test "order fifteen"
-  use "275_balancedsculptures"
-  N = 15
-  run
+  use "275_balancedsculptures" as solve
+  Answer = solve 15
 
   Answer equal 360505
 end

@@ -58,4 +58,4 @@ D = Grid window 4 4 diag products
 U = Grid window 4 4 diag .anti products
 
 Answer = (array H V D U) max
-Answer print
+return Answer

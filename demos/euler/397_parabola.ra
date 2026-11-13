@@ -110,4 +110,4 @@ for N in 1 to K
     Answer += Total
   end
 end
-Answer print
+return Answer

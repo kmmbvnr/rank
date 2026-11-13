@@ -3,25 +3,21 @@ use testing
 rem The full reference search is slow;
 rem keep independent smaller orders here.
 test "small orders"
-  use "275_balancedsculptures"
-  N = 6
-  run
+  use "275_balancedsculptures" as solve
+  Answer = solve 6
 
   Answer equal 18
-  N = 10
-  run
+  Answer = solve 10
 
   Answer equal 964
-  N = 12
-  run
+  Answer = solve 12
 
   Answer equal 9657
 end
 
 test "single block"
-  use "275_balancedsculptures"
-  N = 1
-  run
+  use "275_balancedsculptures" as solve
+  Answer = solve 1
 
   Answer equal 1
 end

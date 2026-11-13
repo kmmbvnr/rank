@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "688_pilesofplates"
-  Nn = 10
-  run
+  use "688_pilesofplates" as solve
+  Answer = solve 10
   Answer equal 83
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 12656
 end
 
 test "full-scale checkpoint"
-  use "688_pilesofplates"
-  Nn = 1000000000000000
-  run
+  use "688_pilesofplates" as solve
+  Answer = solve 1000000000000000
   Answer equal 20039017
 end

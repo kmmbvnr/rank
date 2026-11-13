@@ -40,4 +40,4 @@ for M in 3 to 100000 by 2
     end
   end
 end
-Answer print
+return Answer

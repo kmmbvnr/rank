@@ -1,46 +1,36 @@
 use testing
 
 test "sample: OMSCMNWQTTARTERPDEINAL"
-  use "0428_sms"
-  S = "OMSCMNWQTTARTERPDEINAL"
-  N = 20
-  run
+  use "0428_sms" as solve
+  Answer = solve "OMSCMNWQTTARTERPDEINAL" 20
 
   Answer equal 760
 end
 
 test "split: C with len 2 -> AB, BA"
-  use "0428_sms"
-  S = "C"
-  N = 2
-  run
+  use "0428_sms" as solve
+  Answer = solve "C" 2
 
   Answer equal 2
 end
 
 test "merged: AA with len 1 gives B"
-  use "0428_sms"
-  S = "AA"
-  N = 1
-  run
+  use "0428_sms" as solve
+  Answer = solve "AA" 1
 
   Answer equal 1
 end
 
 test "exact word: SMS with length 3"
-  use "0428_sms"
-  S = "SMS"
-  N = 3
-  run
+  use "0428_sms" as solve
+  Answer = solve "SMS" 3
 
   Answer equal 1
 end
 
 test "impossible length: A with len 10"
-  use "0428_sms"
-  S = "A"
-  N = 10
-  run
+  use "0428_sms" as solve
+  Answer = solve "A" 10
 
   Answer equal 0
 end

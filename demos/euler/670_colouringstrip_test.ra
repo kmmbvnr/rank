@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "670_colouringstrip"
-  Nn = 2
-  run
+  use "670_colouringstrip" as solve
+  Answer = solve 2
   Answer equal 120
-  Nn = 5
-  run
+  Answer = solve 5
   Answer equal 45876
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 53275818
 end
 
 test "default input"
-  use "670_colouringstrip"
-  Nn = 10000000000000000
-  run
+  use "670_colouringstrip" as solve
+  Answer = solve 10000000000000000
   Answer equal 551055065
 end

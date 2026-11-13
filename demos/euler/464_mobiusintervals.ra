@@ -64,4 +64,4 @@ end
 unpack Signs Weights = N signs
 Bad = Signs violations Weights
 Answer = N * (N + 1) // 2 - Bad
-Answer print
+return Answer

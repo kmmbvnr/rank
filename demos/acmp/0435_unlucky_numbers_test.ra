@@ -1,37 +1,29 @@
 use testing
 
 test "sample 1: N = 1, K = 7"
-  use "0435_unlucky_numbers"
-  N = 1
-  K = 7
-  run
+  use "0435_unlucky_numbers" as solve
+  Answer = solve 1 7
 
   Answer equal 7
 end
 
 test "sample 2: N = 4, K = 3"
-  use "0435_unlucky_numbers"
-  N = 4
-  K = 3
-  run
+  use "0435_unlucky_numbers" as solve
+  Answer = solve 4 3
 
   Answer equal 164
 end
 
 test "sample 3: N = 11, K = 9"
-  use "0435_unlucky_numbers"
-  N = 11
-  K = 9
-  run
+  use "0435_unlucky_numbers" as solve
+  Answer = solve 11 9
 
   Answer equal 50184219171
 end
 
 test "boundary: N = 2, K = 1"
-  use "0435_unlucky_numbers"
-  N = 2
-  K = 1
-  run
+  use "0435_unlucky_numbers" as solve
+  Answer = solve 2 1
 
   rem 00, 11 (lucky); 01, 10 (unlucky)
   Answer equal 2

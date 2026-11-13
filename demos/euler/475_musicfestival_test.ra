@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "475_musicfestival"
-  N = 12
-  run
+  use "475_musicfestival" as solve
+  Answer = solve 12
   Answer equal 576
-  N = 24
-  run
+  Answer = solve 24
   Answer equal 509089824
 end
 
 test "48 musicians"
-  use "475_musicfestival"
-  N = 48
-  run
+  use "475_musicfestival" as solve
+  Answer = solve 48
   Answer equal 43930481
 end

@@ -76,4 +76,8 @@ for Mask in Masks
     end
   end
 end
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+  .vals = Vals
+end

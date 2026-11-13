@@ -4,56 +4,55 @@ use testing
 use text
 
 test "ACMP 718: Sample 1 (zenit)"
-  use "0718_new_ad_word"
-  Input = "3 4
+  use "0718_new_ad_word" as solve
+  Result = solve "3 4
 tiet
 oink
 ezin
 zenit"
-  run
 
   Result equal "3
 1 2 3"
 end
 
 test "ACMP 718: Sample 2 (sam)"
-  use "0718_new_ad_word"
-  Input = "2 11
+  use "0718_new_ad_word" as solve
+  use text
+  Result = solve "2 11
 sillysample
 happysample
 sam"
-  run
 
   Lines = Result split "\n"
   (Lines 0) equal "1"
 end
 
 test "ACMP 718: Sample 3 (bb)"
-  use "0718_new_ad_word"
-  Input = "2 3
+  use "0718_new_ad_word" as solve
+  use text
+  Result = solve "2 3
 baa
 aab
 bb"
-  run
 
   Lines = Result split "\n"
   (Lines 0) equal "2"
 end
 
 test "ACMP 718: Sample 4 (impossible)"
-  use "0718_new_ad_word"
-  Input = "2 3
+  use "0718_new_ad_word" as solve
+  Result = solve "2 3
 aaa
 bbb
 cc"
-  run
 
   Result equal "-1"
 end
 
 test "ACMP 718: Default input"
-  use "0718_new_ad_word"
-  run
+  use "0718_new_ad_word" as solve
+  use text
+  Result = solve
 
   Lines = Result split "\n"
   (Lines 0) equal "1"

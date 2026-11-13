@@ -16,4 +16,4 @@ for P in primes to Limit
 end
 Order = Rad drop 1 argsort
 Answer = Order (K - 1) + 1
-Answer print
+return Answer

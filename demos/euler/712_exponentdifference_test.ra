@@ -1,24 +1,21 @@
 use testing
 
 test "statement values"
-  use "712_exponentdifference"
-  Limit = 10
-  run
+  use "712_exponentdifference" as solve
+  Answer = solve 10
   Answer equal 210
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 37018
 end
 
 test "default input"
-  use "712_exponentdifference"
-  run
+  use "712_exponentdifference" as solve
+  Answer = solve
   Answer equal 413876461
 end
 
 test "full-scale checkpoint"
-  use "712_exponentdifference"
-  Limit = 100000000
-  run
+  use "712_exponentdifference" as solve
+  Answer = solve 100000000
   Answer equal 478653324
 end

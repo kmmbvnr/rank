@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "533_carmichael"
-  N = 6
-  run
+  use "533_carmichael" as solve
+  Answer = solve 6
   Answer equal 241
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 174525281
 end

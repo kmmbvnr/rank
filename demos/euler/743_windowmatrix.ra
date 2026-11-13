@@ -67,4 +67,4 @@ for Piece in 0 to Chunks - 1
   DenCarry = Whole
 end
 Answer = Total
-Answer print
+return Answer

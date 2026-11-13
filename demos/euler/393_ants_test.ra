@@ -1,20 +1,15 @@
 use testing
 
 test "migrating ants"
-  use "393_ants"
-  N = 0
-  run
+  use "393_ants" as solve
+  Answer = solve 0
   Answer equal 1
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 0
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 2
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 0
-  N = 4
-  run
+  Answer = solve 4
   Answer equal 88
 end

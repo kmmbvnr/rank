@@ -1,20 +1,17 @@
 use testing
 
 test "statement values"
-  use "626_binarymatrices"
-  N = 3
-  run
+  use "626_binarymatrices" as solve
+  Answer = solve 3
   Answer equal 3
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 39
-  N = 8
-  run
+  Answer = solve 8
   Answer equal 656108
 end
 
 test "default input"
-  use "626_binarymatrices"
-  run
+  use "626_binarymatrices" as solve
+  Answer = solve
   Answer equal 695577663
 end

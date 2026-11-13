@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "101_optimumpoly"
-  run
+  use "101_optimumpoly" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 37076114526
 end
 
 test "generating polynomial values"
-  use "101_optimumpoly"
-  run
+  use "101_optimumpoly" as solve
+  Out = solve
+  U = Out .u
 
   U 0 equal 1
   U 1 equal 683
@@ -17,13 +19,13 @@ test "generating polynomial values"
 end
 
 test "lower degrees"
-  use "101_optimumpoly"
-  Degree = 2
-  run
+  use "101_optimumpoly" as solve
+  Out = solve 2
+  Answer = Out .answer
 
   Answer equal 6
-  Degree = 3
-  run
+  Out = solve 3
+  Answer = Out .answer
 
   Answer equal -55
 end

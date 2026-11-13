@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "600_equiangularhexagons"
-  run
+  use "600_equiangularhexagons" as solve
+  Answer = solve
   Answer equal 2668608479740672
 end
 
 test "statement values"
-  use "600_equiangularhexagons"
-  N = 6
-  run
+  use "600_equiangularhexagons" as solve
+  Answer = solve 6
   Answer equal 1
-  N = 12
-  run
+  Answer = solve 12
   Answer equal 10
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 31248
 end

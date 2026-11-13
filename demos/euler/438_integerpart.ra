@@ -198,4 +198,4 @@ if N greater 0
   Cnt = Result 0
   Answer = Result 1
 end
-Answer print
+return Answer

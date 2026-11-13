@@ -9,8 +9,7 @@ test "risky moon r7"
 end
 
 test "first five risky moons"
-  use "353_riskymoon"
-  Last = 5
-  run
+  use "353_riskymoon" as solve
+  Answer = solve 5
   Answer equal 1.1091333145
 end

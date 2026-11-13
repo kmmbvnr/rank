@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "148_pascalsevens"
-  run
+  use "148_pascalsevens" as solve
+  Answer = solve
 
   Answer equal 2129970655314432
 end
 
 test "statement value for 100 rows"
-  use "148_pascalsevens"
-  Rows = 100
-  run
+  use "148_pascalsevens" as solve
+  Answer = solve 100
 
   Answer equal 2361
 end

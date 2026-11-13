@@ -65,4 +65,4 @@ Pairs = Total * (Total - 1) mod Prime
 Triangle = Pairs * Half
 Sum = Triangle + Total * Genus + GapSum
 Answer = Sum mod Prime
-Answer print
+return Answer

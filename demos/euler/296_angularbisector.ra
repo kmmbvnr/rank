@@ -49,4 +49,4 @@ for S in 2 to (Limit // 3)
   end
 end
 Answer = Total
-Answer print
+return Answer

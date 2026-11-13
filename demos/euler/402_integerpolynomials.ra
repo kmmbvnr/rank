@@ -110,4 +110,10 @@ Q3 = Dl mod Big // 13824
 Tot = C3 * Q3 + (C2 Ro) * Q2
 Tot += (C1 Ro) * Q1 + (C0 Ro) * Q0
 Answer = Tot sum mod Mod
-Answer print
+return record
+  .answer = Answer
+  .c0 = C0
+  .c1 = C1
+  .c2 = C2
+  .c3 = C3
+end

@@ -60,7 +60,7 @@ for Row in 0 to N - 1
   Now = Then
 end
 Answer = Dp 0 default 0
-Answer print
+return Answer
 
 rem Fill one row in two matching layers.
 fun C D E F G H I J rows

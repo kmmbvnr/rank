@@ -201,4 +201,4 @@ for Row in 0 till N
 end
 
 Answer = ResultLines join "\n"
-Answer print
+return Answer

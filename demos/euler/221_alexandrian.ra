@@ -31,4 +31,4 @@ for P in 1 to Limit
 end
 Sorted = Out take At sort
 Answer = Sorted (N - 1)
-Answer print
+return Answer

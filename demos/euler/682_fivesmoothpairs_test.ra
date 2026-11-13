@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "682_fivesmoothpairs"
-  Nn = 10
-  run
+  use "682_fivesmoothpairs" as solve
+  Answer = solve 10
   Answer equal 4
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 3629
 end
 
 test "default input"
-  use "682_fivesmoothpairs"
-  Nn = 10000000
-  run
+  use "682_fivesmoothpairs" as solve
+  Answer = solve 10000000
   Answer equal 290872710
 end

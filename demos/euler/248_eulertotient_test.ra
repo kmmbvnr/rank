@@ -2,19 +2,14 @@ use testing
 
 rem The default input takes minutes.
 test "small targets"
-  use "248_eulertotient"
-  Target = 720
-  Rank = 1
-  run
+  use "248_eulertotient" as solve
+  Answer = solve 720 1
 
   Answer equal 779
-  Rank = 5
-  run
+  Answer = solve 720 5
 
   Answer equal 925
-  Target = 40320
-  Rank = 10
-  run
+  Answer = solve 40320 10
 
   Answer equal 44659
 end

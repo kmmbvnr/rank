@@ -1,8 +1,8 @@
 use testing
 
 test "sample 1: two tests valid/invalid"
-  use "0624_email"
-  Input = (
+  use "0624_email" as solve
+  Answer = solve (
     "2\n" +
     "2 2\n" +
     "2 1 -2\n" +
@@ -11,48 +11,43 @@ test "sample 1: two tests valid/invalid"
     "2 -2 1\n" +
     "2 -1 2"
   )
-  run
 
   Answer equal "YES\nNO"
 end
 
 test "single computer self send/receive"
-  use "0624_email"
+  use "0624_email" as solve
   rem Send 1 then receive 1: valid
-  Input = "1\n1 1\n2 1 -1"
-  run
+  Answer = solve "1\n1 1\n2 1 -1"
 
   Answer equal "YES"
 end
 
 test "single computer receive first"
-  use "0624_email"
+  use "0624_email" as solve
   rem Receive 1 then send 1: cycle
-  Input = "1\n1 1\n2 -1 1"
-  run
+  Answer = solve "1\n1 1\n2 -1 1"
 
   Answer equal "NO"
 end
 
 test "three-computer linear pipeline"
-  use "0624_email"
+  use "0624_email" as solve
   rem Comp 1 sends, 2 forwards, 3 recvs
-  Input = "1\n3 2\n1 1\n2 -1 2\n1 -2"
-  run
+  Answer = solve "1\n3 2\n1 1\n2 -1 2\n1 -2"
 
   Answer equal "YES"
 end
 
 test "three-computer dependency cycle"
-  use "0624_email"
-  Input = (
+  use "0624_email" as solve
+  Answer = solve (
     "1\n" +
     "3 3\n" +
     "2 -3 1\n" +
     "2 -1 2\n" +
     "2 -2 3"
   )
-  run
 
   Answer equal "NO"
 end

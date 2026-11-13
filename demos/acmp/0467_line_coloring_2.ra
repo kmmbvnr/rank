@@ -75,4 +75,4 @@ if N greater 0
   Answer = MaxLen
 end
 
-Answer print
+return Answer

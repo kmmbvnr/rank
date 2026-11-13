@@ -134,4 +134,4 @@ end
 Ns = 0 to N
 Eq = Fm 0 equal Fm 1 integer
 Answer = Eq * Ns sum
-Answer print
+return Answer

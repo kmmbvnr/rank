@@ -132,4 +132,4 @@ if N mod M not equal 0
   Answer = Digits join ""
 end
 
-Answer print
+return Answer

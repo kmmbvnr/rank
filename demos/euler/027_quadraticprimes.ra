@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 1000
 
 Answer = Limit quadratic_product
-Answer print
+return Answer
 
 
 rem Search odd a values and positive prime b

@@ -1,41 +1,36 @@
 use testing
 
 test "sample 1: 4x3 grid K=3 -> 22"
-  use "0660_test_work"
-  Input = "4 3 3\n1 2\n4 3\n3 1"
-  run
+  use "0660_test_work" as solve
+  Total = solve "4 3 3\n1 2\n4 3\n3 1"
 
   Total equal 22
 end
 
 test "empty 2x3 grid K=0 -> 18"
-  use "0660_test_work"
-  Input = "2 3 0"
-  run
+  use "0660_test_work" as solve
+  Total = solve "2 3 0"
 
   Total equal 18
 end
 
 test "fully painted 1x1 grid -> 0"
-  use "0660_test_work"
-  Input = "1 1 1\n1 1"
-  run
+  use "0660_test_work" as solve
+  Total = solve "1 1 1\n1 1"
 
   Total equal 0
 end
 
 test "empty 1x1 grid -> 1"
-  use "0660_test_work"
-  Input = "1 1 0"
-  run
+  use "0660_test_work" as solve
+  Total = solve "1 1 0"
 
   Total equal 1
 end
 
 test "transposed: 3x4 grid K=3 -> 22"
-  use "0660_test_work"
-  Input = "3 4 3\n2 1\n3 4\n1 3"
-  run
+  use "0660_test_work" as solve
+  Total = solve "3 4 3\n2 1\n3 4\n1 3"
 
   Total equal 22
 end

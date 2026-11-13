@@ -46,4 +46,4 @@ Pairs = PairsA + PairsB
 Terms = H * Pairs
 Total = Terms sum
 Result = Total text
-Result print
+return Result

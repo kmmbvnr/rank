@@ -111,4 +111,4 @@ for Piece in 0 to Blocks - 1
   Piece2 = Used sum
   Answer += Piece2
 end
-Answer print
+return Answer

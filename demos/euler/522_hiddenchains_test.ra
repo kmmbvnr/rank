@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "522_hiddenchains"
-  N = 8
-  run
+  use "522_hiddenchains" as solve
+  Answer = solve 8
   Answer equal 16276736
 end

@@ -1,56 +1,46 @@
 use testing
 
 test "default input"
-  use "198_ambiguous"
-  run
+  use "198_ambiguous" as solve
+  Answer = solve
 
   Answer equal 52374425
 end
 
 test "checkpoints"
-  use "198_ambiguous"
-  Limit = 120
-  run
+  use "198_ambiguous" as solve
+  Answer = solve 120
 
   Answer equal 10
-  Limit = 200000
-  run
+  Answer = solve 200000
 
   Answer equal 100967
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 509763
 end
 
 test "strict midpoint and odd limits"
-  use "198_ambiguous"
-  Limit = -1
-  run
+  use "198_ambiguous" as solve
+  Answer = solve -1
 
   Answer equal 0
-  Limit = 0
-  run
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 0
-  Limit = 101
-  run
+  Answer = solve 101
 
   Answer equal 0
-  Limit = 102
-  run
+  Answer = solve 102
 
   Answer equal 1
-  Limit = 103
-  run
+  Answer = solve 103
 
   Answer equal 1
-  Limit = 4095
-  run
+  Answer = solve 4095
 
   Answer equal 1997
 end

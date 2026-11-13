@@ -1,28 +1,25 @@
 use testing
 
 test "default input"
-  use "106_metatesting"
-  run
+  use "106_metatesting" as solve
+  Answer = solve
 
   Answer equal 21384
 end
 
 test "statement sizes"
-  use "106_metatesting"
-  Size = 4
-  run
+  use "106_metatesting" as solve
+  Answer = solve 4
 
   Answer equal 1
-  Size = 7
-  run
+  Answer = solve 7
 
   Answer equal 70
 end
 
 test "too small to need tests"
-  use "106_metatesting"
-  Size = 3
-  run
+  use "106_metatesting" as solve
+  Answer = solve 3
 
   Answer equal 0
 end

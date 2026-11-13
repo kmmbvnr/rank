@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "007_10001stprime"
-  run
+  use "007_10001stprime" as solve
+  Answer = solve
 
   Answer equal 104743
 end
 
 test "workspace input"
-  use "007_10001stprime"
-  Count = 6
-  run
+  use "007_10001stprime" as solve
+  Answer = solve 6
 
   Answer equal 13
 end

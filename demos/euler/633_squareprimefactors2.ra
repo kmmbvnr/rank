@@ -42,4 +42,4 @@ Ex = ((V log) / (10.0 log)) floor
 Mn = V / (10.0 ** Ex)
 Mt = Mn text ".4f"
 Answer = Mt + "e" + (Ex text)
-Answer print
+return Answer

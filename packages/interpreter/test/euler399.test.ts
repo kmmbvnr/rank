@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isNativeFunction } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/399_squarefree.ra', import.meta.url), 'utf8');
 
@@ -21,7 +22,7 @@ describe('Euler 399 compiled modular doubling', () => {
         let calls = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
         try {
-            runtime.execute('use numbers\nuse bits\n' + source.slice(source.indexOf('rem Fast doubling')));
+            runtime.execute('use numbers\nuse bits\n' + withoutReturn(source.slice(source.indexOf('rem Fast doubling'))));
             const fn = runtime.variables.get('fibmod');
             if (!fn || !isNativeFunction(fn)) throw new Error('missing fibmod');
             for (const modulus of [2n, 11n, 5714281n, 10000000000000000n]) {

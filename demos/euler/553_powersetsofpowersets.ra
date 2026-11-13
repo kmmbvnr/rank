@@ -93,4 +93,4 @@ fun N families K
   return Scale * Total mod Mod
 end
 Answer = N families K
-Answer print
+return Answer

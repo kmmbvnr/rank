@@ -1,8 +1,8 @@
 use testing
 
 test "below one million"
-  use "050_primesum"
-  run
+  use "050_primesum" as solve
+  Answer = solve
 
   Answer equal 997651
 end

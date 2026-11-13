@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/316_decimals.ra', import.meta.url), 'utf8');
-const definition = source.slice(source.indexOf('fun N waiting'));
+const definition = withoutReturn(source.slice(source.indexOf('fun N waiting')));
 
 // Enumerate string borders independently of the demo's integer arithmetic.
 function expected(n: bigint): bigint {

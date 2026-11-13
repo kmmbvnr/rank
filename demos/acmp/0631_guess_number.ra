@@ -27,4 +27,4 @@ end
 LessN = F less N
 Candies = LessN count
 
-Candies text print
+return Candies

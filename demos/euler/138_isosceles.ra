@@ -18,4 +18,7 @@ Len = 6 * Count + 2
 Fs = fibonacci take Len array
 Legs' = Fs (7 to # by 6) // 2
 Answer = Legs sum
-Answer print
+return record
+  .answer = Answer
+  .legs = Legs
+end

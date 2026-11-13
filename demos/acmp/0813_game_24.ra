@@ -52,4 +52,4 @@ Hits = ((Vals 15) equal 24) count
 if Hits greater 0
   Ans = "YES"
 end
-Ans print
+return Ans

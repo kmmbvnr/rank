@@ -63,4 +63,4 @@ if N not equal 1
   end
   Answer = Empty sum round 6
 end
-Answer print
+return Answer

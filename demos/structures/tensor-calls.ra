@@ -21,3 +21,8 @@ Batch = array shape 2 2
   7 15
 end
 Third = normalize Batch Mean Dev
+return record
+  .first = First
+  .second = Second
+  .third = Third
+end

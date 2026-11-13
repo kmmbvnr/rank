@@ -46,4 +46,4 @@ for S in 5 to N
   end
 end
 Answer = Answer round 0
-Answer print
+return Answer

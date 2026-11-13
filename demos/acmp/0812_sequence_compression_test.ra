@@ -3,8 +3,8 @@ rem Tests for ACMP 0812
 use testing
 
 test "default: N=1000 A=500"
-  use "0812_sequence_compression"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve
 
   AnsTxt = Ans text
   AnsTxt len equal 301
@@ -13,41 +13,36 @@ test "default: N=1000 A=500"
 end
 
 test "sample 1: 2 1 -> 1"
-  use "0812_sequence_compression"
-  Input = "2 1"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve "2 1"
 
   Ans equal 1
 end
 
 test "sample 2: 4 2 -> 5"
-  use "0812_sequence_compression"
-  Input = "4 2"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve "4 2"
 
   Ans equal 5
 end
 
 test "edge: N=1 A=1 -> 1"
-  use "0812_sequence_compression"
-  Input = "1 1"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve "1 1"
 
   Ans equal 1
 end
 
 test "all compositions: 10 10 -> 512"
-  use "0812_sequence_compression"
-  Input = "10 10"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve "10 10"
 
   Ans equal 512
 end
 
 test "fibonacci: N=6 A=2 -> 13"
-  use "0812_sequence_compression"
-  Input = "6 2"
-  run
+  use "0812_sequence_compression" as solve
+  Ans = solve "6 2"
 
   Ans equal 13
 end

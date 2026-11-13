@@ -11,7 +11,7 @@ arg Target integer = 200
 
 Coins = array 1 2 5 10 20 50 100 200
 Answer = Coins coin_sums Target
-Answer print
+return Answer
 
 
 rem Build each amount from coins already seen,

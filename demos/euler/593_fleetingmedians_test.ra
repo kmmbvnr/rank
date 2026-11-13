@@ -1,22 +1,17 @@
 use testing
 
 test "statement values"
-  use "593_fleetingmedians"
-  N = 10
-  K = 10
-  run
+  use "593_fleetingmedians" as solve
+  Answer = solve 10 10
   Answer equal "2021.5"
-  N = 100
-  run
+  Answer = solve 100 10
   Answer equal "463628.5"
-  N = 100000
-  K = 10000
-  run
+  Answer = solve 100000 10000
   Answer equal "675348207.5"
 end
 
 test "default input"
-  use "593_fleetingmedians"
-  run
+  use "593_fleetingmedians" as solve
+  Answer = solve
   Answer equal "96632320042.0"
 end

@@ -1,41 +1,36 @@
 use testing
 
 test "sample 1: 2 PP 1 1 -> K"
-  use "0898_ribbon"
-  Input = "2\nPP\n1 1"
-  run
+  use "0898_ribbon" as solve
+  Ans = solve "2\nPP\n1 1"
 
   Ans equal "K"
 end
 
 test "sample 2: 2 ZZ 2 1 2 -> OK"
-  use "0898_ribbon"
-  Input = "2\nZZ\n2 1 2"
-  run
+  use "0898_ribbon" as solve
+  Ans = solve "2\nZZ\n2 1 2"
 
   Ans equal "OK"
 end
 
 test "single fold P: 1 P 1 1 -> O"
-  use "0898_ribbon"
-  Input = "1\nP\n1 1"
-  run
+  use "0898_ribbon" as solve
+  Ans = solve "1\nP\n1 1"
 
   Ans equal "O"
 end
 
 test "single fold Z: 1 Z 1 1 -> K"
-  use "0898_ribbon"
-  Input = "1\nZ\n1 1"
-  run
+  use "0898_ribbon" as solve
+  Ans = solve "1\nZ\n1 1"
 
   Ans equal "K"
 end
 
 test "three folds PZP: middle creases"
-  use "0898_ribbon"
-  Input = "3\nPZP\n3 2 4 6"
-  run
+  use "0898_ribbon" as solve
+  Ans = solve "3\nPZP\n3 2 4 6"
 
   Ans equal "OOK"
 end

@@ -1,11 +1,9 @@
 use testing
 
 test "brute force sums"
-  use "549_divisibilityfactorials"
-  N = 100
-  run
+  use "549_divisibilityfactorials" as solve
+  Answer = solve 100
   Answer equal 2012
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 136817
 end

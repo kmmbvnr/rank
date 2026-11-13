@@ -1,15 +1,16 @@
 use testing
 
 test "statement value"
-  use "467_superinteger"
-  N = 10
-  run
+  use "467_superinteger" as solve
+  Out = solve 10
+  Answer = Out .answer
+  Md = Out .md
   Answer equal 2357246891352679 mod Md
 end
 
 test "n = 100"
-  use "467_superinteger"
-  N = 100
-  run
+  use "467_superinteger" as solve
+  Out = solve 100
+  Answer = Out .answer
   Answer equal 771661825
 end

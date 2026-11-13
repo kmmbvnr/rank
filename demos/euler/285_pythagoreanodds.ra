@@ -35,4 +35,4 @@ Outer' = Cut take N
 Inner' = Cut drop N
 Gain' = (Outer - Inner) / K
 Answer = Gain sum round 5
-Answer print
+return Answer

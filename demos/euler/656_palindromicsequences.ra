@@ -47,4 +47,4 @@ for I in 1 to 2 * G
   Qb = Qn
 end
 Answer = Sm sum mod Q
-Answer print
+return Answer

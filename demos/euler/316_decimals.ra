@@ -12,7 +12,6 @@ Answer = 0
 for N in 2 to Top
   Answer += Num // N waiting
 end
-Answer print
 
 fun N waiting
   Power = 10
@@ -34,3 +33,4 @@ fun N waiting
   end
   return Total
 end
+return Answer

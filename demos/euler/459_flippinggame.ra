@@ -83,4 +83,4 @@ Nim = Table reshape Size Size
 Goal = Table (Row * Size + Col)
 Counts = Rows Cols outer *
 Answer = Counts (Nim equal Goal) sum
-Answer print
+return Answer

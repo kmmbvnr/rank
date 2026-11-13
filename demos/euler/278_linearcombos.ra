@@ -28,4 +28,4 @@ E2 = (S1 * S1 - S2) // 2
 Cube = S1 * S1 * S1 - 3 * S1 * S2
 E3 = (Cube + 2 * S3) // 6
 Answer = 2 * E3 - (M - 2) * E2
-Answer print
+return Answer

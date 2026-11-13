@@ -1,25 +1,22 @@
 use testing
 
 test "sample 1: ABBBAA -> 1 B1"
-  use "0707_zuma"
-  Input = "ABBBAA"
-  run
+  use "0707_zuma" as solve
+  Ans = solve "ABBBAA"
 
   Ans equal "1 B1"
 end
 
 test "sample 3: BAAA -> 3 B0 B0 A0"
-  use "0707_zuma"
-  Input = "BAAA"
-  run
+  use "0707_zuma" as solve
+  Ans = solve "BAAA"
 
   Ans equal "3 B0 B0 A0"
 end
 
 test "sample 2: ACMNEERC -> 10 shots"
-  use "0707_zuma"
-  Input = "ACMNEERC"
-  run
+  use "0707_zuma" as solve
+  Ans = solve "ACMNEERC"
 
   Exp = (
     "10 A0 A0 C0 M2 M2 " +
@@ -29,17 +26,15 @@ test "sample 2: ACMNEERC -> 10 shots"
 end
 
 test "trivial: AA -> 1 A0"
-  use "0707_zuma"
-  Input = "AA"
-  run
+  use "0707_zuma" as solve
+  Ans = solve "AA"
 
   Ans equal "1 A0"
 end
 
 test "already triple: AAA -> 1 A0"
-  use "0707_zuma"
-  Input = "AAA"
-  run
+  use "0707_zuma" as solve
+  Ans = solve "AAA"
 
   Ans equal "1 A0"
 end

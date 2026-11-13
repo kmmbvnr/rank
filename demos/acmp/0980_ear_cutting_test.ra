@@ -5,8 +5,9 @@ use numbers
 use sequences
 
 test "Sample 1 (5 nodes, 8 edges)"
-  use "0980_ear_cutting"
-  Input = "5 8
+  use "0980_ear_cutting" as solve
+  use text
+  Result = solve "5 8
 1 2
 2 3
 3 5
@@ -15,7 +16,6 @@ test "Sample 1 (5 nodes, 8 edges)"
 4 1
 3 4
 4 5"
-  run
   Lines = Result split "\n"
   NLines = Lines len
   D = (Lines 0) integer
@@ -23,27 +23,25 @@ test "Sample 1 (5 nodes, 8 edges)"
 end
 
 test "Sample 2 (tree has bridges)"
-  use "0980_ear_cutting"
-  Input = "3 2
+  use "0980_ear_cutting" as solve
+  Result = solve "3 2
 1 2
 1 3"
-  run
   Result equal "-1"
 end
 
 test "ACMP 980: Simple 3-cycle"
-  use "0980_ear_cutting"
-  Input = "3 3
+  use "0980_ear_cutting" as solve
+  Result = solve "3 3
 1 2
 2 3
 3 1"
-  run
   Result equal "1\n3 1 2 3 1"
 end
 
 test "Two triangles with bridge"
-  use "0980_ear_cutting"
-  Input = "6 7
+  use "0980_ear_cutting" as solve
+  Result = solve "6 7
 1 2
 2 3
 3 1
@@ -51,28 +49,28 @@ test "Two triangles with bridge"
 4 5
 5 6
 6 4"
-  run
   Result equal "-1"
 end
 
 test "Two triangles sharing node"
-  use "0980_ear_cutting"
-  Input = "5 6
+  use "0980_ear_cutting" as solve
+  use text
+  Result = solve "5 6
 1 2
 2 3
 3 1
 1 4
 4 5
 5 1"
-  run
   Lines = Result split "\n"
   D = (Lines 0) integer
   D equal 2
 end
 
 test "ACMP 980: Default 8-node stress"
-  use "0980_ear_cutting"
-  run
+  use "0980_ear_cutting" as solve
+  use text
+  Result = solve
   Lines = Result split "\n"
   D = (Lines 0) integer
   D equal 7

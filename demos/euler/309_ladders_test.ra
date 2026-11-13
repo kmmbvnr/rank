@@ -1,49 +1,43 @@
 use testing
 
 test "no ladder pairs"
-  use "309_ladders"
-  Limit = 3
-  run
+  use "309_ladders" as solve
+  Answer = solve 3
 
   Answer equal 0
 end
 
 test "statement range"
-  use "309_ladders"
-  Limit = 200
-  run
+  use "309_ladders" as solve
+  Answer = solve 200
 
   Answer equal 5
 end
 
 test "larger range"
-  use "309_ladders"
-  Limit = 1000
-  run
+  use "309_ladders" as solve
+  Answer = solve 1000
 
   Answer equal 76
 end
 
 test "many width groups"
-  use "309_ladders"
-  Limit = 10000
-  run
+  use "309_ladders" as solve
+  Answer = solve 10000
 
   Answer equal 1438
 end
 
 test "strict ladder length boundary"
-  use "309_ladders"
-  Limit = 119
-  run
+  use "309_ladders" as solve
+  Answer = solve 119
 
   Answer equal 2
 end
 
 test "length 119 becomes eligible"
-  use "309_ladders"
-  Limit = 120
-  run
+  use "309_ladders" as solve
+  Answer = solve 120
 
   Answer equal 3
 end

@@ -2,16 +2,12 @@ use testing
 use numbers
 
 test "statement values"
-  use "499_stpetersburg"
-  T = 2
-  B = 2
-  run
+  use "499_stpetersburg" as solve
+  use numbers
+  Answer = solve 2 2
   (Answer - 0.2522) abs less 0.00005
-  B = 5
-  run
+  Answer = solve 2 5
   (Answer - 0.6873) abs less 0.00005
-  T = 6
-  B = 10000
-  run
+  Answer = solve 6 10000
   (Answer - 0.9952) abs less 0.00005
 end

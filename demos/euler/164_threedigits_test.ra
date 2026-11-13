@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "164_threedigits"
-  run
+  use "164_threedigits" as solve
+  Answer = solve
 
   Answer equal 378158756814587
 end
 
 test "two digit numbers"
-  use "164_threedigits"
-  Digits = 2
-  run
+  use "164_threedigits" as solve
+  Answer = solve 2
 
   Answer equal 90
 end

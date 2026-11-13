@@ -110,4 +110,4 @@ if Ma greater 0 and Nb greater 0
   Second = Pairs mod Nb + 1
   Answer = First common Second rank 0 0 sum
 end
-Answer print
+return Answer

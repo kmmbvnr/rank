@@ -54,4 +54,4 @@ Sorted = Tag (Keys argsort)
 Below' = 1 - Sorted scan +
 Query' = Sorted equal 1
 Answer = Below filter Query sum
-Answer print
+return Answer

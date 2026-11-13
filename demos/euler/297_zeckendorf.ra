@@ -34,4 +34,4 @@ for I in Top - 1 to 0 by -1
     Rest -= Fib I
   end
 end
-Answer print
+return Answer

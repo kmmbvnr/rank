@@ -1,8 +1,8 @@
 use testing
 
 test "perimeters through one thousand"
-  use "039_righttriangles"
-  run
+  use "039_righttriangles" as solve
+  Answer = solve
 
   Answer equal 840
 end

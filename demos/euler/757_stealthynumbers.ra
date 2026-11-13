@@ -52,4 +52,4 @@ for Part in 0 to Parts - 1
   Fresh = Sorted not equal Shift
   Answer += Fresh count
 end
-Answer print
+return Answer

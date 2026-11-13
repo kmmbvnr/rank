@@ -9,8 +9,8 @@ test "repeated bit masks"
 end
 
 test "default input"
-  use "238_infinitestring"
-  run
+  use "238_infinitestring" as solve
+  Answer = solve
 
   Answer equal 9922545104535661
 end

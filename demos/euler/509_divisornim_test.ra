@@ -1,11 +1,9 @@
 use testing
 
 test "statement value and brute force"
-  use "509_divisornim"
-  N = 10
-  run
+  use "509_divisornim" as solve
+  Answer = solve 10
   Answer equal 692
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 735494
 end

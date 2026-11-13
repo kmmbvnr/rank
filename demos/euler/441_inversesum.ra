@@ -129,4 +129,4 @@ Correction = Starts block_sum rank 0 sum
 Base = N max 2
 Raw = Base / 2.0 - 1.0 + Correction
 Answer = Raw round Digits
-Answer print
+return Answer

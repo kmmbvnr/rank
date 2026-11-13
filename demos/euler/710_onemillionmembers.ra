@@ -43,4 +43,4 @@ Zero = Totals equal 0
 Match = Zero and (Terms greater 42)
 Found = Terms filter Match
 Answer = Found min
-Answer print
+return Answer

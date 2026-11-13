@@ -1,7 +1,7 @@
 use testing
 
 test "matrix sum"
-  use "345_matrixsum"
-  run
+  use "345_matrixsum" as solve
+  Answer = solve
   Answer equal 13938
 end

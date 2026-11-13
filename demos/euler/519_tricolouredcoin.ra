@@ -67,4 +67,4 @@ Steps = N binary len
 Inverse = Seed grow repeat Steps
 Whole = Shifted convolve Inverse mod Mod
 Answer = 3 * Whole N mod Mod
-Answer print
+return Answer

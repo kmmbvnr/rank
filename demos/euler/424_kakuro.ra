@@ -464,4 +464,4 @@ for Ln in 0 to Count - 1
   Tot += Res
 end
 Answer = Tot
-Answer print
+return Answer

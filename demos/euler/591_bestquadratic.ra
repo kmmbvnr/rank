@@ -103,4 +103,4 @@ for D in D0 to D1
     Answer += Ba abs
   end
 end
-Answer print
+return Answer

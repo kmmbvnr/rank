@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "759_squaredrecurrence"
-  Limit = 10
-  run
+  use "759_squaredrecurrence" as solve
+  Answer = solve 10
   Answer equal 1530
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 4798445
 end
 
 test "brute force values"
-  use "759_squaredrecurrence"
-  Limit = 1
-  run
+  use "759_squaredrecurrence" as solve
+  Answer = solve 1
   Answer equal 1
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 98467357
-  Limit = 12345
-  run
+  Answer = solve 12345
   Answer equal 392740582
 end

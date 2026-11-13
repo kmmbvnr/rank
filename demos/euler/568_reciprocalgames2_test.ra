@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "568_reciprocalgames2"
-  run
+  use "568_reciprocalgames2" as solve
+  Answer = solve
   Answer equal 4228020
 end
 
 test "statement and exact values"
-  use "568_reciprocalgames2"
-  N = 6
-  run
+  use "568_reciprocalgames2" as solve
+  Answer = solve 6
   Answer equal 3828125
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 4092119
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 6985917
 end

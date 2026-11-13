@@ -16,4 +16,4 @@ rem (k - 1)^(p - 2) mod p over the
 rem primes a <= p < a + b.
 P = primes from A till A + B array
 Answer = ((K - 1) (P - 2) P powmod) sum
-Answer print
+return Answer

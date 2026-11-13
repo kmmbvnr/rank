@@ -1,41 +1,33 @@
 use testing
 
 test "statement value"
-  use "445_retractionsa"
-  N = 10
-  run
+  use "445_retractionsa" as solve
+  Answer = solve 10
   Answer equal 1118
 end
 
 test "published checkpoint"
-  use "445_retractionsa"
-  N = 100000
-  run
+  use "445_retractionsa" as solve
+  Answer = solve 100000
   Answer equal 628701600
 end
 
 test "exact factorization references"
-  use "445_retractionsa"
-  N = 300
-  run
+  use "445_retractionsa" as solve
+  Answer = solve 300
   Answer equal 775151319
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 853246560
 end
 
 test "empty rows and odd symmetry"
-  use "445_retractionsa"
-  N = 0
-  run
+  use "445_retractionsa" as solve
+  Answer = solve 0
   Answer equal 0
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 0
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 1
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 2
 end

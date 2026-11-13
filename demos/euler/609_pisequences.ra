@@ -62,4 +62,4 @@ for K in 0 to Kd - 1
     Answer = Answer * Tk mod Md
   end
 end
-Answer print
+return Answer

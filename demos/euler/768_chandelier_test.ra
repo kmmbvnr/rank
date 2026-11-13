@@ -1,22 +1,17 @@
 use testing
 
 test "brute force values for n = 60"
-  use "768_chandelier"
-  Sides = 60
-  Candles = 4
-  run
+  use "768_chandelier" as solve
+  Answer = solve 60 4
   Answer equal 435
-  Candles = 5
-  run
+  Answer = solve 60 5
   Answer equal 552
 end
 
 test "simple polygons"
-  use "768_chandelier"
-  Candles = 2
-  run
+  use "768_chandelier" as solve
+  Answer = solve 360 2
   Answer equal 180
-  Candles = 3
-  run
+  Answer = solve 360 3
   Answer equal 120
 end

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "152_inversesquares"
-  run
+  use "152_inversesquares" as solve
+  Answer = solve
 
   Answer equal 301
 end
 
 test "statement value up to 45"
-  use "152_inversesquares"
-  Limit = 45
-  run
+  use "152_inversesquares" as solve
+  Answer = solve 45
 
   Answer equal 3
 end

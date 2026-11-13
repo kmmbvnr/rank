@@ -1,7 +1,7 @@
 use testing
 
 test "full constrained lists"
-  use "350_constraining"
-  run
+  use "350_constraining" as solve
+  Answer = solve
   Answer equal 84664213
 end

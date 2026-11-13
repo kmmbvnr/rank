@@ -118,4 +118,4 @@ if N greater 1
   Y = concat (array 0) Y
   Answer = X visible Y
 end
-Answer print
+return Answer

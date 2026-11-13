@@ -104,4 +104,4 @@ Hi = Cb (Iv Hs)
 Wa = Ma * Ra mod M
 Dd = (Pf Hi - Pf Lo) mod M
 Answer = Wa * Dd mod M sum mod M
-Answer print
+return Answer

@@ -103,4 +103,7 @@ end
 Full = Nm - 1
 Ws = W ((Full * N) * N + Ib)
 Answer = (D (Full * N)) round 8
-Answer print
+return record
+  .answer = Answer
+  .ws = Ws
+end

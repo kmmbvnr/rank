@@ -58,4 +58,4 @@ Pm = (Pm + M) mod M
 Rat = Qm (L - 1) (L - 1)
 Tt = Pm * Qm mod M sum
 Answer = (Rat + Tt) mod M
-Answer print
+return Answer

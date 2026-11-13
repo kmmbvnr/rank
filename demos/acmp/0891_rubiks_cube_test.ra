@@ -4,37 +4,35 @@ use testing
 use sequences
 
 test "default: Example 3 -> 9 moves"
-  use "0891_rubiks_cube"
-  run
+  use "0891_rubiks_cube" as solve
+  Ans = solve
 
   (Ans in (array "Solved")) equal false
   ((Ans text) not equal "") equal true
 end
 
 test "sample 1: already solved"
-  use "0891_rubiks_cube"
-  Input = "RR GG RR GG BB BB
+  use "0891_rubiks_cube" as solve
+  Ans = solve "RR GG RR GG BB BB
 RR GG RR GG BB BB"
-  run
 
   Ans equal "Solved"
 end
 
 test "sample 2: 2 moves"
-  use "0891_rubiks_cube"
-  Input = "RR BG GR GB GR BB
+  use "0891_rubiks_cube" as solve
+  use sequences
+  Ans = solve "RR BG GR GB GR BB
 GG BR GR RB BB GR"
-  run
 
   AnsLen = (Ans bytes) shape 0
   AnsLen equal 4
 end
 
 test "1-move scramble: F' -> F"
-  use "0891_rubiks_cube"
-  Input = "RR GB RR BG BB GG
+  use "0891_rubiks_cube" as solve
+  Ans = solve "RR GB RR BG BB GG
 RR GB RR BG GG BB"
-  run
 
   Ans equal "F"
 end

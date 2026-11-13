@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "077_primesummations"
-  run
+  use "077_primesummations" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 71
 end
 
 test "statement ways for ten"
-  use "077_primesummations"
-  run
+  use "077_primesummations" as solve
+  Out = solve
+  Ways = Out .ways
 
   Ways 10 equal 5
   Ways 71 greater 5000
@@ -17,17 +19,18 @@ test "statement ways for ten"
 end
 
 test "small target"
-  use "077_primesummations"
-  Target = 4
-  run
+  use "077_primesummations" as solve
+  Out = solve 4
+  Answer = Out .answer
 
   Answer equal 10
 end
 
 test "exact beyond real precision"
-  use "077_primesummations"
-  Limit = 1000
-  run
+  use "077_primesummations" as solve
+  Out = solve 5000 1000
+  Answer = Out .answer
+  Ways = Out .ways
 
   Ways 1000 equal 48278613741845757
   Answer equal 71

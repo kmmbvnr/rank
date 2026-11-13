@@ -120,4 +120,4 @@ Bad = Excluded mod Modulus
 Residue = Primitive mod Period
 Leading = 2 Residue Modulus powmod
 Answer = (Leading - Bad) mod Modulus
-Answer print
+return Answer

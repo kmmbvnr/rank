@@ -110,4 +110,4 @@ fun N solve K
 end
 
 Answer = N solve K
-Answer print
+return Answer

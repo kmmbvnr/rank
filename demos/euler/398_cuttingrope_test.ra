@@ -2,37 +2,24 @@ use testing
 use numbers
 
 test "cutting rope"
-  use "398_cuttingrope"
-  N = 3
-  M = 2
-  run
+  use "398_cuttingrope" as solve
+  Answer = solve 3 2
   Answer equal 2.0
-  N = 8
-  M = 3
-  run
+  Answer = solve 8 3
   Answer equal 2.28571
-  N = 10000000
-  M = 100
-  run
+  Answer = solve 10000000 100
   Answer equal 2010.59096
 end
 
 test "cutting rope boundary cases"
-  use "398_cuttingrope"
-  N = 2
-  M = 2
-  run
+  use "398_cuttingrope" as solve
+  use numbers
+  Answer = solve 2 2
   Answer equal 1.0
-  N = 8
-  M = 2
-  run
+  Answer = solve 8 2
   Answer equal (40 / 7 round 5)
-  N = 8
-  M = 8
-  run
+  Answer = solve 8 8
   Answer equal 1.0
-  N = 100
-  M = 99
-  run
+  Answer = solve 100 99
   Answer equal 1.0
 end

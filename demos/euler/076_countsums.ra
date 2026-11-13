@@ -37,4 +37,4 @@ for N in 1 to Total
 end
 Ways = Ways (Total to 0 by -1) copy
 Answer = Ways Total - 1
-Answer print
+return Answer

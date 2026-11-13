@@ -114,4 +114,4 @@ for Lb at most Lm
   Lb = Rb + 1
 end
 Answer = 2 * Res + N * (N + 1) // 2
-Answer print
+return Answer

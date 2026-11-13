@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "619_squaresubsets"
-  A = 5
-  B = 10
-  run
+  use "619_squaresubsets" as solve
+  Answer = solve 5 10
   Answer equal 3
-  A = 40
-  B = 55
-  run
+  Answer = solve 40 55
   Answer equal 15
-  A = 1000
-  B = 1234
-  run
+  Answer = solve 1000 1234
   Answer equal 975523611
 end

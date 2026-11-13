@@ -1,9 +1,7 @@
 use testing
 
 test "single deck ranks"
-  use "796_grandshuffle"
-  Decks = 1
-  Need = 0
-  run
+  use "796_grandshuffle" as solve
+  Answer = solve 1 4 13 2 0
   Answer equal 29.05361725
 end

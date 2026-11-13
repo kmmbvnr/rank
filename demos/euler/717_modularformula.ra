@@ -25,4 +25,4 @@ Lift = Half * TwoPow mod Squares
 Diff = (Lift - Power) mod Squares
 Digits = Diff // Primes
 Answer = Digits sum
-Answer print
+return Answer

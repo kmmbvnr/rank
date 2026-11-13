@@ -134,4 +134,4 @@ end
 
 P = K first_order
 Answer = P rank_of
-Answer print
+return Answer

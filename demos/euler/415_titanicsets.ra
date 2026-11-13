@@ -207,4 +207,4 @@ end
 Nt = 1 + Nm * Nm + Su1 + Su2
 Pw = 2 (Nn * Nn) Mod powmod
 Answer = (Pw - Nt) mod Mod
-Answer print
+return Answer

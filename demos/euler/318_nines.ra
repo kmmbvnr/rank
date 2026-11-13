@@ -21,4 +21,4 @@ for P in 1 till Top
     end
   end
 end
-Answer print
+return Answer

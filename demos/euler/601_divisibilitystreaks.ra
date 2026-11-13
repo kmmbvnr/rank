@@ -19,4 +19,4 @@ Is = 1 to Top
 Ns = (1 shl (2 * Is)) - 2
 Ip = Is + 1
 Answer = Ns // Ls Is - Ns // Ls Ip sum
-Answer print
+return Answer

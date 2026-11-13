@@ -1,18 +1,24 @@
 use testing
 
 test "first puzzle"
-  use "424_kakuro"
-  Count = 1
-  run
+  use "424_kakuro" as solve
+  Answer = solve (
+  "demos/euler/fixtures/"
+  + "0424_kakuro200.txt"
+) 1
   Answer equal 8426039571
 end
 
 test "empty and two-puzzle batches"
-  use "424_kakuro"
-  Count = 0
-  run
+  use "424_kakuro" as solve
+  Answer = solve (
+  "demos/euler/fixtures/"
+  + "0424_kakuro200.txt"
+) 0
   Answer equal 0
-  Count = 2
-  run
+  Answer = solve (
+  "demos/euler/fixtures/"
+  + "0424_kakuro200.txt"
+) 2
   Answer equal 16945686873
 end

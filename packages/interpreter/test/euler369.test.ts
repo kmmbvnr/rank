@@ -3,7 +3,7 @@ import {expect, it} from 'vitest';
 import {Interpreter} from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/369_badugi.ra', import.meta.url), 'utf8')
-    .replace('Answer = Ranks badugi Max\nAnswer print', '');
+    .replace('Answer = Ranks badugi Max\n', '').replace(/\nreturn Answer\n*$/, '\n');
 
 // Independent actual-card oracle: mark four distinct ranks in four suits,
 // then propagate acceptance to all hands containing such a selection.

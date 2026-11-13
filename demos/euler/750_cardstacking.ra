@@ -50,4 +50,4 @@ for Size in 2 to Cards
   Weighted Row = Best + Weight
 end
 Answer = Table (Cards * Wide + 1)
-Answer print
+return Answer

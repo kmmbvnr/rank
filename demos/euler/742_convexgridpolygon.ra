@@ -66,4 +66,4 @@ Answer = 1 + Best
 if Best equal Huge
   Answer = Missing + 1
 end
-Answer print
+return Answer

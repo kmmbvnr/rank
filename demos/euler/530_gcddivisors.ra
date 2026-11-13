@@ -104,4 +104,4 @@ fun Limit solve
   return FinalState 1
 end
 Answer = N solve
-Answer print
+return Answer

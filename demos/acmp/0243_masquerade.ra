@@ -72,4 +72,4 @@ if not (TotalStock less L)
   Answer = TargetSlice min
 end
 
-Answer print
+return Answer

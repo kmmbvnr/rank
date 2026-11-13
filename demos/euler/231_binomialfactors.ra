@@ -27,4 +27,4 @@ for I in 1 to (N binary len)
   Answer += Ps * Pw sum
   Q = Q * Ps
 end
-Answer print
+return Answer

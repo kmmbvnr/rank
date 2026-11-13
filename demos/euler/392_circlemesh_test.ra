@@ -1,11 +1,9 @@
 use testing
 
 test "circle mesh"
-  use "392_circlemesh"
-  N = 10
-  run
+  use "392_circlemesh" as solve
+  Answer = solve 10
   Answer equal 3.3469640797
-  N = 400
-  run
+  Answer = solve 400
   Answer equal 3.1486734435
 end

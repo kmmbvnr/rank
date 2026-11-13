@@ -74,4 +74,4 @@ for Index in 0 to Primes len - 1
   Zeta Dst = Less
 end
 Answer = Zeta sum mod Mod
-Answer print
+return Answer

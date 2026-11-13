@@ -20,4 +20,4 @@ Digits = Number integer rank 0
 Windows = Digits window Width array
 Products' = Windows reduce * axis -1
 Answer = Products max
-Answer print
+return Answer

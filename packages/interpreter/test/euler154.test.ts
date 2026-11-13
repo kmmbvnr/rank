@@ -20,13 +20,12 @@ describe.each([false, true])('Euler 154 (compilation=%s)', compilation => {
     it.each([[0, 0], [1, 0], [2, 1], [5, 1], [20, 1], [25, 2], [100, 3],
         [124, 3], [125, 3], [126, 3], [300, 5], [500, 6], [624, 6], [625, 6], [626, 6]])(
         'agrees with exact coefficients for N=%i, Power=%i', (n, power) => {
-            const output: string[] = [];
-            const r = new Interpreter(line => output.push(line), { compilation, args: [`--n=${n}`, `--power=${power}`] });
+            const r = new Interpreter(() => {}, { compilation, args: [`--n=${n}`, `--power=${power}`] });
             try {
-                r.execute(source);
+                const result = r.execute(source);
                 const answer = oracle(n, power);
                 expect(r.variables.get('Answer')).toBe(answer);
-                expect(output).toEqual([String(answer)]);
+                expect(result).toBe(answer);
             } finally { r.dispose(); }
         });
 });

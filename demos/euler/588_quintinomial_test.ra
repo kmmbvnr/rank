@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "588_quintinomial"
-  run
+  use "588_quintinomial" as solve
+  Answer = solve
   Answer equal 11651930052
 end
 
 test "statement values"
-  use "588_quintinomial"
-  T = 1
-  run
+  use "588_quintinomial" as solve
+  Answer = solve 1
   Answer equal 17
-  T = 2
-  run
+  Answer = solve 2
   Answer equal 52
 end

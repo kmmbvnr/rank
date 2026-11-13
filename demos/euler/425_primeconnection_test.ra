@@ -1,44 +1,35 @@
 use testing
 
 test "statement checkpoints"
-  use "425_primeconnection"
-  N = 1000
-  run
+  use "425_primeconnection" as solve
+  Answer = solve 1000
   Answer equal 431
-  N = 10000
-  run
+  Answer = solve 10000
   Answer equal 78728
 end
 
 test "union-find reference"
-  use "425_primeconnection"
-  N = 200
-  run
+  use "425_primeconnection" as solve
+  Answer = solve 200
   Answer equal 431
 end
 
 test "empty and single-digit graphs"
-  use "425_primeconnection"
-  N = 0
-  run
+  use "425_primeconnection" as solve
+  Answer = solve 0
   Answer equal 0
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 0
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 0
 end
 
 test "a path through a larger prime"
-  use "425_primeconnection"
-  N = 11
-  run
+  use "425_primeconnection" as solve
+  Answer = solve 11
   Answer equal 11
-  N = 13
-  run
+  Answer = solve 13
   Answer equal 11
-  N = 101
-  run
+  Answer = solve 101
   Answer equal 112
 end

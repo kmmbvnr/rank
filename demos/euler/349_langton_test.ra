@@ -12,7 +12,7 @@ test "highway period"
 end
 
 test "full Langton count"
-  use "349_langton"
-  run
+  use "349_langton" as solve
+  Answer = solve
   Answer equal 115384615384614952
 end

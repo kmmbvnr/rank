@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "668_sqrtsmooth"
-  Nn = 100
-  run
+  use "668_sqrtsmooth" as solve
+  Answer = solve 100
   Answer equal 29
-  Nn = 100000000
-  run
+  Answer = solve 100000000
   Answer equal 27531694
 end
 
 test "default input"
-  use "668_sqrtsmooth"
-  Nn = 10000000000
-  run
+  use "668_sqrtsmooth" as solve
+  Answer = solve 10000000000
   Answer equal 2811077773
 end

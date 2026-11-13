@@ -2,9 +2,11 @@ use testing
 use numbers
 
 test "sample 1: unit square towers"
-  use "0538_radio"
-  Input = "4\n0 0\n0 1\n1 0\n1 1"
-  run
+  use "0538_radio" as solve
+  use numbers
+  Out = solve "4\n0 0\n0 1\n1 0\n1 1"
+  FinalColors = Out .final_colors
+  R = Out .r
 
   rem Expected R = 1 / sqrt(2)
   (R - 0.70710678 abs) less 0.00001
@@ -12,9 +14,11 @@ test "sample 1: unit square towers"
 end
 
 test "collinear 3 towers"
-  use "0538_radio"
-  Input = "3\n0 0\n2 0\n4 0"
-  run
+  use "0538_radio" as solve
+  use numbers
+  Out = solve "3\n0 0\n2 0\n4 0"
+  FinalColors = Out .final_colors
+  R = Out .r
 
   rem Expected R = 4 / 2 = 2.0
   (R - 2.0 abs) less 0.00001
@@ -22,19 +26,21 @@ test "collinear 3 towers"
 end
 
 test "equilateral triangle of side 10"
-  use "0538_radio"
+  use "0538_radio" as solve
+  use numbers
   rem Pairwise dist 10: R <= 5.0
-  Input = "3\n0 0\n10 0\n5 8.6602540378"
-  run
+  Out = solve "3\n0 0\n10 0\n5 8.6602540378"
+  R = Out .r
 
   (R - 5.0 abs) less 0.00001
 end
 
 test "two close pairs separated"
-  use "0538_radio"
+  use "0538_radio" as solve
+  use numbers
   rem Diagonal dist is 100.02
-  Input = "4\n0 0\n0 2\n100 0\n100 2"
-  run
+  Out = solve "4\n0 0\n0 2\n100 0\n100 2"
+  R = Out .r
 
   (R - 50.01 abs) less 0.01
 end

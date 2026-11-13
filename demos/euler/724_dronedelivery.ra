@@ -32,4 +32,4 @@ Squared = Harmonic * Harmonic
 Expected = Real / 2 * (Squared + HarmSq)
 Rounded = Expected round 0
 Answer = Rounded integer
-Answer print
+return Answer

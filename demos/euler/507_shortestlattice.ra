@@ -137,4 +137,4 @@ Answer = 0
 if N greater 0
   Answer = N total Ch
 end
-Answer print
+return Answer

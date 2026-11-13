@@ -1,33 +1,29 @@
 use testing
 
 test "default input"
-  use "129_repunitdiv"
-  run
+  use "129_repunitdiv" as solve
+  Answer = solve
 
   Answer equal 1000023
 end
 
 test "statement value for ten"
-  use "129_repunitdiv"
-  Limit = 10
-  run
+  use "129_repunitdiv" as solve
+  Answer = solve 10
 
   Answer equal 17
 end
 
 test "strict threshold"
-  use "129_repunitdiv"
-  Limit = 3
-  run
+  use "129_repunitdiv" as solve
+  Answer = solve 3
 
   Answer equal 7
 end
 
 test "answer at the window boundary"
-  use "129_repunitdiv"
-  Limit = 10
-  Window = 7
-  run
+  use "129_repunitdiv" as solve
+  Answer = solve 10 7
 
   Answer equal 17
 end

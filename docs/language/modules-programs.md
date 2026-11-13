@@ -175,6 +175,51 @@ type is one the program will really produce.
 A name reported under `needs a use` is a program that cannot run, and
 `rank explain` exits nonzero when it reports one.
 
+## Files as functions
+
+A program that ends with `return` is a function. Its `arg` lines are the
+parameters and the returned value is the result:
+
+```rank
+use numbers
+use cli
+
+arg Limit integer = 1000
+
+N = 1 till Limit
+Mask' = N mod 3 equal 0
+Mask' or= N mod 5 equal 0
+
+return N Mask sum
+```
+
+`rank multiples.ra` prints `233168`, as `print` would show it. A program
+with no `return` prints only what it prints itself.
+
+Importing the file under a lowercase name makes it callable. The name is the
+file stem when that is a lowercase word, or the alias after `as`:
+
+```rank
+use "multiples.ra" as sum35
+sum35          rem 233168
+sum35 10       rem 23
+```
+
+An `arg` line without a default is a left operand, taken in declaration order
+(`X affine`). An `arg` line with a default is a right operand, also in
+declaration order, and may be left out from the end: `3.0 affine`,
+`3.0 affine 4.0`, `3.0 affine 4.0 1.0`. Arguments are checked against the
+declared types before the file runs. A left-out operand uses its default.
+
+Each call runs the file in a fresh interpreter. Names assigned at the top
+level are private to that call: the caller cannot read them, does not leak
+its own workspace into the file, and a second call starts clean. A file with
+no usable lowercase name, or no `return`, is imported as an ordinary module of
+functions.
+
+A top-level `return` also works in a notebook or a REPL session, where it ends
+the cell with its value.
+
 ## Program inputs
 
 Declare program inputs with `use cli`. The import is required even when all

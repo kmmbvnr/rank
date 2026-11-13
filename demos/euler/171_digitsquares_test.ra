@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "171_digitsquares"
-  run
+  use "171_digitsquares" as solve
+  Answer = solve
 
   Answer equal 142989277
 end
 
 test "smaller sizes"
-  use "171_digitsquares"
-  Digits = 2
-  run
+  use "171_digitsquares" as solve
+  Answer = solve 2
 
   Answer equal 726
-  Digits = 3
-  run
+  Answer = solve 3
 
   Answer equal 28083
-  Digits = 5
-  run
+  Answer = solve 5
 
   Answer equal 161887270
 end

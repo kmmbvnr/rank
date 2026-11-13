@@ -57,4 +57,4 @@ for A * A * A less Limit
 end
 Used = Hits take K
 Answer = Used unique sum
-Answer print
+return Answer

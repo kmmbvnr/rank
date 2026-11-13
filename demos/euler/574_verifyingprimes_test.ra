@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "574_verifyingprimes"
-  N = 10
-  run
+  use "574_verifyingprimes" as solve
+  Answer = solve 10
   Answer equal 10
-  N = 200
-  run
+  Answer = solve 200
   Answer equal 7177
 end

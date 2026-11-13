@@ -1,32 +1,23 @@
 use testing
 
 test "default input"
-  use "615_millionthnumber"
-  run
+  use "615_millionthnumber" as solve
+  Answer = solve
   Answer equal 108424772
 end
 
 test "statement values"
-  use "615_millionthnumber"
-  Om = 5
-  Cn = 5
-  Bound = 1000
-  run
+  use "615_millionthnumber" as solve
+  Answer = solve 5 5 1000
   Answer equal 80
-  Cn = 6
-  run
+  Answer = solve 5 6 1000
   Answer equal 96
 end
 
 test "brute force"
-  use "615_millionthnumber"
-  Om = 10
-  Cn = 1000
-  Bound = 1000
-  run
+  use "615_millionthnumber" as solve
+  Answer = solve 10 1000 1000
   Answer equal 167936
-  Om = 12
-  Cn = 300
-  run
+  Answer = solve 12 300 1000
   Answer equal 238464
 end

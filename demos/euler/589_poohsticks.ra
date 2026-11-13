@@ -99,4 +99,4 @@ Values = High expectation Low
 Total = Values sum
 Answer = 0.0 + Total
 Answer = Answer round 2
-Answer print
+return Answer

@@ -68,4 +68,4 @@ GainQ = Part2 * RestQ mod Prime
 Gains = Count * GainQ mod Prime
 Answer += Gains sum
 Answer = 2 * Answer mod Prime
-Answer print
+return Answer

@@ -22,4 +22,4 @@ for Cur less Limit
   Prev = Cur
   Cur = Next
 end
-Answer print
+return Answer

@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type InterpreterOptions } from '../src/index.js';
+import { withoutReturn } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/566_cakeicing.ra', import.meta.url), 'utf8');
 const { flips, total } = await import(new URL('../../../benchmarks/euler566-oracle.mjs', import.meta.url).href);
 function run(n: number, options: InterpreterOptions = {}, triple?: number[]) {
     const r = new Interpreter(() => {}, { ...options, args: [`--n=${n}`] });
     try {
-        r.execute(source + (triple ? `\nTriple = array ${triple.join(' ')}\nAnswer = Triple icing\n` : ''));
+        r.execute(withoutReturn(source) + (triple ? `\nTriple = array ${triple.join(' ')}\nAnswer = Triple icing\n` : ''));
         return r.variables.get('Answer');
     } finally { r.dispose(); }
 }

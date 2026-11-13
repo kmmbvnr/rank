@@ -1,28 +1,25 @@
 use testing
 
 test "default input"
-  use "094_almostequilateral"
-  run
+  use "094_almostequilateral" as solve
+  Answer = solve
 
   Answer equal 518408346
 end
 
 test "statement triangles"
-  use "094_almostequilateral"
-  Limit = 100
-  run
+  use "094_almostequilateral" as solve
+  Answer = solve 100
 
   Answer equal 66
 end
 
 test "smaller limits"
-  use "094_almostequilateral"
-  Limit = 10000
-  run
+  use "094_almostequilateral" as solve
+  Answer = solve 10000
 
   Answer equal 3688
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 716032
 end

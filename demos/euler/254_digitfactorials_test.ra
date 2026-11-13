@@ -1,44 +1,36 @@
 use testing
 
 test "default input"
-  use "254_digitfactorials"
-  run
+  use "254_digitfactorials" as solve
+  Answer = solve
 
   Answer equal 8184523820510
 end
 
 test "small top"
-  use "254_digitfactorials"
-  Top = 0
-  run
+  use "254_digitfactorials" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Top = 1
-  run
+  Answer = solve 1
 
   Answer equal 1
-  Top = 2
-  run
+  Answer = solve 2
 
   Answer equal 3
-  Top = 3
-  run
+  Answer = solve 3
 
   Answer equal 8
-  Top = 5
-  run
+  Answer = solve 5
 
   Answer equal 21
-  Top = 10
-  run
+  Answer = solve 10
 
   Answer equal 46
-  Top = 15
-  run
+  Answer = solve 15
 
   Answer equal 93
-  Top = 20
-  run
+  Answer = solve 20
 
   Answer equal 156
 end

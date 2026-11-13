@@ -36,4 +36,4 @@ rem Fixes of the three transpositions
 rem and the two three-cycles.
 Fixed = (3 * (Limit + 1) + 2) * Freq 0
 Answer = (Ordered + Fixed) // 6
-Answer print
+return Answer

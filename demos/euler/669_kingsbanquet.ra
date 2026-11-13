@@ -46,4 +46,4 @@ end
 if Rr equal 1
   Answer = Nn
 end
-Answer print
+return Answer

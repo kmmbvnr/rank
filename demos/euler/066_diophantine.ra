@@ -41,4 +41,7 @@ for D in 2 to Limit
     Answer = D
   end
 end
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+end

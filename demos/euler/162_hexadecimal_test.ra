@@ -1,16 +1,18 @@
 use testing
 
 test "default input"
-  use "162_hexadecimal"
-  run
+  use "162_hexadecimal" as solve
+  Out = solve
+  Text = Out .text
 
   Text equal "3D58725572C62302"
 end
 
 test "statement value for three digits"
-  use "162_hexadecimal"
-  Digits = 3
-  run
+  use "162_hexadecimal" as solve
+  Out = solve 3
+  Answer = Out .answer
+  Text = Out .text
 
   Answer equal 4
   Text equal "004"

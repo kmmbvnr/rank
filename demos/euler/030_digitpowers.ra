@@ -9,7 +9,7 @@ use cli
 arg Power integer = 5
 
 Answer = Power digit_power_numbers
-Answer print
+return Answer
 
 
 rem Six times the largest digit power safely

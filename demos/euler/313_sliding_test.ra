@@ -1,17 +1,15 @@
 use testing
 
 test "statement prime limit"
-  use "313_sliding"
-  PrimeLimit = 100
-  run
+  use "313_sliding" as solve
+  Answer = solve 100
 
   Answer equal 5482
 end
 
 test "small prime limit"
-  use "313_sliding"
-  PrimeLimit = 10
-  run
+  use "313_sliding" as solve
+  Answer = solve 10
 
   Answer equal 8
 end

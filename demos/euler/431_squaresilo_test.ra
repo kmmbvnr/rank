@@ -1,11 +1,7 @@
 use testing
 
 test "statement example"
-  use "431_squaresilo"
-  R = 3
-  Deg = 30
-  Steps = 256
-  Digits = 6
-  run
+  use "431_squaresilo" as solve
+  Answer = solve 3 30 256 6
   Answer equal 3.625953
 end

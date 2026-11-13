@@ -49,4 +49,4 @@ for Step in 0 till N
 end
 
 Ans = Valid choose Ans "NO"
-Ans print
+return Ans

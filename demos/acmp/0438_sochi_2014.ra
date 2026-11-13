@@ -278,7 +278,6 @@ V = Nums ((N + 2) to (N + 1 + K))
 
 Res = S solve_sochi V
 Ans = Res .t_opt
-Ans print
 
 ET = Res .ev_time
 EO = Res .ev_obj
@@ -293,3 +292,4 @@ for Idx in 0 to (EvLen - 1)
     OVal text) + " " + (FVal text)
   Line print
 end
+return Ans

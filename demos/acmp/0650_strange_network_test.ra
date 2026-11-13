@@ -1,24 +1,23 @@
 use testing
 
 test "sample 1: single edge -> 0"
-  use "0650_strange_network"
-  Input = "2 1
+  use "0650_strange_network" as solve
+  Ans = solve "2 1
 1 2"
-  run
 
   Ans equal 0
 end
 
 test "sample 2: 4-cycle -> 4"
-  use "0650_strange_network"
-  run
+  use "0650_strange_network" as solve
+  Ans = solve
 
   Ans equal 4
 end
 
 test "sample 3: path 4 + cycle 4 -> 12"
-  use "0650_strange_network"
-  Input = "8 7
+  use "0650_strange_network" as solve
+  Ans = solve "8 7
 1 3
 3 6
 4 2
@@ -26,43 +25,39 @@ test "sample 3: path 4 + cycle 4 -> 12"
 2 5
 5 7
 6 8"
-  run
 
   Ans equal 12
 end
 
 test "odd cycle: 5-cycle -> 10"
-  use "0650_strange_network"
-  Input = "5 5
+  use "0650_strange_network" as solve
+  Ans = solve "5 5
 1 2
 2 3
 3 4
 4 5
 5 1"
-  run
 
   Ans equal 10
 end
 
 test "triangle cycle: 3-cycle -> 0"
-  use "0650_strange_network"
-  Input = "3 3
+  use "0650_strange_network" as solve
+  Ans = solve "3 3
 1 2
 2 3
 3 1"
-  run
 
   Ans equal 0
 end
 
 test "isolated + path 5 -> 20"
-  use "0650_strange_network"
-  Input = "7 4
+  use "0650_strange_network" as solve
+  Ans = solve "7 4
 1 2
 2 3
 3 4
 4 5"
-  run
 
   Ans equal 20
 end

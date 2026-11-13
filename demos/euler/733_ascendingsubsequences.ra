@@ -55,4 +55,4 @@ for Step in 0 to Length - 1
   Runs3 Rank += Ways3
   Sums3 Rank += Total3
 end
-Answer print
+return Answer

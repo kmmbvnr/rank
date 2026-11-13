@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "698_123numbers"
-  Nn = 4
-  run
+  use "698_123numbers" as solve
+  Answer = solve 4
   Answer equal 11
-  Nn = 10
-  run
+  Answer = solve 10
   Answer equal 31
-  Nn = 40
-  run
+  Answer = solve 40
   Answer equal 1112
-  Nn = 1000
-  run
+  Answer = solve 1000
   Answer equal 1223321
 end
 
 test "default input"
-  use "698_123numbers"
-  Nn = 111111111111222333
-  run
+  use "698_123numbers" as solve
+  Answer = solve 111111111111222333
   Answer equal 57808202
 end

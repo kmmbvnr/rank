@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "180_rationalzeros"
-  run
+  use "180_rationalzeros" as solve
+  Answer = solve
 
   Answer equal 285196020571078987
 end
 
 test "order five"
-  use "180_rationalzeros"
-  Order = 5
-  run
+  use "180_rationalzeros" as solve
+  Answer = solve 5
 
   Answer equal 296
 end

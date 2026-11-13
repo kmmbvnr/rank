@@ -1,37 +1,29 @@
 use testing
 
 test "sample 1: N = 8, K = 1"
-  use "0077_zeros"
-  N = 8
-  K = 1
-  run
+  use "0077_zeros" as solve
+  Answer = solve 8 1
 
   Answer equal 3
 end
 
 test "N = 100, K = 2"
-  use "0077_zeros"
-  N = 100
-  K = 2
-  run
+  use "0077_zeros" as solve
+  Answer = solve 100 2
 
   Answer equal 25
 end
 
 test "K = 0: powers of 2 up to N"
-  use "0077_zeros"
-  N = 8
-  K = 0
-  run
+  use "0077_zeros" as solve
+  Answer = solve 8 0
 
   Answer equal 3
 end
 
 test "large N = 10^9, K = 15"
-  use "0077_zeros"
-  N = 1000000000
-  K = 15
-  run
+  use "0077_zeros" as solve
+  Answer = solve 1000000000 15
 
   Answer equal 137149736
 end

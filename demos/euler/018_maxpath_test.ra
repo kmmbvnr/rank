@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "018_maxpath"
-  run
+  use "018_maxpath" as solve
+  Answer = solve
 
   Answer equal 1074
 end

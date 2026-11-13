@@ -1,10 +1,7 @@
 use testing
 
 test "two representations"
-  use "799_pentagonalpuzzle"
-  Limit = 60
-  Least = 1
-  Floor = 1
-  run
+  use "799_pentagonalpuzzle" as solve
+  Answer = solve 60 1 1
   Answer equal 3577
 end

@@ -47,4 +47,4 @@ Gain = Real scan + with 0.0
 Cut = (Budget - Before Full) / Fair Full
 Extra = Cut * Real Full
 Answer = (Gain Full + Extra) round 10
-Answer print
+return Answer

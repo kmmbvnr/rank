@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "489_commonfactors"
-  Ma = 1
-  Nb = 1
-  run
+  use "489_commonfactors" as solve
+  Answer = solve 1 1
   Answer equal 5
-  Ma = 5
-  Nb = 5
-  run
+  Answer = solve 5 5
   Answer equal 128878
-  Ma = 10
-  Nb = 10
-  run
+  Answer = solve 10 10
   Answer equal 32936544
 end

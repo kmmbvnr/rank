@@ -1,17 +1,13 @@
 use testing
 
 test "generating polygons"
-  use "382_polygons"
-  Limit = 5
-  run
+  use "382_polygons" as solve
+  Answer = solve 5
   Answer equal 7
-  Limit = 4
-  run
+  Answer = solve 4
   Answer equal 2
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 501
-  Limit = 25
-  run
+  Answer = solve 25
   Answer equal 18635853
 end

@@ -1,49 +1,43 @@
 use testing
 
 test "statement limit"
-  use "310_nimsquare"
-  Limit = 29
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 29
 
   Answer equal 1160
 end
 
 test "limit 0"
-  use "310_nimsquare"
-  Limit = 0
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 0
 
   Answer equal 1
 end
 
 test "limit 1"
-  use "310_nimsquare"
-  Limit = 1
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 1
 
   Answer equal 2
 end
 
 test "limit 2"
-  use "310_nimsquare"
-  Limit = 2
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 2
 
   Answer equal 6
 end
 
 test "limit 4"
-  use "310_nimsquare"
-  Limit = 4
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 4
 
   Answer equal 12
 end
 
 test "limit 10"
-  use "310_nimsquare"
-  Limit = 10
-  run
+  use "310_nimsquare" as solve
+  Answer = solve 10
 
   Answer equal 100
 end

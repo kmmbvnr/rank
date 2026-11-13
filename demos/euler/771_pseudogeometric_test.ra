@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "771_pseudogeometric"
-  Limit = 6
-  run
+  use "771_pseudogeometric" as solve
+  Answer = solve 6
   Answer equal 4
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 26
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 4710
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 496805
 end
 
 test "brute force values"
-  use "771_pseudogeometric"
-  Limit = 20000
-  run
+  use "771_pseudogeometric" as solve
+  Answer = solve 20000
   Answer equal 199934107
 end

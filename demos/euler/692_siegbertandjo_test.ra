@@ -1,15 +1,13 @@
 use testing
 
 test "statement value"
-  use "692_siegbertandjo"
-  Nn = 13
-  run
+  use "692_siegbertandjo" as solve
+  Answer = solve 13
   Answer equal 43
 end
 
 test "default input"
-  use "692_siegbertandjo"
-  Nn = 23416728348467685
-  run
+  use "692_siegbertandjo" as solve
+  Answer = solve 23416728348467685
   Answer equal 842043391019219959
 end

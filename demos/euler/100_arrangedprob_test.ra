@@ -1,32 +1,28 @@
 use testing
 
 test "default input"
-  use "100_arrangedprob"
-  run
+  use "100_arrangedprob" as solve
+  Answer = solve
 
   Answer equal 756872327473
 end
 
 test "statement example"
-  use "100_arrangedprob"
-  Limit = 20
-  run
+  use "100_arrangedprob" as solve
+  Answer = solve 20
 
   Answer equal 15
 end
 
 test "first solutions"
-  use "100_arrangedprob"
-  Limit = 1
-  run
+  use "100_arrangedprob" as solve
+  Answer = solve 1
 
   Answer equal 3
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 85
-  Limit = 120
-  run
+  Answer = solve 120
 
   Answer equal 493
 end

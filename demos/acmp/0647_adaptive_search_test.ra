@@ -1,27 +1,25 @@
 use testing
 
 test "sample 1: N=6 M=2 queries 5 3"
-  use "0647_adaptive_search"
-  run
+  use "0647_adaptive_search" as solve
+  Out = solve
 
   Out equal "5 4"
 end
 
 test "sample 2: descending queries"
-  use "0647_adaptive_search"
-  Input = "10 10
+  use "0647_adaptive_search" as solve
+  Out = solve "10 10
 10 9 8 7 6 5 4 3 2 1"
-  run
 
   Exp = "10 10 10 10 10 10 10 10 10 10"
   Out equal Exp
 end
 
 test "sample 3: repeated queries"
-  use "0647_adaptive_search"
-  Input = "3 14
+  use "0647_adaptive_search" as solve
+  Out = solve "3 14
 3 2 3 3 1 1 2 2 1 1 1 1 2 1"
-  run
 
   Exp = "3 3 2 1 3 1 3 1 2 1 1 1 2 2"
   Out equal Exp

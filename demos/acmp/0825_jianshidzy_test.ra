@@ -3,8 +3,8 @@ rem Tests for ACMP 0825 Jianshidzy
 use testing
 
 test "default test with bounds"
-  use "0825_jianshidzy"
-  run
+  use "0825_jianshidzy" as solve
+  Ans = solve
 
   Ans 0 equal "0 0"
   Ans 1 equal "1 2"
@@ -14,31 +14,28 @@ test "default test with bounds"
 end
 
 test "sample: 3 0 1 2"
-  use "0825_jianshidzy"
-  Input = "3
+  use "0825_jianshidzy" as solve
+  Ans = solve "3
 0
 1
 2"
-  run
 
   Exp = array "0 0" "1 2" "3 5"
   Ans equal Exp
 end
 
 test "precision boundary 1"
-  use "0825_jianshidzy"
-  Input = "1
+  use "0825_jianshidzy" as solve
+  Ans = solve "1
 701408733"
-  run
 
   Ans 0 equal "1134903169 1836311902"
 end
 
 test "precision boundary 2"
-  use "0825_jianshidzy"
-  Input = "1
+  use "0825_jianshidzy" as solve
+  Ans = solve "1
 267914296"
-  run
 
   Ans 0 equal "433494436 701408732"
 end

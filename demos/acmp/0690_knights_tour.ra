@@ -109,4 +109,4 @@ fun solve_knights_tour Input
 end
 
 Result = solve_knights_tour Input
-Result print
+return Result

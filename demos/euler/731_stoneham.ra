@@ -37,4 +37,4 @@ Carry = Numerator // 3 ** Terms
 Whole = Quotients sum
 Digits = (Whole + Carry) mod 10 ** 10
 Answer = Digits text
-Answer print
+return Answer

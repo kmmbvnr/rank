@@ -73,4 +73,4 @@ for J in 0 to P0 - 1
 end
 Tt = M - Gc - Rk
 Answer = ((2 Tt Md powmod) - 1) mod Md
-Answer print
+return Answer

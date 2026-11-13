@@ -1,8 +1,8 @@
 use testing
 
 test "official answer"
-  use "056_digitsum"
-  run
+  use "056_digitsum" as solve
+  Best = solve
 
   Best equal 972
 end

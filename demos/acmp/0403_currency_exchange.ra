@@ -134,4 +134,4 @@ end
 AnsR = R countUpTo
 AnsL = (L - 1) countUpTo
 Answer = AnsR - AnsL
-Answer print
+return Answer

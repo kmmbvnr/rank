@@ -2,50 +2,46 @@ rem ACMP 0573: UFO tests
 use testing
 
 test "ACMP 573: Sample 1"
-  use "0573_ufo"
-  Input = (
+  use "0573_ufo" as solve
+  MinUFOs = solve (
     "4 1\n" +
     "12:00 0 0\n" +
     "13:10 0 1\n" +
     "14:00 1 0\n" +
     "15:00 1 1"
   )
-  run
   MinUFOs equal 2
 end
 
 test "ACMP 573: Single observation"
-  use "0573_ufo"
-  Input = "1 100
+  use "0573_ufo" as solve
+  MinUFOs = solve "1 100
 12:00 0 0"
-  run
   MinUFOs equal 1
 end
 
 test "ACMP 573: Same times unreachable"
-  use "0573_ufo"
-  Input = "3 100
+  use "0573_ufo" as solve
+  MinUFOs = solve "3 100
 12:00 0 0
 12:00 10 10
 12:00 20 20"
-  run
   MinUFOs equal 3
 end
 
 test "ACMP 573: Fast chain all one UFO"
-  use "0573_ufo"
-  Input = "4 1000
+  use "0573_ufo" as solve
+  MinUFOs = solve "4 1000
 10:00 0 0
 11:00 5 5
 12:00 10 10
 13:00 15 15"
-  run
   MinUFOs equal 1
 end
 
 test "ACMP 573: 50 observations"
-  use "0573_ufo"
-  Input = "50 60
+  use "0573_ufo" as solve
+  MinUFOs = solve "50 60
 00:00 154 -386
 00:28 -475 259
 00:57 -219 -250
@@ -96,6 +92,5 @@ test "ACMP 573: 50 observations"
 22:33 -36 150
 23:02 354 -127
 23:31 -334 -121"
-  run
   MinUFOs equal 14
 end

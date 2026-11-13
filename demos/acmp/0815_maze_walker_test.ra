@@ -3,8 +3,11 @@ rem Tests for ACMP 0815 Maze Walker
 use testing
 
 test "sample 1 from statement"
-  use "0815_maze_walker"
-  run
+  use "0815_maze_walker" as solve
+  Out = solve
+  Count = Out .count
+  Result = Out .result
+  Status = Out .status
 
   Status equal "OK"
   Count equal 2
@@ -12,8 +15,8 @@ test "sample 1 from statement"
 end
 
 test "sample 2 hangs"
-  use "0815_maze_walker"
-  Input = "4 6 2
+  use "0815_maze_walker" as solve
+  Out = solve "4 6 2
 1 2 1
 1 2 2
 1 3 1
@@ -23,20 +26,23 @@ test "sample 2 hangs"
 2
 1 2
 1"
-  run
+  Count = Out .count
+  Status = Out .status
 
   Status equal "Hangs"
   Count equal 0
 end
 
 test "single node self loop"
-  use "0815_maze_walker"
-  Input = "1 1 1
+  use "0815_maze_walker" as solve
+  Out = solve "1 1 1
 1 1 1
 3
 1 1 1
 1"
-  run
+  Count = Out .count
+  Result = Out .result
+  Status = Out .status
 
   Status equal "OK"
   Count equal 1
@@ -44,27 +50,30 @@ test "single node self loop"
 end
 
 test "no edges hangs"
-  use "0815_maze_walker"
-  Input = "2 0 1
+  use "0815_maze_walker" as solve
+  Out = solve "2 0 1
 1
 1
 1"
-  run
+  Count = Out .count
+  Status = Out .status
 
   Status equal "Hangs"
   Count equal 0
 end
 
 test "two steps cycle"
-  use "0815_maze_walker"
-  Input = "3 3 2
+  use "0815_maze_walker" as solve
+  Out = solve "3 3 2
 1 2 1
 1 3 2
 2 1 1
 2
 1 1
 1"
-  run
+  Count = Out .count
+  Result = Out .result
+  Status = Out .status
 
   Status equal "OK"
   Count equal 1

@@ -144,4 +144,4 @@ for
   D += 1
 end
 Answer = (CountA + CountS) // 2
-Answer print
+return Answer

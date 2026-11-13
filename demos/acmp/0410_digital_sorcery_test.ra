@@ -1,44 +1,36 @@
 use testing
 
 test "sample 1: N = 5, M = 8"
-  use "0410_digital_sorcery"
-  run
+  use "0410_digital_sorcery" as solve
+  Answer = solve
 
   Answer equal "11"
 end
 
 test "sample 2: N = 6, M = 15"
-  use "0410_digital_sorcery"
-  N = 6
-  M = 15
-  run
+  use "0410_digital_sorcery" as solve
+  Answer = solve 6 15
 
   Answer equal "24"
 end
 
 test "already divisible: N = 0, M = 8"
-  use "0410_digital_sorcery"
-  N = 0
-  M = 8
-  run
+  use "0410_digital_sorcery" as solve
+  Answer = solve 0 8
 
   Answer equal "0"
 end
 
 test "power of 10: N = 2, M = 7"
-  use "0410_digital_sorcery"
-  N = 2
-  M = 7
-  run
+  use "0410_digital_sorcery" as solve
+  Answer = solve 2 7
 
   Answer equal "100000"
 end
 
 test "single digit: N = 7, M = 10"
-  use "0410_digital_sorcery"
-  N = 7
-  M = 10
-  run
+  use "0410_digital_sorcery" as solve
+  Answer = solve 7 10
 
   Answer equal "3"
 end

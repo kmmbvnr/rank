@@ -2,7 +2,6 @@ use testing
 
 test "odd palindrome"
   use "005_longestpal"
-  run
 
   Answer = "babad" longest
   Answer equal "bab"
@@ -10,7 +9,6 @@ end
 
 test "even palindrome"
   use "005_longestpal"
-  run
 
   Answer = "cbbd" longest
   Answer equal "bb"
@@ -18,7 +16,6 @@ end
 
 test "one character"
   use "005_longestpal"
-  run
 
   Answer = "a" longest
   Answer equal "a"
@@ -26,7 +23,6 @@ end
 
 test "first wins equal length"
   use "005_longestpal"
-  run
 
   Answer = "ac" longest
   Answer equal "a"
@@ -34,7 +30,6 @@ end
 
 test "empty text"
   use "005_longestpal"
-  run
 
   Answer = "" longest
   Answer equal ""
@@ -42,7 +37,6 @@ end
 
 test "long even palindrome"
   use "005_longestpal"
-  run
 
   Answer = "forgeeksskeegfor" longest
   Answer equal "geeksskeeg"
@@ -50,7 +44,6 @@ end
 
 test "unicode code points"
   use "005_longestpal"
-  run
 
   Answer = "x😀a😀y" longest
   Answer equal "😀a😀"

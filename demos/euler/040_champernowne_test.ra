@@ -1,8 +1,8 @@
 use testing
 
 test "power-of-ten positions"
-  use "040_champernowne"
-  run
+  use "040_champernowne" as solve
+  Answer = solve
 
   Answer equal 210
 end

@@ -1,14 +1,13 @@
 use testing
 
 test "statement value"
-  use "721_highpowers"
-  Limit = 1000
-  run
+  use "721_highpowers" as solve
+  Answer = solve 1000
   Answer equal 163861845
 end
 
 test "default input"
-  use "721_highpowers"
-  run
+  use "721_highpowers" as solve
+  Answer = solve
   Answer equal 700792959
 end

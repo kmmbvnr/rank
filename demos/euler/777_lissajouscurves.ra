@@ -115,4 +115,4 @@ Exponent = Top log / Ten floor
 Mantissa = Top / 10.0 ** Exponent
 Answer = (Mantissa text ".9f") + "e"
 Answer += Exponent text
-Answer print
+return Answer

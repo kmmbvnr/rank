@@ -1,30 +1,21 @@
 use testing
 
 test "default input"
-  use "194_colouredconfigs"
-  run
+  use "194_colouredconfigs" as solve
+  Answer = solve
 
   Answer equal 61190912
 end
 
 test "statement values"
-  use "194_colouredconfigs"
-  Na = 1
-  Nb = 0
-  Colours = 3
-  run
+  use "194_colouredconfigs" as solve
+  Answer = solve 1 0 3
 
   Answer equal 24
-  Na = 0
-  Nb = 2
-  Colours = 4
-  run
+  Answer = solve 0 2 4
 
   Answer equal 92928
-  Na = 2
-  Nb = 2
-  Colours = 3
-  run
+  Answer = solve 2 2 3
 
   Answer equal 20736
 end

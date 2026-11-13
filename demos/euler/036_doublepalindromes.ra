@@ -12,7 +12,7 @@ use cli
 arg Limit integer = 1000000
 
 Answer = Limit double_palindrome_sum
-Answer print
+return Answer
 
 
 rem Even positive values end in binary zero,

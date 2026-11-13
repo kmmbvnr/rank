@@ -121,4 +121,4 @@ Terms -= Other * PartSecond
 Terms += Prime * Other * PartBoth
 Pairs = Products * Terms sum
 Answer = Singles - Pairs
-Answer print
+return Answer

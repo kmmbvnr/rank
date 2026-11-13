@@ -73,4 +73,4 @@ for I in 0 till (N - 2)
   end
 end
 
-Count print
+return Count

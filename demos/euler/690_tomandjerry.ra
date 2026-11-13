@@ -127,4 +127,4 @@ for N in 1 to Nn
   Ti N = Sm * Iv N mod P
 end
 Answer = Ti Nn
-Answer print
+return Answer

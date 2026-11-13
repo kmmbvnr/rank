@@ -1,8 +1,11 @@
 use testing
 
 test "default input"
-  use "255_roundedroots"
-  run
+  use "255_roundedroots" as solve
+  Out = solve
+  Answer = Out .answer
+  Count = Out .count
+  Total = Out .total
 
   Total equal 400266100622279
   Count equal 90000000000000

@@ -53,4 +53,7 @@ for Step in 1 to 20
   P = P matmul Mat
 end
 Answer = Answer round 6
-Answer print
+return record
+  .answer = Answer
+  .mat = Mat
+end

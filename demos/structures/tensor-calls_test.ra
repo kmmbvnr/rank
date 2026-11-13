@@ -2,8 +2,12 @@ use testing
 use sequences
 
 test "normalizing a later batch preserves earlier results"
-  use "tensor-calls"
-  run
+  use "tensor-calls" as solve
+  use sequences
+  Out = solve
+  First = Out .first
+  Second = Out .second
+  Third = Out .third
   First equal ((array 1.0 1.0) reshape 1 2)
   Second equal ((array 4.0 1.0) reshape 1 2)
   Third equal ((array 2.0 2.0 3.0 3.0) reshape 2 2)

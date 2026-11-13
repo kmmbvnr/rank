@@ -1,52 +1,43 @@
 use testing
 
 test "default input"
-  use "291_panaitopolprimes"
-  run
+  use "291_panaitopolprimes" as solve
+  Answer = solve
 
   Answer equal 4037526
 end
 
 test "small limits"
-  use "291_panaitopolprimes"
-  Limit = 1000000
-  run
+  use "291_panaitopolprimes" as solve
+  Answer = solve 1000000
 
   Answer equal 175
-  Limit = 100000000
-  run
+  Answer = solve 100000000
 
   Answer equal 1225
-  Limit = 100000000000
-  run
+  Answer = solve 100000000000
 
   Answer equal 26516
 end
 
 test "strict upper limit"
-  use "291_panaitopolprimes"
-  Limit = 0
-  run
+  use "291_panaitopolprimes" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 5
-  run
+  Answer = solve 5
 
   Answer equal 0
-  Limit = 6
-  run
+  Answer = solve 6
 
   Answer equal 1
-  Limit = 12
-  run
+  Answer = solve 12
 
   Answer equal 1
-  Limit = 13
-  run
+  Answer = solve 13
 
   Answer equal 1
-  Limit = 14
-  run
+  Answer = solve 14
 
   Answer equal 2
 end

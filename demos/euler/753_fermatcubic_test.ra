@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "753_fermatcubic"
-  Limit = 6
-  run
+  use "753_fermatcubic" as solve
+  Total = solve 6
   Total equal 14
-  Limit = 100
-  run
+  Total = solve 100
   Total equal 59762
-  Limit = 200
-  run
+  Total = solve 200
   Total equal 535298
 end

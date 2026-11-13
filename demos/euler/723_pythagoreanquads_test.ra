@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "723_pythagoreanquads"
-  Number = 325
-  run
+  use "723_pythagoreanquads" as solve
+  Answer = solve 325
   Answer equal 2370
-  Number = 1105
-  run
+  Answer = solve 1105
   Answer equal 5535
 end
 
 test "default input"
-  use "723_pythagoreanquads"
-  run
+  use "723_pythagoreanquads" as solve
+  Answer = solve
   Answer equal 1395793419248
 end

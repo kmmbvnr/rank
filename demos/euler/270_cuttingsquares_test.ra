@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "270_cuttingsquares"
-  run
+  use "270_cuttingsquares" as solve
+  Answer = solve
 
   Answer equal 82282080
 end
 
 test "problem examples"
-  use "270_cuttingsquares"
-  N = 1
-  run
+  use "270_cuttingsquares" as solve
+  Answer = solve 1
 
   Answer equal 2
-  N = 2
-  run
+  Answer = solve 2
 
   Answer equal 30
 end

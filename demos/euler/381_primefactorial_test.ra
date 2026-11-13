@@ -1,8 +1,7 @@
 use testing
 
 test "prime factorial sums"
-  use "381_primefactorial"
-  Limit = 100
-  run
+  use "381_primefactorial" as solve
+  Answer = solve 100
   Answer equal 480
 end

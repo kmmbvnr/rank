@@ -112,4 +112,4 @@ TopDelta = DistFn TopComp
 TopAns = (R SafeTop) - TopDelta
 ZeroM = 0 * Cols
 FinalAns = HasBlocks choose TopAns ZeroM
-(FinalAns join "\n") print
+return FinalAns

@@ -34,4 +34,4 @@ Sums = 0 to Cap array
 Hit' = Top bit Sums
 Used' = Sums filter Hit
 Answer = Used sum
-Answer print
+return Answer

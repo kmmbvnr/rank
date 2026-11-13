@@ -88,4 +88,4 @@ end
 
 Bridges = (State "bridges") integer
 Ans = TotalEdges - Bridges
-(Ans text) print
+return Ans

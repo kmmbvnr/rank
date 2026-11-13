@@ -31,7 +31,7 @@ test "one CRT triple"
 end
 
 test "full huge binomial"
-  use "365_hugebinomial"
-  run
+  use "365_hugebinomial" as solve
+  Answer = solve
   Answer equal 162619462356610313
 end

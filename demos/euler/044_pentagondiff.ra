@@ -11,7 +11,6 @@ use cli
 arg Limit integer = 2200
 
 Answer = Limit pentagonal_difference
-Answer print
 
 
 rem Materialize indexed values and a larger set
@@ -52,3 +51,4 @@ rem Return the Nth positive pentagonal number.
 fun N pentagonal
   return N * (3 * N - 1) // 2
 end
+return Answer

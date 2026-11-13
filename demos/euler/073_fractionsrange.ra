@@ -28,4 +28,4 @@ Per' = (D - 1) // 2 - D // 3
 Tot = Per scan + with 0
 Quot' = Limit // D
 Answer = (Mu * (Tot Quot)) sum
-Answer print
+return Answer

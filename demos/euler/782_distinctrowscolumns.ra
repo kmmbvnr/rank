@@ -121,4 +121,4 @@ Twos = Pair count
 Seen = Marked count
 Fours = Total - Seen
 Answer = 3 * Total - 4 - Twos + Fours
-Answer print
+return Answer

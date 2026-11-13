@@ -2,74 +2,68 @@ rem ACMP 0932: Capitals tests
 use testing
 
 test "ACMP 932: Sample 1 (star 4, d=2)"
-  use "0932_capitals"
-  Input = "4 2
+  use "0932_capitals" as solve
+  Result = solve "4 2
 1 2
 1 3
 1 4"
-  run
   Result equal "1"
 end
 
 test "Sample 2 (two stars, d=2)"
-  use "0932_capitals"
-  Input = "7 2
+  use "0932_capitals" as solve
+  Result = solve "7 2
 1 2
 1 3
 1 4
 5 1
 5 6
 5 7"
-  run
   Result equal "5"
 end
 
 test "ACMP 932: Odd distance d=3 -> 0"
-  use "0932_capitals"
-  Input = "5 3
+  use "0932_capitals" as solve
+  Result = solve "5 3
 1 2
 2 3
 3 4
 4 5"
-  run
   Result equal "0"
 end
 
 test "ACMP 932: Star with 6 leaves, d=2"
-  use "0932_capitals"
-  Input = "7 2
+  use "0932_capitals" as solve
+  Result = solve "7 2
 1 2
 1 3
 1 4
 1 5
 1 6
 1 7"
-  run
   Result equal "20"
 end
 
 test "ACMP 932: Radius 2 (d=4) Y-tree"
-  use "0932_capitals"
-  Input = "7 4
+  use "0932_capitals" as solve
+  Result = solve "7 4
 1 2
 2 3
 1 4
 4 5
 1 6
 6 7"
-  run
   Result equal "1"
 end
 
 test "ACMP 932: Rooted at leaf (d=4)"
-  use "0932_capitals"
-  Input = "7 4
+  use "0932_capitals" as solve
+  Result = solve "7 4
 3 2
 2 1
 1 4
 4 5
 1 6
 6 7"
-  run
   Result equal "1"
 end

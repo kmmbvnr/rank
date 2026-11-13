@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "578_decreasingprimepowers"
-  N = 100
-  run
+  use "578_decreasingprimepowers" as solve
+  Answer = solve 100
   Answer equal 94
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 922052
 end

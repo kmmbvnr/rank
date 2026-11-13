@@ -76,4 +76,4 @@ for K in Ka to Kb
   end
   Answer = (Answer + E 0) mod P
 end
-Answer print
+return Answer

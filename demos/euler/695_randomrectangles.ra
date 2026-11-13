@@ -261,4 +261,4 @@ Wf = Wm * Ft
 Jj = Wf sum
 Pp = Jj / 4.0
 Answer = Pp text ".10f"
-Answer print
+return Answer

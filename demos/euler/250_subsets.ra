@@ -74,4 +74,4 @@ if Q greater 0
   end
 end
 Answer = (Res 0 - 1) mod Mod
-Answer print
+return Answer

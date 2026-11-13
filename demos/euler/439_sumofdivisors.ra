@@ -155,4 +155,4 @@ Dq = (Fx - Fl) mod Mod
 Aq = At Qq
 P2 = Aq * Aq mod Mod * Dq mod Mod sum
 Answer = (P1 + P2) mod Mod
-Answer print
+return Answer

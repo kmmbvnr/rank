@@ -42,4 +42,4 @@ Eye' = Ks reshape H 1 equal Ks
 I' = Eye choose 1.0 0.0
 E = I - Q solve (Ks - Ks + 1.0)
 Answer = E (H - 1) round 6
-Answer print
+return Answer

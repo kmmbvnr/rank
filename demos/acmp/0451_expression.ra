@@ -268,4 +268,4 @@ fun solve_expr Input
 end
 
 Result = solve_expr Input
-Result print
+return Result

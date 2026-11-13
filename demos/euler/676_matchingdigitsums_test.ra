@@ -1,24 +1,17 @@
 use testing
 
 test "statement values"
-  use "676_matchingdigitsums"
-  K1 = 3
-  K2 = 3
-  Nn = 10
-  run
+  use "676_matchingdigitsums" as solve
+  Answer = solve 10 3 3
   Answer equal 18
-  Nn = 100
-  run
+  Answer = solve 100 3 3
   Answer equal 292
-  Nn = 1000000
-  run
+  Answer = solve 1000000 3 3
   Answer equal 19173952
 end
 
 test "default input"
-  use "676_matchingdigitsums"
-  Nn = 10000000000000000
-  K2 = 6
-  run
+  use "676_matchingdigitsums" as solve
+  Answer = solve 10000000000000000 3 6
   Answer equal 3562668074339584
 end

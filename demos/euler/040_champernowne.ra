@@ -12,7 +12,7 @@ end
 
 Digits' = Positions champernowne_digit rank 0
 Answer = Digits reduce *
-Answer print
+return Answer
 
 
 rem Skip whole equal-width number blocks, then

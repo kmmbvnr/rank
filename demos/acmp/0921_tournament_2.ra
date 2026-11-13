@@ -30,4 +30,4 @@ Diffs = DiffTerm abs
 MinDiff = Diffs min
 BestC = (C (Diffs equal MinDiff)) 0
 
-BestC text print
+return BestC

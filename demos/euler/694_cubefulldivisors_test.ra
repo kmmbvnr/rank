@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "694_cubefulldivisors"
-  Nn = 16
-  run
+  use "694_cubefulldivisors" as solve
+  Answer = solve 16
   Answer equal 19
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 126
-  Nn = 10000
-  run
+  Answer = solve 10000
   Answer equal 13344
 end
 
 test "default input"
-  use "694_cubefulldivisors"
-  Nn = 1000000000000000000
-  run
+  use "694_cubefulldivisors" as solve
+  Answer = solve 1000000000000000000
   Answer equal 1339784153569958487
 end

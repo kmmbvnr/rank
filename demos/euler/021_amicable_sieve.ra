@@ -29,4 +29,7 @@ Mask and= Partners less Limit
 A = Candidates Mask
 B = Partners Mask
 Answer = ((A + B) (Sums B equal A)) sum
-Answer print
+return record
+  .answer = Answer
+  .sums = Sums
+end

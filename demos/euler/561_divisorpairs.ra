@@ -23,4 +23,4 @@ Pt = Tt popcount
 Vk = Kk - Pk
 Vt = Tt - Pt
 Answer = M * Vk + Tt + Vt
-Answer print
+return Answer

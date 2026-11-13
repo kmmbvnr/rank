@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "227_chase"
-  run
+  use "227_chase" as solve
+  Answer = solve
 
   Answer equal 3780.618622
 end
 
 test "small circles"
-  use "227_chase"
-  N = 10
-  run
+  use "227_chase" as solve
+  Answer = solve 10
 
   Answer equal 40.561927
-  N = 20
-  run
+  Answer = solve 20
 
   Answer equal 156.123724
 end

@@ -73,4 +73,4 @@ Flat' = Rest (Pick reshape Cells)
 Rot' = Flat reshape Rows 5
 Key' = Rot * Pw sum axis 1
 Answer = (Ways * (Tab Key)) sum
-Answer print
+return Answer

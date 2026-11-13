@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/799_pentagonalpuzzle.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler799-original.ra', import.meta.url), 'utf8');
-const helpers = 'use numbers\nuse sequences\n' + source.slice(source.indexOf('fun Num pair_count'));
+const helpers = 'use numbers\nuse sequences\n' + withoutReturn(source.slice(source.indexOf('fun Num pair_count')));
 const pentagonal = (n: number) => n * (3 * n - 1) / 2;
 
 // Enumerate pentagonal pairs independently of Gaussian factorization.

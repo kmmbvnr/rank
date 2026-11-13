@@ -51,4 +51,4 @@ Tm = Bn * Gs mod P
 Ng = (Al - Ks + 1) mod 2 equal 1
 Tm = Ng choose (P - Tm) Tm
 Answer = Tm sum mod P
-Answer print
+return Answer

@@ -2,34 +2,24 @@ use testing
 
 rem Small boards keep reference checks fast.
 test "small boards"
-  use "213_fleacircus"
-  N = 4
-  Rings = 2
-  run
+  use "213_fleacircus" as solve
+  Answer = solve 4 2
 
   Answer equal 5.215096
-  N = 6
-  Rings = 5
-  run
+  Answer = solve 6 5
 
   Answer equal 12.689647
 end
 
 test "odd boards and a lone flea"
-  use "213_fleacircus"
-  N = 3
-  Rings = 1
-  run
+  use "213_fleacircus" as solve
+  Answer = solve 3 1
 
   Answer equal 2.725309
-  N = 5
-  Rings = 2
-  run
+  Answer = solve 5 2
 
   Answer equal 8.198453
-  N = 1
-  Rings = 50
-  run
+  Answer = solve 1 50
 
   Answer equal 0.0
 end

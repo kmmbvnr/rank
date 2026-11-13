@@ -45,4 +45,8 @@ for # in 1 to 5
 end
 Closed' = Tail Cur equal Head First
 Answer = Sum Closed first
-Answer print
+return record
+  .answer = Answer
+  .grid = Grid
+  .vals = Vals
+end

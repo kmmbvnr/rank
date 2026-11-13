@@ -88,4 +88,4 @@ for U in Us
   Answer = Answer * Pw mod P
   Answer = Answer * Fc Cn mod P
 end
-Answer print
+return Answer

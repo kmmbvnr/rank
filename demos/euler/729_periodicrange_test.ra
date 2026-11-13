@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "729_periodicrange"
-  Period = 3
-  run
+  use "729_periodicrange" as solve
+  Answer = solve 3
   Answer equal "14.6461"
-  Period = 5
-  run
+  Answer = solve 5
   Answer equal "124.1056"
 end

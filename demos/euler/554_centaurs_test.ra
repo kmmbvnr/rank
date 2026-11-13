@@ -1,8 +1,7 @@
 use testing
 
 test "statement values in the sum"
-  use "554_centaurs"
-  Top = 5
-  run
+  use "554_centaurs" as solve
+  Answer = solve 5
   Answer equal 2073
 end

@@ -3,45 +3,52 @@ use testing
 use sequences
 
 test "ACMP 853: Sample 1"
-  use "0853_number_game"
-  Input = "4
+  use "0853_number_game" as solve
+  use sequences
+  Out = solve "4
 2 3 5 7"
-  run
+  WinCount = Out .win_count
+  Winners = Out .winners
   WinCount equal 1
   Exp = array 3
   (Winners equal Exp) all
 end
 
 test "ACMP 853: Sample 2"
-  use "0853_number_game"
-  Input = "2
+  use "0853_number_game" as solve
+  Out = solve "2
 2 4"
-  run
+  WinCount = Out .win_count
   WinCount equal 0
 end
 
 test "ACMP 853: Single chip"
-  use "0853_number_game"
-  Input = "1
+  use "0853_number_game" as solve
+  use sequences
+  Out = solve "1
 42"
-  run
+  WinCount = Out .win_count
+  Winners = Out .winners
   WinCount equal 1
   Exp = array 42
   (Winners equal Exp) all
 end
 
 test "ACMP 853: Adjacent pair"
-  use "0853_number_game"
-  Input = "2
+  use "0853_number_game" as solve
+  use sequences
+  Out = solve "2
 10 11"
-  run
+  WinCount = Out .win_count
+  Winners = Out .winners
   WinCount equal 2
   Exp = array 10 11
   (Winners equal Exp) all
 end
 
 test "ACMP 853: 40 primes stress test"
-  use "0853_number_game"
-  run
+  use "0853_number_game" as solve
+  Out = solve
+  WinCount = Out .win_count
   WinCount greater 0
 end

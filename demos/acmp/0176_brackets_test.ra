@@ -1,28 +1,22 @@
 use testing
 
 test "default 3 2"
-  use "0176_brackets"
-  N = 3
-  K = 2
-  run
+  use "0176_brackets" as solve
+  Answer = solve 3 2
 
   Answer equal 3
 end
 
 test "large 37 23"
-  use "0176_brackets"
-  N = 37
-  K = 23
-  run
+  use "0176_brackets" as solve
+  Answer = solve 37 23
 
   Answer equal 203685956218528
 end
 
 test "equal depth K=N"
-  use "0176_brackets"
-  N = 4
-  K = 4
-  run
+  use "0176_brackets" as solve
+  Answer = solve 4 4
 
   Answer equal 1
 end

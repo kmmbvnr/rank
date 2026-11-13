@@ -14,7 +14,6 @@ Range' = 1 till 1000
 States' = Range scan next with Start
 Longer' = States longer rank 0
 Answer = Longer count
-Answer print
 
 
 fun State next Ignored
@@ -27,3 +26,4 @@ end
 fun State longer
   return State .num text len greater State .den text len
 end
+return Answer

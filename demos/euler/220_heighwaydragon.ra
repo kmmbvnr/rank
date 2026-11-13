@@ -90,4 +90,4 @@ for N in Order to 1 by -1
 end
 Pair = array X Y
 Answer = Pair join ","
-Answer print
+return Answer

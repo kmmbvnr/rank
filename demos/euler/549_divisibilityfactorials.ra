@@ -66,4 +66,4 @@ Ends = Starts + Block - 1
 Stops = Ends min N
 Totals = Starts subtotal Stops rank 0 0
 Answer = Totals sum
-Answer print
+return Answer

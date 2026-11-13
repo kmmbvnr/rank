@@ -262,4 +262,4 @@ for Mode in 0 to 1
   end
 end
 Answer = Total
-Answer print
+return Answer

@@ -1,14 +1,11 @@
 use testing
 
 test "brute force values"
-  use "488_unbalancednim"
-  N = 8
-  run
+  use "488_unbalancednim" as solve
+  Answer = solve 8
   Answer equal 42
-  N = 30
-  run
+  Answer = solve 30
   Answer equal 5684
-  N = 70
-  run
+  Answer = solve 70
   Answer equal 61032
 end

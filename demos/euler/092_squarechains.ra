@@ -39,4 +39,8 @@ end
 Mask = Ends not equal 1
 Mask and= Sums greater 0
 Answer = Mult Mask sum
-Answer print
+return record
+  .answer = Answer
+  .combs = Combs
+  .mult = Mult
+end

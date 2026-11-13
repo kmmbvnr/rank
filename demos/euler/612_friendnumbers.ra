@@ -48,4 +48,4 @@ Dp = Dj * Ca mod M * Cr mod M sum
 Dp = Dp mod M
 S = (Tt * Tt - Dp) mod M
 Answer = (S - Tt) * ((M + 1) // 2) mod M
-Answer print
+return Answer

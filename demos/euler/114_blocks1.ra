@@ -32,4 +32,4 @@ Spots' = Place binomial K
 Ways' = Split * Spots
 Total' = Fits choose Ways 0 sum
 Answer = Total + 1
-Answer print
+return Answer

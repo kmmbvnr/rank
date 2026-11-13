@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "699_triffle"
-  Nn = 100
-  run
+  use "699_triffle" as solve
+  Answer = solve 100
   Answer equal 270
-  Nn = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 26089287
-  Nn = 100000000000
-  run
+  Answer = solve 100000000000
   Answer equal 14918461173891
 end

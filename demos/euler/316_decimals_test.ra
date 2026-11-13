@@ -16,10 +16,8 @@ test "overlapping decimal borders"
 end
 
 test "statement sum"
-  use "316_decimals"
-  Num = 1000000
-  Top = 999
-  run
+  use "316_decimals" as solve
+  Answer = solve 999 1000000
 
   Answer equal 27280188
 end

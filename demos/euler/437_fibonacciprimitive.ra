@@ -167,4 +167,4 @@ for Start in 0 till Count by Block
   Selected = Batch Good
   Answer += Selected sum
 end
-Answer print
+return Answer

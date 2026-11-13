@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "005_smallestmultiple"
-  run
+  use "005_smallestmultiple" as solve
+  Answer = solve
 
   Answer equal 232792560
 end
 
 test "workspace input"
-  use "005_smallestmultiple"
-  Limit = 10
-  run
+  use "005_smallestmultiple" as solve
+  Answer = solve 10
 
   Answer equal 2520
 end

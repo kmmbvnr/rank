@@ -1,38 +1,36 @@
 use testing
 
 test "sample 1: 49 1 -> base 3, 2 ones"
-  use "0436_lucky_digits"
-  N = 49
-  K = 1
-  run
+  use "0436_lucky_digits" as solve
+  Out = solve 49 1
+  BestD = Out .best_d
+  BestL = Out .best_l
 
   BestD equal 3
   BestL equal 2
 end
 
 test "sample 2: 7 5 gives 0 copies of 5"
-  use "0436_lucky_digits"
-  N = 7
-  K = 5
-  run
+  use "0436_lucky_digits" as solve
+  Out = solve 7 5
+  BestL = Out .best_l
 
   BestL equal 0
 end
 
 test "exact two zeros: 100 0"
-  use "0436_lucky_digits"
-  N = 100
-  K = 0
-  run
+  use "0436_lucky_digits" as solve
+  Out = solve 100 0
+  BestL = Out .best_l
 
   BestL equal 2
 end
 
 test "large N: 10^11 zeros -> base 2"
-  use "0436_lucky_digits"
-  N = 100000000000
-  K = 0
-  run
+  use "0436_lucky_digits" as solve
+  Out = solve 100000000000 0
+  BestD = Out .best_d
+  BestL = Out .best_l
 
   BestD equal 2
   BestL equal 11

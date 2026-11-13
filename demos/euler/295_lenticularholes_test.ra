@@ -1,40 +1,34 @@
 use testing
 
 test "default input"
-  use "295_lenticularholes"
-  run
+  use "295_lenticularholes" as solve
+  Answer = solve
 
   Answer equal 4884650818
 end
 
 test "empty and smallest limits"
-  use "295_lenticularholes"
-  N = 0
-  run
+  use "295_lenticularholes" as solve
+  Answer = solve 0
 
   Answer equal 0
-  N = 1
-  run
+  Answer = solve 1
 
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
 
   Answer equal 1
 end
 
 test "small limits"
-  use "295_lenticularholes"
-  N = 10
-  run
+  use "295_lenticularholes" as solve
+  Answer = solve 10
 
   Answer equal 30
-  N = 100
-  run
+  Answer = solve 100
 
   Answer equal 3442
-  N = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 393451
 end

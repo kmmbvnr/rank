@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "134_primepairs"
-  run
+  use "134_primepairs" as solve
+  Answer = solve
 
   Answer equal 18613426663617118
 end
 
 test "smaller limits"
-  use "134_primepairs"
-  Limit = 19
-  run
+  use "134_primepairs" as solve
+  Answer = solve 19
 
   Answer equal 4272
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 69155
 end

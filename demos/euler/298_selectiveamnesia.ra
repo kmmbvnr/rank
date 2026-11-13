@@ -149,4 +149,4 @@ Ab' = Cols - Off abs
 Total = Dp * Ab sum
 Scaled = (Total * 100000000 + Sl // 2) // Sl
 Answer = Scaled / 100000000
-Answer print
+return Answer

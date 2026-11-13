@@ -3,48 +3,48 @@ use testing
 use numbers
 
 test "Sample 1: N=2, K=2 yields T=8.8"
-  use "0438_sochi_2014"
-  Input = "2
+  use "0438_sochi_2014" as solve
+  use numbers
+  Ans = solve "2
 24 20
 2
 3 2"
-  run
   Diff = (Ans - 8.8) abs
   Pass = Diff less 0.00001
   Pass equal true
 end
 
 test "Sample 2: N=3, K=4 yields T=12"
-  use "0438_sochi_2014"
-  Input = "3
+  use "0438_sochi_2014" as solve
+  use numbers
+  Ans = solve "3
 100 100 100
 4
 5 5 10 10"
-  run
   Diff = (Ans - 12.0) abs
   Pass = Diff less 0.00001
   Pass equal true
 end
 
 test "Edge: Single object single firm"
-  use "0438_sochi_2014"
-  Input = "1
+  use "0438_sochi_2014" as solve
+  use numbers
+  Ans = solve "1
 50
 1
 10"
-  run
   Diff = (Ans - 5.0) abs
   Pass = Diff less 0.00001
   Pass equal true
 end
 
 test "Edge: More objects than firms"
-  use "0438_sochi_2014"
-  Input = "4
+  use "0438_sochi_2014" as solve
+  use numbers
+  Ans = solve "4
 40 30 20 10
 2
 10 5"
-  run
   Expected = 100.0 / 15.0
   Diff = (Ans - Expected) abs
   Pass = Diff less 0.00001
@@ -52,12 +52,12 @@ test "Edge: More objects than firms"
 end
 
 test "Edge: More firms than objects"
-  use "0438_sochi_2014"
-  Input = "2
+  use "0438_sochi_2014" as solve
+  use numbers
+  Ans = solve "2
 60 40
 4
 20 15 10 5"
-  run
   Diff = (Ans - 3.0) abs
   Pass = Diff less 0.00001
   Pass equal true

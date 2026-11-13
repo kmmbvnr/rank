@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "583_heronenvelopes"
-  P = 10000
-  run
+  use "583_heronenvelopes" as solve
+  Answer = solve 10000
   Answer equal 884680
 end

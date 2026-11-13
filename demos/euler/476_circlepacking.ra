@@ -46,4 +46,4 @@ for Side in 1 to N // 2
 end
 Pi = 4 * (1.0 atan)
 Answer = Total * Pi / Count round 5
-Answer print
+return Answer

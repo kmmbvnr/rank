@@ -239,4 +239,4 @@ if Roots len greater 0
   Best = Best max (E max)
 end
 Answer = Best text ".8f"
-Answer print
+return Answer

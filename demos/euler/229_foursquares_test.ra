@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "229_foursquares"
-  run
+  use "229_foursquares" as solve
+  Answer = solve
 
   Answer equal 11325263
 end
 
 test "small limits"
-  use "229_foursquares"
-  Limit = 1000000
-  run
+  use "229_foursquares" as solve
+  Answer = solve 1000000
 
   Answer equal 8637
-  Limit = 10000000
-  run
+  Answer = solve 10000000
 
   Answer equal 75373
 end

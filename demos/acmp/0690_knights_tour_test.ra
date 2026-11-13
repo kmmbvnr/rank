@@ -6,8 +6,11 @@ use sequences
 use text
 
 test "ACMP 690: Sample 8x8"
-  use "0690_knights_tour"
-  Input = "8 8
+  use "0690_knights_tour" as solve
+  use numbers
+  use sequences
+  use text
+  Result = solve "8 8
 K.......
 ........
 ........
@@ -16,7 +19,6 @@ K.......
 ........
 ........
 ........"
-  run
 
   Vals = Result words integer
   (Vals len) equal 64
@@ -47,15 +49,16 @@ K.......
 end
 
 test "ACMP 690: Minimal 6x6"
-  use "0690_knights_tour"
-  Input = "6 6
+  use "0690_knights_tour" as solve
+  use sequences
+  use text
+  Result = solve "6 6
 .K....
 ......
 ......
 ......
 ......
 ......"
-  run
 
   Vals = Result words integer
   (Vals len) equal 36
@@ -65,8 +68,10 @@ test "ACMP 690: Minimal 6x6"
 end
 
 test "ACMP 690: Default 10x10"
-  use "0690_knights_tour"
-  run
+  use "0690_knights_tour" as solve
+  use sequences
+  use text
+  Result = solve
 
   Vals = Result words integer
   (Vals len) equal 100

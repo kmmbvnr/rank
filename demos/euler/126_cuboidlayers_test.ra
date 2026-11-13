@@ -1,8 +1,11 @@
 use testing
 
 test "default input"
-  use "126_cuboidlayers"
-  run
+  use "126_cuboidlayers" as solve
+  Out = solve
+  Answer = Out .answer
+  Cnt = Out .cnt
+  Tot = Out .tot
 
   Answer equal 18522
   Tot equal 334886
@@ -10,10 +13,10 @@ test "default input"
 end
 
 test "statement values"
-  use "126_cuboidlayers"
-  Num = 10
-  Limit = 200
-  run
+  use "126_cuboidlayers" as solve
+  Out = solve 10 200
+  Answer = Out .answer
+  Cnt = Out .cnt
 
   Answer equal 154
   Cnt 22 equal 2
@@ -23,10 +26,9 @@ test "statement values"
 end
 
 test "two ways"
-  use "126_cuboidlayers"
-  Num = 2
-  Limit = 100
-  run
+  use "126_cuboidlayers" as solve
+  Out = solve 2 100
+  Answer = Out .answer
 
   Answer equal 18
 end

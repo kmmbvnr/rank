@@ -48,4 +48,4 @@ Pq = primes to Dm array
 Pc = (Pq * Pq * Pq at most M) integer
 Pn = Pc sum
 Answer += M - Cf - Pn
-Answer print
+return Answer

@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "504_squareinside"
-  M = 4
-  run
+  use "504_squareinside" as solve
+  Answer = solve 4
   Answer equal 42
 end

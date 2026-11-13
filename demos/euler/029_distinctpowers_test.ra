@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "029_distinctpowers"
-  run
+  use "029_distinctpowers" as solve
+  Answer = solve
 
   Answer equal 9183
 end

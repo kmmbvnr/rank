@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "264_trianglecentres"
-  run
+  use "264_trianglecentres" as solve
+  Answer = solve
 
   Answer equal 2816417.1055
 end
 
 test "small limits"
-  use "264_trianglecentres"
-  Limit = 50
-  run
+  use "264_trianglecentres" as solve
+  Answer = solve 50
 
   Answer equal 291.0089
-  Limit = 300
-  run
+  Answer = solve 300
 
   Answer equal 3082.1168
 end

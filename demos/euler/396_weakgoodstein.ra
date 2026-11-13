@@ -30,7 +30,6 @@ for N in 8 to 15
 end
 Sum' = (Vals (1 to 15) - 2) sum
 Answer = Sum mod Mod
-Answer print
 
 fun X f5 Times
   Res = X mod Mods
@@ -106,4 +105,9 @@ end
 
 fun X fexact
   return (X + 1) * (1 shl (X + 1)) - 1
+end
+return record
+  .answer = Answer
+  .small = Small
+  .vals = Vals
 end

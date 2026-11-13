@@ -25,7 +25,6 @@ for Stride at most (1 + Gs max)
   Stride *= 2
 end
 Answer = K Gs Stride Mod cuts
-Answer print
 
 fun K Gs Stride Mod cuts
   rem Slot J counts target J - 1.
@@ -46,4 +45,8 @@ fun K Gs Stride Mod cuts
     Prev = concat (array 1) Counts
   end
   return Prev 1
+end
+return record
+  .answer = Answer
+  .gs = Gs
 end

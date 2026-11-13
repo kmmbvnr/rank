@@ -50,4 +50,4 @@ for Mm in 1 to 2 * N - 1
   end
 end
 Answer = Answer mod M
-Answer print
+return Answer

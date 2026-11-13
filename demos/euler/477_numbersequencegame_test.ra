@@ -1,27 +1,21 @@
 use testing
 
 test "statement values"
-  use "477_numbersequencegame"
-  N = 2
-  run
+  use "477_numbersequencegame" as solve
+  Answer = solve 2
   Answer equal 45
-  N = 4
-  run
+  Answer = solve 4
   Answer equal 4284990
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 26365463243
 end
 
 test "before and after the cycle"
-  use "477_numbersequencegame"
-  N = 10000
-  run
+  use "477_numbersequencegame" as solve
+  Answer = solve 10000
   Answer equal 2495838522951
-  N = 70000
-  run
+  Answer = solve 70000
   Answer equal 17509702126643
-  N = 150000
-  run
+  Answer = solve 150000
   Answer equal 37548213762131
 end

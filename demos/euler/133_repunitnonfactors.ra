@@ -27,4 +27,4 @@ for E greater 0
 end
 Never' = Res not equal 1
 Answer = Ps filter Never sum
-Answer print
+return Answer

@@ -1,14 +1,13 @@
 use testing
 
 test "default input"
-  use "573_unfairrace"
-  run
+  use "573_unfairrace" as solve
+  Answer = solve
   Answer equal 1252.9809
 end
 
 test "statement value"
-  use "573_unfairrace"
-  N = 10
-  run
+  use "573_unfairrace" as solve
+  Answer = solve 10
   Answer equal 3.6602
 end

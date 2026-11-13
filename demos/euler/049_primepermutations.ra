@@ -7,7 +7,7 @@ use sequences
 use io
 
 Answer = 1000 prime_permutation_sequence 10000
-Answer print
+return Answer
 
 
 rem Search increasing prime pairs and derive

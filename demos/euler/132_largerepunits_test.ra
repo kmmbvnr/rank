@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "132_largerepunits"
-  run
+  use "132_largerepunits" as solve
+  Answer = solve
 
   Answer equal 843296
 end
 
 test "statement value for ten ones"
-  use "132_largerepunits"
-  Exp = 10
-  Count = 4
-  run
+  use "132_largerepunits" as solve
+  Answer = solve 10 4
 
   Answer equal 9414
 end

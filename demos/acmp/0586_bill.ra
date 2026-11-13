@@ -66,4 +66,4 @@ end
 
 NextOut1 = NextOutcome + 1
 Answer = NextOut1 text
-Answer print
+return Answer

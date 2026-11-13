@@ -1,14 +1,13 @@
 use testing
 
 test "statement value"
-  use "713_turanwaterheating"
-  Limit = 1000
-  run
+  use "713_turanwaterheating" as solve
+  Answer = solve 1000
   Answer equal 3281346
 end
 
 test "default input"
-  use "713_turanwaterheating"
-  run
+  use "713_turanwaterheating" as solve
+  Answer = solve
   Answer equal 788626351539895
 end

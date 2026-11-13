@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "197_recursive"
-  run
+  use "197_recursive" as solve
+  Answer = solve
 
   Answer equal 1.710637717
 end
 
 test "sequence has period two"
-  use "197_recursive"
-  N = 1014
-  run
+  use "197_recursive" as solve
+  Answer = solve 1014
 
   Answer equal 1.710637717
 end

@@ -33,4 +33,4 @@ Second' = Rest binomial B
 Third' = Mix binomial C
 Ways' = First * Second * Third
 Answer = Fits choose Ways 0 sum
-Answer print
+return Answer

@@ -94,4 +94,4 @@ for TestIdx in 0 till T
 end
 
 Answer = Results join "\n"
-Answer print
+return Answer

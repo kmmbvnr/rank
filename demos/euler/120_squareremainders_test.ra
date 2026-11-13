@@ -1,29 +1,31 @@
 use testing
 
 test "default input"
-  use "120_squareremainders"
-  run
+  use "120_squareremainders" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 333082500
 end
 
 test "statement value for seven"
-  use "120_squareremainders"
-  Limit = 7
-  run
+  use "120_squareremainders" as solve
+  Out = solve 7
+  Answer = Out .answer
+  Best = Out .best
 
   Best 4 equal 42
   Answer equal 100
 end
 
 test "smaller limits"
-  use "120_squareremainders"
-  Limit = 30
-  run
+  use "120_squareremainders" as solve
+  Out = solve 30
+  Answer = Out .answer
 
   Answer equal 8750
-  Limit = 100
-  run
+  Out = solve 100
+  Answer = Out .answer
 
   Answer equal 330750
 end

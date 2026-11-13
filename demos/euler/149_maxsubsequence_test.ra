@@ -1,29 +1,30 @@
 use testing
 
 test "default input"
-  use "149_maxsubsequence"
-  run
+  use "149_maxsubsequence" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 52852124
 end
 
 test "statement table values"
-  use "149_maxsubsequence"
-  N = 100
-  run
+  use "149_maxsubsequence" as solve
+  Out = solve 100
+  S = Out .s
 
   S 9 equal -393027
   S 99 equal 86613
 end
 
 test "smaller tables"
-  use "149_maxsubsequence"
-  N = 10
-  run
+  use "149_maxsubsequence" as solve
+  Out = solve 10
+  Answer = Out .answer
 
   Answer equal 1722603
-  N = 50
-  run
+  Out = solve 50
+  Answer = Out .answer
 
   Answer equal 6047365
 end

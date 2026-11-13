@@ -73,4 +73,7 @@ if Len greater 18
   Tail = Text drop (Len - 9)
   Token = Head + Tail
 end
-Token print
+return record
+  .answer = Answer
+  .token = Token
+end

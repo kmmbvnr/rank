@@ -1,9 +1,11 @@
 use testing
 
 test "Bezier arc"
-  use "363_bezier"
-  Steps = 10000
-  run
+  use "363_bezier" as solve
+  Out = solve 10000
+  Answer = Out .answer
+  Pi = Out .pi
+  V = Out .v
   Area = 0.5 + 3 * V / 5 - 3 * V * V / 20
   Area greater (Pi / 4 - 1e-12)
   Area less (Pi / 4 + 1e-12)

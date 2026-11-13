@@ -92,4 +92,4 @@ end
 Starts = 0 till (Flaps len) by Width
 Totals = Starts subtotal rank 0
 Answer = Totals sum
-Answer print
+return Answer

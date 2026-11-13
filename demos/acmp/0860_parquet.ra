@@ -137,4 +137,4 @@ if InitState in DP
   Ans = DP InitState
 end
 
-Ans print
+return Ans

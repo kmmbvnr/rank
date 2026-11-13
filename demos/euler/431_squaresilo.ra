@@ -52,4 +52,4 @@ for K in Lo to Hi
   Tot += (A + B) / 2
 end
 Answer = Tot round Digits
-Answer print
+return Answer

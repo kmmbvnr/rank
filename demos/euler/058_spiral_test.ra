@@ -1,8 +1,11 @@
 use testing
 
 test "official answer"
-  use "058_spiral"
-  run
+  use "058_spiral" as solve
+  Out = solve
+  Diagonals = Out .diagonals
+  PrimeCount = Out .prime_count
+  Side = Out .side
 
   Side equal 26241
   PrimeCount equal 5248

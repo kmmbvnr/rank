@@ -1,27 +1,21 @@
 use testing
 
 test "default input"
-  use "181_groupingtwocolours"
-  run
+  use "181_groupingtwocolours" as solve
+  Answer = solve
 
   Answer equal 83735848679360680
 end
 
 test "smaller sets"
-  use "181_groupingtwocolours"
-  Black = 2
-  White = 1
-  run
+  use "181_groupingtwocolours" as solve
+  Answer = solve 2 1
 
   Answer equal 4
-  Black = 5
-  White = 7
-  run
+  Answer = solve 5 7
 
   Answer equal 975
-  Black = 10
-  White = 15
-  run
+  Answer = solve 10 15
 
   Answer equal 508866
 end

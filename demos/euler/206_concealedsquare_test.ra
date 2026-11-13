@@ -1,15 +1,15 @@
 use testing
 
 test "default input"
-  use "206_concealedsquare"
-  run
+  use "206_concealedsquare" as solve
+  Answer = solve
 
   Answer equal 1389019170
 end
 
 test "concealed square"
-  use "206_concealedsquare"
-  run
+  use "206_concealedsquare" as solve
+  Answer = solve
 
   Sq = Answer * Answer
   Sq equal 1929374254627488900

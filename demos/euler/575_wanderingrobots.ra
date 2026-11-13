@@ -29,4 +29,4 @@ Pa = (Dg + 1 sum) / (Dt + W * W)
 Pb = (Dg sum) / Dt
 Answer = (Pa + Pb) / 2
 Answer = Answer round 12
-Answer print
+return Answer

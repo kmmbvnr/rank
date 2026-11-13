@@ -3,43 +3,47 @@ rem Tests for ACMP 0599 TV Show
 use testing
 
 test "default N = 20"
-  use "0599_tv_show"
-  Input = (
+  use "0599_tv_show" as solve
+  Out = solve (
     "20\n" +
     "a z a z a z a z a z\n" +
     "a z a z a z a z a z"
   )
-  run
+  BestPos = Out .best_pos
+  BestScore = Out .best_score
 
   BestScore equal 1250
   BestPos equal 1
 end
 
 test "sample 1: 4 r e a r"
-  use "0599_tv_show"
-  Input = "4
+  use "0599_tv_show" as solve
+  Out = solve "4
 r e a r"
-  run
+  BestPos = Out .best_pos
+  BestScore = Out .best_score
 
   BestScore equal 55
   BestPos equal 3
 end
 
 test "single sector"
-  use "0599_tv_show"
-  Input = "1
+  use "0599_tv_show" as solve
+  Out = solve "1
 z"
-  run
+  BestPos = Out .best_pos
+  BestScore = Out .best_score
 
   BestScore equal 0
   BestPos equal 1
 end
 
 test "two sectors"
-  use "0599_tv_show"
-  Input = "2
+  use "0599_tv_show" as solve
+  Out = solve "2
 a z"
-  run
+  BestPos = Out .best_pos
+  BestScore = Out .best_score
 
   BestScore equal 25
   BestPos equal 1

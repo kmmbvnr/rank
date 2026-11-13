@@ -39,4 +39,4 @@ for I in 2 to Top
   end
   Answer += Mu I * (M // (I * I))
 end
-Answer print
+return Answer

@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "630_crossedlines"
-  run
+  use "630_crossedlines" as solve
+  Answer = solve
   Answer equal 9669182880384
 end
 
 test "statement values"
-  use "630_crossedlines"
-  N = 3
-  run
+  use "630_crossedlines" as solve
+  Answer = solve 3
   Answer equal 6
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 24477690
 end

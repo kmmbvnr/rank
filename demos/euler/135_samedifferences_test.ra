@@ -1,16 +1,18 @@
 use testing
 
 test "default input"
-  use "135_samedifferences"
-  run
+  use "135_samedifferences" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 4989
 end
 
 test "statement values"
-  use "135_samedifferences"
-  Limit = 1156
-  run
+  use "135_samedifferences" as solve
+  Out = solve 1156
+  Answer = Out .answer
+  Cnt = Out .cnt
 
   Cnt 27 equal 2
   Cnt 1155 equal 10

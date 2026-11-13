@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "484_arithmeticderivative"
-  N = 20
-  run
+  use "484_arithmeticderivative" as solve
+  Answer = solve 20
   Answer equal 50
 end
 
 test "brute force sums"
-  use "484_arithmeticderivative"
-  N = 1000
-  run
+  use "484_arithmeticderivative" as solve
+  Answer = solve 1000
   Answer equal 9249
-  N = 100000
-  run
+  Answer = solve 100000
   Answer equal 3146281
 end

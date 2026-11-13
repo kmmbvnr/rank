@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const program = readFileSync(new URL('../../../demos/euler/311_biclinic.ra', import.meta.url), 'utf8');
-const block = program.slice(program.indexOf('fun Low biclinic_block High'));
+const block = withoutReturn(program.slice(program.indexOf('fun Low biclinic_block High')));
 function oracle(low: number, high: number) {
     const counts = new Uint32Array(high - low + 1);
     for (let y = 1; y * y * 2 <= high; y++) {

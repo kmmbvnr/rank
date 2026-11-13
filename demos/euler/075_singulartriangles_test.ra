@@ -1,24 +1,25 @@
 use testing
 
 test "default input"
-  use "075_singulartriangles"
-  run
+  use "075_singulartriangles" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 161667
 end
 
 test "statement limit 48"
-  use "075_singulartriangles"
-  Limit = 48
-  run
+  use "075_singulartriangles" as solve
+  Out = solve 48
+  Answer = Out .answer
 
   Answer equal 6
 end
 
 test "triangle counts per length"
-  use "075_singulartriangles"
-  Limit = 120
-  run
+  use "075_singulartriangles" as solve
+  Out = solve 120
+  Cnt = Out .cnt
 
   Cnt 12 equal 1
   Cnt 48 equal 1

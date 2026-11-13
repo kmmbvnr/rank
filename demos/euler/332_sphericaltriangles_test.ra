@@ -70,8 +70,8 @@ test "array scan agrees with unrestricted triples on small spheres"
 end
 
 test "default spherical triangle total"
-  use "332_sphericaltriangles"
+  use "332_sphericaltriangles" as solve
   use numbers
-  run
+  Answer = solve
   Answer round 6 equal 2717.751525
 end

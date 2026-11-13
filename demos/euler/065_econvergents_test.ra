@@ -1,25 +1,27 @@
 use testing
 
 test "default input"
-  use "065_econvergents"
-  run
+  use "065_econvergents" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 272
 end
 
 test "tenth convergent from the statement"
-  use "065_econvergents"
-  Count = 10
-  run
+  use "065_econvergents" as solve
+  Out = solve 10
+  Answer = Out .answer
+  Num = Out .num
 
   Num equal 1457
   Answer equal 17
 end
 
 test "second convergent"
-  use "065_econvergents"
-  Count = 2
-  run
+  use "065_econvergents" as solve
+  Out = solve 2
+  Num = Out .num
 
   Num equal 3
 end

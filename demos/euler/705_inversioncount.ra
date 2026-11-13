@@ -76,4 +76,4 @@ Choices = TwoPow * ThreePow mod Prime
 Counts = Pairs reshape 9 9 mod Prime
 Sum = Counts * Weight mod Prime sum
 Answer = Choices * Sum mod Prime
-Answer print
+return Answer

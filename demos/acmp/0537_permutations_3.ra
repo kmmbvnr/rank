@@ -135,4 +135,4 @@ if Possible
   Answer = Perm join " "
 end
 
-Answer print
+return Answer

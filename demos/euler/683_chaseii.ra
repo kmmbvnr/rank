@@ -52,4 +52,4 @@ Mt = Total / (10.0 ** Ex)
 Ms = Mt text ".8f"
 Es = Ex text ".0f"
 Answer = Ms + "e" + Es
-Answer print
+return Answer

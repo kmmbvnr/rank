@@ -90,4 +90,4 @@ fun Last solve
   return Answer
 end
 Answer = Last solve
-Answer print
+return Answer

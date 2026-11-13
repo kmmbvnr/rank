@@ -1,41 +1,36 @@
 use testing
 
 test "sample 1: N = 2"
-  use "0510_chocolate_bar"
-  N = 2
-  run
+  use "0510_chocolate_bar" as solve
+  Answer = solve 2
 
   Answer equal 3
 end
 
 test "sample 2: N = 4"
-  use "0510_chocolate_bar"
-  N = 4
-  run
+  use "0510_chocolate_bar" as solve
+  Answer = solve 4
 
   Answer equal 11
 end
 
 test "odd N is impossible"
-  use "0510_chocolate_bar"
-  N = 3
-  run
+  use "0510_chocolate_bar" as solve
+  Answer = solve 3
 
   Answer equal 0
 end
 
 test "N = 12"
-  use "0510_chocolate_bar"
-  N = 12
-  run
+  use "0510_chocolate_bar" as solve
+  Answer = solve 12
 
   Answer equal 2131
 end
 
 test "large N = 30"
-  use "0510_chocolate_bar"
-  N = 30
-  run
+  use "0510_chocolate_bar" as solve
+  Answer = solve 30
 
   Answer equal 299303201
 end

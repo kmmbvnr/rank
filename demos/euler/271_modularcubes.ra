@@ -34,4 +34,4 @@ for P in Ps
   Sums = Both reshape Cells
 end
 Answer = Sums sum - 1
-Answer print
+return Answer

@@ -47,4 +47,4 @@ for M in 1 to Tc by 2
     Answer += ((Cc * Cc + Bb) * Ok) sum
   end
 end
-Answer print
+return Answer

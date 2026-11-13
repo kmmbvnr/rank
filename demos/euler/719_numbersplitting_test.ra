@@ -1,11 +1,9 @@
 use testing
 
 test "statement value"
-  use "719_numbersplitting"
-  Limit = 10000
-  run
+  use "719_numbersplitting" as solve
+  Answer = solve 10000
   Answer equal 41333
-  Limit = 100000000
-  run
+  Answer = solve 100000000
   Answer equal 2818842841
 end

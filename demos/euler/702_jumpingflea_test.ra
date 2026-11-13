@@ -1,23 +1,19 @@
 use testing
 
 test "statement values"
-  use "702_jumpingflea"
-  Size = 3
-  run
+  use "702_jumpingflea" as solve
+  Answer = solve 3
   Answer equal 42
-  Size = 5
-  run
+  Answer = solve 5
   Answer equal 126
-  Size = 123
-  run
+  Answer = solve 123
   Answer equal 167178
-  Size = 12345
-  run
+  Answer = solve 12345
   Answer equal 3185041956
 end
 
 test "default input"
-  use "702_jumpingflea"
-  run
+  use "702_jumpingflea" as solve
+  Answer = solve
   Answer equal 622305608172525546
 end

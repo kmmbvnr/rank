@@ -1,19 +1,15 @@
 use testing
 
 test "default input"
-  use "586_binaryquadraticform"
-  run
+  use "586_binaryquadraticform" as solve
+  Answer = solve
   Answer equal 82490213
 end
 
 test "statement values"
-  use "586_binaryquadraticform"
-  N = 100000
-  R = 4
-  run
+  use "586_binaryquadraticform" as solve
+  Answer = solve 100000 4
   Answer equal 237
-  N = 100000000
-  R = 6
-  run
+  Answer = solve 100000000 6
   Answer equal 59517
 end

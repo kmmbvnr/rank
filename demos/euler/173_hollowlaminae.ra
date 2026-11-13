@@ -21,4 +21,4 @@ Pairs = Tiles // 4
 Lim = Pairs isqrt
 K = 1 to Lim array
 Answer = Pairs // K - K sum
-Answer print
+return Answer

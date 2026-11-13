@@ -19,3 +19,15 @@ Floors = Bag floor array 5 25 40 default -1
 Prices = array 1.25 .NA 3.75
 Rounded = Prices round 1
 Texts = Prices text rank 0
+return record
+  .adjusted = Adjusted
+  .choices = Choices
+  .counts = Counts
+  .filled = Filled
+  .floors = Floors
+  .known = Known
+  .positions = Positions
+  .rounded = Rounded
+  .texts = Texts
+  .total = Total
+end

@@ -99,4 +99,4 @@ for Move in 1 to BestR + BestS
   end
 end
 Answer = ValueX
-Answer print
+return Answer

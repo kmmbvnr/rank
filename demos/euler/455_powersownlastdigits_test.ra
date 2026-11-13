@@ -2,9 +2,12 @@ use testing
 use sequences
 
 test "statement values"
-  use "455_powersownlastdigits"
-  N = 1000
-  run
+  use "455_powersownlastdigits" as solve
+  use sequences
+  Out = solve 1000
+  Answer = Out .answer
+  Ns = Out .ns
+  X = Out .x
   Answer equal 442530011399
   I4 = (Ns equal 4) indices
   X (I4 0) equal 411728896

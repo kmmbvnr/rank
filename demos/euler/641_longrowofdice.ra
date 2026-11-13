@@ -76,4 +76,4 @@ for Ia in Bg
   end
   Answer += (Qy + Mv 1) // 2
 end
-Answer print
+return Answer

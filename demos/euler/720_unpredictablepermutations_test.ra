@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "720_unpredictablepermutations"
-  Bits = 2
-  run
+  use "720_unpredictablepermutations" as solve
+  Answer = solve 2
   Answer equal 3
-  Bits = 3
-  run
+  Answer = solve 3
   Answer equal 2295
-  Bits = 5
-  run
+  Answer = solve 5
   Answer equal 641839205
 end

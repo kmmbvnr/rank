@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "747_triangularpizza"
-  Limit = 10
-  run
+  use "747_triangularpizza" as solve
+  Answer = solve 10
   Answer equal 345
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 172166601
 end

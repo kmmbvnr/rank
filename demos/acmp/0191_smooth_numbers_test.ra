@@ -2,33 +2,29 @@ use testing
 use text
 
 test "ACMP 191: sample case 1 -> 1"
-  use "0191_smooth_numbers"
-  N = 1
-  run
+  use "0191_smooth_numbers" as solve
+  Answer = solve 1
 
   Answer equal 1
 end
 
 test "ACMP 191: sample case 11 -> 12"
-  use "0191_smooth_numbers"
-  N = 11
-  run
+  use "0191_smooth_numbers" as solve
+  Answer = solve 11
 
   Answer equal 12
 end
 
 test "ACMP 191: sample case 239 -> 1135"
-  use "0191_smooth_numbers"
-  N = 239
-  run
+  use "0191_smooth_numbers" as solve
+  Answer = solve 239
 
   Answer equal 1135
 end
 
 test "ACMP 191: boundary case 2^31 - 1"
-  use "0191_smooth_numbers"
-  N = 2147483647
-  run
+  use "0191_smooth_numbers" as solve
+  Answer = solve 2147483647
 
   P1 = "11111111333333344444444444444"
   P2 = "777777778999"

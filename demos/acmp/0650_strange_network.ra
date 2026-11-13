@@ -84,4 +84,4 @@ OddPart = NotEven * OddAns
 CycleAns = EvenPart + OddPart
 
 Ans = (PathAns sum) + (CycleAns sum)
-Ans print
+return Ans

@@ -10,12 +10,10 @@ describe.each([false, true])('issue 402 eager array chains (compilation=%s)', co
         const original = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
         const source = original.replace(/ copy\b/g, '');
         expect(source).not.toBe(original);
-        const output: string[] = [];
-        const runtime = new Interpreter(text => output.push(text), { compilation, args: ['--n', '1000'] });
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n', '1000'] });
         try {
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(expected);
-            expect(output).toEqual([expected.toString()]);
         } finally { runtime.dispose(); }
     });
 });

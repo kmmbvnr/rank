@@ -100,4 +100,4 @@ for Item in Dirs
   end
 end
 Answer = Num // 4
-Answer print
+return Answer

@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "733_ascendingsubsequences"
-  Length = 6
-  run
+  use "733_ascendingsubsequences" as solve
+  Answer = solve 6
   Answer equal 94513710
-  Length = 100
-  run
+  Answer = solve 100
   Answer equal 488692962
 end
 
 test "default input"
-  use "733_ascendingsubsequences"
-  run
+  use "733_ascendingsubsequences" as solve
+  Answer = solve
   Answer equal 574368578
 end

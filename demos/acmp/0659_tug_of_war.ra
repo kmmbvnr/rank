@@ -291,4 +291,8 @@ IsT1 = OrigIsTeam1 equal 1
 Team1 = AllOrig IsT1
 Answer = Team1 join " "
 
-Answer text print
+return record
+  .answer = Answer
+  .best = Best
+  .team1 = Team1
+end

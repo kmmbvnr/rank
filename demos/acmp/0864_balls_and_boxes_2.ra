@@ -69,4 +69,4 @@ else
   Ans = Costs reduce min
 end
 
-Ans print
+return Ans

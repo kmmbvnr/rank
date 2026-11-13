@@ -48,4 +48,4 @@ Q = (M + 1) // 2
 Bk = Sx + St + S2 + (2 * P - 1) * S1
 Bk -= (2 * P - 1) * Q + 2 * Q * Q
 Answer = Bk sum mod 1000000000
-Answer print
+return Answer

@@ -1,12 +1,9 @@
 use testing
 
 test "statement values"
-  use "507_shortestlattice"
-  Lc = 3
-  N = 1
-  run
+  use "507_shortestlattice" as solve
+  Answer = solve 1 3
   Answer equal 32
-  N = 10
-  run
+  Answer = solve 10 3
   Answer equal 130762273722
 end

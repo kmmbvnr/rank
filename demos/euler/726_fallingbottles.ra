@@ -32,4 +32,4 @@ Facts = (1 to Top) scan mulp
 Chosen = Facts (Triangle - 1)
 Terms = Chosen * Powers mod Prime
 Answer = Terms sum mod Prime
-Answer print
+return Answer

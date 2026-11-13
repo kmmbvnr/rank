@@ -34,4 +34,8 @@ rem graph; lengths counts terms.
 Lens = Next functional lengths
 Short = Lens take (Limit - 1)
 Answer = Short equal Terms count
-Answer print
+return record
+  .answer = Answer
+  .lens = Lens
+  .next = Next
+end

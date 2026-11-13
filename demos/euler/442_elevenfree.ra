@@ -116,4 +116,4 @@ for Pos in 1 to Ln
   end
 end
 Answer = Out
-Answer print
+return Answer

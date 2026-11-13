@@ -35,4 +35,4 @@ Pick' = Sa (Where filter Ok array)
 Mate' = B filter Ok array
 Best = Pick * Mate max
 Answer = Best mod 10000000000000000
-Answer print
+return Answer

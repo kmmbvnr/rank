@@ -1,23 +1,15 @@
 use testing
 
 test "exact big-integer sums"
-  use "758_bucketsofwater"
-  Top = 8
-  Power = 1
-  run
+  use "758_bucketsofwater" as solve
+  Answer = solve 8 1
   Answer equal 264
-  Top = 12
-  run
+  Answer = solve 12 1
   Answer equal 3512
-  Top = 8
-  Power = 2
-  run
+  Answer = solve 8 2
   Answer equal 191865125
-  Top = 20
-  run
+  Answer = solve 20 2
   Answer equal 301796669
-  Top = 30
-  Power = 3
-  run
+  Answer = solve 30 3
   Answer equal 749435254
 end

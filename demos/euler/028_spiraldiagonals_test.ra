@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "028_spiraldiagonals"
-  run
+  use "028_spiraldiagonals" as solve
+  Answer = solve
 
   Answer equal 669171001
 end

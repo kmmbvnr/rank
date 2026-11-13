@@ -3,56 +3,50 @@ rem Tests for ACMP 0901 Nonsense
 use testing
 
 test "default: N=59 -> 556920"
-  use "0901_nonsense"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve
 
   Ans equal 556920
 end
 
 test "sample 1: N=4 -> 4"
-  use "0901_nonsense"
-  Input = "4"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "4"
 
   Ans equal 4
 end
 
 test "sample 2: N=5 -> 6"
-  use "0901_nonsense"
-  Input = "5"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "5"
 
   Ans equal 6
 end
 
 test "small: N=2 -> 2"
-  use "0901_nonsense"
-  Input = "2"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "2"
 
   Ans equal 2
 end
 
 test "small: N=3 -> 3"
-  use "0901_nonsense"
-  Input = "3"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "3"
 
   Ans equal 3
 end
 
 test "medium: N=10 -> 30"
-  use "0901_nonsense"
-  Input = "10"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "10"
 
   Ans equal 30
 end
 
 test "medium: N=15 -> 105"
-  use "0901_nonsense"
-  Input = "15"
-  run
+  use "0901_nonsense" as solve
+  Ans = solve "15"
 
   Ans equal 105
 end

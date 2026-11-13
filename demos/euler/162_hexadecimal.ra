@@ -30,4 +30,7 @@ Ds = Answer digits Bases
 Code' = Ds + (Ds greater 9 choose 55 48)
 Chars' = Code character rank 0
 Text = Chars join ""
-Text print
+return record
+  .answer = Answer
+  .text = Text
+end

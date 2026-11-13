@@ -10,7 +10,7 @@ use cli
 arg MaximumBase integer = 9999
 
 Answer = MaximumBase pandigital_multiple
-Answer print
+return Answer
 
 
 rem Append successive products until each

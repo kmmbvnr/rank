@@ -71,4 +71,4 @@ fun Top arrangements
   return Terms sum mod Prime
 end
 Answer = Top arrangements
-Answer print
+return Answer

@@ -1,16 +1,13 @@
 use testing
 
 test "statement values"
-  use "656_palindromicsequences"
-  Lo = 31
-  Hi = 31
-  G = 20
-  run
+  use "656_palindromicsequences" as solve
+  Answer = solve 31 31 20
   Answer equal 150243655
 end
 
 test "default input"
-  use "656_palindromicsequences"
-  run
+  use "656_palindromicsequences" as solve
+  Answer = solve
   Answer equal 888873503555187
 end

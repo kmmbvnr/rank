@@ -79,3 +79,7 @@ else
     (Sq I) print
   end
 end
+return record
+  .n = N
+  .sq = Sq
+end

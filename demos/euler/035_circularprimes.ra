@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 1000000
 
 Answer = Limit circular_prime_count
-Answer print
+return Answer
 
 
 rem Visit each bounded prime and test every

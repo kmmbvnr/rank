@@ -44,4 +44,4 @@ Lr = Rm log
 Lt = Lt + Rm * (Lr - Ln)
 Tt = Lt exp
 Answer = ((Tt sum) + 1) round 4
-Answer print
+return Answer

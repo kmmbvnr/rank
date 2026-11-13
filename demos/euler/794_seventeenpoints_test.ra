@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "794_seventeenpoints"
-  Target = 4
-  run
+  use "794_seventeenpoints" as solve
+  Answer = solve 4
   Answer equal 1.5
-  Target = 8
-  run
+  Answer = solve 8
   Answer equal 3.5
 end

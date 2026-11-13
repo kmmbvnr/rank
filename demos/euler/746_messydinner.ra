@@ -109,4 +109,4 @@ for Length in 3 to Top
     Answer = (Answer + Piece) mod Prime
   end
 end
-Answer print
+return Answer

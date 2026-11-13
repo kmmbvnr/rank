@@ -3,8 +3,12 @@ use sequences
 use linalg
 
 test "generated grid windows and diagonals"
-  use "windows"
-  run
+  use sequences
+  use "windows" as entry
+  Out = entry
+  Anti = Out .anti
+  Blocks = Out .blocks
+  Main = Out .main
 
   (Blocks shape equal (array 2 2 2 2)) all
   (Main equal (array 1 5 9)) all

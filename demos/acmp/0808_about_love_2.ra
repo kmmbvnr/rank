@@ -87,4 +87,4 @@ HasHit = (
 
 Ans = HasHit choose (
   Tcand reduce min) (-1.0)
-Ans print
+return Ans

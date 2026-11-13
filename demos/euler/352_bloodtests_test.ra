@@ -13,8 +13,7 @@ test "blood test examples"
 end
 
 test "small blood test total"
-  use "352_bloodtests"
-  Size = 25
-  run
+  use "352_bloodtests" as solve
+  Answer = solve 25
   Answer equal 947.651632
 end

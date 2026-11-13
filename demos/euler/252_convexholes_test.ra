@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "252_convexholes"
-  run
+  use "252_convexholes" as solve
+  Answer = solve
 
   Answer equal 104924
 end
 
 test "fewer points"
-  use "252_convexholes"
-  N = 5
-  run
+  use "252_convexholes" as solve
+  Answer = solve 5
 
   Answer equal 1076657.5
-  N = 8
-  run
+  Answer = solve 8
 
   Answer equal 871952
-  N = 20
-  run
+  Answer = solve 20
 
   Answer equal 1049694.5
 end

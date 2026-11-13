@@ -110,4 +110,4 @@ if N at least 4
   Weights = Ends - Times
   Answer = Perimeters * Weights sum
 end
-Answer print
+return Answer

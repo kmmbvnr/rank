@@ -87,4 +87,4 @@ fun Values total
   return Right * Later sum
 end
 Answer = Values total
-Answer print
+return Answer

@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "222_spherepacking"
-  run
+  use "222_spherepacking" as solve
+  Answer = solve
 
   Answer equal 1590933
 end
 
 test "few spheres"
-  use "222_spherepacking"
-  Lo = 45
-  run
+  use "222_spherepacking" as solve
+  Answer = solve 50 45
 
   Answer equal 568910
-  Lo = 46
-  run
+  Answer = solve 50 46
 
   Answer equal 479441
 end

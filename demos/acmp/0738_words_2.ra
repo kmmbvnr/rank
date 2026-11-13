@@ -90,4 +90,4 @@ fun solve_words Input
 end
 
 Result = solve_words Input
-Result print
+return Result

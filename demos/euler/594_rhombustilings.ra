@@ -139,4 +139,4 @@ for Lt in 0 to 3
   end
 end
 Answer = Tv St
-Answer print
+return Answer

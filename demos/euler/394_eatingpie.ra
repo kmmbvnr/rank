@@ -12,4 +12,4 @@ Answer = 7.0 / 9.0
 Answer += 2.0 * (Y log) / 3.0
 Answer += 2.0 / (9.0 * Y ** 3)
 Answer = Answer round 10
-Answer print
+return Answer

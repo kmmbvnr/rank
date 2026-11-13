@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "732_trolls"
-  Trolls = 5
-  run
+  use "732_trolls" as solve
+  Answer = solve 5
   Answer equal 401
-  Trolls = 15
-  run
+  Answer = solve 15
   Answer equal 941
 end
 
 test "default input"
-  use "732_trolls"
-  run
+  use "732_trolls" as solve
+  Answer = solve
   Answer equal 45609
 end

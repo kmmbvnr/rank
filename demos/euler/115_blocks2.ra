@@ -35,4 +35,4 @@ Fills' = Count sum axis 1
 Rows = Fills + 1
 Over' = Rows greater Target
 Answer = Rows first index where Over
-Answer print
+return Answer

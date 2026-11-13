@@ -37,4 +37,4 @@ for
   end
   Answer += 1
 end
-Answer print
+return Answer

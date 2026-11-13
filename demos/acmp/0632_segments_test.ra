@@ -4,50 +4,47 @@ use testing
 use sequences
 
 test "default max cuts"
-  use "0632_segments"
-  run
+  use "0632_segments" as solve
+  use sequences
+  Ans = solve
 
   (Ans shape 0) equal 30
   (Ans reduce +) equal 100000000
 end
 
 test "sample 1: 3x3 with 3 cuts"
-  use "0632_segments"
-  Input = "3 3
+  use "0632_segments" as solve
+  Ans = solve "3 3
 3
 1 3 1 1
 1 2 4 2
 2 0 2 8"
-  run
 
   Ans equal (array 5 2 1 1)
 end
 
 test "no cuts N=0"
-  use "0632_segments"
-  Input = "10 20
+  use "0632_segments" as solve
+  Ans = solve "10 20
 0"
-  run
 
   Ans equal 200
 end
 
 test "full vertical cut"
-  use "0632_segments"
-  Input = "4 4
+  use "0632_segments" as solve
+  Ans = solve "4 4
 1
 2 0 2 4"
-  run
 
   Ans equal (array 8 8)
 end
 
 test "partial non-cutting segment"
-  use "0632_segments"
-  Input = "4 4
+  use "0632_segments" as solve
+  Ans = solve "4 4
 1
 1 1 3 1"
-  run
 
   Ans equal 16
 end

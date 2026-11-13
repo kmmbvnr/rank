@@ -1,11 +1,9 @@
 use testing
 
 test "circle sums"
-  use "373_circles"
-  Limit = 100
-  run
+  use "373_circles" as solve
+  Answer = solve 100
   Answer equal 4950
-  Limit = 1200
-  run
+  Answer = solve 1200
   Answer equal 1653605
 end

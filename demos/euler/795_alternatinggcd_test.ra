@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "795_alternatinggcd"
-  Limit = 1234
-  run
+  use "795_alternatinggcd" as solve
+  Answer = solve 1234
   Answer equal 2194708
 end

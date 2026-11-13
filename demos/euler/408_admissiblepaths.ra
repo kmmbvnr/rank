@@ -60,7 +60,6 @@ for I in 0 till Count
   Total -= Paths
 end
 Answer = Total mod P
-Answer print
 
 rem Primitive triples and their scales.
 fun Bound forbidden
@@ -104,4 +103,9 @@ fun Bound forbidden
   Other = B * B * (Bound + 1) + A * A
   Keys = concat Key Other
   return Keys sort
+end
+return record
+  .answer = Answer
+  .x = X
+  .y = Y
 end

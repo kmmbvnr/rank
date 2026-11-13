@@ -29,4 +29,4 @@ end
 Hit' = Res equal 1
 Found' = Ps filter Hit array
 Answer = Found take Count sum
-Answer print
+return Answer

@@ -1,15 +1,15 @@
 use testing
 
 test "default input"
-  use "068_magic5gon"
-  run
+  use "068_magic5gon" as solve
+  Answer = solve
 
   Answer equal 6531031914842725
 end
 
 test "sixteen digit answer"
-  use "068_magic5gon"
-  run
+  use "068_magic5gon" as solve
+  Answer = solve
 
   Answer text len equal 16
   Answer // 1000000000000000 equal 6

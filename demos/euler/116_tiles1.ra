@@ -23,4 +23,4 @@ Fits = Ks * Tiles at most Size
 Safe' = Fits choose Pool Ks
 Ways' = Safe binomial Ks
 Answer = Fits choose Ways 0 sum
-Answer print
+return Answer

@@ -27,4 +27,4 @@ T = Flat reshape 4 4
 TN = (T matpow N) mod M
 Ans = TN 0 3
 
-Ans print
+return Ans

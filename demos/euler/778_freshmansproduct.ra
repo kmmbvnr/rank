@@ -52,4 +52,4 @@ Sums = (Ends * Weights) sum axis 1
 Plain = Unit mod Mod
 Mixed = Sums * Plain mod Mod
 Answer = Mixed sum mod Mod
-Answer print
+return Answer

@@ -84,7 +84,6 @@ Lead = 10 ** (Index * Log - Half - Exp)
 Answer = Last text + ","
 Answer += Lead text ".1f"
 Answer += "e" + (Exp text)
-Answer print
 
 rem Fast doubling F(n) modulo Mod.
 fun N fibmod Mod
@@ -134,4 +133,9 @@ fun P rankmod
     end
   end
   return D
+end
+return record
+  .answer = Answer
+  .index = Index
+  .mods = Mods
 end

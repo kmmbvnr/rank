@@ -100,4 +100,4 @@ Answer = Total
 if Length equal 1
   Answer = 1
 end
-Answer print
+return Answer

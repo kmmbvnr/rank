@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "764_asymmetricdiophantine"
-  Limit = 100
-  run
+  use "764_asymmetricdiophantine" as solve
+  Answer = solve 100
   Answer equal 81
-  Limit = 10000
-  run
+  Answer = solve 10000
   Answer equal 112851
-  Limit = 10 ** 7
-  run
+  Answer = solve (10 ** 7)
   Answer equal 248876211
 end

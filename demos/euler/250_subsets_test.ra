@@ -1,91 +1,65 @@
 use testing
 
 test "default input"
-  use "250_subsets"
-  run
+  use "250_subsets" as solve
+  Answer = solve
 
   Answer equal 1425480602091519
 end
 
 test "small inputs"
-  use "250_subsets"
-  N = 2500
-  run
+  use "250_subsets" as solve
+  Answer = solve 2500
 
   Answer equal 3576981783379967
-  N = 10
-  M = 10
-  run
+  Answer = solve 10 10
 
   Answer equal 103
 end
 
 test "period boundaries and non-coprime residues"
-  use "250_subsets"
-  N = 0
-  M = 250
-  run
+  use "250_subsets" as solve
+  Answer = solve 0 250
 
   Answer equal 0
-  N = 16
-  M = 8
-  run
+  Answer = solve 16 8
 
   Answer equal 9215
-  N = 17
-  M = 8
-  run
+  Answer = solve 17 8
 
   Answer equal 17407
-  N = 25
-  M = 8
-  run
+  Answer = solve 25 8
 
   Answer equal 4259839
-  N = 49
-  M = 7
-  run
+  Answer = solve 49 7
 
   Answer equal 80421421917695
-  N = 92
-  M = 7
-  run
+  Answer = solve 92 7
 
   Answer equal 3074443470135295
-  N = 46
-  M = 9
-  run
+  Answer = solve 46 9
 
   Answer equal 7818749345791
-  N = 10
-  M = 1
-  run
+  Answer = solve 10 1
 
   Answer equal 1023
 end
 
 test "arbitrary count moduli"
-  use "250_subsets"
-  N = 503
-  M = 10
-  Mod = 1
-  run
+  use "250_subsets" as solve
+  Answer = solve 503 10 1
 
   Answer equal 0
-  Mod = 2
-  run
+  Answer = solve 503 10 2
 
   Answer equal 1
-  Mod = 97
-  run
+  Answer = solve 503 10 97
 
   Answer equal 15
-  Mod = -97
-  run
+  Answer = solve 503 10 -97
 
   Answer equal -82
-  Mod = 1000000000000000000000000000000
-  run
+  Answer = solve 503 10 1000000000000000000000000000000
 
   Answer equal 15349672881218145844855832575
 end

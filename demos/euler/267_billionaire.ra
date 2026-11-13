@@ -34,4 +34,4 @@ Ways' = N binomial Tail
 Wins = Ways sum
 All = 2 ** N
 Answer = Wins / All round 12
-Answer print
+return Answer

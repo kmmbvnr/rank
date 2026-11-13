@@ -179,4 +179,4 @@ fun Limit total
 end
 
 Answer = N total
-Answer print
+return Answer

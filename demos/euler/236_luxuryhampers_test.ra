@@ -2,16 +2,15 @@ use testing
 
 rem Exercise the full candidate range.
 test "default input"
-  use "236_luxuryhampers"
-  run
+  use "236_luxuryhampers" as solve
+  Answer = solve
 
   Answer equal "123/59"
 end
 
 test "fewer candidates"
-  use "236_luxuryhampers"
-  Top = 60
-  run
+  use "236_luxuryhampers" as solve
+  Answer = solve 60
 
   Answer equal "123/59"
 end

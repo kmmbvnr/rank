@@ -1,34 +1,23 @@
 use testing
 
 test "statement values"
-  use "414_kaprekar"
-  First = 2
-  Last = 2
-  run
+  use "414_kaprekar" as solve
+  Answer = solve 2 2
   Answer equal 5274369
-  First = 18
-  Last = 18
-  run
+  Answer = solve 18 18
   Answer equal 400668930299
 end
 
 test "bases checked against iteration"
-  use "414_kaprekar"
-  First = 40
-  Last = 40
-  run
+  use "414_kaprekar" as solve
+  Answer = solve 40 40
   Answer equal 40372025866559
-  First = 100
-  Last = 100
-  run
+  Answer = solve 100 100
   Answer equal 9032180012980999
 end
 
 test "small modulus"
-  use "414_kaprekar"
-  First = 40
-  Last = 40
-  Mod = 1000000
-  run
+  use "414_kaprekar" as solve
+  Answer = solve 40 40 1000000
   Answer equal 866559
 end

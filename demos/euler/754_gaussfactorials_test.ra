@@ -1,25 +1,19 @@
 use testing
 
 test "statement value"
-  use "754_gaussfactorials"
-  Limit = 10
-  run
+  use "754_gaussfactorials" as solve
+  Answer = solve 10
   Answer equal 331358692
 end
 
 test "brute force values by chunks"
-  use "754_gaussfactorials"
-  Chunk = 128
-  Limit = 1
-  run
+  use "754_gaussfactorials" as solve
+  Answer = solve 1 128
   Answer equal 1
-  Limit = 100
-  run
+  Answer = solve 100 128
   Answer equal 777776709
-  Limit = 1000
-  run
+  Answer = solve 1000 128
   Answer equal 297877340
-  Limit = 5000
-  run
+  Answer = solve 5000 128
   Answer equal 834876368
 end

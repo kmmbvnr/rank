@@ -58,4 +58,4 @@ for J in 1 to Np - 1
 end
 Ed = Px equal W indices
 Answer = (2 * Bt Ed min) round 9
-Answer print
+return Answer

@@ -25,3 +25,7 @@ Last = array "onethousand"
 
 Words = concat Under Over Last
 Words len rank 0 take Limit sum print
+return record
+  .limit = Limit
+  .words = Words
+end

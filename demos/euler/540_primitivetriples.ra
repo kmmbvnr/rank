@@ -122,4 +122,4 @@ fun Limit solve
   return Answer
 end
 Answer = N solve
-Answer print
+return Answer

@@ -64,4 +64,7 @@ for N in 0 to Calls - 1
     end
   end
 end
-Answer print
+return record
+  .answer = Answer
+  .t = T
+end

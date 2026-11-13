@@ -4,8 +4,9 @@ rem Keep the number checks independent
 rem of the default four-result search.
 test "practical numbers"
   use "263_engineersdream"
-  Count = 0
-  run
+  use "263_engineersdream" as solve
+  Out = solve 0
+  Res = Out .res
 
   (6 practical) equal true
   (12 practical) equal true
@@ -21,10 +22,10 @@ end
 
 test "bound just below the first paradise"
   use "263_engineersdream"
-  Count = 1
-  Start = 219869900
-  Limit = 219869979
-  run
+  use "263_engineersdream" as solve
+  Out = solve 1 219869900 219869979
+  Answer = Out .answer
+  Found = Out .found
 
   Found equal 0
   Answer equal 0
@@ -32,10 +33,10 @@ end
 
 test "inclusive lower bound at another paradise"
   use "263_engineersdream"
-  Count = 1
-  Start = 360613700
-  Limit = 360613700
-  run
+  use "263_engineersdream" as solve
+  Out = solve 1 360613700 360613700
+  Answer = Out .answer
+  Found = Out .found
 
   Found equal 1
   Answer equal 360613700
@@ -43,9 +44,10 @@ end
 
 test "bounded empty search"
   use "263_engineersdream"
-  Count = 4
-  Limit = 10000
-  run
+  use "263_engineersdream" as solve
+  Out = solve 4 210 10000
+  Answer = Out .answer
+  Found = Out .found
 
   Found equal 0
   Answer equal 0
@@ -53,10 +55,10 @@ end
 
 test "first paradise within a bound"
   use "263_engineersdream"
-  Count = 1
-  Start = 219869900
-  Limit = 219869980
-  run
+  use "263_engineersdream" as solve
+  Out = solve 1 219869900 219869980
+  Answer = Out .answer
+  Found = Out .found
 
   Found equal 1
   Answer equal 219869980

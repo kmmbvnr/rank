@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "500_problem500"
-  K = 4
-  run
+  use "500_problem500" as solve
+  Answer = solve 4
   Answer equal 120
 end

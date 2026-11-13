@@ -58,4 +58,4 @@ for V in 1 to Bt - 1
     Answer += V
   end
 end
-Answer print
+return Answer

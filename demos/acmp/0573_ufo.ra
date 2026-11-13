@@ -90,4 +90,4 @@ end
 
 Res = G 0 Sink maxflow
 MinUFOs = N - (Res .value)
-(MinUFOs text) print
+return MinUFOs

@@ -1,49 +1,43 @@
 use testing
 
 test "sample 1: abcabc with abc -> 4"
-  use "0829_strings_3"
-  Input = "abcabc\nabc"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "abcabc\nabc"
 
   Matches equal 4
 end
 
 test "sample 2: abcabc with acb -> 0"
-  use "0829_strings_3"
-  Input = "abcabc\nacb"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "abcabc\nacb"
 
   Matches equal 0
 end
 
 test "sample 3: aaaaaaa with aa -> 6"
-  use "0829_strings_3"
-  Input = "aaaaaaa\naa"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "aaaaaaa\naa"
 
   Matches equal 6
 end
 
 test "sample 4: aAaa8aaAa with aAa -> 4"
-  use "0829_strings_3"
-  Input = "aAaa8aaAa\naAa"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "aAaa8aaAa\naAa"
 
   Matches equal 4
 end
 
 test "b longer than a -> 0"
-  use "0829_strings_3"
-  Input = "abc\nabcd"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "abc\nabcd"
 
   Matches equal 0
 end
 
 test "exact single match"
-  use "0829_strings_3"
-  Input = "hello\nelloh"
-  run
+  use "0829_strings_3" as solve
+  Matches = solve "hello\nelloh"
 
   Matches equal 1
 end

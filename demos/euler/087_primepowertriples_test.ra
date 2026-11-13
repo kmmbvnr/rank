@@ -1,17 +1,19 @@
 use testing
 
 test "default input"
-  use "087_primepowertriples"
-  run
+  use "087_primepowertriples" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 1097343
 end
 
 test "statement example below fifty"
-  use "087_primepowertriples"
+  use "087_primepowertriples" as solve
   use sequences
-  Limit = 50
-  run
+  Out = solve 50
+  Answer = Out .answer
+  Few = Out .few
 
   Answer equal 4
   Vals = Few unique array

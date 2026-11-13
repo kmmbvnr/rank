@@ -62,4 +62,4 @@ for I in 0 till (Pa len)
   Mult' = Q // Ds
   Answer += W * Mult sum
 end
-Answer print
+return Answer

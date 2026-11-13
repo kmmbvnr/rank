@@ -1,41 +1,29 @@
 use testing
 
 test "small prime range"
-  use "304_primonacci"
-  Start = 10
-  Count = 4
-  Mod = 1000000007
-  run
+  use "304_primonacci" as solve
+  Answer = solve 10 4 1000000007
 
   Answer equal 6100
 end
 
 test "one prime and no shared suffix variation"
-  use "304_primonacci"
-  Start = 10
-  Count = 1
-  Mod = 97
-  run
+  use "304_primonacci" as solve
+  Answer = solve 10 1 97
 
   Answer equal 89
 end
 
 test "indices across a binary boundary"
-  use "304_primonacci"
-  Start = 127
-  Count = 10
-  Mod = 997
-  run
+  use "304_primonacci" as solve
+  Answer = solve 127 10 997
 
   Answer equal 275
 end
 
 test "zero start and unit modulus"
-  use "304_primonacci"
-  Start = 0
-  Count = 1
-  Mod = 1
-  run
+  use "304_primonacci" as solve
+  Answer = solve 0 1 1
 
   Answer equal 0
 end

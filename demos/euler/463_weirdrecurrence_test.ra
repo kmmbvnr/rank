@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "463_weirdrecurrence"
-  N = 8
-  run
+  use "463_weirdrecurrence" as solve
+  Answer = solve 8
   Answer equal 22
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 3604
 end
 
 test "first sums"
-  use "463_weirdrecurrence"
-  N = 5
-  run
+  use "463_weirdrecurrence" as solve
+  Answer = solve 5
   Answer equal 11
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 336588
 end

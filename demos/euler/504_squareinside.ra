@@ -42,4 +42,4 @@ for A in 0 till M
   Answer += 2 * (Ok count)
   Answer -= (Ok (0 till M2)) count
 end
-Answer print
+return Answer

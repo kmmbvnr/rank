@@ -110,4 +110,4 @@ for P3 at most Nn
   S3 = S3 + P3
 end
 
-Answer print
+return Answer

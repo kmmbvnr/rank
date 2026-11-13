@@ -80,4 +80,7 @@ for J less N
   Answer = (Answer * 10 + Cs J) mod Md
   J += 1
 end
-Answer print
+return record
+  .answer = Answer
+  .md = Md
+end

@@ -2,65 +2,60 @@ rem ACMP 0973: Main Roads tests
 use testing
 
 test "ACMP 973: Single path P4"
-  use "0973_main_roads"
-  Input = "4 3
+  use "0973_main_roads" as solve
+  Result = solve "4 3
 1 2 5
 2 3 4
 3 4 6"
-  run
   Exp = "3\n1 2 3"
   Result equal Exp
 end
 
 test "ACMP 973: Diamond with bridge"
-  use "0973_main_roads"
-  Input = "5 5
+  use "0973_main_roads" as solve
+  Result = solve "5 5
 1 2 2
 1 3 3
 2 4 3
 3 4 2
 4 5 7"
-  run
   Exp = "1\n5"
   Result equal Exp
 end
 
 test "ACMP 973: Parallel shortest paths"
-  use "0973_main_roads"
-  Input = "3 3
+  use "0973_main_roads" as solve
+  Result = solve "3 3
 1 2 2
 2 3 2
 1 3 4"
-  run
   Result equal "0"
 end
 
 test "ACMP 973: Parallel multi-edges"
-  use "0973_main_roads"
-  Input = "3 3
+  use "0973_main_roads" as solve
+  Result = solve "3 3
 1 2 5
 1 2 5
 2 3 4"
-  run
   Exp = "1\n3"
   Result equal Exp
 end
 
 test "ACMP 973: Dead-end branch at D1=1"
-  use "0973_main_roads"
-  Input = "4 4
+  use "0973_main_roads" as solve
+  Result = solve "4 4
 1 2 1
 1 3 2
 3 4 2
 2 4 10"
-  run
   Exp = "2\n2 3"
   Result equal Exp
 end
 
 test "Default 7-vertex network"
-  use "0973_main_roads"
-  run
+  use "0973_main_roads" as solve
+  Result = solve
   Exp = "2\n4 8"
   Result equal Exp
 end

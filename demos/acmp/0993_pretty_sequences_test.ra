@@ -1,65 +1,57 @@
 use testing
 
 test "sample 1: 10 elements k=1 -> 8"
-  use "0993_pretty_sequences"
-  Input = "10 1\n0 1 1 0 2 2 1 2 2 3"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "10 1\n0 1 1 0 2 2 1 2 2 3"
 
   MaxPrefix equal 8
 end
 
 test "sample 2: 2 elements k=0 -> 0"
-  use "0993_pretty_sequences"
-  Input = "2 0\n1 0"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "2 0\n1 0"
 
   MaxPrefix equal 0
 end
 
 test "single zero with k=0"
-  use "0993_pretty_sequences"
-  Input = "1 0\n0"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "1 0\n0"
 
   MaxPrefix equal 1
 end
 
 test "single non-zero with k=0"
-  use "0993_pretty_sequences"
-  Input = "1 0\n5"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "1 0\n5"
 
   MaxPrefix equal 0
 end
 
 test "all zeros are always valid"
-  use "0993_pretty_sequences"
-  Input = "5 0\n0 0 0 0 0"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "5 0\n0 0 0 0 0"
 
   MaxPrefix equal 5
 end
 
 test "unseen value limits frequency"
-  use "0993_pretty_sequences"
-  Input = "3 0\n0 2 1"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "3 0\n0 2 1"
 
   MaxPrefix equal 1
 end
 
 test "interleaved pairs valid k=0"
-  use "0993_pretty_sequences"
-  Input = "4 0\n0 1 0 1"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "4 0\n0 1 0 1"
 
   MaxPrefix equal 4
 end
 
 test "higher k allows larger gaps"
-  use "0993_pretty_sequences"
-  Input = "4 2\n2 2 0 1"
-  run
+  use "0993_pretty_sequences" as solve
+  MaxPrefix = solve "4 2\n2 2 0 1"
 
   MaxPrefix equal 4
 end

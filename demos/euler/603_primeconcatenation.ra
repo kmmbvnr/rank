@@ -53,4 +53,4 @@ V3 = L * H1 mod M * S2 mod M
 V4 = K * S3 mod M
 Sm = (V1 + V2 - V3 - V4) mod M
 Answer = Sm * I9 mod M
-Answer print
+return Answer

@@ -1,57 +1,50 @@
 use testing
 
 test "0 -> 00"
-  use "1000_number_packing"
-  X = 0
-  run
+  use "1000_number_packing" as solve
+  Answer = solve 0
 
   Answer equal "00"
 end
 
 test "1 -> 01"
-  use "1000_number_packing"
-  X = 1
-  run
+  use "1000_number_packing" as solve
+  Answer = solve 1
 
   Answer equal "01"
 end
 
 test "100 -> 8064"
-  use "1000_number_packing"
-  X = 100
-  run
+  use "1000_number_packing" as solve
+  Answer = solve 100
 
   Answer equal "8064"
 end
 
 test "500 -> 81f4"
-  use "1000_number_packing"
-  X = 500
-  run
+  use "1000_number_packing" as solve
+  Answer = solve 500
 
   Answer equal "81f4"
 end
 
 test "1000000 -> cf4240"
-  use "1000_number_packing"
-  X = 1000000
-  run
+  use "1000_number_packing" as solve
+  Answer = solve 1000000
 
   Answer equal "cf4240"
 end
 
 test "-1 -> 7f"
-  use "1000_number_packing"
-  X = -1
-  run
+  use "1000_number_packing" as solve
+  Answer = solve -1
 
   Answer equal "7f"
 end
 
 test "-100 -> bf9c"
-  use "1000_number_packing"
-  X = -100
-  run
+  use "1000_number_packing" as solve
+  Answer = solve -100
 
   Answer equal "bf9c"
 end

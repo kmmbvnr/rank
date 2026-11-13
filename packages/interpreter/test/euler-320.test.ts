@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { withoutReturn } from './support.js';
 
 const source = readFileSync(new URL('../../../demos/euler/320_factorials.ra', import.meta.url), 'utf8');
-const helpers = source.slice(source.indexOf('fun P Target Prev minimum'));
+const helpers = withoutReturn(source.slice(source.indexOf('fun P Target Prev minimum')));
 const k = 1234567890n, modulus = 10n ** 18n;
 
 function valuation(n: bigint, p: bigint): bigint {

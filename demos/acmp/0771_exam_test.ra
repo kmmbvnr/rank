@@ -3,8 +3,9 @@ use testing
 use text
 
 test "ACMP 771: Maximal 62-node tree"
-  use "0771_exam"
-  run
+  use "0771_exam" as solve
+  use text
+  Result = solve
   Lines = Result split "\n"
   (Lines len) equal 9
   (Lines 0) equal (
@@ -18,8 +19,9 @@ test "ACMP 771: Maximal 62-node tree"
 end
 
 test "ACMP 771: Sample 1 (9 nodes)"
-  use "0771_exam"
-  Input = (
+  use "0771_exam" as solve
+  use text
+  Result = solve (
     "9\n" +
     "1 -\n" +
     "2 1\n" +
@@ -31,7 +33,6 @@ test "ACMP 771: Sample 1 (9 nodes)"
     "8 7\n" +
     "9 7"
   )
-  run
   Lines = Result split "\n"
   (Lines len) equal 7
   (Lines 0) equal "1"
@@ -44,15 +45,15 @@ test "ACMP 771: Sample 1 (9 nodes)"
 end
 
 test "ACMP 771: Sample 2 single node"
-  use "0771_exam"
-  Input = "1\nA -"
-  run
+  use "0771_exam" as solve
+  Result = solve "1\nA -"
   Result equal "A"
 end
 
 test "ACMP 771: Two trees"
-  use "0771_exam"
-  Input = (
+  use "0771_exam" as solve
+  use text
+  Result = solve (
     "5\n" +
     "A -\n" +
     "B -\n" +
@@ -60,7 +61,6 @@ test "ACMP 771: Two trees"
     "D A\n" +
     "E B"
   )
-  run
   Lines = Result split "\n"
   (Lines 0) equal "A---B"
   (Lines 1) equal "|   |"

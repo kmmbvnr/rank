@@ -1,27 +1,24 @@
 use testing
 
 test "example 17 -> 4"
-  use "0146_long_sqrt"
-  S = "17"
-  run
+  use "0146_long_sqrt" as solve
+  Answer = solve "17"
 
   Answer equal 4
 end
 
 test "perfect square 144 -> 12"
-  use "0146_long_sqrt"
-  S = "144"
-  run
+  use "0146_long_sqrt" as solve
+  Answer = solve "144"
 
   Answer equal 12
 end
 
 test "10^40 -> 10^20"
-  use "0146_long_sqrt"
+  use "0146_long_sqrt" as solve
   P1 = "100000000000000000000"
   P2 = "00000000000000000000"
-  S = P1 + P2
-  run
+  Answer = solve (P1 + P2)
 
   Answer equal (10 ** 20)
 end

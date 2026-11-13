@@ -3,17 +3,14 @@ use testing
 rem Keep routine checks on smaller limits;
 rem benchmark the full input separately.
 test "small limits"
-  use "224_almostright"
-  Limit = 50
-  run
+  use "224_almostright" as solve
+  Answer = solve 50
 
   Answer equal 4
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 55
-  Limit = 100000
-  run
+  Answer = solve 100000
 
   Answer equal 5512
 end

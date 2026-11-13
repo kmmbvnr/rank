@@ -123,4 +123,4 @@ GroupedTotal = GroupTerms sum
 Total = (DirectTerms sum) + GroupedTotal
 Reduced = (N + Total) mod Mod
 Answer = Reduced * Inverse2 mod Mod
-Answer print
+return Answer

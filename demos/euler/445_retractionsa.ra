@@ -103,4 +103,4 @@ Middle = Even choose Value 0
 Power = 2 N Mod powmod
 Total = 2 * Total - Middle - Power + 2
 Answer = Total mod Mod
-Answer print
+return Answer

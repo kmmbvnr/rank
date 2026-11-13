@@ -1,45 +1,40 @@
 use testing
 
 test "sample 1: 3 points 1 triangle"
-  use "0533_triangles_3"
-  Input = "3\n0 0\n2 2\n-2 2"
-  run
+  use "0533_triangles_3" as solve
+  TotalTriangles = solve "3\n0 0\n2 2\n-2 2"
 
   TotalTriangles equal 1
 end
 
 test "sample 2: 4 square vertices"
-  use "0533_triangles_3"
-  Input = "4\n0 0\n1 1\n1 0\n0 1"
-  run
+  use "0533_triangles_3" as solve
+  TotalTriangles = solve "4\n0 0\n1 1\n1 0\n0 1"
 
   TotalTriangles equal 4
 end
 
 test "3 collinear points form 0"
-  use "0533_triangles_3"
-  Input = "3\n0 0\n1 1\n2 2"
-  run
+  use "0533_triangles_3" as solve
+  TotalTriangles = solve "3\n0 0\n1 1\n2 2"
 
   TotalTriangles equal 0
 end
 
 test "5 symmetric cross points"
-  use "0533_triangles_3"
-  Input = "5\n0 0\n-2 0\n2 0\n0 3\n0 -3"
-  run
+  use "0533_triangles_3" as solve
+  TotalTriangles = solve "5\n0 0\n-2 0\n2 0\n0 3\n0 -3"
 
   TotalTriangles equal 4
 end
 
 test "large coordinates"
-  use "0533_triangles_3"
-  Input = (
+  use "0533_triangles_3" as solve
+  TotalTriangles = solve (
     "3\n0 0\n" +
     "1000000000 0\n" +
     "500000000 866025403"
   )
-  run
 
   TotalTriangles equal 1
 end

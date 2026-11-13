@@ -35,4 +35,4 @@ for K in Exp to Q
   S = S * S mod 50515093
 end
 Answer = (Low + Tail * Weight) mod (P ** Exp)
-Answer print
+return Answer

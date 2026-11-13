@@ -344,4 +344,4 @@ for I in Ja
   Best = Best min Tm
 end
 Answer = Best round 3
-Answer print
+return Answer

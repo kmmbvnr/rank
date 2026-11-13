@@ -31,4 +31,4 @@ E' = Nj drop 1 sum
 Half' = 1563 E 3125 powmod
 Low' = P * Half mod 3125
 Answer = 32 * (Low * 293 mod 3125)
-Answer print
+return Answer

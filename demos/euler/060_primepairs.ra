@@ -14,7 +14,6 @@ rem Every prime in a cheaper set is
 rem below the discovered upper bound.
 Full = Upper build
 Answer = Full 5 Upper min_clique
-Answer print
 
 rem Row i stores only larger neighbors:
 rem bit j means Vals i pairs with Vals j.
@@ -114,4 +113,9 @@ fun A concat B
     Scale *= 10
   end
   return A * Scale + B
+end
+return record
+  .answer = Answer
+  .full = Full
+  .upper = Upper
 end

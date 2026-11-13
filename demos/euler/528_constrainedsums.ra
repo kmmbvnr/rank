@@ -38,4 +38,4 @@ for K in Lo to Hi
   T = Sn * Pr sum mod P
   Answer = (Answer + T * Iv) mod P
 end
-Answer print
+return Answer

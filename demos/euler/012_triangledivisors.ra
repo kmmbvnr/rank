@@ -14,4 +14,4 @@ N' = 1 to #
 Triangles' = N * (N + 1) // 2
 Counts' = Triangles divisors count rank 0
 Ans = Triangles (Counts greater Min) first
-Ans print
+return Ans

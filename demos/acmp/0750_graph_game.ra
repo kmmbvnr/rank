@@ -97,4 +97,4 @@ Line1 = Ans1Arr join ""
 Line2 = Ans2Arr join ""
 Lines = array Line1 Line2
 Result = Lines join "\n"
-Result print
+return Result

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "140_goldennuggets2"
-  run
+  use "140_goldennuggets2" as solve
+  Answer = solve
 
   Answer equal 5673835352990
 end
 
 test "first eight nuggets"
-  use "140_goldennuggets2"
-  Count = 8
-  run
+  use "140_goldennuggets2" as solve
+  Answer = solve 8
 
   Answer equal 3605
 end

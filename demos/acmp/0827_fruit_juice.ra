@@ -66,4 +66,4 @@ Flow = Res .value
 Empty = N equal 0
 Ans = Empty choose 0 (N - Flow)
 
-(Ans text) print
+return Ans

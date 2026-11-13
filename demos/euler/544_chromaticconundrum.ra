@@ -206,4 +206,4 @@ end
 if Cells equal 0
   Answer = N mod P
 end
-Answer print
+return Answer

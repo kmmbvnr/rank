@@ -1,46 +1,34 @@
 use testing
 
 test "maximum antichain"
-  use "386_antichain"
-  Limit = 1
-  run
+  use "386_antichain" as solve
+  Answer = solve 1
   Answer equal 1
-  Limit = 2
-  run
+  Answer = solve 2
   Answer equal 2
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 12
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 178
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 2385
-  Limit = 10000
-  run
+  Answer = solve 10000
   Answer equal 29860
-  Limit = 100000
-  run
+  Answer = solve 100000
   Answer equal 357503
-  Limit = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 4153927
 end
 
 
 test "empty and short factor patterns"
-  use "386_antichain"
-  Limit = 0
-  run
+  use "386_antichain" as solve
+  Answer = solve 0
   Answer equal 0
-  Limit = 6
-  run
+  Answer = solve 6
   Answer equal 7
-  Limit = 7
-  run
+  Answer = solve 7
   Answer equal 8
-  Limit = 8
-  run
+  Answer = solve 8
   Answer equal 9
 end

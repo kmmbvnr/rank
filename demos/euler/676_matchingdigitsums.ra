@@ -84,4 +84,4 @@ for K in K1 to K2
     Answer = (Answer + Sm) mod Tn
   end
 end
-Answer print
+return Answer

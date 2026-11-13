@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "284_steadysquares"
-  run
+  use "284_steadysquares" as solve
+  Answer = solve
 
   Answer equal "5a411d7b"
 end
 
 test "problem example"
-  use "284_steadysquares"
-  N = 9
-  run
+  use "284_steadysquares" as solve
+  Answer = solve 9
 
   Answer equal "2d8"
 end

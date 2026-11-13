@@ -25,7 +25,7 @@ Answer = 1 + More
 if Limit equal 0
   Answer = 0
 end
-Answer print
+return Answer
 
 fun N root E
   if E equal 1

@@ -1,15 +1,13 @@
 use testing
 
 test "first term"
-  use "321_counters"
-  Terms = 1
-  run
+  use "321_counters" as solve
+  Answer = solve 1
   Answer equal 1
 end
 
 test "statement prefix"
-  use "321_counters"
-  Terms = 5
-  run
+  use "321_counters" as solve
+  Answer = solve 5
   Answer equal 99
 end

@@ -1,33 +1,23 @@
 use testing
 
 test "default input"
-  use "591_bestquadratic"
-  run
+  use "591_bestquadratic" as solve
+  Answer = solve
   Answer equal 526007984625966
 end
 
 test "statement values"
-  use "591_bestquadratic"
-  M = 10
-  D0 = 2
-  D1 = 2
-  run
+  use "591_bestquadratic" as solve
+  Answer = solve 10 2 2
   Answer equal 6
-  M = 100
-  D0 = 5
-  D1 = 5
-  run
+  Answer = solve 100 5 5
   Answer equal 55
-  M = 1000000
-  D0 = 7
-  D1 = 7
-  run
+  Answer = solve 1000000 7 7
   Answer equal 560323
 end
 
 test "brute-force sum"
-  use "591_bestquadratic"
-  M = 1000
-  run
+  use "591_bestquadratic" as solve
+  Answer = solve 1000
   Answer equal 47949
 end

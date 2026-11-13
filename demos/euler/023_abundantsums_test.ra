@@ -1,35 +1,32 @@
 use testing
 
 test "default input"
-  use "023_abundantsums"
-  run
+  use "023_abundantsums" as solve
+  Answer = solve
 
   Answer equal 4179871
 end
 
 test "below the first abundant sum"
-  use "023_abundantsums"
+  use "023_abundantsums" as solve
 
-  Limit = 23
-  run
+  Answer = solve 23
 
   Answer equal 276
 end
 
 test "twenty-four is excluded"
-  use "023_abundantsums"
+  use "023_abundantsums" as solve
 
-  Limit = 24
-  run
+  Answer = solve 24
 
   Answer equal 276
 end
 
 test "empty positive range"
-  use "023_abundantsums"
+  use "023_abundantsums" as solve
 
-  Limit = 0
-  run
+  Answer = solve 0
 
   Answer equal 0
 end

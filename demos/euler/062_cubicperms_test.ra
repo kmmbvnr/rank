@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "062_cubicperms"
-  run
+  use "062_cubicperms" as solve
+  Answer = solve
 
   Answer equal 127035954683
 end
 
 test "three permutations"
-  use "062_cubicperms"
-  Perms = 3
-  run
+  use "062_cubicperms" as solve
+  Answer = solve 3
 
   Answer equal 41063625
 end

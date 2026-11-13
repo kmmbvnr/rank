@@ -85,4 +85,4 @@ for Front len greater 0
   First = 0
 end
 Answer = (Hits * Squares) sum
-Answer print
+return Answer

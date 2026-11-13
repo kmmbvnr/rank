@@ -3,39 +3,43 @@ rem Tests for ACMP 0608 About Love
 use testing
 
 test "sample 1: single obstacle -> YES"
-  use "0608_about_love"
-  Input = (
+  use "0608_about_love" as solve
+  Out = solve (
     "2 0\n" +
     "-2 0\n" +
     "1\n" +
     "-1 -2 1 2"
   )
-  run
+  Ans = Out .ans
+  Found = Out .found
 
   Ans equal "YES"
   Found equal true
 end
 
 test "sample 2: touching corners -> NO"
-  use "0608_about_love"
-  Input = "2 0
+  use "0608_about_love" as solve
+  Out = solve "2 0
 -2 0
 3
 -1 -1 1 1
 -3 -3 -1 -1
 -3 1 1 3"
-  run
+  Ans = Out .ans
+  Found = Out .found
 
   Ans equal "NO"
   Found equal false
 end
 
 test "no obstacles: midpoint -> YES"
-  use "0608_about_love"
-  Input = "5 5
+  use "0608_about_love" as solve
+  Out = solve "5 5
 -5 -5
 0"
-  run
+  Ans = Out .ans
+  AnsX = Out .ans_x
+  AnsY = Out .ans_y
 
   Ans equal "YES"
   AnsX equal 0.0

@@ -57,4 +57,7 @@ for Curr greater 1
 end
 
 Answer = Path join " "
-Answer print
+return record
+  .answer = Answer
+  .path = Path
+end

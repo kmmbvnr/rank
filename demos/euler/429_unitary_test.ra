@@ -1,28 +1,23 @@
 use testing
 
 test "statement value"
-  use "429_unitary"
-  N = 4
-  run
+  use "429_unitary" as solve
+  Answer = solve 4
   Answer equal 650
 end
 
 test "products of prime powers"
-  use "429_unitary"
-  N = 8
-  run
+  use "429_unitary" as solve
+  Answer = solve 8
   Answer equal 746640991
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 202476099
 end
 
 test "empty and unit factorial"
-  use "429_unitary"
-  N = 0
-  run
+  use "429_unitary" as solve
+  Answer = solve 0
   Answer equal 1
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 1
 end

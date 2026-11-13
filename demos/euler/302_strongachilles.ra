@@ -32,7 +32,7 @@ Flat = Factors array
 Empty = array shape 0 fill 0
 Last = Pr len - 1
 Answer = 1 Empty 0 0 Last g
-Answer print
+return Answer
 
 rem Fs holds unfinished factors of phi.
 rem Gp holds finished exponent gcds.

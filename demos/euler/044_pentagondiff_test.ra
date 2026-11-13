@@ -1,8 +1,8 @@
 use testing
 
 test "minimum pentagonal difference"
-  use "044_pentagondiff"
-  run
+  use "044_pentagondiff" as solve
+  Answer = solve
 
   Answer equal 5482660
 end

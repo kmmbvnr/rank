@@ -2,17 +2,14 @@ use testing
 
 rem Small prefixes keep reference checks fast.
 test "few cuboids"
-  use "212_combinedvolume"
-  N = 1
-  run
+  use "212_combinedvolume" as solve
+  Answer = solve 1
 
   Answer equal 1942416
-  N = 3
-  run
+  Answer = solve 3
 
   Answer equal 10867524
-  N = 100
-  run
+  Answer = solve 100
 
   Answer equal 723581599
 end

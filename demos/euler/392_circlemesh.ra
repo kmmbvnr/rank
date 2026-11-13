@@ -45,4 +45,4 @@ for K in 0 to M
   Quarter += (Xs (K + 1) - X) * Y
 end
 Answer = 4.0 * Quarter round 10
-Answer print
+return Answer

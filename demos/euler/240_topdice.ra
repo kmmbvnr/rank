@@ -42,4 +42,4 @@ for V in S to 1 by -1
   W = Next
 end
 Answer = W N Sum
-Answer print
+return Answer

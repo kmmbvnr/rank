@@ -1,23 +1,17 @@
 use testing
 
 test "digit sum 4, brute force and dp"
-  use "529_tensum"
-  Sd = 4
-  N = 5
-  run
+  use "529_tensum" as solve
+  Answer = solve 5 4
   Answer equal 504
-  N = 2000
-  run
+  Answer = solve 2000 4
   Answer equal 603612384
 end
 
 test "official examples"
-  use "529_tensum"
-  Sd = 10
-  N = 2
-  run
+  use "529_tensum" as solve
+  Answer = solve 2 10
   Answer equal 9
-  N = 5
-  run
+  Answer = solve 5 10
   Answer equal 3492
 end

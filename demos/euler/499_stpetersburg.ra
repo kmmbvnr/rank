@@ -151,4 +151,4 @@ end
 
 Answer = T chance B
 Answer = Answer round 7
-Answer print
+return Answer

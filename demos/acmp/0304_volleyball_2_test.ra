@@ -2,10 +2,8 @@ use testing
 use text
 
 test "sample 1: 3 sets sweep"
-  use "0304_volleyball_2"
-  N = 3
-  MatchesText = "25:23 25:20 25:18"
-  run
+  use "0304_volleyball_2" as solve
+  Answer = solve 3 "25:23 25:20 25:18"
 
   P1 = "100431057869271076861"
   P2 = "66271970998925000"
@@ -15,12 +13,10 @@ test "sample 1: 3 sets sweep"
 end
 
 test "sample 2: 4 sets overtime"
-  use "0304_volleyball_2"
-  N = 4
+  use "0304_volleyball_2" as solve
   M1 = "25:23 20:25 "
   M2 = "26:24 25:18"
-  MatchesText = M1 + M2
-  run
+  Answer = solve 4 (M1 + M2)
 
   P1 = "323866095164273521651645790"
   P2 = "930981230216140667500000"
@@ -30,12 +26,10 @@ test "sample 2: 4 sets overtime"
 end
 
 test "5 sets match: final to 15"
-  use "0304_volleyball_2"
-  N = 5
+  use "0304_volleyball_2" as solve
   M1 = "25:23 20:25 26:24 "
   M2 = "18:25 16:14"
-  MatchesText = M1 + M2
-  run
+  Answer = solve 5 (M1 + M2)
 
   P1 = "12992406593267095158690413536"
   P2 = "461801620088828701830500000000"

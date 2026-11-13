@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "762_amoebas"
-  Count = 2
-  run
+  use "762_amoebas" as solve
+  Answer = solve 2
   Answer equal 2
-  Count = 10
-  run
+  Answer = solve 10
   Answer equal 1301
-  Count = 20
-  run
+  Answer = solve 20
   Answer equal 5895236
-  Count = 100
-  run
+  Answer = solve 100
   Answer equal 125923036
 end

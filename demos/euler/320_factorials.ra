@@ -43,7 +43,6 @@ for I in 2 to Upper
     Answer = (Answer + Best) mod Mod
   end
 end
-Answer print
 
 rem Greedy weights are v_p((p^k)!).
 fun P Target Prev minimum
@@ -73,3 +72,4 @@ fun N valuation P
   end
   return Sum
 end
+return Answer

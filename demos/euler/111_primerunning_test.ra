@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "111_primerunning"
-  run
+  use "111_primerunning" as solve
+  Answer = solve
 
   Answer equal 612407567715
 end
 
 test "statement four digit primes"
-  use "111_primerunning"
-  Size = 4
-  run
+  use "111_primerunning" as solve
+  Answer = solve 4
 
   Answer equal 273700
 end

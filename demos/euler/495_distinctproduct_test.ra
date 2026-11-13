@@ -1,9 +1,7 @@
 use testing
 
 test "statement value"
-  use "495_distinctproduct"
-  N = 100
-  K = 10
-  run
+  use "495_distinctproduct" as solve
+  Answer = solve 100 10
   Answer equal 287549200
 end

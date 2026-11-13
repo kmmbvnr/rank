@@ -52,4 +52,4 @@ for Z in 0 to Top
   end
 end
 Answer = Sum
-Answer print
+return Answer

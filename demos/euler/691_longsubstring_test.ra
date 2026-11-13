@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "691_longsubstring"
-  Nn = 10
-  run
+  use "691_longsubstring" as solve
+  Answer = solve 10
   Answer equal 19
-  Nn = 1000
-  run
+  Answer = solve 1000
   Answer equal 2460
 end
 
 test "default input"
-  use "691_longsubstring"
-  Nn = 5000000
-  run
+  use "691_longsubstring" as solve
+  Answer = solve 5000000
   Answer equal 11570761
 end

@@ -185,3 +185,4 @@ for L in InitLB to TotalCells
 end
 
 Result text
+return Result

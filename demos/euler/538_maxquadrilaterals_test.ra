@@ -1,25 +1,20 @@
 use testing
 
 test "brute force prefixes"
-  use "538_maxquadrilaterals"
-  N = 5
-  run
+  use "538_maxquadrilaterals" as solve
+  Answer = solve 5
   Answer equal 99
-  N = 120
-  run
+  Answer = solve 120
   Answer equal 138648
-  N = 3000
-  run
+  Answer = solve 3000
   Answer equal 397768273
 end
 
 
 test "prefixes without four sides"
-  use "538_maxquadrilaterals"
-  N = 0
-  run
+  use "538_maxquadrilaterals" as solve
+  Answer = solve 0
   Answer equal 0
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 0
 end

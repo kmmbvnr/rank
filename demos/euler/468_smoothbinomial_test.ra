@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "468_smoothbinomial"
-  N = 11
-  run
+  use "468_smoothbinomial" as solve
+  Answer = solve 11
   Answer equal 3132
-  N = 1111
-  run
+  Answer = solve 1111
   Answer equal 706036312
 end
 
 test "n = 111111"
-  use "468_smoothbinomial"
-  N = 111111
-  run
+  use "468_smoothbinomial" as solve
+  Answer = solve 111111
   Answer equal 22156169
 end

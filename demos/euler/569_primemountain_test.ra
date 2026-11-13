@@ -1,15 +1,13 @@
 use testing
 
 test "statement values"
-  use "569_primemountain"
-  N = 100
-  run
+  use "569_primemountain" as solve
+  Answer = solve 100
   Answer equal 227
 end
 
 test "full-scale checkpoint"
-  use "569_primemountain"
-  N = 100000
-  run
+  use "569_primemountain" as solve
+  Answer = solve 100000
   Answer equal 650364
 end

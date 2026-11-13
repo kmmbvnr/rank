@@ -31,4 +31,4 @@ Q4 = 3.0 * Z2 * Z2 + 7.0 * Z2 - 16.0
 X = X - Q4 / (810.0 * N)
 Lg = X / 2.302585092994046
 Answer = Lg text ".2f"
-Answer print
+return Answer

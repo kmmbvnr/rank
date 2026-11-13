@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "459_flippinggame"
-  N = 1
-  run
+  use "459_flippinggame" as solve
+  Answer = solve 1
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 0
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 8
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 31395
 end
 
 test "board 3000"
-  use "459_flippinggame"
-  N = 3000
-  run
+  use "459_flippinggame" as solve
+  Answer = solve 3000
   Answer equal 55837744
 end

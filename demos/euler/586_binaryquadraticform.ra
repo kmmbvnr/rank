@@ -212,4 +212,4 @@ fun Code solve rank 0
   return Exps walk Seed
 end
 Answer = Codes solve sum
-Answer print
+return Answer

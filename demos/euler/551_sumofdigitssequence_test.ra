@@ -1,11 +1,9 @@
 use testing
 
 test "statement terms and a million"
-  use "551_sumofdigitssequence"
-  N = 9
-  run
+  use "551_sumofdigitssequence" as solve
+  Answer = solve 9
   Answer equal 49
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 31054319
 end

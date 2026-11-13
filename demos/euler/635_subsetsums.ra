@@ -63,4 +63,4 @@ N3 = (F3 + 3 * (Pr - 1) * Pq) mod M
 Iq = D3 (M - 2) M powmod
 S3 = N3 * Iq mod M sum
 Answer = (S2 + S3 + 8) mod M
-Answer print
+return Answer

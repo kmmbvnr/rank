@@ -3,78 +3,71 @@ rem Tests for ACMP 0879: Counts (Graphs)
 use testing
 
 test "ACMP 879: Sample 1"
-  use "0879_graphs"
-  Input = "2
+  use "0879_graphs" as solve
+  Result = solve "2
 AAABBB
 BBBCCC"
-  run
 
   Result equal 1
 end
 
 test "ACMP 879: Sample 2"
-  use "0879_graphs"
-  Input = "2
+  use "0879_graphs" as solve
+  Result = solve "2
 AAABBB
 CCCDDD"
-  run
 
   Result equal 2
 end
 
 test "ACMP 879: Sample 3"
-  use "0879_graphs"
-  Input = "3
+  use "0879_graphs" as solve
+  Result = solve "3
 AAABAA
 ABAAAB
 AABBAA"
-  run
 
   Result equal 2
 end
 
 test "ACMP 879: Single count"
-  use "0879_graphs"
-  Input = "1
+  use "0879_graphs" as solve
+  Result = solve "1
 AAABBB"
-  run
 
   Result equal 0
 end
 
 test "ACMP 879: Single self-loop"
-  use "0879_graphs"
-  Input = "1
+  use "0879_graphs" as solve
+  Result = solve "1
 AAAAAA"
-  run
 
   Result equal 0
 end
 
 test "ACMP 879: Two self-loops"
-  use "0879_graphs"
-  Input = "2
+  use "0879_graphs" as solve
+  Result = solve "2
 AAAAAA
 BBBBBB"
-  run
 
   Result equal 2
 end
 
 test "ACMP 879: Directed cycle"
-  use "0879_graphs"
-  Input = "3
+  use "0879_graphs" as solve
+  Result = solve "3
 AAABBB
 BBBCCC
 CCCAAA"
-  run
 
   Result equal 0
 end
 
 test "ACMP 879: Default input 6 counts"
-  use "0879_graphs"
-  run
+  use "0879_graphs" as solve
+  Result = solve
 
   Result equal 2
 end

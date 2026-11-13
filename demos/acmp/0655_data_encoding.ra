@@ -121,4 +121,4 @@ for L in (MinL to LenCode array reverse)
   end
 end
 
-Answer print
+return Answer

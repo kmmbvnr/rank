@@ -15,4 +15,4 @@ D' = 1 to Limit
 N = (3 * D - 1) // 7
 Ratio' = N / D
 Answer = N (Ratio max .index)
-Answer print
+return Answer

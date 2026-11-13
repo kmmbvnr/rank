@@ -99,4 +99,4 @@ if NumHits greater 0
 end
 
 Ans = N - MaxMatch
-Ans print
+return Ans

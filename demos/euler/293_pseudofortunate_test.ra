@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "293_pseudofortunate"
-  run
+  use "293_pseudofortunate" as solve
+  Answer = solve
 
   Answer equal 2209
 end
 
 test "small limits"
-  use "293_pseudofortunate"
-  Limit = 100
-  run
+  use "293_pseudofortunate" as solve
+  Answer = solve 100
 
   Answer equal 15
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 48
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 599
 end

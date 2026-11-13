@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "234_semidivisible"
-  run
+  use "234_semidivisible" as solve
+  Answer = solve
 
   Answer equal 1259187438574927161
 end
 
 test "small limits"
-  use "234_semidivisible"
-  Limit = 15
-  run
+  use "234_semidivisible" as solve
+  Answer = solve 15
 
   Answer equal 30
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 34825
-  Limit = 100000
-  run
+  Answer = solve 100000
 
   Answer equal 36393008
 end

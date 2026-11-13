@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "281_pizzatoppings"
-  run
+  use "281_pizzatoppings" as solve
+  Answer = solve
 
   Answer equal 1485776387445623
 end
 
 test "small limits"
-  use "281_pizzatoppings"
-  Limit = 2
-  run
+  use "281_pizzatoppings" as solve
+  Answer = solve 2
 
   Answer equal 5
-  Limit = 16
-  run
+  Answer = solve 16
 
   Answer equal 41
 end

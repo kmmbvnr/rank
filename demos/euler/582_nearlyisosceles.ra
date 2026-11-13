@@ -42,4 +42,4 @@ for D in 1 to G
     end
   end
 end
-Answer print
+return Answer

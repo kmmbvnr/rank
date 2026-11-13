@@ -43,4 +43,4 @@ Answer += Lt mod Md sum
 rem u = 1 for every j with X >= 1.
 Answer += X at least 1 count
 Answer = Answer mod Md
-Answer print
+return Answer

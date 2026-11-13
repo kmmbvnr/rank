@@ -188,4 +188,4 @@ for Piece in 0 to Chunks - 1
   end
 end
 Answer = Total + Fixed
-Answer print
+return Answer

@@ -1,33 +1,21 @@
 use testing
 
 test "statement values"
-  use "707_lightsout"
-  Width = 3
-  Count = 3
-  run
+  use "707_lightsout" as solve
+  Answer = solve 3 3
   Answer equal 32
-  Width = 4
-  Count = 5
-  run
+  Answer = solve 4 5
   Answer equal 1052960
-  Width = 5
-  Count = 7
-  run
+  Answer = solve 5 7
   Answer equal 346547294
 end
 
 test "empty and single-cell widths"
-  use "707_lightsout"
-  Width = 0
-  Count = 3
-  run
+  use "707_lightsout" as solve
+  Answer = solve 0 3
   Answer equal 3
-  Width = 1
-  Count = 1
-  run
+  Answer = solve 1 1
   Answer equal 2
-  Width = 3
-  Count = 0
-  run
+  Answer = solve 3 0
   Answer equal 0
 end

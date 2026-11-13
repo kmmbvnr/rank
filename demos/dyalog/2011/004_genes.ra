@@ -59,5 +59,9 @@ Scores = PWM score Sequence
 Best = PWM top5 Sequence
 F print
 PWM print
-Scores print
-Best print
+return record
+  .best = Best
+  .f = F
+  .pwm = PWM
+  .scores = Scores
+end

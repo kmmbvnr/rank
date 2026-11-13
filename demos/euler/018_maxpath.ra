@@ -32,4 +32,4 @@ end
 Rev = Triangle reverse axis 0
 Best = Rev reduce pick rank 1 axis 0
 Answer = Best 0
-Answer print
+return Answer

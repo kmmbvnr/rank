@@ -1,21 +1,17 @@
 use testing
 
 test "smaller limits"
-  use "179_consecutivedivisors"
-  Limit = 14
-  run
+  use "179_consecutivedivisors" as solve
+  Answer = solve 14
 
   Answer equal 1
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 118
-  Limit = 100000
-  run
+  Answer = solve 100000
 
   Answer equal 10585
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 102093
 end

@@ -35,4 +35,7 @@ for Ch len greater 0
   Ch = Nxt (Keep indices)
 end
 Answer = Best sum
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+end

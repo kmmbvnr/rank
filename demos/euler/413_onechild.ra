@@ -100,7 +100,7 @@ for N in 1 to Digits
   Tot += One choose Cnt 0 sum
 end
 Answer = Tot
-Answer print
+return Answer
 
 rem Pack a permuted half once.
 fun Weights ternarymap

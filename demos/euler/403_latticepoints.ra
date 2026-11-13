@@ -40,4 +40,4 @@ Lm = (S1 ** 3 + 5 * S1 + 6) // 6
 B = Pw sum - Lm
 Tot = 2 * Pm 0 - 1 + A + 2 * B
 Answer = Tot mod Mod
-Answer print
+return Answer

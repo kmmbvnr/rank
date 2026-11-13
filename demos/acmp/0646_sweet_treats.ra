@@ -47,4 +47,4 @@ if not (TotalSum less NeedTotal)
   Ways = Total - TwoUnder
 end
 
-Ways print
+return Ways

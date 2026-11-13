@@ -1,32 +1,27 @@
 use testing
 
 test "default input"
-  use "290_digitalsignature"
-  run
+  use "290_digitalsignature" as solve
+  Answer = solve
 
   Answer equal 20444710234716473
 end
 
 test "few digits"
-  use "290_digitalsignature"
-  N = 0
-  run
+  use "290_digitalsignature" as solve
+  Answer = solve 0
 
   Answer equal 1
-  N = 1
-  run
+  Answer = solve 1
 
   Answer equal 2
-  N = 2
-  run
+  Answer = solve 2
 
   Answer equal 4
-  N = 3
-  run
+  Answer = solve 3
 
   Answer equal 33
-  N = 6
-  run
+  Answer = solve 6
 
   Answer equal 27955
 end

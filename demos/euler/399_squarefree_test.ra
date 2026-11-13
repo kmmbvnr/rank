@@ -1,21 +1,18 @@
 use testing
 
 test "statement example"
-  use "399_squarefree"
-  Count = 200
-  Limit = 300
-  PrimeLimit = 53
-  run
+  use "399_squarefree" as solve
+  Out = solve 200 300 53
+  Answer = Out .answer
+  Index = Out .index
   Index equal 260
   Answer equal "1608739584170445,9.7e53"
 end
 
 test "Legendre candidate at eleven"
-  use "399_squarefree"
-  Count = 1
-  Limit = 120
-  PrimeLimit = 11
-  run
+  use "399_squarefree" as solve
+  Out = solve 1 120 11
+  Mods = Out .mods
   110 in Mods
 end
 

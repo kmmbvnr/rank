@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "693_finitesequence"
-  Nn = 100
-  run
+  use "693_finitesequence" as solve
+  Answer = solve 100
   Answer equal 145
 end
 
 test "full-scale checkpoint"
-  use "693_finitesequence"
-  Nn = 10000
-  run
+  use "693_finitesequence" as solve
+  Answer = solve 10000
   Answer equal 8824
-  Nn = 300000
-  run
+  Answer = solve 300000
   Answer equal 62506
 end

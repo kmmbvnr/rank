@@ -3,8 +3,11 @@ rem Tests for ACMP 0885 Stars
 use testing
 
 test "sample 2 winning search"
-  use "0885_stars"
-  run
+  use "0885_stars" as solve
+  Out = solve
+  Ans = Out .ans
+  NumMoves = Out .num_moves
+  Won = Out .won
 
   Won equal true
   NumMoves equal 3
@@ -12,8 +15,8 @@ test "sample 2 winning search"
 end
 
 test "sample 1 impossible"
-  use "0885_stars"
-  Input = "5
+  use "0885_stars" as solve
+  Out = solve "5
 ..........t
 .......t...
 O......t...
@@ -25,19 +28,22 @@ t..........
 ...O.......
 ....t......
 ..t..O....."
-  run
+  Ans = Out .ans
+  Won = Out .won
 
   Won equal false
   Ans equal "IMPOSSIBLE"
 end
 
 test "zero enemies initially"
-  use "0885_stars"
-  Input = "1
+  use "0885_stars" as solve
+  Out = solve "1
 ...
 .+.
 ..."
-  run
+  Ans = Out .ans
+  NumMoves = Out .num_moves
+  Won = Out .won
 
   Won equal true
   NumMoves equal 0
@@ -45,12 +51,14 @@ test "zero enemies initially"
 end
 
 test "single enemy shot immediately"
-  use "0885_stars"
-  Input = "1
+  use "0885_stars" as solve
+  Out = solve "1
 .t.
 .+.
 ..."
-  run
+  Ans = Out .ans
+  NumMoves = Out .num_moves
+  Won = Out .won
 
   Won equal true
   NumMoves equal 1

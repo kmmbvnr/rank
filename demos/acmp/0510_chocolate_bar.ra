@@ -23,4 +23,4 @@ if N mod 2 equal 0
   Answer = DP K
 end
 
-Answer print
+return Answer

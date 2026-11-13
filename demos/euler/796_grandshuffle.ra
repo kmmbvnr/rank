@@ -48,4 +48,4 @@ Term = Base * Next / (Hit + 1.0)
 Empty = Term sum
 Total = Empty + Cards + 1.0
 Answer = Total round 8
-Answer print
+return Answer

@@ -51,4 +51,4 @@ if Pairs at most 2000 or Skew less 15.0
   Value = Sum / Total
 end
 Answer = Value text ".10f"
-Answer print
+return Answer

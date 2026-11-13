@@ -30,4 +30,4 @@ Sm = Lv - Mx exp sum
 Ls = Sm log
 Lg = (Mx + Ls) / Lp
 Answer = Lg - 0.000000001 ceil + 3
-Answer print
+return Answer

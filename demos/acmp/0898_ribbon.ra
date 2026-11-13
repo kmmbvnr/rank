@@ -76,4 +76,4 @@ for QIdx in 0 till KCount
 end
 
 Ans = OutChars join ""
-Ans print
+return Ans

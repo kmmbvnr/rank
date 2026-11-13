@@ -1,17 +1,15 @@
 use testing
 
 test "first emitted prime"
-  use "308_automaton"
-  Target = 1
-  run
+  use "308_automaton" as solve
+  Answer = solve 1
 
   Answer equal 19
 end
 
 test "tenth emitted prime"
-  use "308_automaton"
-  Target = 10
-  run
+  use "308_automaton" as solve
+  Answer = solve 10
 
   Answer equal 36981
 end

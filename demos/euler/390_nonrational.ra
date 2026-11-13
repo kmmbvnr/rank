@@ -17,7 +17,7 @@ for P at most Limit
   Answer += P 0 P walk
   P += 1
 end
-Answer print
+return Answer
 
 rem One Pell step and three branches.
 fun P Q A walk

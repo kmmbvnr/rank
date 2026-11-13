@@ -26,4 +26,4 @@ if Count greater 5
   Limit = Count * (Count log + (Count log log)) integer
 end
 Answer = (Limit sieve) (Count - 1)
-Answer print
+return Answer

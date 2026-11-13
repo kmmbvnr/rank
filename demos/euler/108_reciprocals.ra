@@ -47,4 +47,4 @@ for P in Ps
   Cnt = Next filter Keep array
 end
 Answer = Best
-Answer print
+return Answer

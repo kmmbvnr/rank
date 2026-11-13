@@ -1,14 +1,13 @@
 use testing
 
 test "single triple 1 2 3"
-  use "727_circulararcs"
-  Limit = 3
-  run
+  use "727_circulararcs" as solve
+  Answer = solve 3
   Answer equal "0.15676310"
 end
 
 test "default input"
-  use "727_circulararcs"
-  run
+  use "727_circulararcs" as solve
+  Answer = solve
   Answer equal "3.64039141"
 end

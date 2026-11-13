@@ -142,4 +142,4 @@ fun Limit solve
   return (Largest + 1) mod 1000000000
 end
 Answer = N solve
-Answer print
+return Answer

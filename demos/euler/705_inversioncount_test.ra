@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "705_inversioncount"
-  Limit = 20
-  run
+  use "705_inversioncount" as solve
+  Answer = solve 20
   Answer equal 3312
-  Limit = 50
-  run
+  Answer = solve 50
   Answer equal 338079744
 end
 
 test "empty and decimal boundaries"
-  use "705_inversioncount"
-  Limit = 1
-  run
+  use "705_inversioncount" as solve
+  Answer = solve 1
   Answer equal 0
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 719294528
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 461640134
 end

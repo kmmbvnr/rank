@@ -1,8 +1,10 @@
 use testing
 
 test "ranks of the five words"
-  use "480_lastquestion"
-  run
+  use "480_lastquestion" as solve
+  Out = solve
+  Answer = Out .answer
+  Rk = Out .rk
   Rk 0 equal 242132052536675919
   Rk 1 equal 41242803282213119
   Rk 2 equal 23138326896450711

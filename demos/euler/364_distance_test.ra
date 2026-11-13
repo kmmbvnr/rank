@@ -1,29 +1,25 @@
 use testing
 
 test "comfortable distance"
-  use "364_distance"
-  N = 10
-  run
+  use "364_distance" as solve
+  Answer = solve 10
   Answer equal 61632
 end
 
 test "distance modulo"
-  use "364_distance"
-  N = 1000
-  run
+  use "364_distance" as solve
+  Answer = solve 1000
   Answer equal 47255094
 end
 
 test "one seat"
-  use "364_distance"
-  N = 1
-  run
+  use "364_distance" as solve
+  Answer = solve 1
   Answer equal 1
 end
 
 test "four seats"
-  use "364_distance"
-  N = 4
-  run
+  use "364_distance" as solve
+  Answer = solve 4
   Answer equal 8
 end

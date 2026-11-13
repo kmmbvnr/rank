@@ -43,4 +43,4 @@ for Sz in 1 to N
   Answer += Row 0
 end
 Answer = Answer mod Md
-Answer print
+return Answer

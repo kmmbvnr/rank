@@ -112,4 +112,4 @@ Od = Ep argsort
 Ds = Ed Od
 Cs = Ds scan + array
 Answer = Cs reduce max round 4
-Answer print
+return Answer

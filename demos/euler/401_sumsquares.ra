@@ -25,4 +25,4 @@ end
 R2 = Root * (Root + 1) * (2 * Root + 1)
 Tot -= Root * (R2 // 6)
 Answer = Tot mod Mod
-Answer print
+return Answer

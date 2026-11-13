@@ -1,33 +1,22 @@
 use testing
 
 test "statement values"
-  use "537_primecounting"
-  N = 3
-  K = 3
-  run
+  use "537_primecounting" as solve
+  Answer = solve 3 3
   Answer equal 19
-  N = 10
-  K = 10
-  run
+  Answer = solve 10 10
   Answer equal 869985
-  N = 1000
-  K = 1000
-  run
+  Answer = solve 1000 1000
   Answer equal 578270566
 end
 
 
 test "empty tuples and zero prime counts"
-  use "537_primecounting"
-  N = 0
-  K = 0
-  run
+  use "537_primecounting" as solve
+  Answer = solve 0 0
   Answer equal 1
-  K = 7
-  run
+  Answer = solve 0 7
   Answer equal 1
-  N = 1
-  K = 0
-  run
+  Answer = solve 1 0
   Answer equal 0
 end

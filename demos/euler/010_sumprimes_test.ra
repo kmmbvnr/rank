@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "010_sumprimes"
-  run
+  use "010_sumprimes" as solve
+  Answer = solve
 
   Answer equal 142913828922
 end
 
 test "workspace input"
-  use "010_sumprimes"
-  Limit = 10
-  run
+  use "010_sumprimes" as solve
+  Answer = solve 10
 
   Answer equal 17
 end

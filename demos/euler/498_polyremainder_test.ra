@@ -1,19 +1,13 @@
 use testing
 
 test "statement value"
-  use "498_polyremainder"
-  N = 6
-  M = 3
-  D = 1
-  run
+  use "498_polyremainder" as solve
+  Answer = solve 6 3 1
   Answer equal 24
 end
 
 test "direct expansion"
-  use "498_polyremainder"
-  N = 40
-  M = 17
-  D = 5
-  run
+  use "498_polyremainder" as solve
+  Answer = solve 40 17 5
   Answer equal 626722082
 end

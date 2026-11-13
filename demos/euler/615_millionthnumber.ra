@@ -94,4 +94,4 @@ Ao = Ka argsort
 Jx = Ao (Cn - 1)
 Tw = 2 (Om - Ca Jx) Md powmod
 Answer = Pa Jx * Tw mod Md
-Answer print
+return Answer

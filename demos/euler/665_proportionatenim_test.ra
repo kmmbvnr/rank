@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "665_proportionatenim"
-  Mm = 10
-  run
+  use "665_proportionatenim" as solve
+  Answer = solve 10
   Answer equal 21
-  Mm = 100
-  run
+  Answer = solve 100
   Answer equal 1164
-  Mm = 1000
-  run
+  Answer = solve 1000
   Answer equal 117002
 end
 
 test "default input"
-  use "665_proportionatenim"
-  Mm = 10000000
-  run
+  use "665_proportionatenim" as solve
+  Answer = solve 10000000
   Answer equal 11541685709674
 end

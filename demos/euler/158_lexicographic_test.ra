@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "158_lexicographic"
-  run
+  use "158_lexicographic" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 409511334375
 end
 
 test "statement values"
-  use "158_lexicographic"
-  run
+  use "158_lexicographic" as solve
+  Out = solve
+  Counts = Out .counts
 
   Counts 1 equal 10400
 end

@@ -9,8 +9,8 @@ test "fixed digit expressions produce exactly one through one hundred"
 end
 
 test "the demo exposes the complete result"
-  use "003_digits"
+  use "003_digits" as solve
   use sequences
-  run
+  Answer = solve
   Answer equal (1 to 100 array)
 end

@@ -32,4 +32,7 @@ Ld = Rd text
 Answer = Ld (0 till 1) + "."
 Answer += Ld (1 till 11) + "e"
 Answer += E text
-Answer print
+return record
+  .answer = Answer
+  .f = F
+end

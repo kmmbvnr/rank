@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "636_restrictedfactorisations"
-  N = 25
-  run
+  use "636_restrictedfactorisations" as solve
+  Answer = solve 25
   Answer equal 4933
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 693952493
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 6364496
 end

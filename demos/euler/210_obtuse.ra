@@ -43,4 +43,4 @@ Diag = Q // 2 isqrt
 Circle = 1 + 4 * A + 4 * Diag + 8 * Gen
 Circle -= (R - 1) // 4
 Answer = Below + Above + Circle
-Answer print
+return Answer

@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "773_ruffnumbers"
-  Count = 3
-  run
+  use "773_ruffnumbers" as solve
+  Answer = solve 3
   Answer equal 76101452
 end

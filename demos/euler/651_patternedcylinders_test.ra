@@ -1,19 +1,15 @@
 use testing
 
 test "statement values"
-  use "651_patternedcylinders"
-  Lo = 8
-  Hi = 8
-  run
+  use "651_patternedcylinders" as solve
+  Answer = solve 8 8
   Answer equal 49718354
-  Lo = 13
-  Hi = 13
-  run
+  Answer = solve 13 13
   Answer equal 907081451
 end
 
 test "default input"
-  use "651_patternedcylinders"
-  run
+  use "651_patternedcylinders" as solve
+  Answer = solve
   Answer equal 448233151
 end

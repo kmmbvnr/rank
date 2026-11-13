@@ -2,8 +2,8 @@ use testing
 use text
 
 test "sample 1: ABABAAABABA -> weight 5"
-  use "0747_string_decomposition"
-  run
+  use "0747_string_decomposition" as solve
+  Ans = solve
 
   Exp = "5
 AB 2
@@ -13,9 +13,8 @@ BA 2"
 end
 
 test "all same chars: AAAAAA -> A 6"
-  use "0747_string_decomposition"
-  Input = "AAAAAA"
-  run
+  use "0747_string_decomposition" as solve
+  Ans = solve "AAAAAA"
 
   Exp = "1
 A 6"
@@ -23,9 +22,9 @@ A 6"
 end
 
 test "no repetitions: ABCDE -> weight 5"
-  use "0747_string_decomposition"
-  Input = "ABCDE"
-  run
+  use "0747_string_decomposition" as solve
+  use text
+  Ans = solve "ABCDE"
 
   Lines = Ans split "\n"
   W = Lines 0 integer

@@ -2,35 +2,31 @@ rem ACMP 0617: Rooks tests
 use testing
 
 test "ACMP 617: Sample 1"
-  use "0617_rooks"
-  Input = "3 3 2 2"
-  run
+  use "0617_rooks" as solve
+  Result = solve "3 3 2 2"
   Result equal 18
 end
 
 test "ACMP 617: 2x2 with 1 and 1"
-  use "0617_rooks"
-  Input = "2 2 1 1"
-  run
+  use "0617_rooks" as solve
+  Result = solve "2 2 1 1"
   Result equal 4
 end
 
 test "ACMP 617: Impossible count"
-  use "0617_rooks"
-  Input = "2 2 3 1"
-  run
+  use "0617_rooks" as solve
+  Result = solve "2 2 3 1"
   Result equal 0
 end
 
 test "ACMP 617: 3x2 with 2 and 1"
-  use "0617_rooks"
-  Input = "3 2 2 1"
-  run
+  use "0617_rooks" as solve
+  Result = solve "3 2 2 1"
   Result equal 6
 end
 
 test "ACMP 617: Maximal 10x10 stress"
-  use "0617_rooks"
-  run
+  use "0617_rooks" as solve
+  Result = solve
   Result greater 0
 end

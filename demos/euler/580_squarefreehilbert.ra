@@ -59,4 +59,4 @@ end
 Starts = 1 to Top by (2 * Width)
 Totals = Starts subtotal rank 0
 Answer = Totals sum
-Answer print
+return Answer

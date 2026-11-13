@@ -114,4 +114,4 @@ for Prefix in Prefixes
 end
 Positions = 0 till T copy
 Answer = Hits Positions sum
-Answer print
+return Answer

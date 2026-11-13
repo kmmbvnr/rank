@@ -1,20 +1,17 @@
 use testing
 
 test "statement values"
-  use "620_planetarygears"
-  N = 16
-  run
+  use "620_planetarygears" as solve
+  Answer = solve 16
   Answer equal 9
-  N = 20
-  run
+  Answer = solve 20
   Answer equal 205
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 1790942
 end
 
 test "default input"
-  use "620_planetarygears"
-  run
+  use "620_planetarygears" as solve
+  Answer = solve
   Answer equal 1470337306
 end

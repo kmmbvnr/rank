@@ -1,31 +1,25 @@
 use testing
 
 test "statement sample"
-  use "426_boxball"
-  Last = 10
-  run
+  use "426_boxball" as solve
+  Answer = solve 10
   Answer equal 8912
 end
 
 test "per-ball stack references"
-  use "426_boxball"
-  Last = 100
-  run
+  use "426_boxball" as solve
+  Answer = solve 100
   Answer equal 170376
-  Last = 1000
-  run
+  Answer = solve 1000
   Answer equal 1714252
 end
 
 test "drain even the first ball run"
-  use "426_boxball"
-  Last = 0
-  run
+  use "426_boxball" as solve
+  Answer = solve 0
   Answer equal 2116
-  Last = 1
-  run
+  Answer = solve 1
   Answer equal 2116
-  Last = 2
-  run
+  Answer = solve 2
   Answer equal 2197
 end

@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "202_laserbeam"
-  run
+  use "202_laserbeam" as solve
+  Answer = solve
 
   Answer equal 1209002624
 end
 
 test "problem examples"
-  use "202_laserbeam"
-  Bounces = 11
-  run
+  use "202_laserbeam" as solve
+  Answer = solve 11
 
   Answer equal 2
-  Bounces = 1000001
-  run
+  Answer = solve 1000001
 
   Answer equal 80840
 end

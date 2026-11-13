@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "097_nonmersenne"
-  run
+  use "097_nonmersenne" as solve
+  Answer = solve
 
   Answer equal 8739992577
 end
 
 test "small exponent"
-  use "097_nonmersenne"
-  Exponent = 10
-  Modulus = 1000000
-  run
+  use "097_nonmersenne" as solve
+  Answer = solve 10 1000000
 
   Answer equal 115393
 end

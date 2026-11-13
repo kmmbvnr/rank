@@ -106,3 +106,4 @@ fun problem3
 end
 
 Answer = problem3
+return Answer

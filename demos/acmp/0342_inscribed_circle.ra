@@ -91,3 +91,9 @@ if HasCircle
 else
   Answer print
 end
+return record
+  .answer = Answer
+  .r = R
+  .x = X
+  .y = Y
+end

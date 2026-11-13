@@ -1,21 +1,15 @@
 use testing
 
 test "alice's game"
-  use "640_shutthebox"
-  Cards = 4
-  Faces = 2
-  run
+  use "640_shutthebox" as solve
+  Answer = solve 4 2
   Answer equal "5.673651"
 end
 
 test "smaller boxes"
-  use "640_shutthebox"
-  Cards = 6
-  Faces = 3
-  run
+  use "640_shutthebox" as solve
+  Answer = solve 6 3
   Answer equal "12.453758"
-  Cards = 8
-  Faces = 4
-  run
+  Answer = solve 8 4
   Answer equal "22.043938"
 end

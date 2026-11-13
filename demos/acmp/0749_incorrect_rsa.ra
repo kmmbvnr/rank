@@ -55,4 +55,7 @@ T12 = concat T1 T2
 AnsTable = concat T12 Ans9
 
 Answer = AnsTable (FoundK - 1)
-Answer print
+return record
+  .answer = Answer
+  .found_k = FoundK
+end

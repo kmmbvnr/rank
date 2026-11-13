@@ -39,4 +39,4 @@ for X + Y greater 1
   Runs = concat Runs (array Q)
 end
 Answer = Runs reverse join ","
-Answer print
+return Answer

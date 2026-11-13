@@ -104,4 +104,4 @@ for Half greater 0
   Half = Half // 2
 end
 Answer = Cycles 0
-Answer print
+return Answer

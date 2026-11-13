@@ -115,4 +115,4 @@ for Nn in 2 till Nm
     Answer += Qm choose Val 0 sum
   end
 end
-Answer print
+return Answer

@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "580_squarefreehilbert"
-  N = 99
-  run
+  use "580_squarefreehilbert" as solve
+  Answer = solve 99
   Answer equal 23
-  N = 9999999
-  run
+  Answer = solve 9999999
   Answer equal 2327192
 end

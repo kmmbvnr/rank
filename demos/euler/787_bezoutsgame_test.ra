@@ -1,13 +1,9 @@
 use testing
 
 test "statement values"
-  use "787_bezoutsgame"
-  Limit = 4
-  Cut = 4
-  run
+  use "787_bezoutsgame" as solve
+  Answer = solve 4 4
   Answer equal 5
-  Limit = 100
-  Cut = 20
-  run
+  Answer = solve 100 20
   Answer equal 2043
 end

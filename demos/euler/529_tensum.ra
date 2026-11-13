@@ -280,4 +280,4 @@ rem its digit sum is the target too.
 if Sd equal 1
   Answer = (Answer + 1) mod Prime
 end
-Answer print
+return Answer

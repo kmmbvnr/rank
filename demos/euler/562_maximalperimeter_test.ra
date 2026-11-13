@@ -1,21 +1,17 @@
 use testing
 
 test "default input"
-  use "562_maximalperimeter"
-  run
+  use "562_maximalperimeter" as solve
+  Answer = solve
   Answer equal 51208732914368
 end
 
 test "statement values rounded"
-  use "562_maximalperimeter"
-  Dm = 200
-  R = 5
-  run
+  use "562_maximalperimeter" as solve
+  Answer = solve 5 200
   Answer equal 20
-  R = 10
-  run
+  Answer = solve 10 200
   Answer equal 97
-  R = 100
-  run
+  Answer = solve 100 200
   Answer equal 9158
 end

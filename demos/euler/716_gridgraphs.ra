@@ -28,4 +28,4 @@ CutH = Side * PowW mod Prime
 Linear = 10 * (Height + Width + 1)
 Total = Main + Cross - CutW - CutH
 Answer = (Total + Linear) mod Prime
-Answer print
+return Answer

@@ -34,4 +34,4 @@ Compat = Bad equal 0 integer
 
 Answer = Compat matpow (Cols - 1) sum
 
-Answer print
+return Answer

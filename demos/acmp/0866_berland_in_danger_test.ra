@@ -2,59 +2,55 @@ rem ACMP 0866: Berland in Danger tests
 use testing
 
 test "Sample (5 vertices, 6 edges)"
-  use "0866_berland_in_danger"
-  Input = "5 6
+  use "0866_berland_in_danger" as solve
+  Result = solve "5 6
 1 2
 2 3
 3 4
 4 1
 4 5
 5 2"
-  run
   Exp = "1 2 3 5 4\n1 4 5 3 2"
   Result equal Exp
 end
 
 test "ACMP 866: Cycle C4"
-  use "0866_berland_in_danger"
-  Input = "4 4
+  use "0866_berland_in_danger" as solve
+  Result = solve "4 4
 1 2
 2 3
 3 4
 4 1"
-  run
   Exp = "1 2 3 4\n1 4 3 2"
   Result equal Exp
 end
 
 test "ACMP 866: Triangle K3"
-  use "0866_berland_in_danger"
-  Input = "3 3
+  use "0866_berland_in_danger" as solve
+  Result = solve "3 3
 1 2
 2 3
 3 1"
-  run
   Exp = "1 2 3\n1 3 2"
   Result equal Exp
 end
 
 test "ACMP 866: Complete graph K4"
-  use "0866_berland_in_danger"
-  Input = "4 6
+  use "0866_berland_in_danger" as solve
+  Result = solve "4 6
 1 2
 1 3
 1 4
 2 3
 2 4
 3 4"
-  run
   Exp = "1 2 3 4\n1 4 3 2"
   Result equal Exp
 end
 
 test "Default 8-vertex biconnected"
-  use "0866_berland_in_danger"
-  run
+  use "0866_berland_in_danger" as solve
+  Result = solve
   Exp = (
     "1 2 6 8 4 5 7 3\n" +
     "1 3 7 5 4 8 6 2"

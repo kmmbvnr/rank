@@ -79,4 +79,4 @@ Er = Er / (Ok0 sum)
 Th = Qs / (1.0 - Qs)
 Tt = 1000.0 * Th + 6.0 * Th * Er
 Answer = Tt text ".8f"
-Answer print
+return Answer

@@ -62,4 +62,4 @@ fun Moves solve
 end
 
 Answer = Moves solve
-Answer print
+return Answer

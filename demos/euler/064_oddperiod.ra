@@ -32,4 +32,4 @@ for N in 2 to Limit
     Answer += 1
   end
 end
-Answer print
+return Answer

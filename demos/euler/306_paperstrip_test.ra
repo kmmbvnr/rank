@@ -1,17 +1,15 @@
 use testing
 
 test "published small ranges"
-  use "306_paperstrip"
-  Limit = 5
-  run
+  use "306_paperstrip" as solve
+  Answer = solve 5
 
   Answer equal 3
 end
 
 test "periodic range"
-  use "306_paperstrip"
-  Limit = 50
-  run
+  use "306_paperstrip" as solve
+  Answer = solve 50
 
   Answer equal 40
 end

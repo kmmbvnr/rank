@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "731_stoneham"
-  Start = 100
-  run
+  use "731_stoneham" as solve
+  Answer = solve 100
   Answer equal "4938271604"
-  Start = 100000000
-  run
+  Answer = solve 100000000
   Answer equal "2584642393"
 end
 
 test "default input"
-  use "731_stoneham"
-  run
+  use "731_stoneham" as solve
+  Answer = solve
   Answer equal "6086371427"
 end

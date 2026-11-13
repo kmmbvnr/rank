@@ -1,8 +1,8 @@
 use testing
 
 test "all eleven primes"
-  use "037_truncatableprimes"
-  run
+  use "037_truncatableprimes" as solve
+  Answer = solve
 
   Answer equal 748317
 end

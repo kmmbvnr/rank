@@ -29,4 +29,4 @@ B = U // G
 Tw = 2 (N - C - 1) Md powmod
 Answer = Tw * A mod Md * G mod Md
 Answer = Answer * B mod Md * B mod Md
-Answer print
+return Answer

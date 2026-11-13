@@ -43,4 +43,4 @@ end
 if Len not equal Last + 2
   Answer = (Answer - Extra) mod Mod
 end
-Answer print
+return Answer

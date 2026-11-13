@@ -71,4 +71,4 @@ for Lo in Small + 1 to Top by Blk
   Count += Sv equal 0 count
 end
 Answer = Count
-Answer print
+return Answer

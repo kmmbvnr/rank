@@ -89,4 +89,4 @@ for Lo in 1 to Top by Blk
   end
 end
 Answer = Count
-Answer print
+return Answer

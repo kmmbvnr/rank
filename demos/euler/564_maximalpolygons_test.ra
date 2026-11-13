@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "564_maximalpolygons"
-  K = 3
-  run
+  use "564_maximalpolygons" as solve
+  Answer = solve 3
   Answer equal 0.433013
-  K = 4
-  run
+  Answer = solve 4
   Answer equal 1.732051
-  K = 5
-  run
+  Answer = solve 5
   Answer equal 4.604767
-  K = 10
-  run
+  Answer = solve 10
   Answer equal 66.955511
 end

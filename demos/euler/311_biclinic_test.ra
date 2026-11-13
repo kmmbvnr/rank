@@ -1,36 +1,29 @@
 use testing
 
 test "empty search"
-  use "311_biclinic"
-  Limit = 0
-  run
+  use "311_biclinic" as solve
+  Answer = solve 0
 
   Answer equal 0
 end
 
 test "small block boundaries"
-  use "311_biclinic"
-  Limit = 10000
-  Block = 97
-  run
+  use "311_biclinic" as solve
+  Answer = solve 10000 97
 
   Answer equal 49
 end
 
 test "published ten thousand"
-  use "311_biclinic"
-  Limit = 10000
-  Block = 4000
-  run
+  use "311_biclinic" as solve
+  Answer = solve 10000 4000
 
   Answer equal 49
 end
 
 test "published million"
-  use "311_biclinic"
-  Limit = 1000000
-  Block = 400000
-  run
+  use "311_biclinic" as solve
+  Answer = solve 1000000 400000
 
   Answer equal 38239
 end

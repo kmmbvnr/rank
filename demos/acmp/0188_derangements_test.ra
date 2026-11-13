@@ -1,33 +1,29 @@
 use testing
 
 test "single guest"
-  use "0188_derangements"
-  N = 1
-  run
+  use "0188_derangements" as solve
+  Answer = solve 1
 
   Answer equal 0
 end
 
 test "two guests"
-  use "0188_derangements"
-  N = 2
-  run
+  use "0188_derangements" as solve
+  Answer = solve 2
 
   Answer equal 1
 end
 
 test "five guests"
-  use "0188_derangements"
-  N = 5
-  run
+  use "0188_derangements" as solve
+  Answer = solve 5
 
   Answer equal 44
 end
 
 test "twenty guests"
-  use "0188_derangements"
-  N = 20
-  run
+  use "0188_derangements" as solve
+  Answer = solve 20
 
   Answer equal 895014631192902121
 end

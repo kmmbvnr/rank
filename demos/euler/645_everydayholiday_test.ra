@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "645_everydayholiday"
-  run
+  use "645_everydayholiday" as solve
+  Answer = solve
   Answer equal "48894.2174"
 end
 
 test "statement values"
-  use "645_everydayholiday"
-  D = 2
-  run
+  use "645_everydayholiday" as solve
+  Answer = solve 2
   Answer equal "1.0000"
-  D = 5
-  run
+  Answer = solve 5
   Answer equal "5.1667"
-  D = 365
-  run
+  Answer = solve 365
   Answer equal "1174.3501"
 end

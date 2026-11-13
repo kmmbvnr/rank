@@ -27,4 +27,4 @@ if Limit greater 100
   Pos' = (Rest - 100) mod 34 + 100
   Answer += (G Pos not equal 0) count
 end
-Answer print
+return Answer

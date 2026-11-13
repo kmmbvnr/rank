@@ -1,29 +1,23 @@
 use testing
 
 test "small bounds against brute force"
-  use "432_totientsum"
-  N = 1
-  run
+  use "432_totientsum" as solve
+  Answer = solve 1
   Answer equal 92160
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 5068800
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 528791040
 end
 
 test "short table uses the recursion"
-  use "432_totientsum"
-  N = 1000000
-  L = 1000
-  run
+  use "432_totientsum" as solve
+  Answer = solve 1000000 1000
   Answer equal 821125120
 end
 
 test "empty sum"
-  use "432_totientsum"
-  N = 0
-  run
+  use "432_totientsum" as solve
+  Answer = solve 0
   Answer equal 0
 end

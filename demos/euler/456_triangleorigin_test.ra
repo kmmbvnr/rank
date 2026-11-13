@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "456_triangleorigin"
-  N = 8
-  run
+  use "456_triangleorigin" as solve
+  Answer = solve 8
   Answer equal 20
-  N = 600
-  run
+  Answer = solve 600
   Answer equal 8950634
 end
 
 test "forty thousand points"
-  use "456_triangleorigin"
-  N = 40000
-  run
+  use "456_triangleorigin" as solve
+  Answer = solve 40000
   Answer equal 2666610948988
 end

@@ -51,4 +51,4 @@ Answer = DPMax N
 if DPrev greater 0
   Answer -= DPPrev N
 end
-Answer print
+return Answer

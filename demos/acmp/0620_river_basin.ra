@@ -232,4 +232,4 @@ for R in 0 to (N - 1)
 end
 
 Ans = MaxArea format_2
-Ans print
+return Ans

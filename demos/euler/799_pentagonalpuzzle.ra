@@ -57,7 +57,6 @@ Counts = Nums pair_count rank 0
 Found = Nums (Counts greater Least)
 First = Found min
 Answer = First * (3 * First - 1) // 2
-Answer print
 
 
 rem Each Gaussian factor chooses a prime
@@ -134,3 +133,4 @@ fun N representations
   FlatImag = Imags reshape Size
   return tuple FlatReal FlatImag
 end
+return Answer

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "144_laser"
-  run
+  use "144_laser" as solve
+  Answer = solve
 
   Answer equal 354
 end
 
 test "wider gap leaves sooner"
-  use "144_laser"
-  Gap = 0.5
-  run
+  use "144_laser" as solve
+  Answer = solve 0.5
 
   Answer less 354
 end

@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "478_mixtures"
-  N = 1
-  run
+  use "478_mixtures" as solve
+  Answer = solve 1
   Answer equal 103
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 520447
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 82608406
 end
 
 test "n = 500"
-  use "478_mixtures"
-  N = 500
-  run
+  use "478_mixtures" as solve
+  Answer = solve 500
   Answer equal 13801403
 end

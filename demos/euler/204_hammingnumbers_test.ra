@@ -1,21 +1,18 @@
 use testing
 
 test "default input"
-  use "204_hammingnumbers"
-  run
+  use "204_hammingnumbers" as solve
+  Answer = solve
 
   Answer equal 2944730
 end
 
 test "Hamming numbers"
-  use "204_hammingnumbers"
-  Limit = 100000000
-  Max = 5
-  run
+  use "204_hammingnumbers" as solve
+  Answer = solve 100000000 5
 
   Answer equal 1105
-  Max = 100
-  run
+  Answer = solve 100000000 100
 
   Answer equal 924573
 end

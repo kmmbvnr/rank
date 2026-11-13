@@ -1,30 +1,24 @@
 use testing
 
 test "default input"
-  use "256_tatamifree"
-  run
+  use "256_tatamifree" as solve
+  Answer = solve
 
   Answer equal 85765680
 end
 
 test "every even area"
-  use "256_tatamifree"
-  Start = 2
-  Step = 2
-  Target = 1
-  run
+  use "256_tatamifree" as solve
+  Answer = solve 1 2 2
 
   Answer equal 70
-  Target = 2
-  run
+  Answer = solve 2 2 2
 
   Answer equal 198
-  Target = 5
-  run
+  Answer = solve 5 2 2
 
   Answer equal 1320
-  Target = 7
-  run
+  Answer = solve 7 2 2
 
   Answer equal 3696
 end

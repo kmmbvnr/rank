@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter } from '../src/index.js';
+import { withoutReturn } from './support.js';
 const source = readFileSync(new URL('../../../demos/euler/589_poohsticks.ra', import.meta.url), 'utf8');
 const original = readFileSync(new URL('../../../benchmarks/fixtures/euler589-original.ra', import.meta.url), 'utf8');
 function run(text: string, k: number, d: number, compilation: boolean) {
@@ -16,7 +17,7 @@ describe.each([true, false])('Euler 589 (compilation=%s)', compilation => {
     it('matches the statement expectation for m=60, n=30', () => {
         const runtime = new Interpreter(() => {}, { compilation, args: ['--k=1'] });
         try {
-            runtime.execute(source + '\nSample = (60 expectation 30) round 2');
+            runtime.execute(withoutReturn(source) + '\nSample = (60 expectation 30) round 2');
             expect(runtime.variables.get('Sample')).toBe(1036.15);
         } finally { runtime.dispose(); }
     });

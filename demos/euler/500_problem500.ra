@@ -39,4 +39,4 @@ for Pw len greater 1
   Pw = Ph * Pw (Hh till 2 * Hh) mod Md
 end
 Answer = Pw 0
-Answer print
+return Answer

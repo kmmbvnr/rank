@@ -77,4 +77,4 @@ for Step in 2 to Length
   Added = Values Targets sum
   Answer = (Answer + Added) mod Modulus
 end
-Answer print
+return Answer

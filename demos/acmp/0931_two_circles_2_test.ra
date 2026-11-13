@@ -4,9 +4,9 @@ use testing
 use text
 
 test "ACMP 931: Sample 1 (7 points)"
-  use "0931_two_circles_2"
+  use "0931_two_circles_2" as solve
   use text
-  Input = "7
+  Result = solve "7
 1 -1
 0 0
 1 1
@@ -14,43 +14,40 @@ test "ACMP 931: Sample 1 (7 points)"
 3 -1
 2 0
 4 0"
-  run
 
   Lines = Result split "\n"
   (Lines len) equal 2
 end
 
 test "ACMP 931: Sample 2 (5 points)"
-  use "0931_two_circles_2"
+  use "0931_two_circles_2" as solve
   use text
-  Input = "5
+  Result = solve "5
 -1000000 0
 0 1000000
 1000000 0
 0 -1000000
 0 0"
-  run
 
   Lines = Result split "\n"
   (Lines len) equal 2
 end
 
 test "ACMP 931: Minimal N=2"
-  use "0931_two_circles_2"
+  use "0931_two_circles_2" as solve
   use text
-  Input = "2
+  Result = solve "2
 0 0
 1 1"
-  run
 
   Lines = Result split "\n"
   (Lines len) equal 2
 end
 
 test "ACMP 931: Default 110 points"
-  use "0931_two_circles_2"
+  use "0931_two_circles_2" as solve
   use text
-  run
+  Result = solve
 
   Lines = Result split "\n"
   (Lines len) equal 2

@@ -1,28 +1,25 @@
 use testing
 
 test "first power of thirteen"
-  use "377_digitexperience"
-  Terms = 1
-  run
+  use "377_digitexperience" as solve
+  Answer = solve 1
   Answer equal 856884757
 end
 
 test "empty sum"
-  use "377_digitexperience"
-  Terms = 0
-  run
+  use "377_digitexperience" as solve
+  Answer = solve 0
   Answer equal 0
 end
 
 test "successive matrix powers"
-  use "377_digitexperience"
-  Terms = 2
-  run
+  use "377_digitexperience" as solve
+  Answer = solve 2
   Answer equal 915796046
 end
 
 test "full digit-sum total"
-  use "377_digitexperience"
-  run
+  use "377_digitexperience" as solve
+  Answer = solve
   Answer equal 732385277
 end

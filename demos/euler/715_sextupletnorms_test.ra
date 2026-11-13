@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "715_sextupletnorms"
-  Limit = 10
-  run
+  use "715_sextupletnorms" as solve
+  Answer = solve 10
   Answer equal 3053
-  Limit = 100000
-  run
+  Answer = solve 100000
   Answer equal 157612967
 end

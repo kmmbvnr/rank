@@ -24,4 +24,8 @@ for Nx not equal X any
   Nx = Ns X Md powmod
 end
 Answer = X sum
-Answer print
+return record
+  .answer = Answer
+  .ns = Ns
+  .x = X
+end

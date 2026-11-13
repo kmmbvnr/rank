@@ -52,4 +52,8 @@ for Val len greater 0
   Step += 1
 end
 Answer = Cnt first index where equal Num
-Answer print
+return record
+  .answer = Answer
+  .cnt = Cnt
+  .tot = Tot
+end

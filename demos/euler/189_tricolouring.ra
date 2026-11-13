@@ -46,4 +46,4 @@ for Row in 2 to Rows
   V = W
 end
 Answer = V sum
-Answer print
+return Answer

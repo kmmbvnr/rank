@@ -50,4 +50,4 @@ for J in 1 to Nn // (Rt + 1)
 end
 Rr = Rr scan * mod P
 Answer = (Rr (2 to Nn)) sum mod P
-Answer print
+return Answer

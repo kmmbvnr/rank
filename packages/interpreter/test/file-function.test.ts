@@ -98,10 +98,11 @@ describe.each([false, true])('files as functions (compilation=%s)', compilation 
         expect(call('use "helpers.ra" as h\nh')).toBe('7');
     });
 
-    it('needs a lowercase name for a file that returns a value', () => {
-        expect(call('use "001_multiples.ra"')).toContain('import it under a lowercase name');
+    it('is callable only under a lowercase name, and is otherwise a plain module', () => {
         expect(call('use "001_multiples.ra" as first\nfirst')).toBe('1');
-        expect(call('use "multiples.ra" as Multiples')).toContain('import it under a lowercase name');
+        expect(call('use "001_multiples.ra"\n1')).toBe('1');
+        expect(call('use "001_multiples.ra"\nfirst')).toContain('unknown name: first');
+        expect(call('use "helpers.ra"\n3 twice')).toBe('6');
     });
 
     it('leaves a file without a return as an ordinary module', () => {

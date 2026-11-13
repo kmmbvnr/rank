@@ -4,28 +4,28 @@ use testing
 use numbers
 
 test "ACMP 998: Sample 1"
-  use "0998_bike_paths"
-  Input = "20 5
+  use "0998_bike_paths" as solve
+  use numbers
+  Result = solve "20 5
 5 0 5 20
 2 1"
-  run
 
   (Result - 16.575734) abs less 0.0001
 end
 
 test "ACMP 998: Sample 2"
-  use "0998_bike_paths"
-  Input = "20 5
+  use "0998_bike_paths" as solve
+  use numbers
+  Result = solve "20 5
 -5 0 5 20
 2 1"
-  run
 
   (Result - 17.204052) abs less 0.0001
 end
 
 test "ACMP 998: Default input"
-  use "0998_bike_paths"
-  run
+  use "0998_bike_paths" as solve
+  Result = solve
 
   Result greater 0.0
 end

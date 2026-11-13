@@ -62,4 +62,4 @@ for Nn in 1 to N
   Answer = (Answer + Ec) mod Md
   Tm = (Tm G1 + Dl + Tm G2) mod Md
 end
-Answer print
+return Answer

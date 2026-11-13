@@ -74,4 +74,4 @@ fun solve_numbers_4 Input
 end
 
 Result = solve_numbers_4 Input
-Result print
+return Result

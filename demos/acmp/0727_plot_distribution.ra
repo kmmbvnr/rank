@@ -51,4 +51,10 @@ for P in Order
 end
 
 Answer = (Assign + 1) join " "
-Answer print
+return record
+  .assign = Assign
+  .n = N
+  .taken = Taken
+  .vals = Vals
+  .answer = Answer
+end

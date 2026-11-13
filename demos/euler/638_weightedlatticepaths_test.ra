@@ -1,34 +1,21 @@
 use testing
 
 test "default input"
-  use "638_weightedlatticepaths"
-  run
+  use "638_weightedlatticepaths" as solve
+  Answer = solve
   Answer equal 18423394
 end
 
 test "statement values"
-  use "638_weightedlatticepaths"
-  A = 2
-  B = 2
-  K = 1
-  run
+  use "638_weightedlatticepaths" as solve
+  Answer = solve 2 2 1
   Answer equal 6
-  K = 2
-  run
+  Answer = solve 2 2 2
   Answer equal 35
-  A = 10
-  B = 10
-  K = 1
-  run
+  Answer = solve 10 10 1
   Answer equal 184756
-  A = 15
-  B = 10
-  K = 3
-  run
+  Answer = solve 15 10 3
   Answer equal 880419838
-  A = 10000
-  B = 10000
-  K = 4
-  run
+  Answer = solve 10000 10000 4
   Answer equal 395913804
 end

@@ -2,10 +2,11 @@ use numbers
 use testing
 
 test "statement value"
-  use "783_urns"
-  Turns = 2
-  Blacks = 2
-  run
+  use "783_urns" as solve
+  use numbers
+  Out = solve 2 2
+  Answer = Out .answer
+  Mass = Out .mass
   Close = Mass round 6
   Close equal 9.6
   Answer equal 10

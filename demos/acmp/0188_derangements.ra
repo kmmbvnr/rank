@@ -22,4 +22,4 @@ else
   Answer = D N
 end
 
-Answer print
+return Answer

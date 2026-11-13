@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "163_crosshatched"
-  run
+  use "163_crosshatched" as solve
+  Answer = solve
 
   Answer equal 343047
 end
 
 test "statement values"
-  use "163_crosshatched"
-  Size = 1
-  run
+  use "163_crosshatched" as solve
+  Answer = solve 1
 
   Answer equal 16
-  Size = 2
-  run
+  Answer = solve 2
 
   Answer equal 104
 end

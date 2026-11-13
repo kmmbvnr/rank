@@ -114,4 +114,4 @@ if not (M greater N)
   end
 end
 
-Matches text print
+return Matches

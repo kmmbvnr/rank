@@ -1236,7 +1236,8 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             diagnostics.run(() => runtime.execute(windows));
-            expect(output).toEqual(['1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9', '1 5 9', '3 5 7']);
+            expect(output).toEqual(['1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9',
+                '{.anti = 3 5 7, .blocks = 1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9, .main = 1 5 9}']);
             const blocks = runtime.variables.get('Blocks')!;
             expect(isRankPlan(blocks)).toBe(true);
             const before = diagnostics.cellsComputed;

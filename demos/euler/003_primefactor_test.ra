@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "003_primefactor"
-  run
+  use "003_primefactor" as solve
+  N = solve
 
   N equal 6857
 end
 
 test "workspace input"
-  use "003_primefactor"
-  N = 13195
-  run
+  use "003_primefactor" as solve
+  N = solve 13195
 
   N equal 29
 end

@@ -71,4 +71,4 @@ for K in 0 till M
 end
 
 Out = Ans join " "
-Out print
+return Out

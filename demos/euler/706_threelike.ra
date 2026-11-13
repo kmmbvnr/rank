@@ -58,4 +58,4 @@ for Place in 1 to Digits
   Current = Sum2 mod Prime
 end
 Answer = Current (0 to 80) sum mod Prime
-Answer print
+return Answer

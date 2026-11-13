@@ -42,4 +42,4 @@ for Step in 1 to Len
   Next' = Has choose Both 0
   Cnt = Next reshape 10240
 end
-Answer print
+return Answer

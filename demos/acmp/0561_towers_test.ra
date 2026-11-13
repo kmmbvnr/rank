@@ -2,8 +2,8 @@ rem ACMP 0561: Towers tests
 use testing
 
 test "ACMP 561: Sample (10 towers)"
-  use "0561_towers"
-  Input = "10
+  use "0561_towers" as solve
+  Result = solve "10
 4 2 2 2 2 2
 1 2 2
 1 3 2
@@ -14,53 +14,48 @@ test "ACMP 561: Sample (10 towers)"
 3 3 3 3 3
 3 3 2 2 3
 3 4 2 2 3"
-  run
   Exp = "2 4 3 6 7 5 9 10 1 8"
   Result equal Exp
 end
 
 test "ACMP 561: Towers with 1s"
-  use "0561_towers"
-  Input = "4
+  use "0561_towers" as solve
+  Result = solve "4
 2 1 99 99
 2 5 1 99
 1 2 2
 3 2 3 1 99"
-  run
   Exp = "1 3 2 4"
   Result equal Exp
 end
 
 test "ACMP 561: Tall towers k=9"
-  use "0561_towers"
-  Input = "3
+  use "0561_towers" as solve
+  Result = solve "3
 9 2 2 2 2 2 2 2 2 2 2
 9 2 2 2 2 2 2 2 2 2 3
 6 99 99 99 99 99 99 99"
-  run
   Exp = "3 1 2"
   Result equal Exp
 end
 
 test "ACMP 561: Equal height comparison"
-  use "0561_towers"
-  Input = "3
+  use "0561_towers" as solve
+  Result = solve "3
 2 2 3 4
 2 3 2 4
 2 4 3 2"
-  run
   Exp = "3 2 1"
   Result equal Exp
 end
 
 test "ACMP 561: Close large towers"
-  use "0561_towers"
-  Input = "4
+  use "0561_towers" as solve
+  Result = solve "4
 3 2 2 2 3
 2 2 4 5
 2 3 3 2
 2 2 3 2"
-  run
   Exp = "4 3 1 2"
   Result equal Exp
 end

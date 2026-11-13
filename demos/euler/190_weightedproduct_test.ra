@@ -1,15 +1,17 @@
 use testing
 
 test "default input"
-  use "190_weightedproduct"
-  run
+  use "190_weightedproduct" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 371048281
 end
 
 test "statement value for ten"
-  use "190_weightedproduct"
-  run
+  use "190_weightedproduct" as solve
+  Out = solve
+  Best = Out .best
 
   Best 8 equal 4112
 end

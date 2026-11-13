@@ -118,4 +118,4 @@ C1 = Cn 1 text
 C2 = Cn 2 text
 Parts = array C0 C1 C2
 Answer = Parts join ","
-Answer print
+return Answer

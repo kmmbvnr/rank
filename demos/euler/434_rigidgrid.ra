@@ -46,4 +46,7 @@ Weights = Fact reshape 1 Width
 Rg = Connected * Weights mod Mod
 Selected = Rg (1 to N) (1 to N)
 Answer = Selected sum mod Mod
-Answer print
+return record
+  .answer = Answer
+  .rg = Rg
+end

@@ -1,28 +1,25 @@
 use testing
 
 test "default input"
-  use "119_digitpowersum"
-  run
+  use "119_digitpowersum" as solve
+  Answer = solve
 
   Answer equal 248155780267521
 end
 
 test "statement terms"
-  use "119_digitpowersum"
-  Nth = 2
-  run
+  use "119_digitpowersum" as solve
+  Answer = solve 2
 
   Answer equal 512
-  Nth = 10
-  run
+  Answer = solve 10
 
   Answer equal 614656
 end
 
 test "first term"
-  use "119_digitpowersum"
-  Nth = 1
-  run
+  use "119_digitpowersum" as solve
+  Answer = solve 1
 
   Answer equal 81
 end

@@ -9,7 +9,7 @@ use io
 
 Digits = "123456789"
 Answer = Digits pandigital_products
-Answer print
+return Answer
 
 
 rem Search the only possible one-by-four and

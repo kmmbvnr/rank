@@ -178,4 +178,4 @@ for Ai in 0 till N
   end
 end
 Answer = Best / 2
-Answer print
+return Answer

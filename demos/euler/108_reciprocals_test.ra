@@ -1,32 +1,28 @@
 use testing
 
 test "default input"
-  use "108_reciprocals"
-  run
+  use "108_reciprocals" as solve
+  Answer = solve
 
   Answer equal 180180
 end
 
 test "small targets"
-  use "108_reciprocals"
-  Target = 3
-  run
+  use "108_reciprocals" as solve
+  Answer = solve 3
 
   Answer equal 6
-  Target = 10
-  run
+  Answer = solve 10
 
   Answer equal 24
-  Target = 100
-  run
+  Answer = solve 100
 
   Answer equal 1260
 end
 
 test "least targets"
-  use "108_reciprocals"
-  Target = 1
-  run
+  use "108_reciprocals" as solve
+  Answer = solve 1
 
   Answer equal 2
 end

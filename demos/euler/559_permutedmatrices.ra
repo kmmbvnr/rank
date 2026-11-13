@@ -95,4 +95,4 @@ Total = Total mod Mod
 Factor = Factorials N
 Scale = Factor N Mod powmod
 Answer = Total * Scale mod Mod
-Answer print
+return Answer

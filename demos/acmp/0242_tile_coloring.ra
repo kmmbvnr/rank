@@ -143,4 +143,4 @@ if BestL less 1000000000
   Answer = OutL + " " + OutC
 end
 
-Answer print
+return Answer

@@ -1,7 +1,7 @@
 use testing
 
 test "full box-ball system"
-  use "426_boxball"
-  run
+  use "426_boxball" as solve
+  Answer = solve
   Answer equal 31591886008
 end

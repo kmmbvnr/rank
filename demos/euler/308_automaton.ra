@@ -46,7 +46,7 @@ for N in 2 to Top
   C = 5 * N + M + 2 * (N // M) + 2
   Start += A + B + C
 end
-Answer print
+return Answer
 
 fun N Lo Hi floors
   if Lo greater Hi or Hi equal 0

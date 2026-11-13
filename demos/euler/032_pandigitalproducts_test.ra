@@ -1,8 +1,8 @@
 use testing
 
 test "all distinct products"
-  use "032_pandigitalproducts"
-  run
+  use "032_pandigitalproducts" as solve
+  Answer = solve
 
   Answer equal 45228
 end

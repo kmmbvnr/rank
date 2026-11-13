@@ -87,4 +87,4 @@ for Pos in RevN1
 end
 
 Answer = DP 0 0
-Answer print
+return Answer

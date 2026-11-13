@@ -111,4 +111,4 @@ for Exponent in 2 to 52 by 2
 end
 Unique = Found unique
 Answer = Unique sum
-Answer print
+return Answer

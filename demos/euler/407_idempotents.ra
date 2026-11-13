@@ -45,7 +45,7 @@ for U in 2 to Root
     Answer += Current - Next sum
   end
 end
-Answer print
+return Answer
 
 rem phi(n) = n / rad(n) * prod(p - 1).
 fun Bound totients

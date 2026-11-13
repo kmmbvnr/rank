@@ -1,27 +1,23 @@
 use testing
 
 test "statement value"
-  use "625_gcdsum"
-  N = 10
-  run
+  use "625_gcdsum" as solve
+  Answer = solve 10
   Answer equal 122
 end
 
 test "brute force"
-  use "625_gcdsum"
-  N = 1000
-  run
+  use "625_gcdsum" as solve
+  Answer = solve 1000
   Answer equal 2475190
-  N = 100000
-  run
+  Answer = solve 100000
   Answer equal 783912038
-  N = 1234567
-  run
+  Answer = solve 1234567
   Answer equal 873839733
 end
 
 test "default input"
-  use "625_gcdsum"
-  run
+  use "625_gcdsum" as solve
+  Answer = solve
   Answer equal 551614306
 end

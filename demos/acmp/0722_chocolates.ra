@@ -32,4 +32,4 @@ FN = F (N + 1)
 FM = F (M + 1)
 Combinations = (2 * FN) + (2 * FM) - 2
 
-Combinations text print
+return Combinations

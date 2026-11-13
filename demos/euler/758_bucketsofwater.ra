@@ -63,4 +63,4 @@ for Round in 1 to 90
 end
 Moves = 2 * (Last - 1) mod Prime
 Answer = Moves sum mod Prime
-Answer print
+return Answer

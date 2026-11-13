@@ -135,4 +135,4 @@ end
 Sr = (Bb reverse) scan max
 Sf = Sr reverse
 Answer = (Sf (1 to Nn + 1)) sum
-Answer print
+return Answer

@@ -7,7 +7,7 @@ use sequences
 use io
 
 Answer = 9 goldbach_counterexample
-Answer print
+return Answer
 
 
 rem Visit odd composites until one has no

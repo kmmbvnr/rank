@@ -38,4 +38,4 @@ for M in 1 to (Pr len - 1)
     break
   end
 end
-Answer print
+return Answer

@@ -695,7 +695,8 @@ it('infers a fresh local index read from earlier iterations on an early-return p
     expect(examples).toHaveLength(2);
     expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
         .toEqual([['integer'], ['integer']]);
-    expect(messages(source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*cycle_length\b/))
+    // The program's closing `return` would end it before the appended lines.
+    expect(messages(source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*cycle_length\b/)).replace(/\nreturn [^\n]*\n?$/, '\n')
         + '\nR = 7 cycle_length\nR + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nfun X lookup\n Cache = new index\n'

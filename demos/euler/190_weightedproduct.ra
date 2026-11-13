@@ -23,4 +23,7 @@ Num' = Terms reduce * axis 1
 Den' = (M + 1) ** (M * (M + 1) // 2)
 Best' = Num // (Den reshape Rows)
 Answer = Best sum
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+end

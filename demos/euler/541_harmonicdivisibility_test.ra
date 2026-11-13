@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "541_harmonicdivisibility"
-  P = 7
-  run
+  use "541_harmonicdivisibility" as solve
+  Answer = solve 7
   Answer equal 719102
 end

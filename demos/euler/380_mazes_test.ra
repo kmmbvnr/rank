@@ -1,13 +1,9 @@
 use testing
 
 test "grid spanning trees"
-  use "380_mazes"
-  Rows = 2
-  Cols = 2
-  run
+  use "380_mazes" as solve
+  Answer = solve 2 2
   Answer equal "4.0000e0"
-  Rows = 9
-  Cols = 12
-  run
+  Answer = solve 9 12
   Answer equal "2.5720e46"
 end

@@ -14,4 +14,4 @@ Factorial = 1 to N reduce *
 Digits = Factorial text
 Values' = Digits integer rank 0
 Answer = Values sum
-Answer print
+return Answer

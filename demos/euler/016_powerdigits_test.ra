@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "016_powerdigits"
-  run
+  use "016_powerdigits" as solve
+  Answer = solve
 
   Answer equal 1366
 end
 
 test "official small power"
-  use "016_powerdigits"
-  Exponent = 15
-  run
+  use "016_powerdigits" as solve
+  Answer = solve 15
 
   Answer equal 26
 end
 
 test "zero exponent"
-  use "016_powerdigits"
-  Exponent = 0
-  run
+  use "016_powerdigits" as solve
+  Answer = solve 0
 
   Answer equal 1
 end

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "244_slidingblock"
-  run
+  use "244_slidingblock" as solve
+  Answer = solve
 
   Answer equal 96356848
 end
 
 test "another modulus"
-  use "244_slidingblock"
-  Mod = 1000003
-  run
+  use "244_slidingblock" as solve
+  Answer = solve 1000003
 
   Answer equal 511034
 end

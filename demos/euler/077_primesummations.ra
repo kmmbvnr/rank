@@ -33,4 +33,7 @@ end
 Ways = Ways (Limit to 0 by -1) copy
 Over' = Ways greater Target
 Answer = Ways first index where Over
-Answer print
+return record
+  .answer = Answer
+  .ways = Ways
+end

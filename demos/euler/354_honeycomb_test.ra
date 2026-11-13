@@ -1,11 +1,9 @@
 use testing
 
 test "small honeycombs"
-  use "354_honeycomb"
-  Limit = 1000000
-  run
+  use "354_honeycomb" as solve
+  Answer = solve 1000000
   Answer equal 18
-  Limit = 10000000
-  run
+  Answer = solve 10000000
   Answer equal 597
 end

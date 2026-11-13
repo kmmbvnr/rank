@@ -11,7 +11,7 @@ use cli
 arg Count integer = 4
 
 Answer = Count distinct_factor_run
-Answer print
+return Answer
 
 
 rem Extend or reset the consecutive run after

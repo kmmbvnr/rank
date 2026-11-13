@@ -1,30 +1,23 @@
 use testing
 
 test "statement values"
-  use "664_infinitegame"
-  Nn = 0
-  run
+  use "664_infinitegame" as solve
+  Answer = solve 0
   Answer equal 4
-  Nn = 1
-  run
+  Answer = solve 1
   Answer equal 6
-  Nn = 2
-  run
+  Answer = solve 2
   Answer equal 9
-  Nn = 3
-  run
+  Answer = solve 3
   Answer equal 13
-  Nn = 11
-  run
+  Answer = solve 11
   Answer equal 58
-  Nn = 123
-  run
+  Answer = solve 123
   Answer equal 1173
 end
 
 test "default input"
-  use "664_infinitegame"
-  Nn = 1234567
-  run
+  use "664_infinitegame" as solve
+  Answer = solve 1234567
   Answer equal 35295862
 end

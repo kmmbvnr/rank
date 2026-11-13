@@ -32,4 +32,4 @@ Answer = 0
 if N less (Result len)
   Answer = Result N
 end
-Answer print
+return Answer

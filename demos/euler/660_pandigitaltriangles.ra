@@ -109,4 +109,4 @@ for Bs in Lo to Hi
     Answer += Cv Sl sum
   end
 end
-Answer print
+return Answer

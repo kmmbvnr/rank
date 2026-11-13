@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "471_ellipsetriangle"
-  N = 10
-  run
+  use "471_ellipsetriangle" as solve
+  Answer = solve 10
   Answer equal "2.059722222e1"
-  N = 100
-  run
+  Answer = solve 100
   Answer equal "1.922360980e4"
 end
 
 test "n = 3 x 10^6 uses Euler-Maclaurin"
-  use "471_ellipsetriangle"
-  N = 3000000
-  run
+  use "471_ellipsetriangle" as solve
+  Answer = solve 3000000
   Answer equal "5.116756308e17"
 end

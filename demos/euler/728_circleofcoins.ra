@@ -42,4 +42,4 @@ Reduced = Coeff mod Prime
 Terms = Reduced * Geometric mod Prime
 Total = Terms sum
 Answer = (2 * Limit + Total) mod Prime
-Answer print
+return Answer

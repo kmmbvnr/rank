@@ -61,4 +61,4 @@ for E greater 0
   E //= 2
 end
 Answer = R ((0 - N) mod K)
-Answer print
+return Answer

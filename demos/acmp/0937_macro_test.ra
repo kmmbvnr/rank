@@ -3,14 +3,13 @@ rem Tests for ACMP 0937: Macro
 use testing
 
 test "ACMP 937: Sample 1"
-  use "0937_macro"
-  Input = "5
+  use "0937_macro" as solve
+  Result = solve "5
 ##a 
 #a {a}##a 
 #b {##a  #a {b}##a #c {##a } ##c }
 ##b ##c 
 ##a "
-  run
 
   Result equal "
 a
@@ -20,13 +19,12 @@ a"
 end
 
 test "ACMP 937: Sample 2"
-  use "0937_macro"
-  Input = "4
+  use "0937_macro" as solve
+  Result = solve "4
 #a {#b {#c {a}##c }##b }##a 
 #e {#b {#c {b}##c }##b }##e 
 #f {#b {#c {c}##c }##b }##f 
 ##a ##e ##f ##b ##c "
-  run
 
   Result equal "a
 b
@@ -35,13 +33,12 @@ abc"
 end
 
 test "ACMP 937: Test 4 (Rep cycles)"
-  use "0937_macro"
-  Input = "4
+  use "0937_macro" as solve
+  Result = solve "4
 #a {#b {b}}
 #rep 5 {##b c}
 #rep 5 {##b #b {bb}##b cd}
 #rep 3 {rep 2 {b}#rep 3 {c}}"
-  run
 
   Exp = "
 ccccc
@@ -51,8 +48,8 @@ rep 2 {b}cccrep 2 {b}cccrep 2 {b}ccc"
 end
 
 test "ACMP 937: Default input"
-  use "0937_macro"
-  run
+  use "0937_macro" as solve
+  Result = solve
 
   (Result len) greater 0
 end

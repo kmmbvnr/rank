@@ -2,41 +2,41 @@ use testing
 use numbers
 
 test "sample 1: ant detours around tree"
-  use "0479_ant_and_tree"
-  Input = "0 0 4 4 2 2 1"
-  run
+  use "0479_ant_and_tree" as solve
+  use numbers
+  Answer = solve "0 0 4 4 2 2 1"
 
   (Answer - 6.014 abs) less 0.001
 end
 
 test "straight unobstructed path"
-  use "0479_ant_and_tree"
-  Input = "0 0 4 0 2 2 1"
-  run
+  use "0479_ant_and_tree" as solve
+  use numbers
+  Answer = solve "0 0 4 0 2 2 1"
 
   (Answer - 4.0 abs) less 0.001
 end
 
 test "tangent segment does not detour"
-  use "0479_ant_and_tree"
-  Input = "0 1 4 1 2 0 1"
-  run
+  use "0479_ant_and_tree" as solve
+  use numbers
+  Answer = solve "0 1 4 1 2 0 1"
 
   (Answer - 4.0 abs) less 0.001
 end
 
 test "same start and destination"
-  use "0479_ant_and_tree"
-  Input = "5 5 5 5 10 10 2"
-  run
+  use "0479_ant_and_tree" as solve
+  use numbers
+  Answer = solve "5 5 5 5 10 10 2"
 
   (Answer - 0.0 abs) less 0.001
 end
 
 test "scaled symmetrical detour"
-  use "0479_ant_and_tree"
-  Input = "100 100 900 900 500 500 200"
-  run
+  use "0479_ant_and_tree" as solve
+  use numbers
+  Answer = solve "100 100 900 900 500 500 200"
 
   (Answer - 1202.848 abs) less 0.001
 end

@@ -203,4 +203,4 @@ Nm = (Nn - 1) mod P
 Ts0 = Ts 0
 Fs = (Tn + Nm * Ts0) mod P
 Answer = Fs * Ik mod P
-Answer print
+return Answer

@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "001_multiples"
-  run
+  use "001_multiples" as solve
+  Answer = solve
 
   Answer equal 233168
 end
 
 test "workspace input"
-  use "001_multiples"
-  Limit = 10
-  run
+  use "001_multiples" as solve
+  Answer = solve 10
 
   Answer equal 23
 end

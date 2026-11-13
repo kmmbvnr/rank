@@ -1,23 +1,19 @@
 use testing
 
 test "statement values"
-  use "652_protologarithm"
-  N = 5
-  run
+  use "652_protologarithm" as solve
+  Answer = solve 5
   Answer equal 13
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 69
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 9607
-  N = 10000
-  run
+  Answer = solve 10000
   Answer equal 99959605
 end
 
 test "default input"
-  use "652_protologarithm"
-  run
+  use "652_protologarithm" as solve
+  Answer = solve
   Answer equal 983924497
 end

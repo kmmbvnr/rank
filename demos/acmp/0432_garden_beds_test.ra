@@ -1,41 +1,37 @@
 use testing
 
 test "sample 1: 5x10 grid with 3 beds"
-  use "0432_garden_beds"
-  Input = "5 10
+  use "0432_garden_beds" as solve
+  Answer = solve "5 10
 ##......#.
 .#..#...#.
 .###....#.
 ..##....#.
 ........#."
-  run
 
   Answer equal 3
 end
 
 test "sample 2: 5x10 grid with 5 beds"
-  use "0432_garden_beds"
+  use "0432_garden_beds" as solve
   I1 = "5 10\n##..#####.\n.#.#.#....\n"
   I2 = "###..##.#.\n..##.....#\n"
   I3 = ".###.#####"
-  Input = I1 + I2 + I3
-  run
+  Answer = solve (I1 + I2 + I3)
 
   Answer equal 5
 end
 
 test "no beds"
-  use "0432_garden_beds"
-  Input = "2 2\n..\n.."
-  run
+  use "0432_garden_beds" as solve
+  Answer = solve "2 2\n..\n.."
 
   Answer equal 0
 end
 
 test "diagonal beds touching at corner"
-  use "0432_garden_beds"
-  Input = "2 2\n#.\n.#"
-  run
+  use "0432_garden_beds" as solve
+  Answer = solve "2 2\n#.\n.#"
 
   Answer equal 2
 end

@@ -28,4 +28,4 @@ Total' = All reduce *
 Wins' = Ways filter Win array
 Sum' = Wins sum
 Answer = Total // Sum
-Answer print
+return Answer

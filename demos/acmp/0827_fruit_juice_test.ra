@@ -3,63 +3,58 @@ rem Tests for ACMP 0827 Fruit Juice
 use testing
 
 test "default 12 juices 3 chains"
-  use "0827_fruit_juice"
-  run
+  use "0827_fruit_juice" as solve
+  Ans = solve
 
   Ans equal 6
 end
 
 test "sample 1: 4 juices -> 2 washes"
-  use "0827_fruit_juice"
-  Input = "4
+  use "0827_fruit_juice" as solve
+  Ans = solve "4
 1 Apple
 2 Apple Orange
 1 Orange
 2 Orange Pineapple"
-  run
 
   Ans equal 2
 end
 
 test "sample 2: 3 disjoint juices -> 3"
-  use "0827_fruit_juice"
-  Input = "3
+  use "0827_fruit_juice" as solve
+  Ans = solve "3
 1 Apple
 1 Orange
 1 Mango"
-  run
 
   Ans equal 3
 end
 
 test "single juice -> 1 wash"
-  use "0827_fruit_juice"
-  Input = "1
+  use "0827_fruit_juice" as solve
+  Ans = solve "1
 3 Apple Orange Mango"
-  run
 
   Ans equal 1
 end
 
 test "full chain of 4 -> 1 wash"
-  use "0827_fruit_juice"
-  Input = "4
+  use "0827_fruit_juice" as solve
+  Ans = solve "4
 1 A
 2 A B
 3 A B C
 4 A B C D"
-  run
 
   Ans equal 1
 end
 
 test "branching fork: 1 to 2 branches"
-  use "0827_fruit_juice"
-  Input = "3
+  use "0827_fruit_juice" as solve
+  Ans = solve "3
 1 A
 2 A B
 2 A C"
-  run
 
   Ans equal 2
 end

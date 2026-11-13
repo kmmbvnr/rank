@@ -66,4 +66,4 @@ for K in 0 to Top
     Answer = Answer * (Ck mod Md) mod Md
   end
 end
-Answer print
+return Answer

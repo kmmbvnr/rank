@@ -41,4 +41,4 @@ for M in 2 to MaxM
     end
   end
 end
-Answer print
+return Answer

@@ -24,4 +24,4 @@ Pool' = Size binomial (K * 2)
 Catalan' = Pairs // (K + 1)
 Open' = Pairs // 2 - Catalan
 Answer = Pool * Open sum
-Answer print
+return Answer

@@ -1,15 +1,18 @@
 use testing
 
 test "default input"
-  use "090_cubedigitpairs"
-  run
+  use "090_cubedigitpairs" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 1217
 end
 
 test "statement dice show all squares"
-  use "090_cubedigitpairs"
-  run
+  use "090_cubedigitpairs" as solve
+  Out = solve
+  Both = Out .both
+  Num = Out .num
 
   Num equal 210
   Both 125 135 equal true
@@ -17,8 +20,9 @@ test "statement dice show all squares"
 end
 
 test "identical dice fail"
-  use "090_cubedigitpairs"
-  run
+  use "090_cubedigitpairs" as solve
+  Out = solve
+  Both = Out .both
 
   Both 0 0 equal false
   Both 125 125 equal false

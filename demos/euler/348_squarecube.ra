@@ -65,4 +65,4 @@ fun Want solve
 end
 
 Answer = Want solve
-Answer print
+return Answer

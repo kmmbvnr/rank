@@ -1,17 +1,13 @@
 use testing
 
 test "statement example"
-  use "452_longproducts"
-  M = 10
-  N = 10
-  run
+  use "452_longproducts" as solve
+  Answer = solve 10 10
   Answer equal 571
 end
 
 test "statement checkpoint"
-  use "452_longproducts"
-  M = 1000000
-  N = 1000000
-  run
+  use "452_longproducts" as solve
+  Answer = solve 1000000 1000000
   Answer equal 252903833
 end

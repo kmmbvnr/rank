@@ -14,4 +14,4 @@ K' = 8 - Ps mod 8
 Inv' = (K * Ps + 1) // 8
 Terms' = (Ps - 3 * Inv) mod Ps
 Answer = Terms sum
-Answer print
+return Answer

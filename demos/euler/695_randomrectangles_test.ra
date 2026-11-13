@@ -1,14 +1,13 @@
 use testing
 
 test "default input"
-  use "695_randomrectangles"
-  run
+  use "695_randomrectangles" as solve
+  Answer = solve
   Answer equal "0.1017786859"
 end
 
 test "more nodes agree"
-  use "695_randomrectangles"
-  Gn = 30
-  run
+  use "695_randomrectangles" as solve
+  Answer = solve 30
   Answer equal "0.1017786859"
 end

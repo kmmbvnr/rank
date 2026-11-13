@@ -38,4 +38,4 @@ for K in 1 to 8
   Tot += Cc * 3 ** (8 - K) * In
 end
 Answer = Tot // (40320 * 3 ** 7)
-Answer print
+return Answer

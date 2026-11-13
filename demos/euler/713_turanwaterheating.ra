@@ -20,4 +20,4 @@ Full = Divisors * Quotient
 Full = Full * (Quotient - 1) // 2
 Terms = Full + Quotient * Rest
 Answer = Terms sum
-Answer print
+return Answer

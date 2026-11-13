@@ -1,8 +1,7 @@
 use testing
 
 test "statement value"
-  use "589_poohsticks"
-  K = 5
-  run
+  use "589_poohsticks" as solve
+  Answer = solve 5
   Answer equal 7722.82
 end

@@ -1,24 +1,22 @@
 use testing
 
 test "default input"
-  use "063_powerfuldigit"
-  run
+  use "063_powerfuldigit" as solve
+  Answer = solve
 
   Answer equal 49
 end
 
 test "first powers"
-  use "063_powerfuldigit"
-  Top = 1
-  run
+  use "063_powerfuldigit" as solve
+  Answer = solve 1
 
   Answer equal 9
 end
 
 test "first two powers"
-  use "063_powerfuldigit"
-  Top = 2
-  run
+  use "063_powerfuldigit" as solve
+  Answer = solve 2
 
   Answer equal 15
 end

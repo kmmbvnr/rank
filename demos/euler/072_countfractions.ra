@@ -25,4 +25,4 @@ K' = 1 to Limit
 Quot' = Limit // K
 Pairs' = Quot * (Quot + 1) // 2
 Answer = Mu drop 1 * Pairs sum - 1
-Answer print
+return Answer

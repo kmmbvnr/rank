@@ -18,13 +18,12 @@ function oracle(limit: number): bigint {
 describe.each([false, true])('Euler 153 (compilation=%s)', compilation => {
     it.each([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 75, 100])(
         'agrees with direct Gaussian division for limit %i', limit => {
-            const output: string[] = [];
-            const r = new Interpreter(line => output.push(line), { compilation, args: [`--limit=${limit}`] });
+            const r = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
             try {
-                r.execute(source);
+                const result = r.execute(source);
                 const expected = oracle(limit);
                 expect(r.variables.get('Answer')).toBe(expected);
-                expect(output).toEqual([String(expected)]);
+                expect(result).toBe(expected);
             } finally { r.dispose(); }
         });
 });

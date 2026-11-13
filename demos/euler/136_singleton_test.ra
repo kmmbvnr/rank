@@ -1,53 +1,45 @@
 use testing
 
 test "smaller limits"
-  use "136_singleton"
-  Limit = 100
-  run
+  use "136_singleton" as solve
+  Answer = solve 100
 
   Answer equal 25
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 158
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 67641
 end
 
 test "singletons up to twenty"
-  use "136_singleton"
-  Limit = 21
-  run
+  use "136_singleton" as solve
+  Answer = solve 21
 
   Answer equal 8
 end
 
 
 test "default input"
-  use "136_singleton"
-  run
+  use "136_singleton" as solve
+  Answer = solve
 
   Answer equal 2544559
 end
 
 test "exclusive endpoints"
-  use "136_singleton"
-  Limit = 4
-  run
+  use "136_singleton" as solve
+  Answer = solve 4
 
   Answer equal 1
-  Limit = 5
-  run
+  Answer = solve 5
 
   Answer equal 2
-  Limit = 16
-  run
+  Answer = solve 16
 
   Answer equal 5
-  Limit = 17
-  run
+  Answer = solve 17
 
   Answer equal 6
 end

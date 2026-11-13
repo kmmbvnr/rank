@@ -108,4 +108,4 @@ for Vee in 0 to Depth
   Lo += (Term mod 1073741824) sum
 end
 Answer = Hi * 1073741824 + Lo
-Answer print
+return Answer

@@ -70,4 +70,4 @@ end
 
 Primes = primes from Lo to Lo + Wd copy
 Answer = Primes subtotal rank 0 sum
-Answer print
+return Answer

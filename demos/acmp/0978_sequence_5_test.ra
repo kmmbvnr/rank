@@ -1,33 +1,29 @@
 use testing
 
 test "default 12"
-  use "0978_sequence_5"
-  N = 12
-  run
+  use "0978_sequence_5" as solve
+  Answer = solve 12
 
   Answer equal 5
 end
 
 test "n=45"
-  use "0978_sequence_5"
-  N = 45
-  run
+  use "0978_sequence_5" as solve
+  Answer = solve 45
 
   Answer equal 10
 end
 
 test "prime n=7"
-  use "0978_sequence_5"
-  N = 7
-  run
+  use "0978_sequence_5" as solve
+  Answer = solve 7
 
   Answer equal 1
 end
 
 test "large n=1000000000"
-  use "0978_sequence_5"
-  N = 1000000000
-  run
+  use "0978_sequence_5" as solve
+  Answer = solve 1000000000
 
   Answer equal 27777777
 end

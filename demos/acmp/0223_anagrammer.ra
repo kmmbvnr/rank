@@ -52,4 +52,4 @@ for Idx in 0 till Total
 end
 
 Answer = DP N 0 0
-Answer print
+return Answer

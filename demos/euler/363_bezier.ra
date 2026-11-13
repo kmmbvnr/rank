@@ -27,4 +27,8 @@ SE = Dx ** 2 + Dy ** 2 sqrt sum
 Length = (6 * V + 4 * SO + 2 * SE)
 Length = Length / (3 * Steps)
 Answer = (Length / (Pi / 2) - 1) * 100
-Answer print
+return record
+  .answer = Answer
+  .pi = Pi
+  .v = V
+end

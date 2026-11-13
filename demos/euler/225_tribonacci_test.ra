@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "225_tribonacci"
-  run
+  use "225_tribonacci" as solve
+  Answer = solve
 
   Answer equal 2009
 end
 
 test "first non-divisors"
-  use "225_tribonacci"
-  N = 1
-  run
+  use "225_tribonacci" as solve
+  Answer = solve 1
 
   Answer equal 27
-  N = 2
-  run
+  Answer = solve 2
 
   Answer equal 81
 end

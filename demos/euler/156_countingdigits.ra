@@ -58,4 +58,4 @@ for D in 1 to Last
     Lo = Lo filter Keep array
   end
 end
-Answer print
+return Answer

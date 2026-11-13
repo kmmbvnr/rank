@@ -1,8 +1,12 @@
 use testing
 
 test "official ciphertext and recovered key"
-  use "059_xor"
-  run
+  use "059_xor" as solve
+  Out = solve
+  Answer = Out .answer
+  Cipher = Out .cipher
+  Key = Out .key
+  Plain = Out .plain
 
   Cipher len equal 1455
   Key (array 101 120 112) equal rank 1

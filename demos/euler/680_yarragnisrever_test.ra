@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "680_yarragnisrever"
-  Nn = 5
-  Kk = 4
-  run
+  use "680_yarragnisrever" as solve
+  Answer = solve 5 4
   Answer equal 27
-  Nn = 100
-  Kk = 100
-  run
+  Answer = solve 100 100
   Answer equal 246597
-  Nn = 10000
-  Kk = 10000
-  run
+  Answer = solve 10000 10000
   Answer equal 275481640
 end

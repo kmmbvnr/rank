@@ -57,4 +57,4 @@ for Right in 2 to Upper
     Answer += Totals sum
   end
 end
-Answer print
+return Answer

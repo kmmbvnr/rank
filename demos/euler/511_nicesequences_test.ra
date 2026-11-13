@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "511_nicesequences"
-  N = 3
-  K = 4
-  run
+  use "511_nicesequences" as solve
+  Answer = solve 3 4
   Answer equal 4
-  N = 4
-  K = 11
-  run
+  Answer = solve 4 11
   Answer equal 8
-  N = 1111
-  K = 24
-  run
+  Answer = solve 1111 24
   Answer equal 840643584
 end

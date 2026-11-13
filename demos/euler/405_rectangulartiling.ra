@@ -24,4 +24,4 @@ end
 S = 15 - Sg - 20 * T1 + 6 * T2
 Inv = 15 (Phi - 1) M powmod
 Answer = S * Inv mod M
-Answer print
+return Answer

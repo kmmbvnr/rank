@@ -20,3 +20,4 @@ Scores = array shape 3 fill 0
 for Key I in Candidates
   Scores I = Cipher Weights Key Slots score_key
 end
+return Scores

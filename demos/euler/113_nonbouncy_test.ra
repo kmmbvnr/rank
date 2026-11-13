@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "113_nonbouncy"
-  run
+  use "113_nonbouncy" as solve
+  Answer = solve
 
   Answer equal 51161058134250
 end
 
 test "statement counts"
-  use "113_nonbouncy"
-  Digits = 6
-  run
+  use "113_nonbouncy" as solve
+  Answer = solve 6
 
   Answer equal 12951
-  Digits = 10
-  run
+  Answer = solve 10
 
   Answer equal 277032
 end

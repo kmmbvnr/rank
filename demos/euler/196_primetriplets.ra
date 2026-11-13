@@ -80,4 +80,4 @@ for N in array N1 N2
   Hit = Mk equal 1 indices
   Answer += Row0 + Hit sum
 end
-Answer print
+return Answer

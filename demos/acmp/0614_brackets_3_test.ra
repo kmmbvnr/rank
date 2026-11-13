@@ -1,67 +1,59 @@
 use testing
 
 test "sample 1: 9-char string -> 8"
-  use "0614_brackets_3"
-  S = "((())())("
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "((())())("
 
   Answer equal 8
 end
 
 test "simple pair has empty and self"
-  use "0614_brackets_3"
-  S = "()"
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "()"
 
   Answer equal 2
 end
 
 test "two adjacent pairs"
-  use "0614_brackets_3"
-  S = "()()"
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "()()"
 
   rem "", "()", "()()"
   Answer equal 3
 end
 
 test "nested pair"
-  use "0614_brackets_3"
-  S = "(())"
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "(())"
 
   rem "", "()", "(())"
   Answer equal 3
 end
 
 test "only open brackets yields empty"
-  use "0614_brackets_3"
-  S = "((((("
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "((((("
 
   Answer equal 1
 end
 
 test "only close brackets yields empty"
-  use "0614_brackets_3"
-  S = "))))"
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "))))"
 
   Answer equal 1
 end
 
 test "inverted pair yields only empty"
-  use "0614_brackets_3"
-  S = ")("
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve ")("
 
   Answer equal 1
 end
 
 test "three pairs form 5 sequences"
-  use "0614_brackets_3"
-  S = "()()()"
-  run
+  use "0614_brackets_3" as solve
+  Answer = solve "()()()"
 
   rem "", "()", "(())", "()()", "()()()"
   Answer equal 5

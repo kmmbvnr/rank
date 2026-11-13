@@ -126,4 +126,4 @@ end
 Eu = (Ed + Dg + P) * I2 mod P
 Vs = Vr + Vb + Vy
 Answer = (Vs + Eu - Ed + P) mod P
-Answer print
+return Answer

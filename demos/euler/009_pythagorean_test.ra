@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "009_pythagorean"
-  run
+  use "009_pythagorean" as solve
+  Answer = solve
 
   Answer equal 31875000
 end
 
 test "workspace input"
-  use "009_pythagorean"
-  Target = 12
-  run
+  use "009_pythagorean" as solve
+  Answer = solve 12
 
   Answer equal 60
 end

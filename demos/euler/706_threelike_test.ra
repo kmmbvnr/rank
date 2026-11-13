@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "706_threelike"
-  Digits = 2
-  run
+  use "706_threelike" as solve
+  Answer = solve 2
   Answer equal 30
-  Digits = 6
-  run
+  Answer = solve 6
   Answer equal 290898
 end
 
 test "default input"
-  use "706_threelike"
-  run
+  use "706_threelike" as solve
+  Answer = solve
   Answer equal 884837055
 end

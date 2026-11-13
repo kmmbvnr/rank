@@ -146,4 +146,4 @@ UsedLet = OutLet take OutCnt
 HeadArr = array CntStr
 AllLines = concat HeadArr UsedLet
 Result = AllLines join "\n"
-Result print
+return Result

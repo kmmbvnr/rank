@@ -59,4 +59,4 @@ for A len greater 0
   Answer += W * R * Tm * Sb sum
   A = B + 1
 end
-Answer print
+return Answer

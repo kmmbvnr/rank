@@ -30,4 +30,8 @@ Rows = Id reshape Num 1
 Cols = Id reshape 1 Num
 Order' = Rows less Cols
 Answer = (Both and Order) count
-Answer print
+return record
+  .answer = Answer
+  .both = Both
+  .num = Num
+end

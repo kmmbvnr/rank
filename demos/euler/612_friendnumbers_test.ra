@@ -1,23 +1,19 @@
 use testing
 
 test "default input"
-  use "612_friendnumbers"
-  run
+  use "612_friendnumbers" as solve
+  Answer = solve
   Answer equal 819963842
 end
 
 test "brute force"
-  use "612_friendnumbers"
-  E = 2
-  run
+  use "612_friendnumbers" as solve
+  Answer = solve 2
   Answer equal 1539
-  E = 3
-  run
+  Answer = solve 3
   Answer equal 289665
-  E = 4
-  run
+  Answer = solve 4
   Answer equal 39235977
-  E = 5
-  run
+  Answer = solve 5
   Answer equal 527566505
 end

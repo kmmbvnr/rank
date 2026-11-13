@@ -8,7 +8,7 @@ use algo
 use io
 
 Answer = 7 digit_factorial_sum
-Answer print
+return Answer
 
 
 rem Enumerate digit multisets instead of all

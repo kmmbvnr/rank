@@ -2,44 +2,40 @@ rem ACMP 0884: Road tests
 use testing
 
 test "Single letter AAAAA (K=2)"
-  use "0884_road"
-  Input = "2
+  use "0884_road" as solve
+  Result = solve "2
 AAAAA"
-  run
   Exp = "1\nA"
   Result equal Exp
 end
 
 test "ACMP 884: Alternating ABABA (K=2)"
-  use "0884_road"
-  Input = "2
+  use "0884_road" as solve
+  Result = solve "2
 ABABA"
-  run
   Exp = "1\nA"
   Result equal Exp
 end
 
 test "Disjoint blocks AAABBB (K=2)"
-  use "0884_road"
-  Input = "2
+  use "0884_road" as solve
+  Result = solve "2
 AAABBB"
-  run
   Exp = "2\nA\nB"
   Result equal Exp
 end
 
 test "ACMP 884: Window covers all (K=4)"
-  use "0884_road"
-  Input = "4
+  use "0884_road" as solve
+  Result = solve "4
 ABCA"
-  run
   Exp = "1\nA"
   Result equal Exp
 end
 
 test "Default ABRACADABRA (K=4)"
-  use "0884_road"
-  run
+  use "0884_road" as solve
+  Result = solve
   Exp = "1\nA"
   Result equal Exp
 end

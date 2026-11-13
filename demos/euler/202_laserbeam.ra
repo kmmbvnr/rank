@@ -31,4 +31,4 @@ Num' = (Top + 3 - R) // 3
 Ok' = D mod 3 not equal 0
 Term' = Sign * Num
 Answer = Term filter Ok sum
-Answer print
+return Answer

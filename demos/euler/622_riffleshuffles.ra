@@ -45,4 +45,4 @@ for Kd in Dk
   Tu = Ex + 1 reduce * with 1
   Answer += Mu * (Sm + Tu)
 end
-Answer print
+return Answer

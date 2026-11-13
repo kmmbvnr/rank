@@ -42,4 +42,4 @@ Bot Spot *= Prime .accumulate
 Phi = Idx // Bot * Top
 Terms = Phi * (Ratio drop 1)
 Answer = (Terms sum) round 6
-Answer print
+return Answer

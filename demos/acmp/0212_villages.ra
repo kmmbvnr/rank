@@ -104,4 +104,4 @@ BestRoot = DP 0 P
 SubtreeCuts = (DP (1 till N) P) + 1
 BestChild = SubtreeCuts min
 Answer = BestRoot min BestChild
-Answer print
+return Answer

@@ -207,4 +207,4 @@ for X in 0 to (Xm - 1)
   Total += Area
 end
 Answer = Total
-Answer print
+return Answer

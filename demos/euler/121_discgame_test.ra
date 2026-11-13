@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "121_discgame"
-  run
+  use "121_discgame" as solve
+  Answer = solve
 
   Answer equal 2269
 end
 
 test "four turns from the statement"
-  use "121_discgame"
-  Turns = 4
-  run
+  use "121_discgame" as solve
+  Answer = solve 4
 
   Answer equal 10
 end

@@ -1,7 +1,7 @@
 use testing
 
 test "reachable configurations"
-  use "766_slidingblockpuzzle"
-  run
+  use "766_slidingblockpuzzle" as solve
+  Answer = solve
   Answer equal 7217
 end

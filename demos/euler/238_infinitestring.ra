@@ -175,4 +175,4 @@ for
   Cur = Cur * Cur mod Mod
 end
 Answer = (Top // Dw) * Weight + Part - 1
-Answer print
+return Answer

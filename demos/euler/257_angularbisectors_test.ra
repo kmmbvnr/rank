@@ -1,36 +1,30 @@
 use testing
 
 test "default input"
-  use "257_angularbisectors"
-  run
+  use "257_angularbisectors" as solve
+  Answer = solve
 
   Answer equal 139012411
 end
 
 test "small limits"
-  use "257_angularbisectors"
-  Limit = 0
-  run
+  use "257_angularbisectors" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 3
-  run
+  Answer = solve 3
 
   Answer equal 1
-  Limit = 60
-  run
+  Answer = solve 60
 
   Answer equal 26
-  Limit = 120
-  run
+  Answer = solve 120
 
   Answer equal 58
-  Limit = 300
-  run
+  Answer = solve 300
 
   Answer equal 160
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 1078857
 end

@@ -85,4 +85,4 @@ end
 MaskK = PopCounts equal K
 Ways = DP MaskK sum
 
-Ways print
+return Ways

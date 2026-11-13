@@ -92,4 +92,4 @@ Evens = Coef * Part * Flag
 Odds = (Limit + 1) // 2
 Gain = Evens sum
 Answer = Gain - Odds * Odds
-Answer print
+return Answer

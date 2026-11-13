@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "208_robotwalks"
-  run
+  use "208_robotwalks" as solve
+  Answer = solve
 
   Answer equal 331951449665644800
 end
 
 test "short walks"
-  use "208_robotwalks"
-  Steps = 10
-  run
+  use "208_robotwalks" as solve
+  Answer = solve 10
 
   Answer equal 12
-  Steps = 20
-  run
+  Answer = solve 20
 
   Answer equal 3400
 end

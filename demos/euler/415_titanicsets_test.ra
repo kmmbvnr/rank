@@ -1,36 +1,27 @@
 use testing
 
 test "statement values"
-  use "415_titanicsets"
-  N = 1
-  run
+  use "415_titanicsets" as solve
+  Answer = solve 1
   Answer equal 11
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 494
-  N = 4
-  run
+  Answer = solve 4
   Answer equal 33554178
 end
 
 test "published checkpoints"
-  use "415_titanicsets"
-  N = 111
-  run
+  use "415_titanicsets" as solve
+  Answer = solve 111
   Answer equal 13500401
-  N = 100000
-  run
+  Answer = solve 100000
   Answer equal 63259062
 end
 
 test "short tables use the recursion"
-  use "415_titanicsets"
-  N = 111
-  L = 30
-  run
+  use "415_titanicsets" as solve
+  Answer = solve 111 30
   Answer equal 13500401
-  N = 100000
-  L = 400
-  run
+  Answer = solve 100000 400
   Answer equal 63259062
 end

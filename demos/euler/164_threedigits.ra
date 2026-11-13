@@ -36,4 +36,4 @@ for Step in 3 to Digits
   V = V matmul Mat
 end
 Answer = V sum
-Answer print
+return Answer

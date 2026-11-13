@@ -218,12 +218,12 @@ it('uses a later notebook predicate definition and analyzes uncalled function lo
         for (const [site, expected] of [
             ['Candidates filter', 'Candidates · c<integer>'],
             ['Answer =', 'Answer · integer'],
-            ['Answer print', 'Answer · integer'],
+            ['return Answer', 'Answer · integer'],
             ['Original =', 'Original · integer'],
             ['Original equal', 'Original · integer'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
-            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site) + (site.startsWith('return ') ? 7 : 0));
             expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
         }
     } finally { session.dispose(); }
@@ -278,10 +278,10 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
             ["Mask' or=", 'Mask · c[#]<boolean>'],
             ['Mask sum', 'Mask · c[#]<boolean>'],
             ['Answer =', 'Answer · integer'],
-            ['Answer print', 'Answer · integer'],
+            ['return Answer', 'Answer · integer'],
         ]) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));
-            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site));
+            repl.notebook.selectTo(index, repl.notebook.cells[index].source.indexOf(site) + (site.startsWith('return ') ? 7 : 0));
             expect(formatNameFacts(repl.nameFacts!)).toBe(expected);
         }
     } finally { session.dispose(); }

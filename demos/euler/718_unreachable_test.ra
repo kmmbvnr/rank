@@ -1,17 +1,15 @@
 use testing
 
 test "statement values"
-  use "718_unreachable"
-  Exponent = 1
-  run
+  use "718_unreachable" as solve
+  Answer = solve 1
   Answer equal 8253
-  Exponent = 2
-  run
+  Answer = solve 2
   Answer equal 60258000
 end
 
 test "default input"
-  use "718_unreachable"
-  run
+  use "718_unreachable" as solve
+  Answer = solve
   Answer equal 228579116
 end

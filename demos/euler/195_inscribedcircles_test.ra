@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "195_inscribedcircles"
-  run
+  use "195_inscribedcircles" as solve
+  Answer = solve
 
   Answer equal 75085391
 end
 
 test "statement values"
-  use "195_inscribedcircles"
-  Limit = 100
-  run
+  use "195_inscribedcircles" as solve
+  Answer = solve 100
 
   Answer equal 1234
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 22767
-  Limit = 10000
-  run
+  Answer = solve 10000
 
   Answer equal 359912
 end

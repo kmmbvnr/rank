@@ -63,4 +63,4 @@ fun Low leftovers High
   return Answer
 end
 Answer = Lo leftovers Hi
-Answer print
+return Answer

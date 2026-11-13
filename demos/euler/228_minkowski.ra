@@ -31,4 +31,4 @@ Zero' = Ns mod Rows equal 0
 Divides' = Zero any axis 1
 Used' = Phi filter Divides
 Answer = Used sum
-Answer print
+return Answer

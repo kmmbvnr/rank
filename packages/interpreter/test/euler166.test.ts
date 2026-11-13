@@ -22,13 +22,12 @@ function oracle(base: number): bigint {
 
 describe.each([false, true])('Euler 166 (compilation=%s)', compilation => {
     it.each([2, 3, 4, 5])('matches a direct grid oracle for Base=%i', base => {
-        const output: string[] = [];
-        const r = new Interpreter(line => output.push(line), { compilation, args: [`--base=${base}`] });
+        const r = new Interpreter(() => {}, { compilation, args: [`--base=${base}`] });
         try {
-            r.execute(source);
+            const result = r.execute(source);
             const answer = oracle(base);
             expect(r.variables.get('Answer')).toBe(answer);
-            expect(output).toEqual([String(answer)]);
+            expect(result).toBe(answer);
         } finally { r.dispose(); }
     });
 });

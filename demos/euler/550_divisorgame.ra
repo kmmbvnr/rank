@@ -91,4 +91,4 @@ Lost = Lost mod Mod * Inverse mod Mod
 Items = (N - 1) max 0
 All = Items K Mod powmod
 Answer = (All - Lost) mod Mod
-Answer print
+return Answer

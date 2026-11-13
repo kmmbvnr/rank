@@ -3,58 +3,54 @@ rem Tests for ACMP 0767 Roads 3
 use testing
 
 test "default: 7 vertices -> 6"
-  use "0767_roads_3"
-  run
+  use "0767_roads_3" as solve
+  Ans = solve
 
   Ans equal 6
 end
 
 test "sample 1: 4 vertices -> 3"
-  use "0767_roads_3"
-  Input = "4
+  use "0767_roads_3" as solve
+  Ans = solve "4
 0 0 1 1
 0 0 0 0
 1 0 0 1
 1 0 1 0"
-  run
 
   Ans equal 3
 end
 
 test "tree 4 vertices -> 0"
-  use "0767_roads_3"
-  Input = "4
+  use "0767_roads_3" as solve
+  Ans = solve "4
 0 1 0 0
 1 0 1 1
 0 1 0 0
 0 1 0 0"
-  run
 
   Ans equal 0
 end
 
 test "single 4-cycle -> 4"
-  use "0767_roads_3"
-  Input = "4
+  use "0767_roads_3" as solve
+  Ans = solve "4
 0 1 0 1
 1 0 1 0
 0 1 0 1
 1 0 1 0"
-  run
 
   Ans equal 4
 end
 
 test "two disconnected triangles -> 6"
-  use "0767_roads_3"
-  Input = "6
+  use "0767_roads_3" as solve
+  Ans = solve "6
 0 1 1 0 0 0
 1 0 1 0 0 0
 1 1 0 0 0 0
 0 0 0 0 1 1
 0 0 0 1 0 1
 0 0 0 1 1 0"
-  run
 
   Ans equal 6
 end

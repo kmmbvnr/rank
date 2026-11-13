@@ -1,64 +1,52 @@
 use testing
 
 test "default input"
-  use "251_cardanotriplets"
-  run
+  use "251_cardanotriplets" as solve
+  Answer = solve
 
   Answer equal 18946051
 end
 
 test "small limits"
-  use "251_cardanotriplets"
-  Limit = 1000
-  run
+  use "251_cardanotriplets" as solve
+  Answer = solve 1000
 
   Answer equal 149
-  Limit = 20000
-  run
+  Answer = solve 20000
 
   Answer equal 3312
-  Limit = 1000000
-  run
+  Answer = solve 1000000
 
   Answer equal 171128
 end
 
 test "empty limits and candidate boundaries"
-  use "251_cardanotriplets"
-  Limit = 0
-  run
+  use "251_cardanotriplets" as solve
+  Answer = solve 0
 
   Answer equal 0
-  Limit = 8
-  run
+  Answer = solve 8
 
   Answer equal 1
-  Limit = 9
-  run
+  Answer = solve 9
 
   Answer equal 1
-  Limit = 45
-  run
+  Answer = solve 45
 
   Answer equal 5
-  Limit = 46
-  run
+  Answer = solve 46
 
   Answer equal 6
-  Limit = 57
-  run
+  Answer = solve 57
 
   Answer equal 7
-  Limit = 58
-  run
+  Answer = solve 58
 
   Answer equal 8
-  Limit = 67
-  run
+  Answer = solve 67
 
   Answer equal 8
-  Limit = 68
-  run
+  Answer = solve 68
 
   Answer equal 9
 end

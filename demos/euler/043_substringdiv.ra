@@ -8,7 +8,7 @@ use io
 
 Digits = "0123456789"
 Answer = Digits substring_divisible_sum
-Answer print
+return Answer
 
 
 rem Build prefixes and reject each branch as

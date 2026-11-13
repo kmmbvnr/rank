@@ -36,11 +36,9 @@ describe('Euler 347 two-prime maxima', () => {
             } finally { runtime.dispose(); }
         });
         it(`computes the full target (compilation=${compilation})`, () => {
-            const output: string[] = [];
-            const runtime = new Interpreter(text => output.push(text.trim()), { compilation });
+            const runtime = new Interpreter(() => {}, { compilation });
             try {
-                runtime.execute(source);
-                expect(output.at(-1)).toBe('11109800204052');
+                expect(runtime.execute(source)).toBe(11109800204052n);
             } finally { runtime.dispose(); }
         }, 45000);
     }

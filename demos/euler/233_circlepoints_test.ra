@@ -2,20 +2,18 @@ use testing
 
 rem Exercise the full default limit.
 test "default input"
-  use "233_circlepoints"
-  run
+  use "233_circlepoints" as solve
+  Answer = solve
 
   Answer equal 271204031455541309
 end
 
 test "smaller limits"
-  use "233_circlepoints"
-  Limit = 10000000
-  run
+  use "233_circlepoints" as solve
+  Answer = solve 10000000
 
   Answer equal 1722531830
-  Limit = 20000000
-  run
+  Answer = solve 20000000
 
   Answer equal 7843770952
 end

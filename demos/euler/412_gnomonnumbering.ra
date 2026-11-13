@@ -58,4 +58,4 @@ Den = An * Bn mod P * Bn mod P
 Num = Ad * Bd mod P * Bd mod P
 Inv = Den (P - 2) P powmod
 Answer = Fact * Num mod P * Inv mod P
-Answer print
+return Answer

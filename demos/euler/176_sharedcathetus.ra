@@ -40,4 +40,4 @@ Odd' = (Pr drop 1) ** ((Gp - 1) // 2)
 Ne' = Even reduce * axis 1
 No' = Odd reduce * axis 1
 Answer = concat Ne No min
-Answer print
+return Answer

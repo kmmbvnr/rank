@@ -48,4 +48,4 @@ for Q in Qs
   end
 end
 Answer -= N at least 16 integer * 16
-Answer print
+return Answer

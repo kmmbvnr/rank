@@ -98,4 +98,4 @@ for Ee greater 0
   end
 end
 Answer = Vv * Fn sum mod P
-Answer print
+return Answer

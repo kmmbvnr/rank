@@ -90,4 +90,4 @@ if Full greater 0
   Answer += (Full - 1) * Correction
   Answer += NextRest - WarmRest
 end
-Answer print
+return Answer

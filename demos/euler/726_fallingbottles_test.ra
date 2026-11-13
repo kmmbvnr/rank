@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "726_fallingbottles"
-  Bottles = 1
-  run
+  use "726_fallingbottles" as solve
+  Answer = solve 1
   Answer equal 1
-  Bottles = 2
-  run
+  Answer = solve 2
   Answer equal 7
-  Bottles = 3
-  run
+  Answer = solve 3
   Answer equal 1015
 end

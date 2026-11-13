@@ -34,4 +34,4 @@ for Step in 1 to 14
   Xs = Next
 end
 Answer = All unique sort take Count sum
-Answer print
+return Answer

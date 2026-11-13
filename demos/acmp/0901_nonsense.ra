@@ -49,4 +49,4 @@ for P in Primes
 end
 
 Ans = DP reduce max
-(Ans text) print
+return Ans

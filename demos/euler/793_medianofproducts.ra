@@ -49,4 +49,4 @@ for Round in 1 to 60
   end
 end
 Answer = High
-Answer print
+return Answer

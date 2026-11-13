@@ -1,57 +1,50 @@
 use testing
 
 test "sample 1: N = 6 gives 5"
-  use "0631_guess_number"
-  Input = "6"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "6"
 
   Candies equal 5
 end
 
 test "sample 2: N = 2 gives 2"
-  use "0631_guess_number"
-  Input = "2"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "2"
 
   Candies equal 2
 end
 
 test "N = 1 requires 0 candies"
-  use "0631_guess_number"
-  Input = "1"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "1"
 
   Candies equal 0
 end
 
 test "boundary: N = 5 gives 4"
-  use "0631_guess_number"
-  Input = "5"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "5"
 
   Candies equal 4
 end
 
 test "boundary: N = 8 gives 5"
-  use "0631_guess_number"
-  Input = "8"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "8"
 
   Candies equal 5
 end
 
 test "boundary: N = 9 gives 6"
-  use "0631_guess_number"
-  Input = "9"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "9"
 
   Candies equal 6
 end
 
 test "large N = 100000 gives 25"
-  use "0631_guess_number"
-  Input = "100000"
-  run
+  use "0631_guess_number" as solve
+  Candies = solve "100000"
 
   Candies equal 25
 end

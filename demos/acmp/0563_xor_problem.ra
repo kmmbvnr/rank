@@ -89,4 +89,4 @@ if TotalXor at least Half32
 end
 
 Answer = TotalXor
-Answer print
+return Answer

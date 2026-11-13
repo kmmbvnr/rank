@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "030_digitpowers"
-  run
+  use "030_digitpowers" as solve
+  Answer = solve
 
   Answer equal 443839
 end

@@ -1,15 +1,13 @@
 use testing
 
 test "first zero modulo ten"
-  use "710_onemillionmembers"
-  Bits = 10
-  Base = 10
-  run
+  use "710_onemillionmembers" as solve
+  Answer = solve 10 10
   Answer equal 48
 end
 
 test "default input"
-  use "710_onemillionmembers"
-  run
+  use "710_onemillionmembers" as solve
+  Answer = solve
   Answer equal 1275000
 end

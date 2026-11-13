@@ -18,4 +18,4 @@ for P in 2 to (Limit sqrt integer)
 end
 Answer = Prime indices sum
 
-Answer print
+return Answer

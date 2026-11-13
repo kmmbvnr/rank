@@ -1,39 +1,31 @@
 use testing
 
 test "sample 1: open forest -> NO"
-  use "0232_dense_forest"
-  N = 3
-  TreesText = "0 10 2 5 11 2 12.04 7 2"
-  run
+  use "0232_dense_forest" as solve
+  Answer = solve 3 "0 10 2 5 11 2 12.04 7 2"
 
   Answer equal "NO"
 end
 
 test "sample 2: dense triangle -> YES"
-  use "0232_dense_forest"
-  N = 3
+  use "0232_dense_forest" as solve
   T1 = "0 0 1 2.05 0 1 "
   T2 = "1.02 -1.9 1"
-  TreesText = T1 + T2
-  run
+  Answer = solve 3 (T1 + T2)
 
   Answer equal "YES"
 end
 
 test "single tree -> YES"
-  use "0232_dense_forest"
-  N = 1
-  TreesText = "0 0 1"
-  run
+  use "0232_dense_forest" as solve
+  Answer = solve 1 "0 0 1"
 
   Answer equal "YES"
 end
 
 test "two disjoint trees -> NO"
-  use "0232_dense_forest"
-  N = 2
-  TreesText = "0 0 1 10 10 1"
-  run
+  use "0232_dense_forest" as solve
+  Answer = solve 2 "0 0 1 10 10 1"
 
   Answer equal "NO"
 end

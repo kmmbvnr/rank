@@ -2,36 +2,31 @@ rem ACMP 0567: Gift Packing tests
 use testing
 
 test "ACMP 567: Sample 1 (1 2 2 => 4)"
-  use "0567_gift_packing"
-  Input = "1 2 2"
-  run
+  use "0567_gift_packing" as solve
+  Ans = solve "1 2 2"
   Ans equal 4.0
 end
 
 test "ACMP 567: Case 2 (1 2 2.5)"
-  use "0567_gift_packing"
-  Input = "1 2 2.5"
-  run
+  use "0567_gift_packing" as solve
+  Ans = solve "1 2 2.5"
   Ans equal 3.936492
 end
 
 test "ACMP 567: Case 3 (1 3 3.5)"
-  use "0567_gift_packing"
-  Input = "1 3 3.5"
-  run
+  use "0567_gift_packing" as solve
+  Ans = solve "1 3 3.5"
   Ans equal 4.046007
 end
 
 test "ACMP 567: Case 4 (3 4 7.5 => 8)"
-  use "0567_gift_packing"
-  Input = "3 4 7.5"
-  run
+  use "0567_gift_packing" as solve
+  Ans = solve "3 4 7.5"
   Ans equal 8.0
 end
 
 test "ACMP 567: Default stress test"
-  use "0567_gift_packing"
-  Input = "100000 1000000 800000"
-  run
+  use "0567_gift_packing" as solve
+  Ans = solve "100000 1000000 800000"
   Ans equal 955638.398205
 end

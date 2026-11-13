@@ -136,4 +136,8 @@ Rank = Sq take 40 argsort .descending
 Top = Rank take 3
 Weight = array 10000 100 1
 Answer = Top matmul Weight
-Answer print
+return record
+  .answer = Answer
+  .land = Land
+  .trans = Trans
+end

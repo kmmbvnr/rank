@@ -35,4 +35,4 @@ for X in Ns
   T3 //= 2
   Answer += Pa + T2 + T3
 end
-Answer print
+return Answer

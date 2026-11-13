@@ -64,4 +64,4 @@ for H in 2 to Height
   Ways = Flat Key
 end
 Answer = Ways sum
-Answer print
+return Answer

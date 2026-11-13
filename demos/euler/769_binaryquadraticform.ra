@@ -149,4 +149,4 @@ for Piece in 0 to Blocks - 1
   Part = Mixed sum
   Answer += Part
 end
-Answer print
+return Answer

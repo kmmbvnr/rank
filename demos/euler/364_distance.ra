@@ -38,4 +38,4 @@ for S in 1 to 3
   Answer += Ways sum
 end
 Answer mod= Mod
-Answer print
+return Answer

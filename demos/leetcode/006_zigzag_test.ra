@@ -2,7 +2,6 @@ use testing
 
 test "three rows"
   use "006_zigzag"
-  run
 
   Answer = "PAYPALISHIRING" zigzag 3
   Answer equal "PAHNAPLSIIGYIR"
@@ -10,7 +9,6 @@ end
 
 test "four rows"
   use "006_zigzag"
-  run
 
   Answer = "PAYPALISHIRING" zigzag 4
   Answer equal "PINALSIGYAHRPI"
@@ -18,7 +16,6 @@ end
 
 test "one row"
   use "006_zigzag"
-  run
 
   Answer = "A" zigzag 1
   Answer equal "A"
@@ -26,7 +23,6 @@ end
 
 test "two rows"
   use "006_zigzag"
-  run
 
   Answer = "ABCDE" zigzag 2
   Answer equal "ACEBD"
@@ -34,7 +30,6 @@ end
 
 test "more rows than characters"
   use "006_zigzag"
-  run
 
   Answer = "ABC" zigzag 5
   Answer equal "ABC"
@@ -42,7 +37,6 @@ end
 
 test "unicode code points"
   use "006_zigzag"
-  run
 
   Answer = "A😀Б猫C" zigzag 3
   Answer equal "AC😀猫Б"

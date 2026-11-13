@@ -42,4 +42,4 @@ if SameSort
   Answer = (InvP and InvI) count
 end
 
-Answer print
+return Answer

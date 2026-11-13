@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "271_modularcubes"
-  run
+  use "271_modularcubes" as solve
+  Answer = solve
 
   Answer equal 4617456485273129588
 end
 
 test "small products"
-  use "271_modularcubes"
-  Top = 13
-  run
+  use "271_modularcubes" as solve
+  Answer = solve 13
 
   Answer equal 126398
-  Top = 17
-  run
+  Answer = solve 17
 
   Answer equal 2378648
 end

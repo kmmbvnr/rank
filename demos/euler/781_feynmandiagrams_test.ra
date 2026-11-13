@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "781_feynmandiagrams"
-  Count = 4
-  run
+  use "781_feynmandiagrams" as solve
+  Answer = solve 4
   Answer equal 5
-  Count = 8
-  run
+  Answer = solve 8
   Answer equal 319
 end
 
 test "odd counts have no diagram"
-  use "781_feynmandiagrams"
-  Count = 7
-  run
+  use "781_feynmandiagrams" as solve
+  Answer = solve 7
   Answer equal 0
 end

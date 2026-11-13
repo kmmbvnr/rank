@@ -34,4 +34,4 @@ Floors = Floors mod Prime
 Terms = Parts * Floors mod Prime
 Total = Terms sum
 Answer = Total mod Prime
-Answer print
+return Answer

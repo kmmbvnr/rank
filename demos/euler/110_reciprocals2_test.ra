@@ -1,13 +1,11 @@
 use testing
 
 test "smaller targets"
-  use "110_reciprocals2"
-  Target = 1000
-  run
+  use "110_reciprocals2" as solve
+  Answer = solve 1000
 
   Answer equal 180180
-  Target = 3
-  run
+  Answer = solve 3
 
   Answer equal 6
 end

@@ -28,4 +28,4 @@ Gap = (1.0 - Inv) * (1.0 - Inv)
 Terms = Dens * Tail / Gap
 Total = Terms sum
 Answer = Total round 12
-Answer print
+return Answer

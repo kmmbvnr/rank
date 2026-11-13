@@ -1,28 +1,24 @@
 use testing
 
 test "default input"
-  use "176_sharedcathetus"
-  run
+  use "176_sharedcathetus" as solve
+  Answer = solve
 
   Answer equal 96818198400000
 end
 
 test "small counts"
-  use "176_sharedcathetus"
-  Ways = 1
-  run
+  use "176_sharedcathetus" as solve
+  Answer = solve 1
 
   Answer equal 3
-  Ways = 4
-  run
+  Answer = solve 4
 
   Answer equal 12
-  Ways = 7
-  run
+  Answer = solve 7
 
   Answer equal 24
-  Ways = 12
-  run
+  Answer = solve 12
 
   Answer equal 72
 end

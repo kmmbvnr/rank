@@ -99,4 +99,4 @@ Part = Left * Right mod Prime
 Part = Part * (Used integer)
 Extra = Part sum
 Answer = (Answer + Extra) mod Prime
-Answer print
+return Answer

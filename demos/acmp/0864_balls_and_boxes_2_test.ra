@@ -3,44 +3,40 @@ rem Tests for ACMP 0864 Balls & Boxes 2
 use testing
 
 test "default 15 boxes: 11"
-  use "0864_balls_and_boxes_2"
-  run
+  use "0864_balls_and_boxes_2" as solve
+  Ans = solve
 
   Ans equal 11
 end
 
 test "sample 1: 7 boxes S=N -> 7"
-  use "0864_balls_and_boxes_2"
-  Input = "7
+  use "0864_balls_and_boxes_2" as solve
+  Ans = solve "7
 1 0 0 0 2 3 1"
-  run
 
   Ans equal 7
 end
 
 test "sample variant: 7 boxes S=6 -> 4"
-  use "0864_balls_and_boxes_2"
-  Input = "7
+  use "0864_balls_and_boxes_2" as solve
+  Ans = solve "7
 1 0 0 0 2 2 1"
-  run
 
   Ans equal 4
 end
 
 test "all 5 balls in one box -> 6"
-  use "0864_balls_and_boxes_2"
-  Input = "5
+  use "0864_balls_and_boxes_2" as solve
+  Ans = solve "5
 5 0 0 0 0"
-  run
 
   Ans equal 6
 end
 
 test "already distributed -> 0"
-  use "0864_balls_and_boxes_2"
-  Input = "4
+  use "0864_balls_and_boxes_2" as solve
+  Ans = solve "4
 1 1 0 0"
-  run
 
   Ans equal 0
 end

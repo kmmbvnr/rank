@@ -27,4 +27,4 @@ Flat = Gap reshape Size
 Area' = A B outer *
 Cells = Area reshape Size
 Answer = Cells (Flat min .index)
-Answer print
+return Answer

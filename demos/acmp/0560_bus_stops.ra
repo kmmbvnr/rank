@@ -87,4 +87,4 @@ if ValidG
   end
 end
 
-Answer print
+return Answer

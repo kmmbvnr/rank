@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 1000000
 
 Answer = Limit longest_prime_sum
-Answer print
+return Answer
 
 
 rem Prefix sums make each candidate interval

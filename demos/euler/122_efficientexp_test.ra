@@ -1,20 +1,23 @@
 use testing
 
 test "default input"
-  use "122_efficientexp"
-  run
+  use "122_efficientexp" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 1582
 end
 
 test "statement values"
-  use "122_efficientexp"
-  Limit = 10
-  run
+  use "122_efficientexp" as solve
+  Out = solve 10
+  Answer = Out .answer
+  Best = Out .best
 
   Answer equal 26
-  Limit = 15
-  run
+  Out = solve 15
+  Answer = Out .answer
+  Best = Out .best
 
   Best 15 equal 5
 end

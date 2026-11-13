@@ -73,4 +73,4 @@ Norms = Norms Active
 Weights = Weights Active
 Counts = Norms disc rank 0
 Answer = Weights * Counts sum
-Answer print
+return Answer

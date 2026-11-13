@@ -40,4 +40,4 @@ for Start in 1 to Top
   end
 end
 Answer = Seen sum
-Answer print
+return Answer

@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "606_gozintachains"
-  N = 1000000
-  run
+  use "606_gozintachains" as solve
+  Answer = solve 1000000
   Answer equal 8462952
-  N = 1000000000000
-  run
+  Answer = solve 1000000000000
   Answer equal 998881978
 end
 
 test "small cubes"
-  use "606_gozintachains"
-  N = 1728
-  run
+  use "606_gozintachains" as solve
+  Answer = solve 1728
   Answer equal 1216
-  N = 216000
-  run
+  Answer = solve 216000
   Answer equal 1053794
 end

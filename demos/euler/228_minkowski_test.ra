@@ -1,21 +1,18 @@
 use testing
 
 test "default input"
-  use "228_minkowski"
-  run
+  use "228_minkowski" as solve
+  Answer = solve
 
   Answer equal 86226
 end
 
 test "small ranges"
-  use "228_minkowski"
-  Lo = 3
-  Hi = 5
-  run
+  use "228_minkowski" as solve
+  Answer = solve 3 5
 
   Answer equal 10
-  Hi = 7
-  run
+  Answer = solve 3 7
 
   Answer equal 18
 end

@@ -60,4 +60,4 @@ Ts = N - 4 * (0 to K)
 Hc = (8 * Ts + 1 isqrt - 1) // 2 + 1
 Tt = A * Hc mod Md sum
 Answer = (Tt - 1) mod Md
-Answer print
+return Answer

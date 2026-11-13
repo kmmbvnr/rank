@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "788_dominatingnumbers"
-  Digits = 4
-  run
+  use "788_dominatingnumbers" as solve
+  Answer = solve 4
   Answer equal 603
-  Digits = 10
-  run
+  Answer = solve 10
   Answer equal 21893256
 end

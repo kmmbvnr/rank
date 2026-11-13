@@ -21,7 +21,6 @@ for I in 1 to Rounds
   end
   Answer = Next
 end
-Answer print
 
 fun A SA B SB Dx Ratio Grid cross
   K = B - A
@@ -149,3 +148,4 @@ fun Grid optimize Ratio
     .length = Length Grid Grid
   end
 end
+return Answer

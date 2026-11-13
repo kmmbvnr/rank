@@ -17,4 +17,7 @@ A = 3 to Limit array
 Step' = A - 2 + A mod 2
 Best' = A * Step
 Answer = Best sum
-Answer print
+return record
+  .answer = Answer
+  .best = Best
+end

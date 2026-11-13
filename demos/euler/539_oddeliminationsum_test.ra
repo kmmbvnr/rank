@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "539_oddeliminationsum"
-  N = 9
-  run
+  use "539_oddeliminationsum" as solve
+  Answer = solve 9
   Answer equal 29
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 268271
 end

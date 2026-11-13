@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "191_prizestrings"
-  run
+  use "191_prizestrings" as solve
+  Answer = solve
 
   Answer equal 1918080160
 end
 
 test "statement value for four days"
-  use "191_prizestrings"
-  Days = 4
-  run
+  use "191_prizestrings" as solve
+  Answer = solve 4
 
   Answer equal 43
 end

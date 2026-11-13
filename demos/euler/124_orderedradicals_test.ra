@@ -1,25 +1,21 @@
 use testing
 
 test "default input"
-  use "124_orderedradicals"
-  run
+  use "124_orderedradicals" as solve
+  Answer = solve
 
   Answer equal 21417
 end
 
 test "statement table for ten"
-  use "124_orderedradicals"
-  Limit = 10
-  K = 4
-  run
+  use "124_orderedradicals" as solve
+  Answer = solve 10 4
 
   Answer equal 8
-  K = 6
-  run
+  Answer = solve 10 6
 
   Answer equal 9
-  K = 10
-  run
+  Answer = solve 10 10
 
   Answer equal 10
 end

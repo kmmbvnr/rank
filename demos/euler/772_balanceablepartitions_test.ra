@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "772_balanceablepartitions"
-  Bound = 3
-  run
+  use "772_balanceablepartitions" as solve
+  Answer = solve 3
   Answer equal 12
-  Bound = 30
-  run
+  Answer = solve 30
   Answer equal 179092994
 end
 
 test "first values"
-  use "772_balanceablepartitions"
-  Bound = 2
-  run
+  use "772_balanceablepartitions" as solve
+  Answer = solve 2
   Answer equal 4
-  Bound = 10
-  run
+  Answer = solve 10
   Answer equal 5040
 end

@@ -1,27 +1,30 @@
 use testing
 
 test "default input"
-  use "092_squarechains"
-  run
+  use "092_squarechains" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 8581146
 end
 
 test "smaller numbers of digits"
-  use "092_squarechains"
-  Digits = 2
-  run
+  use "092_squarechains" as solve
+  Out = solve 2
+  Answer = Out .answer
 
   Answer equal 80
-  Digits = 3
-  run
+  Out = solve 3
+  Answer = Out .answer
 
   Answer equal 857
 end
 
 test "multiset counts cover all strings"
-  use "092_squarechains"
-  run
+  use "092_squarechains" as solve
+  Out = solve
+  Combs = Out .combs
+  Mult = Out .mult
 
   Mult sum equal 10000000
   Combs len equal 11440

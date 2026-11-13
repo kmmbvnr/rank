@@ -1,36 +1,31 @@
 use testing
 
 test "default input"
-  use "114_blocks1"
-  run
+  use "114_blocks1" as solve
+  Answer = solve
 
   Answer equal 16475640049
 end
 
 test "statement rows"
-  use "114_blocks1"
-  Size = 7
-  run
+  use "114_blocks1" as solve
+  Answer = solve 7
 
   Answer equal 17
-  Size = 29
-  run
+  Answer = solve 29
 
   Answer equal 673135
-  Size = 30
-  run
+  Answer = solve 30
 
   Answer equal 1089155
 end
 
 test "short rows"
-  use "114_blocks1"
-  Size = 2
-  run
+  use "114_blocks1" as solve
+  Answer = solve 2
 
   Answer equal 1
-  Size = 3
-  run
+  Answer = solve 3
 
   Answer equal 2
 end

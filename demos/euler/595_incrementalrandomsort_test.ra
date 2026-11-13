@@ -1,17 +1,15 @@
 use testing
 
 test "default input"
-  use "595_incrementalrandomsort"
-  run
+  use "595_incrementalrandomsort" as solve
+  Answer = solve
   Answer equal 54.17529329
 end
 
 test "statement values"
-  use "595_incrementalrandomsort"
-  N = 2
-  run
+  use "595_incrementalrandomsort" as solve
+  Answer = solve 2
   Answer equal 1
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 4.836969
 end

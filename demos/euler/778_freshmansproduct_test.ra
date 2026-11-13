@@ -1,13 +1,9 @@
 use testing
 
 test "statement values"
-  use "778_freshmansproduct"
-  Runs = 2
-  Bound = 7
-  run
+  use "778_freshmansproduct" as solve
+  Answer = solve 2 7
   Answer equal 204
-  Runs = 23
-  Bound = 76
-  run
+  Answer = solve 23 76
   Answer equal 5870548
 end

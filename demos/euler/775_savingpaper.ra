@@ -80,4 +80,4 @@ Low = Down prefix 0
 Fix = (High - Low) mod Mod
 Part = (6 * Total - Fixed - Fix) mod Mod
 Answer = Part sum mod Mod
-Answer print
+return Answer

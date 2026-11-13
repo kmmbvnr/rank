@@ -51,5 +51,9 @@ if Width at least 1
   Raw' = Text window Width
   Matches = Raw Positions
 end
-Positions print
-Matches print
+return record
+  .matches = Matches
+  .name = Name
+  .noisy = Noisy
+  .positions = Positions
+end

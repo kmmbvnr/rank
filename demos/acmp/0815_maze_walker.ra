@@ -73,3 +73,8 @@ else
   Count print
   Result print
 end
+return record
+  .count = Count
+  .result = Result
+  .status = Status
+end

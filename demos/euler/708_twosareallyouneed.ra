@@ -93,4 +93,4 @@ for Index in 0 to SmallQ len - 1
   Gain = 2 * HyperSum - Side * Side
   Answer += (SmallW Index) * Gain
 end
-Answer print
+return Answer

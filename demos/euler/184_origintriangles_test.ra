@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "184_origintriangles"
-  run
+  use "184_origintriangles" as solve
+  Answer = solve
 
   Answer equal 1725323624056
 end
 
 test "statement and small radii"
-  use "184_origintriangles"
-  R = 2
-  run
+  use "184_origintriangles" as solve
+  Answer = solve 2
 
   Answer equal 8
-  R = 3
-  run
+  Answer = solve 3
 
   Answer equal 360
-  R = 5
-  run
+  Answer = solve 5
 
   Answer equal 10600
 end

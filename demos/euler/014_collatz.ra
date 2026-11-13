@@ -25,4 +25,4 @@ for Start in 2 till Limit
 end
 
 Answer = Lengths max .index
-Answer print
+return Answer

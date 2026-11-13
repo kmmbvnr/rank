@@ -1,25 +1,29 @@
 use testing
 
 test "default input"
-  use "017_numberletters"
-  run
+  use "017_numberletters" as solve
+  Out = solve
+  Limit = Out .limit
+  Words = Out .words
 
   Words len rank 0 take Limit sum equal 21124
 end
 
 test "one through five"
-  use "017_numberletters"
+  use "017_numberletters" as solve
 
-  Limit = 5
-  run
+  Out = solve 5
+  Limit = Out .limit
+  Words = Out .words
 
   Words len rank 0 take Limit sum equal 19
 end
 
 test "British and"
-  use "017_numberletters"
+  use "017_numberletters" as solve
 
-  run
+  Out = solve
+  Words = Out .words
 
   Words 341 len equal 23
   Words 114 len equal 20

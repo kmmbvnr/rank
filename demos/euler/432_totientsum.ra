@@ -140,4 +140,4 @@ fun N solve Limit
 end
 
 Answer = N solve L
-Answer print
+return Answer

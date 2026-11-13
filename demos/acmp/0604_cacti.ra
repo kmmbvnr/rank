@@ -129,4 +129,4 @@ if N greater 1
   Result = DpFree 1
 end
 
-Result print
+return Result

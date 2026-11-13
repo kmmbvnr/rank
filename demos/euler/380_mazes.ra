@@ -34,4 +34,4 @@ Expo = Power floor
 Lead = 10.0 ** (Power - Expo)
 LeadText = Lead text ".4f"
 Answer = LeadText + "e" + (Expo text)
-Answer print
+return Answer

@@ -154,7 +154,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     const binaryCall = (part: Expression): boolean => {
         if (!isNameExpression(part)) return false;
         const signature = declaredSignature(part);
-        if (signature) return signature.arity === 2 && !signature.words.length
+        // An infix word has one operand on each side; two right operands is an ordinary call.
+        if (signature) return signature.arity === 2 && signature.leftCount === 1 && !signature.words.length
             && signature.parameters.every(parameter => parameter.kind === 'data');
         const operation = metadata(part).bound ? metadata(part).operation
             : options.operations?.get(part.name) ?? standardOperation(part);

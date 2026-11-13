@@ -31,4 +31,4 @@ Rs = Qs / Nf / Nf
 Ps = Rs ** M copy
 E = N / 2.0 + Fac * (Ps sum) / 2.0
 Answer = E round Digits
-Answer print
+return Answer

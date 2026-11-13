@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "166_crisscross"
-  run
+  use "166_crisscross" as solve
+  Answer = solve
 
   Answer equal 7130034
 end
 
 test "binary digits"
-  use "166_crisscross"
-  Base = 2
-  run
+  use "166_crisscross" as solve
+  Answer = solve 2
 
   Answer equal 34
 end

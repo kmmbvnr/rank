@@ -1,31 +1,25 @@
 use testing
 
 test "fractional first value"
-  use "343_fractional"
-  Limit = 1
-  run
+  use "343_fractional" as solve
+  Answer = solve 1
   Answer equal 1
 end
 
 test "fractional sequence sum"
-  use "343_fractional"
-  Limit = 20
-  run
+  use "343_fractional" as solve
+  Answer = solve 20
   Answer equal 1371
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 118937
 end
 
 test "fractional sieve boundaries"
-  use "343_fractional"
-  Limit = 2
-  run
+  use "343_fractional" as solve
+  Answer = solve 2
   Answer equal 3
-  Limit = 3
-  run
+  Answer = solve 3
   Answer equal 9
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 72421603
 end

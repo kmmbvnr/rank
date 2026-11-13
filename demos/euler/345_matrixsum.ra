@@ -68,4 +68,4 @@ for Mask in 0 till (2 ** 15)
   end
 end
 Answer = Dp ((2 ** 15) - 1)
-Answer print
+return Answer

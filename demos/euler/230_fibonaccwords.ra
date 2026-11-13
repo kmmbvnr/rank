@@ -54,4 +54,7 @@ Da' = Ta integer rank 0
 Db' = Tb integer rank 0
 Digit' = Lv equal 1 choose Da Db
 Answer = Digit * 10 ** N sum
-Answer print
+return record
+  .answer = Answer
+  .digit = Digit
+end

@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "506_clocksequence"
-  N = 11
-  run
+  use "506_clocksequence" as solve
+  Answer = solve 11
   Answer equal 36120
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 18232686
 end

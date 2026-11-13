@@ -79,4 +79,4 @@ B3 = T binomial 3 mod Md
 B4 = T binomial 4 mod Md
 Q = B4 - Bd + 2 * B3 - 2 * L3 + Sa - Sb
 Answer = Q mod Md
-Answer print
+return Answer

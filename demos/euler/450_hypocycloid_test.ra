@@ -1,23 +1,19 @@
 use testing
 
 test "statement values"
-  use "450_hypocycloid"
-  N = 3
-  run
+  use "450_hypocycloid" as solve
+  Answer = solve 3
   Answer equal 10
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 524
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 580442
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 583108600
 end
 
 test "default input"
-  use "450_hypocycloid"
-  run
+  use "450_hypocycloid" as solve
+  Answer = solve
   Answer equal 583333163984220940
 end

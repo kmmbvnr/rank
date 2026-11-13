@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "027_quadraticprimes"
-  run
+  use "027_quadraticprimes" as solve
+  Answer = solve
 
   Answer equal -59231
 end

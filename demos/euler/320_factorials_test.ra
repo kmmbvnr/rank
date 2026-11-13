@@ -7,9 +7,8 @@ test "Legendre valuation"
 end
 
 test "statement sample"
-  use "320_factorials"
-  Upper = 1000
-  run
+  use "320_factorials" as solve
+  Answer = solve 1000
   Answer equal 614538266565663
 end
 

@@ -1,15 +1,13 @@
 use testing
 
 test "statement values"
-  use "757_stealthynumbers"
-  Limit = 1000000
-  run
+  use "757_stealthynumbers" as solve
+  Answer = solve 1000000
   Answer equal 2851
 end
 
 test "small values"
-  use "757_stealthynumbers"
-  Limit = 36
-  run
+  use "757_stealthynumbers" as solve
+  Answer = solve 36
   Answer equal 4
 end

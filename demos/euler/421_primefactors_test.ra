@@ -1,41 +1,29 @@
 use testing
 
 test "statement value"
-  use "421_primefactors"
-  N = 10
-  M = 20
-  run
+  use "421_primefactors" as solve
+  Answer = solve 10 20
   Answer equal 157
 end
 
 test "brute force references"
-  use "421_primefactors"
-  N = 200
-  M = 1000
-  run
+  use "421_primefactors" as solve
+  Answer = solve 200 1000
   Answer equal 92634
-  N = 1000
-  M = 5000
-  run
+  Answer = solve 1000 5000
   Answer equal 2057773
 end
 
 test "two terms, small bound"
-  use "421_primefactors"
-  N = 2
-  M = 10
-  run
+  use "421_primefactors" as solve
+  Answer = solve 2 10
   Answer equal 5
 end
 
 test "empty bounds"
-  use "421_primefactors"
-  N = 0
-  M = 20
-  run
+  use "421_primefactors" as solve
+  Answer = solve 0 20
   Answer equal 0
-  N = 10
-  M = 1
-  run
+  Answer = solve 10 1
   Answer equal 0
 end

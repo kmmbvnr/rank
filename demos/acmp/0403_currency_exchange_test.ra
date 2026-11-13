@@ -1,33 +1,29 @@
 use testing
 
 test "sample 1: [990, 1000] has 9 valid"
-  use "0403_currency_exchange"
-  Input = "990 1000"
-  run
+  use "0403_currency_exchange" as solve
+  Answer = solve "990 1000"
 
   Answer equal 9
 end
 
 test "sample 2: [1, 100] all valid"
-  use "0403_currency_exchange"
-  Input = "1 100"
-  run
+  use "0403_currency_exchange" as solve
+  Answer = solve "1 100"
 
   Answer equal 100
 end
 
 test "reversed input range"
-  use "0403_currency_exchange"
-  Input = "1000 990"
-  run
+  use "0403_currency_exchange" as solve
+  Answer = solve "1000 990"
 
   Answer equal 9
 end
 
 test "large range up to 10^18"
-  use "0403_currency_exchange"
-  Input = "1 1000000000000000000"
-  run
+  use "0403_currency_exchange" as solve
+  Answer = solve "1 1000000000000000000"
 
   Answer equal 1691131560353793
 end

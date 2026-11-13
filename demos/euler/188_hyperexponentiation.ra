@@ -38,4 +38,4 @@ end
 
 Mod = 10 ** Digits
 Answer = Base Height Mod tower
-Answer print
+return Answer

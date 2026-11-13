@@ -52,4 +52,4 @@ for K in 0 till 20
 end
 Low = Ds take Count
 Answer = Alpha (Low reverse)
-Answer print
+return Answer

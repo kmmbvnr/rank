@@ -40,4 +40,4 @@ fun Limit twoprimes
 end
 
 Answer = Limit twoprimes
-Answer print
+return Answer

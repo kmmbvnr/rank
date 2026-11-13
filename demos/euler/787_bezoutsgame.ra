@@ -123,4 +123,4 @@ Right = (Hi - Lo) * (Q area 0)
 Sum3 = Left sum
 Sum4 = Right sum
 Answer = Phis - 2 * (Sum3 + Sum4)
-Answer print
+return Answer

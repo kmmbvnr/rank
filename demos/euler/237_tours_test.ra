@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "237_tours"
-  run
+  use "237_tours" as solve
+  Answer = solve
 
   Answer equal 15836928
 end
 
 test "small boards"
-  use "237_tours"
-  N = 5
-  run
+  use "237_tours" as solve
+  Answer = solve 5
 
   Answer equal 23
-  N = 8
-  run
+  Answer = solve 8
 
   Answer equal 360
-  N = 10
-  run
+  Answer = solve 10
 
   Answer equal 2329
 end

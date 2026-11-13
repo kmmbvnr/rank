@@ -19,4 +19,4 @@ Pw = (K - Js) N M powmod
 Sg = 1 - 2 * (Js mod 2)
 Tm = Sg * Cb mod M
 Answer = Tm * Pw mod M sum mod M
-Answer print
+return Answer

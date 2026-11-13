@@ -1,41 +1,29 @@
 use testing
 
 test "sample 1: 2 shops -> 88"
-  use "0243_masquerade"
-  N = 2
-  L = 14
-  ShopsText = "7 9 6 10\n7 8 6 10"
-  run
+  use "0243_masquerade" as solve
+  Answer = solve 2 14 "7 9 6 10\n7 8 6 10"
 
   Answer equal 88
 end
 
 test "sample 2: no stock -> -1"
-  use "0243_masquerade"
-  N = 1
-  L = 20
-  ShopsText = "1 1 1 1"
-  run
+  use "0243_masquerade" as solve
+  Answer = solve 1 20 "1 1 1 1"
 
   Answer equal -1
 end
 
 test "discount overbuy: need 8, buy 9"
-  use "0243_masquerade"
-  N = 1
-  L = 8
-  ShopsText = "7 9 6 10"
-  run
+  use "0243_masquerade" as solve
+  Answer = solve 1 8 "7 9 6 10"
 
   Answer equal 54
 end
 
 test "ACMP 243: zero meters required"
-  use "0243_masquerade"
-  N = 1
-  L = 0
-  ShopsText = "7 9 6 10"
-  run
+  use "0243_masquerade" as solve
+  Answer = solve 1 0 "7 9 6 10"
 
   Answer equal 0
 end

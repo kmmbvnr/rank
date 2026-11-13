@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "566_cakeicing"
-  N = 11
-  run
+  use "566_cakeicing" as solve
+  Answer = solve 11
   Answer equal 60
-  N = 14
-  run
+  Answer = solve 14
   Answer equal 58020
-  N = 17
-  run
+  Answer = solve 17
   Answer equal 1269260
 end

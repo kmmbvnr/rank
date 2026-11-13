@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "145_reversible"
-  run
+  use "145_reversible" as solve
+  Answer = solve
 
   Answer equal 608720
 end
 
 test "statement value for 1000"
-  use "145_reversible"
-  Digits = 3
-  run
+  use "145_reversible" as solve
+  Answer = solve 3
 
   Answer equal 120
-  Digits = 7
-  run
+  Answer = solve 7
 
   Answer equal 68720
 end

@@ -15,7 +15,7 @@ for A in 1 till 100
   end
 end
 
-Best print
+return Best
 
 
 fun N digit_sum

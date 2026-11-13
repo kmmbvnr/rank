@@ -48,4 +48,4 @@ for not (Visited LCA)
 end
 
 Answer = LCA
-Answer print
+return Answer

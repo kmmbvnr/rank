@@ -281,4 +281,4 @@ fun solve_circles Input
 end
 
 Result = solve_circles Input
-Result print
+return Result

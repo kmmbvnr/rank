@@ -201,4 +201,4 @@ Midpoint = 2 * Floor + 1
 Test = Midpoint * Midpoint * Denominator
 Up = Test at most 4 * Numerator integer
 Answer = Floor + Up
-Answer print
+return Answer

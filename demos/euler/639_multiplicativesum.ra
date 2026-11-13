@@ -178,4 +178,4 @@ for Kk in 1 to K
   Total = Total mod Md
 end
 Answer = Total mod Md
-Answer print
+return Answer

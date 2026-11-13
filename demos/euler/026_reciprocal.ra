@@ -10,7 +10,7 @@ use cli
 arg Limit integer = 1000
 
 Answer = Limit longest_reciprocal_cycle
-Answer print
+return Answer
 
 
 rem Compare cycle lengths for every eligible

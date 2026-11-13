@@ -1,17 +1,18 @@
 use testing
 
 test "default input"
-  use "086_cuboidroute"
-  run
+  use "086_cuboidroute" as solve
+  Out = solve
+  Answer = Out .answer
 
   Answer equal 1818
 end
 
 test "statement counts for 99 and 100"
-  use "086_cuboidroute"
-  Target = 1975
-  Limit = 200
-  run
+  use "086_cuboidroute" as solve
+  Out = solve 1975 200
+  Answer = Out .answer
+  Run = Out .run_value
 
   Run 99 equal 1975
   Run 100 equal 2060
@@ -19,10 +20,10 @@ test "statement counts for 99 and 100"
 end
 
 test "counts for small sides"
-  use "086_cuboidroute"
-  Target = 1
-  Limit = 20
-  run
+  use "086_cuboidroute" as solve
+  Out = solve 1 20
+  Answer = Out .answer
+  Run = Out .run_value
 
   Run 3 equal 2
   Run 5 equal 3

@@ -1,23 +1,19 @@
 use testing
 
 test "statement and brute-force values"
-  use "590_setswithlcm"
-  N = 4
-  run
+  use "590_setswithlcm" as solve
+  Answer = solve 4
   Answer equal 44
-  N = 6
-  run
+  Answer = solve 6
   Answer equal 3748
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 946139968
-  N = 16
-  run
+  Answer = solve 16
   Answer equal 265773312
 end
 
 test "default input"
-  use "590_setswithlcm"
-  run
+  use "590_setswithlcm" as solve
+  Answer = solve
   Answer equal 834171904
 end

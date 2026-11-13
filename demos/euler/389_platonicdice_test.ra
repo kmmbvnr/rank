@@ -2,8 +2,12 @@ use testing
 use numbers
 
 test "Platonic dice variance"
-  use "389_platonicdice"
-  run
+  use "389_platonicdice" as solve
+  use numbers
+  Out = solve
+  Answer = Out .answer
+  Mean = Out .mean
+  Var = Out .var
   Mean equal 2687.34375
   Var round 4 equal 2406376.3623
   Answer equal 2406376.3623

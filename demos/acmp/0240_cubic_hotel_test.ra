@@ -1,30 +1,27 @@
 use testing
 
 test "sample 1: 3x3x3 colored cube"
-  use "0240_cubic_hotel"
-  Input = "3
+  use "0240_cubic_hotel" as solve
+  Answer = solve "3
 .R. YYR .Y. RYY .Y. .R.
 GRB YGR BYG RBY GYB GRB
 .R. YRR .Y. RRY .R. .Y."
-  run
 
   Answer equal 11
 end
 
 test "sample 2: solid 2x2x2 cube"
-  use "0240_cubic_hotel"
+  use "0240_cubic_hotel" as solve
   I1 = "2\nZZ ZZ ZZ ZZ ZZ ZZ\n"
   I2 = "ZZ ZZ ZZ ZZ ZZ ZZ"
-  Input = I1 + I2
-  run
+  Answer = solve (I1 + I2)
 
   Answer equal 8
 end
 
 test "empty 1x1x1 cube"
-  use "0240_cubic_hotel"
-  Input = "1\n. . . . . .\n"
-  run
+  use "0240_cubic_hotel" as solve
+  Answer = solve "1\n. . . . . .\n"
 
   Answer equal 0
 end

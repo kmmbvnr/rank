@@ -1,8 +1,8 @@
 use testing
 
 test "seven pandigital digits"
-  use "041_pandigitalprime"
-  run
+  use "041_pandigitalprime" as solve
+  Answer = solve
 
   Answer equal 7652413
 end

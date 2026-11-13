@@ -132,4 +132,4 @@ fun solve_young Input
 end
 
 Result = solve_young Input
-Result print
+return Result

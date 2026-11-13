@@ -32,4 +32,4 @@ Gcds = DX gcd DY
 Boundary = Gcds sum
 Diff = DoubleArea - Boundary + 2
 Answer = Diff // 2
-Answer print
+return Answer

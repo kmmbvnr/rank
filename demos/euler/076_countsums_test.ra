@@ -1,40 +1,35 @@
 use testing
 
 test "default input"
-  use "076_countsums"
-  run
+  use "076_countsums" as solve
+  Answer = solve
 
   Answer equal 190569291
 end
 
 test "statement example"
-  use "076_countsums"
-  Total = 5
-  run
+  use "076_countsums" as solve
+  Answer = solve 5
 
   Answer equal 6
 end
 
 test "small totals"
-  use "076_countsums"
-  Total = 10
-  run
+  use "076_countsums" as solve
+  Answer = solve 10
 
   Answer equal 41
-  Total = 2
-  run
+  Answer = solve 2
 
   Answer equal 1
-  Total = 1
-  run
+  Answer = solve 1
 
   Answer equal 0
 end
 
 test "exact beyond real precision"
-  use "076_countsums"
-  Total = 300
-  run
+  use "076_countsums" as solve
+  Answer = solve 300
 
   Answer equal 9253082936723601
 end

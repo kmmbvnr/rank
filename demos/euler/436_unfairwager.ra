@@ -16,4 +16,4 @@ rem (1 + 14 e - 5 e^2) / 4.
 E = 1.0 exp
 P = (1 + 14 * E - 5 * E * E) / 4
 Answer = P round Digits
-Answer print
+return Answer

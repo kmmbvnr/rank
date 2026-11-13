@@ -1,20 +1,17 @@
 use testing
 
 test "statement values"
-  use "711_binaryblackboard"
-  Bits = 4
-  run
+  use "711_binaryblackboard" as solve
+  Answer = solve 4
   Answer equal 46
-  Bits = 12
-  run
+  Answer = solve 12
   Answer equal 54532
-  Bits = 1234
-  run
+  Answer = solve 1234
   Answer equal 690421393
 end
 
 test "default input"
-  use "711_binaryblackboard"
-  run
+  use "711_binaryblackboard" as solve
+  Answer = solve
   Answer equal 541510990
 end

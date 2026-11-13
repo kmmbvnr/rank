@@ -1,8 +1,8 @@
 use testing
 
 test "smallest eight-prime family"
-  use "051_primedigits"
-  run
+  use "051_primedigits" as solve
+  Answer = solve
 
   Answer equal 121313
 end

@@ -1,8 +1,11 @@
 use testing
 
 test "official minimum over the complete upper-bound search"
-  use "060_primepairs"
-  run
+  use "060_primepairs" as solve
+  Out = solve
+  Answer = Out .answer
+  Full = Out .full
+  Upper = Out .upper
 
   Upper equal 26033
   Answer equal 26033

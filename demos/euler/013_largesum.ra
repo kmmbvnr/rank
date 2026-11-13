@@ -114,4 +114,4 @@ end
 
 Total = Numbers sum
 Answer = Total text take Digits integer
-Answer print
+return Answer

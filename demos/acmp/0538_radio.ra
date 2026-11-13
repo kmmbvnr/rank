@@ -104,4 +104,8 @@ R = Low / 2.0
 OutR = R text
 OutCols = FinalColors join " "
 Answer = OutR + "\n" + OutCols
-Answer print
+return record
+  .final_colors = FinalColors
+  .r = R
+  .answer = Answer
+end

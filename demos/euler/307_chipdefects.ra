@@ -31,4 +31,4 @@ if Defects greater 2
     Answer -= P
   end
 end
-Answer print
+return Answer

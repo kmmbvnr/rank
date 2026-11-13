@@ -41,4 +41,4 @@ Cube = Prime - 8 + Corner
 Fermat = (Prime - 1) * Cube
 Sums = concat Plain Fermat
 Total = Sums sum
-Total print
+return Total

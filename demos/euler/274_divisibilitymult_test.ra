@@ -1,20 +1,18 @@
 use testing
 
 test "default input"
-  use "274_divisibilitymult"
-  run
+  use "274_divisibilitymult" as solve
+  Answer = solve
 
   Answer equal 1601912348822
 end
 
 test "small limits"
-  use "274_divisibilitymult"
-  Limit = 20
-  run
+  use "274_divisibilitymult" as solve
+  Answer = solve 20
 
   Answer equal 34
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 501
 end

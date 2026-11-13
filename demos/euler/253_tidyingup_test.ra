@@ -1,36 +1,30 @@
 use testing
 
 test "full default"
-  use "253_tidyingup"
-  run
+  use "253_tidyingup" as solve
+  Answer = solve
 
   Answer equal 11.492847
 end
 
 test "fewer pieces"
-  use "253_tidyingup"
-  N = 1
-  run
+  use "253_tidyingup" as solve
+  Answer = solve 1
 
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
 
   Answer equal 1
-  N = 3
-  run
+  Answer = solve 3
 
   Answer equal 1.333333
-  N = 6
-  run
+  Answer = solve 6
 
   Answer equal 2.255556
-  N = 10
-  run
+  Answer = solve 10
 
   Answer equal 3.400732
-  N = 20
-  run
+  Answer = solve 20
 
   Answer equal 6.156946
 end

@@ -84,4 +84,4 @@ MaxSatisfaction = (
   BaseHappiness + TotalGains
 )
 
-MaxSatisfaction print
+return MaxSatisfaction

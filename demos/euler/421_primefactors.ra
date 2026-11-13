@@ -76,4 +76,4 @@ for Start in 0 till Count by Batch
   Group = Primes (Start till End)
   Answer += N group_sum Group
 end
-Answer print
+return Answer

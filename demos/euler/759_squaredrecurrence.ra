@@ -68,4 +68,4 @@ Cell = Part * Moms mod Prime
 Block = Cell sum axis 1
 Used = Mask * Block
 Answer = Used sum mod Prime
-Answer print
+return Answer

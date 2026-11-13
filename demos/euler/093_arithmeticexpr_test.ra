@@ -1,16 +1,19 @@
 use testing
 
 test "default input"
-  use "093_arithmeticexpr"
-  run
+  use "093_arithmeticexpr" as solve
+  Out = solve
+  Answer = Out .answer
+  Best = Out .best
 
   Answer equal 1258
   Best equal 51
 end
 
 test "statement digits 1 2 3 4 reach 28"
-  use "093_arithmeticexpr"
-  run
+  use "093_arithmeticexpr" as solve
+  Out = solve
+  Vals = Out .vals
 
   Set = Vals 30
   28.0 in Set
@@ -19,8 +22,9 @@ test "statement digits 1 2 3 4 reach 28"
 end
 
 test "two digit sets"
-  use "093_arithmeticexpr"
-  run
+  use "093_arithmeticexpr" as solve
+  Out = solve
+  Vals = Out .vals
 
   Pair = Vals 6
   3.0 in Pair

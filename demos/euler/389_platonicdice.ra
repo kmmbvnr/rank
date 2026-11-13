@@ -14,4 +14,8 @@ for S in array 6 8 12 20
   Mean *= A
 end
 Answer = Var round 4
-Answer print
+return record
+  .answer = Answer
+  .mean = Mean
+  .var = Var
+end

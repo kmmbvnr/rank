@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "782_distinctrowscolumns"
-  Size = 2
-  run
+  use "782_distinctrowscolumns" as solve
+  Answer = solve 2
   Answer equal 8
-  Size = 5
-  run
+  Answer = solve 5
   Answer equal 64
-  Size = 10
-  run
+  Answer = solve 10
   Answer equal 274
-  Size = 20
-  run
+  Answer = solve 20
   Answer equal 1150
 end

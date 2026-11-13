@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "482_incenter"
-  P = 1000
-  run
+  use "482_incenter" as solve
+  Answer = solve 1000
   Answer equal 3619
 end
 
 test "larger perimeters"
-  use "482_incenter"
-  P = 10000
-  run
+  use "482_incenter" as solve
+  Answer = solve 10000
   Answer equal 884667
-  P = 100000
-  run
+  Answer = solve 100000
   Answer equal 119107683
 end

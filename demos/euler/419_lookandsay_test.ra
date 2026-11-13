@@ -2,28 +2,25 @@ use testing
 use text
 
 test "statement values"
-  use "419_lookandsay"
-  N = 8
-  run
+  use "419_lookandsay" as solve
+  Answer = solve 8
   Answer equal "6,2,2"
-  N = 40
-  run
+  Answer = solve 40
   Answer equal "31254,20259,11625"
 end
 
 test "direct string references"
-  use "419_lookandsay"
-  N = 20
-  run
+  use "419_lookandsay" as solve
+  Answer = solve 20
   Answer equal "155,91,56"
-  N = 35
-  run
+  Answer = solve 35
   Answer equal "8300,5366,3108"
 end
 
 test "default input"
-  use "419_lookandsay"
-  run
+  use "419_lookandsay" as solve
+  use text
+  Answer = solve
   A1 = "998567458"
   A2 = "1046245404"
   A3 = "43363922"

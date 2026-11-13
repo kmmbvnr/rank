@@ -133,4 +133,4 @@ for R in 0 to Ng - 1
 end
 Iv = 288 (Md - 2) Md powmod
 Answer = Total mod Md * Iv mod Md
-Answer print
+return Answer

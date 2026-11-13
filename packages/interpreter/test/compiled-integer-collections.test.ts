@@ -264,7 +264,7 @@ end`);
     it('compiles unchanged Euler 044 at full size', () => {
         const source = readFileSync(new URL('../../../demos/euler/044_pentagondiff.ra', import.meta.url), 'utf8');
         const result = compare(source);
-        expect(result.value).toBeUndefined();
+        expect(result.value).toBe(5482660n);
         expect(result.output).toEqual(['5482660']);
         expect(result.functions).toBe(4401);
         expect(Object.keys(result.fallbacks)).toEqual([]);

@@ -1,8 +1,8 @@
 use testing
 
 test "default input"
-  use "185_numbermind"
-  run
+  use "185_numbermind" as solve
+  Answer = solve
 
   Answer equal 4640261571849533
 end

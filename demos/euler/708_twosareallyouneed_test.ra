@@ -1,24 +1,21 @@
 use testing
 
 test "statement values"
-  use "708_twosareallyouneed"
-  Limit = 10
-  run
+  use "708_twosareallyouneed" as solve
+  Answer = solve 10
   Answer equal 33
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 15301
 end
 
 test "default input"
-  use "708_twosareallyouneed"
-  run
+  use "708_twosareallyouneed" as solve
+  Answer = solve
   Answer equal 28874142998632109
 end
 
 test "full-scale checkpoint"
-  use "708_twosareallyouneed"
-  Limit = 100000000
-  run
+  use "708_twosareallyouneed" as solve
+  Answer = solve 100000000
   Answer equal 9613563919
 end

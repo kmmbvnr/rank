@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "557_cuttingtriangles"
-  N = 20
-  run
+  use "557_cuttingtriangles" as solve
+  Answer = solve 20
   Answer equal 259
-  N = 54
-  run
+  Answer = solve 54
   Answer equal 3331
-  N = 55
-  run
+  Answer = solve 55
   Answer equal 3441
 end

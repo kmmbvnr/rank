@@ -120,4 +120,4 @@ for U in Us
   Answer += ((Wp * (Tb Ex)) mod P) sum
 end
 Answer = Answer mod P
-Answer print
+return Answer

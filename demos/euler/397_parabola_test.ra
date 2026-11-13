@@ -1,13 +1,9 @@
 use testing
 
 test "triangle on parabola"
-  use "397_parabola"
-  K = 1
-  X = 10
-  run
+  use "397_parabola" as solve
+  Answer = solve 1 10
   Answer equal 41
-  K = 10
-  X = 100
-  run
+  Answer = solve 10 100
   Answer equal 12492
 end

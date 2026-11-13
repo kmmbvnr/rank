@@ -99,4 +99,4 @@ for Iter in 0 till 2000000000
 end
 
 Ans = N
-Ans text print
+return Ans

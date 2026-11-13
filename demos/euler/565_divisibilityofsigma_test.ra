@@ -1,11 +1,9 @@
 use testing
 
 test "statement values"
-  use "565_divisibilityofsigma"
-  N = 1000000
-  run
+  use "565_divisibilityofsigma" as solve
+  Answer = solve 1000000
   Answer equal 150850429
-  N = 1000000000
-  run
+  Answer = solve 1000000000
   Answer equal 249652238344557
 end

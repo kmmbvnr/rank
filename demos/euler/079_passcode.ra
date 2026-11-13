@@ -28,4 +28,10 @@ Graph add Edges
 Seq = Graph topological
 Digits' = Seq .order text rank 0
 Answer = Digits join "" integer
-Answer print
+return record
+  .a = A
+  .answer = Answer
+  .b = B
+  .c = C
+  .seq = Seq
+end

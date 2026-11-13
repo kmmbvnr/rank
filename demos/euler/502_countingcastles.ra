@@ -126,4 +126,4 @@ for Ti in 0 to 2
   Answer += ((Ev sum) * I2 mod Md)
 end
 Answer = Answer mod Md
-Answer print
+return Answer

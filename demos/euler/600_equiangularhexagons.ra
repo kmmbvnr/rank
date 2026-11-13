@@ -42,4 +42,4 @@ Fo = M2 - 2 * As sum
 Rt = 2 * R1 + 2 * R2 + R3
 Ft = 3 * Fe + 3 * Fo
 Answer = (Id + Rt + Ft) // 12
-Answer print
+return Answer

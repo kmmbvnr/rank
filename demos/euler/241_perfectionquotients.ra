@@ -94,4 +94,4 @@ for T in 3 to 13 by 2
   Dm = Found 1 T 2 walk
 end
 Answer = Found sum
-Answer print
+return Answer

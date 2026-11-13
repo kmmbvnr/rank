@@ -205,4 +205,4 @@ if M greater (N - 1)
   end
 end
 
-Result print
+return Result

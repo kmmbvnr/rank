@@ -131,4 +131,8 @@ for Base in (Start // Wheel) * Wheel to Limit by Wheel
     end
   end
 end
-Answer print
+return record
+  .answer = Answer
+  .found = Found
+  .res = Res
+end

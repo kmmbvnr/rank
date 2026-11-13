@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "535_fractalsequence"
-  N = 20
-  run
+  use "535_fractalsequence" as solve
+  Answer = solve 20
   Answer equal 86
-  N = 1000
-  run
+  Answer = solve 1000
   Answer equal 364089
-  N = 1000000000
-  run
+  Answer = solve 1000000000
   Answer equal 978348241
 end

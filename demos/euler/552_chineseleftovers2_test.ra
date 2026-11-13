@@ -1,11 +1,9 @@
 use testing
 
 test "statement and smaller bounds"
-  use "552_chineseleftovers2"
-  L = 50
-  run
+  use "552_chineseleftovers2" as solve
+  Answer = solve 50
   Answer equal 69
-  L = 10000
-  run
+  Answer = solve 10000
   Answer equal 741693
 end

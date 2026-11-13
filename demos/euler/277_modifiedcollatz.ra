@@ -46,4 +46,4 @@ Mod = 3 ** Len
 R0 = Cand 0
 Jumps = (Limit - R0) // Mod + 1
 Answer = R0 + Mod * Jumps
-Answer print
+return Answer

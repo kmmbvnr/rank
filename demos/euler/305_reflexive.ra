@@ -12,7 +12,7 @@ Answer = 0
 for N in 3 ** (1 to Power array)
   Answer += N solve
 end
-Answer print
+return Answer
 
 fun State E A id
   K = E join ","

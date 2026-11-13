@@ -21,4 +21,4 @@ for N greater 1
     Step = 2
   end
 end
-N print
+return N

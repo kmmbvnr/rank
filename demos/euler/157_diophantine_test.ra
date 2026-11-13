@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "157_diophantine"
-  run
+  use "157_diophantine" as solve
+  Answer = solve
 
   Answer equal 53490
 end
 
 test "statement value for n = 1"
-  use "157_diophantine"
-  Digits = 1
-  run
+  use "157_diophantine" as solve
+  Answer = solve 1
 
   Answer equal 20
 end

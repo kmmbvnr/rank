@@ -30,4 +30,4 @@ Hit' = Fit and Sums equal Base
 Found' = Pow filter Hit array
 Sorted = Found sort
 Answer = Sorted (Nth - 1)
-Answer print
+return Answer

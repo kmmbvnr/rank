@@ -106,4 +106,8 @@ for
 end
 Count = Last - First + 1
 Answer = Total / Count round 10
-Answer print
+return record
+  .answer = Answer
+  .count = Count
+  .total = Total
+end

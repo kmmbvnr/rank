@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "558_irrationalbase"
-  M = 10
-  run
+  use "558_irrationalbase" as solve
+  Answer = solve 10
   Answer equal 61
-  M = 1000
-  run
+  Answer = solve 1000
   Answer equal 19403
-  M = 20000
-  run
+  Answer = solve 20000
   Answer equal 562820
 end

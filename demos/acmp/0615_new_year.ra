@@ -210,6 +210,9 @@ ChosenW = Warr (ChosenIdx - 1)
 TotalCost = ChosenW sum
 
 TotalCost print
-NumChosen print
 AnswerEdges = ChosenIdx join " "
-AnswerEdges print
+return record
+  .answer_edges = AnswerEdges
+  .num_chosen = NumChosen
+  .total_cost = TotalCost
+end

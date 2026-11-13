@@ -36,4 +36,7 @@ Bin' = K J outer binomial
 Terms' = Bin * (Firsts take Degree)
 Used' = K reshape Degree 1 greater J
 Answer = Used choose Terms 0 sum
-Answer print
+return record
+  .answer = Answer
+  .u = U
+end

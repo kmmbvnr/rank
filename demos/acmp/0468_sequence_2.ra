@@ -52,4 +52,9 @@ B3 = 1 shl P3
 B2 = 1 shl P2
 B1 = 1 shl P1
 Answer = B3 + B2 + B1
-Answer text print
+return record
+  .answer = Answer
+  .p1 = P1
+  .p2 = P2
+  .p3 = P3
+end

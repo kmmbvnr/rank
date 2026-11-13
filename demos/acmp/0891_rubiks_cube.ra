@@ -193,4 +193,4 @@ D = (T1 5) + (T2 5)
 StartCube = F + L + B + R + U + D
 
 Ans = StartCube solve_cube
-Ans print
+return Ans

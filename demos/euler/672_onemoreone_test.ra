@@ -1,18 +1,15 @@
 use testing
 
 test "statement value"
-  use "672_onemoreone"
-  Kk = 10
-  run
+  use "672_onemoreone" as solve
+  Answer = solve 10
   Answer equal 690409338
-  Kk = 20
-  run
+  Answer = solve 20
   Answer equal 933607441
 end
 
 test "default input"
-  use "672_onemoreone"
-  Kk = 1000000000
-  run
+  use "672_onemoreone" as solve
+  Answer = solve 1000000000
   Answer equal 91627537
 end

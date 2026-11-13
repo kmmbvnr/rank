@@ -1,20 +1,13 @@
 use testing
 
 test "statement values"
-  use "560_coprimenim"
-  N = 5
-  K = 2
-  run
+  use "560_coprimenim" as solve
+  Answer = solve 5 2
   Answer equal 6
-  N = 10
-  K = 5
-  run
+  Answer = solve 10 5
   Answer equal 9964
-  K = 10
-  run
+  Answer = solve 10 10
   Answer equal 472400303
-  N = 1000
-  K = 1000
-  run
+  Answer = solve 1000 1000
   Answer equal 954021836
 end

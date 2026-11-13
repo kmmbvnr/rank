@@ -1,18 +1,15 @@
 use testing
 
 test "statement values"
-  use "683_chaseii"
-  Nn = 5
-  run
+  use "683_chaseii" as solve
+  Answer = solve 5
   Answer equal "9.65441116e1"
-  Nn = 50
-  run
+  Answer = solve 50
   Answer equal "2.82491788e6"
 end
 
 test "default input"
-  use "683_chaseii"
-  Nn = 500
-  run
+  use "683_chaseii" as solve
+  Answer = solve 500
   Answer equal "2.38955315e11"
 end

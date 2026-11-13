@@ -1,63 +1,49 @@
 use testing
 
 test "statement value"
-  use "443_gcdsequence"
-  N = 4
-  run
+  use "443_gcdsequence" as solve
+  Answer = solve 4
   Answer equal 13
 end
 
 test "direct recurrence references"
-  use "443_gcdsequence"
-  N = 9
-  run
+  use "443_gcdsequence" as solve
+  Answer = solve 9
   Answer equal 27
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 268
-  N = 2000
-  run
+  Answer = solve 2000
   Answer equal 5120
-  N = 5000
-  run
+  Answer = solve 5000
   Answer equal 11258
 end
 
 test "jump method checkpoints"
-  use "443_gcdsequence"
-  N = 1000
-  run
+  use "443_gcdsequence" as solve
+  Answer = solve 1000
   Answer equal 2524
-  N = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 2624152
 end
 
 test "initial scan and anchor boundaries"
-  use "443_gcdsequence"
-  N = 5
-  run
+  use "443_gcdsequence" as solve
+  Answer = solve 5
   Answer equal 14
-  N = 6
-  run
+  Answer = solve 6
   Answer equal 16
-  N = 8
-  run
+  Answer = solve 8
   Answer equal 18
-  N = 16
-  run
+  Answer = solve 16
   Answer equal 34
-  N = 17
-  run
+  Answer = solve 17
   Answer equal 51
-  N = 18
-  run
+  Answer = solve 18
   Answer equal 54
 end
 
 test "default bound"
-  use "443_gcdsequence"
-  N = 1000000000000000
-  run
+  use "443_gcdsequence" as solve
+  Answer = solve 1000000000000000
   Answer equal 2744233049300770
 end

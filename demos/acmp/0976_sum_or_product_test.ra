@@ -2,28 +2,25 @@ rem Tests for ACMP 0976: Sum or Product
 use testing
 
 test "ACMP 976: Maximal (N=500)"
-  use "0976_sum_or_product"
-  run
+  use "0976_sum_or_product" as solve
+  Result = solve
   Result equal 7
 end
 
 test "ACMP 976: Sample 1 (N=2)"
-  use "0976_sum_or_product"
-  Input = "2"
-  run
+  use "0976_sum_or_product" as solve
+  Result = solve "2"
   Result equal 1
 end
 
 test "ACMP 976: Sample 2 (N=5)"
-  use "0976_sum_or_product"
-  Input = "5"
-  run
+  use "0976_sum_or_product" as solve
+  Result = solve "5"
   Result equal 3
 end
 
 test "ACMP 976: N=10"
-  use "0976_sum_or_product"
-  Input = "10"
-  run
+  use "0976_sum_or_product" as solve
+  Result = solve "10"
   Result equal 2
 end

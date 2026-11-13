@@ -1,42 +1,33 @@
 use testing
 
 test "statement values"
-  use "441_inversesum"
-  N = 2
-  run
+  use "441_inversesum" as solve
+  Answer = solve 2
   Answer equal 0.5
-  N = 10
-  run
+  Answer = solve 10
   Answer equal 6.9147
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 58.2962
 end
 
 test "short direct harmonic tables"
-  use "441_inversesum"
-  N = 2000
-  run
+  use "441_inversesum" as solve
+  Answer = solve 2000
   Answer equal 1021.4946
-  N = 5000
-  Cut = 20
-  run
+  Answer = solve 5000 20
   Answer equal 2526.6219
 end
 
 test "empty and singleton bounds"
-  use "441_inversesum"
-  N = 0
-  run
+  use "441_inversesum" as solve
+  Answer = solve 0
   Answer equal 0.0
-  N = 1
-  run
+  Answer = solve 1
   Answer equal 0.0
 end
 
 test "default bound"
-  use "441_inversesum"
-  N = 10000000
-  run
+  use "441_inversesum" as solve
+  Answer = solve 10000000
   Answer equal 5000088.8395
 end

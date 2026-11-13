@@ -1,20 +1,17 @@
 use testing
 
 test "default input"
-  use "628_openchesspositions"
-  run
+  use "628_openchesspositions" as solve
+  Answer = solve
   Answer equal 210286684
 end
 
 test "statement and brute force"
-  use "628_openchesspositions"
-  N = 3
-  run
+  use "628_openchesspositions" as solve
+  Answer = solve 3
   Answer equal 2
-  N = 5
-  run
+  Answer = solve 5
   Answer equal 70
-  N = 9
-  run
+  Answer = solve 9
   Answer equal 277406
 end

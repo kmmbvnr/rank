@@ -1,20 +1,15 @@
 use testing
 
 test "least common multiple count"
-  use "379_lcmcount"
-  Limit = 0
-  run
+  use "379_lcmcount" as solve
+  Answer = solve 0
   Answer equal 0
-  Limit = 1
-  run
+  Answer = solve 1
   Answer equal 1
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 29
-  Limit = 100
-  run
+  Answer = solve 100
   Answer equal 647
-  Limit = 1000000
-  run
+  Answer = solve 1000000
   Answer equal 37429395
 end

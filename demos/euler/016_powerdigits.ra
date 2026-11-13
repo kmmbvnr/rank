@@ -14,7 +14,7 @@ rem P text integer rank 0 sum
 rem Here, double decimal text instead.
 Value = "1" double repeat Exponent
 Answer = Value integer rank 0 sum
-Answer print
+return Answer
 
 
 rem Multiply decimal text by two.

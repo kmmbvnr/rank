@@ -88,4 +88,4 @@ for Block in 0 to Top // Rows
   Total = (Total + Added) mod Digits
 end
 Answer = Total
-Answer print
+return Answer

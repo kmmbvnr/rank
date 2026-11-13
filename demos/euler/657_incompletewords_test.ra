@@ -1,23 +1,17 @@
 use testing
 
 test "statement values"
-  use "657_incompletewords"
-  Al = 3
-  Nl = 0
-  run
+  use "657_incompletewords" as solve
+  Answer = solve 3 0
   Answer equal 1
-  Nl = 2
-  run
+  Answer = solve 3 2
   Answer equal 13
-  Nl = 4
-  run
+  Answer = solve 3 4
   Answer equal 79
 end
 
 test "default input"
-  use "657_incompletewords"
-  Al = 10000000
-  Nl = 1000000000000
-  run
+  use "657_incompletewords" as solve
+  Answer = solve 10000000 1000000000000
   Answer equal 219493139
 end

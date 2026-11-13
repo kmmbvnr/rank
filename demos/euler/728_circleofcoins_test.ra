@@ -1,20 +1,17 @@
 use testing
 
 test "statement values"
-  use "728_circleofcoins"
-  Limit = 3
-  run
+  use "728_circleofcoins" as solve
+  Answer = solve 3
   Answer equal 22
-  Limit = 10
-  run
+  Answer = solve 10
   Answer equal 10444
-  Limit = 1000
-  run
+  Answer = solve 1000
   Answer equal 853837042
 end
 
 test "default input"
-  use "728_circleofcoins"
-  run
+  use "728_circleofcoins" as solve
+  Answer = solve
   Answer equal 709874991
 end

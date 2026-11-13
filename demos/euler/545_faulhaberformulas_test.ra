@@ -1,11 +1,9 @@
 use testing
 
 test "brute force terms"
-  use "545_faulhaberformulas"
-  Q = 2
-  run
+  use "545_faulhaberformulas" as solve
+  Answer = solve 2
   Answer equal 21868
-  Q = 10
-  run
+  Answer = solve 10
   Answer equal 96404
 end

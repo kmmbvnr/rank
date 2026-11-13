@@ -140,4 +140,4 @@ if NoRowV and NoColV
   Answer = FixedSum + TotalFlow
 end
 
-Answer print
+return Answer

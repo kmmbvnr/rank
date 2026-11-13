@@ -1,16 +1,15 @@
 use testing
 
 test "default input"
-  use "020_factorialdigits"
-  run
+  use "020_factorialdigits" as solve
+  Answer = solve
 
   Answer equal 648
 end
 
 test "ten factorial"
-  use "020_factorialdigits"
-  N = 10
-  run
+  use "020_factorialdigits" as solve
+  Answer = solve 10
 
   Answer equal 27
 end

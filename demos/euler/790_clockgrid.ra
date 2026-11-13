@@ -119,4 +119,4 @@ for Event in 0 to 2 * Steps - 1
   Cur = Mine sum
 end
 Answer += Cur * (Side - Prev)
-Answer print
+return Answer

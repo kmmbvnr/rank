@@ -1,21 +1,17 @@
 use testing
 
 test "statement values"
-  use "755_notzeckendorf"
-  Limit = 100
-  run
+  use "755_notzeckendorf" as solve
+  Answer = solve 100
   Answer equal 415
-  Limit = 10000
-  run
+  Answer = solve 10000
   Answer equal 312807
 end
 
 test "small values"
-  use "755_notzeckendorf"
-  Limit = 0
-  run
+  use "755_notzeckendorf" as solve
+  Answer = solve 0
   Answer equal 1
-  Limit = 3
-  run
+  Answer = solve 3
   Answer equal 5
 end

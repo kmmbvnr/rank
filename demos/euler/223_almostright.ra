@@ -93,4 +93,4 @@ for Root in 1 to 2
   end
   Answer += Cnt
 end
-Answer print
+return Answer

@@ -1,20 +1,15 @@
 use testing
 
 test "small coprime coins"
-  use "700_eulercoin"
-  Aa = 3
-  Mm = 7
-  Cut = 2
-  run
+  use "700_eulercoin" as solve
+  Answer = solve 2 3 7
   Answer equal 6
-  Aa = 5
-  Mm = 13
-  run
+  Answer = solve 2 5 13
   Answer equal 8
 end
 
 test "default input"
-  use "700_eulercoin"
-  run
+  use "700_eulercoin" as solve
+  Answer = solve
   Answer equal 1517926517777556
 end

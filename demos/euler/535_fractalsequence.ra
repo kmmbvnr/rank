@@ -63,4 +63,4 @@ for X greater 0
   Answer = (Answer + Tc) mod Md
   X = B
 end
-Answer print
+return Answer

@@ -168,4 +168,4 @@ Items = Base Exp Prime powmod
 Everything = concat Blocks Items
 Chainp = Everything scan mulp
 Answer = Chainp (Chainp len - 1)
-Answer print
+return Answer

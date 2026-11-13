@@ -1,25 +1,23 @@
 use testing
 
 test "default input"
-  use "014_collatz"
-  run
+  use "014_collatz" as solve
+  Answer = solve
 
   Answer equal 837799
 end
 
 test "starts below fourteen"
-  use "014_collatz"
+  use "014_collatz" as solve
 
-  Limit = 14
-  run
+  Answer = solve 14
 
   Answer equal 9
 end
 
 test "smallest search with a Collatz step"
-  use "014_collatz"
-  Limit = 3
-  run
+  use "014_collatz" as solve
+  Answer = solve 3
 
   Answer equal 2
 end

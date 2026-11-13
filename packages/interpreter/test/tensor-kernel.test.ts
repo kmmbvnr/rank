@@ -436,7 +436,6 @@ A squares
     });
 
     it.each([
-        'use numbers\nA = array 1 2\nreturn (A * A) sum',
         'use numbers\nfun A bad\n  try\n    return 1\n  finally\n    return (A * A) sum\n  end\nend\nA = array 1 2\nA bad',
         'use numbers\nfun A bad\n  yield 1\n  return (A * A) sum\nend\nA = array 1 2\nB = A bad\nB array',
     ])('preserves invalid return diagnostics', source => {

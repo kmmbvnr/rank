@@ -78,8 +78,11 @@ if N greater 1
 end
 
 BestScore print
-BestPos print
 
 StrScore = BestScore text
 StrPos = BestPos text
 Ans = StrScore + "\n" + StrPos
+return record
+  .best_pos = BestPos
+  .best_score = BestScore
+end

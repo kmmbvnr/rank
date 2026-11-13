@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "763_amoebas3d"
-  Count = 10
-  run
+  use "763_amoebas3d" as solve
+  Answer = solve 10
   Answer equal 44499
-  Count = 20
-  run
+  Answer = solve 20
   Answer equal 204559704
-  Count = 32
-  run
+  Answer = solve 32
   Answer equal 49132222
-  Count = 100
-  run
+  Answer = solve 100
   Answer equal 780166455
 end

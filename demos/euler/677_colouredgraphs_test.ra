@@ -1,20 +1,15 @@
 use testing
 
 test "statement values"
-  use "677_colouredgraphs"
-  Nn = 2
-  run
+  use "677_colouredgraphs" as solve
+  Answer = solve 2
   Answer equal 5
-  Nn = 3
-  run
+  Answer = solve 3
   Answer equal 15
-  Nn = 4
-  run
+  Answer = solve 4
   Answer equal 57
-  Nn = 10
-  run
+  Answer = solve 10
   Answer equal 710249
-  Nn = 100
-  run
+  Answer = solve 100
   Answer equal 919747298
 end

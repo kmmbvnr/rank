@@ -72,4 +72,4 @@ fun solve_packing Inp
 end
 
 Ans = solve_packing Input
-Ans print
+return Ans

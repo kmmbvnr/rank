@@ -1,14 +1,11 @@
 use testing
 
 test "statement values"
-  use "675_twoomega"
-  Nn = 5
-  run
+  use "675_twoomega" as solve
+  Answer = solve 5
   Answer equal 96
-  Nn = 10
-  run
+  Answer = solve 10
   Answer equal 4821
-  Nn = 100000
-  run
+  Answer = solve 100000
   Answer equal 476618093
 end

@@ -30,4 +30,7 @@ K0 = K transpose 0
 Od = (3628800 - 362880 * K0) // 2 ** C2
 Ev = 3628800 // 2 ** C0
 Answer = Od * Ev sum
-Answer print
+return record
+  .answer = Answer
+  .k = K
+end

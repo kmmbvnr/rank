@@ -1,24 +1,19 @@
 use testing
 
 test "statement values"
-  use "609_pisequences"
-  N = 10
-  run
+  use "609_pisequences" as solve
+  Answer = solve 10
   Answer equal 648
-  N = 100
-  run
+  Answer = solve 100
   Answer equal 38675815
 end
 
 test "brute force"
-  use "609_pisequences"
-  N = 1000
-  run
+  use "609_pisequences" as solve
+  Answer = solve 1000
   Answer equal 649720175
-  N = 100000
-  run
+  Answer = solve 100000
   Answer equal 240041293
-  N = 10000000
-  run
+  Answer = solve 10000000
   Answer equal 742870469
 end

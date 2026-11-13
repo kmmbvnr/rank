@@ -51,4 +51,4 @@ for Nn in 1 to N
   Answer += Tm 0
 end
 Answer = Answer mod M
-Answer print
+return Answer

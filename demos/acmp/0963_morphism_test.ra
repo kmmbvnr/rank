@@ -1,76 +1,70 @@
 use testing
 
 test "sample 1: p = 5 -> B"
-  use "0963_morphism"
-  run
+  use "0963_morphism" as solve
+  Ans = solve
 
   Ans equal "B"
 end
 
 test "sample 2: p = 7 -> -"
-  use "0963_morphism"
-  Input = "3 1 7
+  use "0963_morphism" as solve
+  Ans = solve "3 1 7
 ABC
 ABC
 A
 BC"
-  run
 
   Ans equal "-"
 end
 
 test "k = 0 keeps the word"
-  use "0963_morphism"
-  Input = "2 0 2
+  use "0963_morphism" as solve
+  Ans = solve "2 0 2
 AB
 BA
 AB"
-  run
 
   Ans equal "B"
 end
 
 test "k = 2 of the sample"
-  use "0963_morphism"
-  Input = "3 2 8
+  use "0963_morphism" as solve
+  Ans = solve "3 2 8
 ABC
 ABC
 A
 BC"
-  run
 
   Ans equal "B"
 end
 
 test "huge k length-preserving swap"
-  use "0963_morphism"
-  Input = "2 1000000000 1
+  use "0963_morphism" as solve
+  Ans = solve "2 1000000000 1
 A
 B
 A"
-  run
 
   Ans equal "A"
 end
 
 test "huge k with growth: full prefix"
-  use "0963_morphism"
-  Input = "2 1000000000 20
+  use "0963_morphism" as solve
+  Ans = solve "2 1000000000 20
 A
 AB
 A"
-  run
 
   Ans not equal "-"
 end
 
 test "swap with odd k"
-  use "0963_morphism"
-  Input = "2 999999999 1
+  use "0963_morphism" as solve
+  Ans = solve "2 999999999 1
 A
 B
 A"
-  run
 
   Ans equal "B"
 end

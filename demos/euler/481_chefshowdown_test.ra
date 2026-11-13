@@ -2,9 +2,12 @@ use testing
 use numbers
 
 test "seven chefs"
-  use "481_chefshowdown"
-  N = 7
-  run
+  use "481_chefshowdown" as solve
+  use numbers
+  use sequences
+  Out = solve 7
+  Answer = Out .answer
+  Ws = Out .ws
   Answer equal 42.2817605
   Ex = array 0.08965042 0.20775702
   Ex = concat Ex (array 0.15291406)

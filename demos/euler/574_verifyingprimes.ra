@@ -87,4 +87,4 @@ end
 Primes = primes till N array
 Values = Primes verify rank 0
 Answer = Values sum
-Answer print
+return Answer

@@ -3,58 +3,53 @@ use testing
 use text
 
 test "ACMP 402: Maximal 300 grid"
-  use "0402_cottages"
-  run
+  use "0402_cottages" as solve
+  Result = solve
   Result equal 55142
 end
 
 test "ACMP 402: Sample 1 (square)"
-  use "0402_cottages"
-  Input = (
+  use "0402_cottages" as solve
+  Result = solve (
     "4\n" +
     "0 0\n" +
     "1 0\n" +
     "1 1\n" +
     "0 1"
   )
-  run
   Result equal 12
 end
 
 test "ACMP 402: Single point"
-  use "0402_cottages"
-  Input = "1\n0 0"
-  run
+  use "0402_cottages" as solve
+  Result = solve "1\n0 0"
   Result equal 0
 end
 
 test "ACMP 402: Two points"
-  use "0402_cottages"
-  Input = "2\n0 0\n5 5"
-  run
+  use "0402_cottages" as solve
+  Result = solve "2\n0 0\n5 5"
   Result equal 2
 end
 
 test "ACMP 402: 3 collinear"
-  use "0402_cottages"
-  Input = (
+  use "0402_cottages" as solve
+  Result = solve (
     "3\n" +
     "0 0\n" +
     "1 1\n" +
     "2 2"
   )
-  run
   Result equal 4
 end
 
 test "ACMP 402: Triangle"
-  use "0402_cottages"
-  Input = (
+  use "0402_cottages" as solve
+  Result = solve (
     "3\n" +
     "0 0\n" +
     "2 0\n" +
     "1 2"
   )
-  run
   Result equal 6
 end

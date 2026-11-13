@@ -54,4 +54,4 @@ for N in 1 to L - 1
   Total = (Total + 6 * Current) mod Q
 end
 Answer = Total mod Q
-Answer print
+return Answer

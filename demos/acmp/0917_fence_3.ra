@@ -75,4 +75,4 @@ fun solve_fence Input
 end
 
 Result = solve_fence Input
-Result print
+return Result

@@ -38,11 +38,9 @@ describe('Euler 346 strong repunits', () => {
             } finally { runtime.dispose(); }
         });
         it(`computes the full target (compilation=${compilation})`, () => {
-            const output: string[] = [];
-            const runtime = new Interpreter(text => output.push(text.trim()), { compilation });
+            const runtime = new Interpreter(() => {}, { compilation });
             try {
-                runtime.execute(source);
-                expect(output.at(-1)).toBe('336108797689259276');
+                expect(runtime.execute(source)).toBe(336108797689259276n);
             } finally { runtime.dispose(); }
         });
     }

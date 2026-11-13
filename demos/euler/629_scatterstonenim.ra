@@ -61,4 +61,4 @@ for Kc in 0 to 2
   Answer += Fk * (1 + (N - 4) * Iq)
 end
 Answer = Answer mod M
-Answer print
+return Answer

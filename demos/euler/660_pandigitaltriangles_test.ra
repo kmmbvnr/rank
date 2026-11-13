@@ -1,17 +1,13 @@
 use testing
 
 test "statement values"
-  use "660_pandigitaltriangles"
-  Lo = 9
-  Hi = 9
-  run
+  use "660_pandigitaltriangles" as solve
+  Answer = solve 9 9
   Answer equal 1082
 end
 
 test "bases 12 to 15"
-  use "660_pandigitaltriangles"
-  Lo = 12
-  Hi = 15
-  run
+  use "660_pandigitaltriangles" as solve
+  Answer = solve 12 15
   Answer equal 2042689
 end

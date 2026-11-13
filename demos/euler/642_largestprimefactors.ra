@@ -85,4 +85,4 @@ for P in Pr reverse
   end
 end
 Answer = Cl 1 mod M
-Answer print
+return Answer

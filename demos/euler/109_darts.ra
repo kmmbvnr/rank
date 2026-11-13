@@ -36,4 +36,7 @@ None = Direct count
 Ones = Quick count
 Twos = Fits count
 Answer = None + Ones + Twos
-Answer print
+return record
+  .answer = Answer
+  .direct = Direct
+end

@@ -1,8 +1,8 @@
 use testing
 
 test "twentieth century"
-  use "019_sundays"
-  run
+  use "019_sundays" as solve
+  Answer = solve
 
   Answer equal 171
 end

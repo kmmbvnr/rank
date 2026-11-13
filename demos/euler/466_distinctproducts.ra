@@ -61,4 +61,4 @@ for Row in 1 to Rows
   Mask = Bits sum
   Answer += Limit avoiding Mask
 end
-Answer print
+return Answer

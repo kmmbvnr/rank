@@ -105,4 +105,4 @@ Answer = (1 + Subtotal) mod Mod
 if M equal 0
   Answer = 0
 end
-Answer print
+return Answer

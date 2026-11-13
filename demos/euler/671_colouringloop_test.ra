@@ -1,17 +1,11 @@
 use testing
 
 test "statement values"
-  use "671_colouringloop"
-  Kc = 4
-  Nn = 3
-  run
+  use "671_colouringloop" as solve
+  Answer = solve 4 3
   Answer equal 104
-  Kc = 5
-  Nn = 7
-  run
+  Answer = solve 5 7
   Answer equal 3327300
-  Kc = 6
-  Nn = 101
-  run
+  Answer = solve 6 101
   Answer equal 75309980
 end

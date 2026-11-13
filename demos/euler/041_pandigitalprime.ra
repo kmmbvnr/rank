@@ -9,7 +9,7 @@ use io
 
 Digits = "7654321"
 Answer = Digits largest_pandigital_prime
-Answer print
+return Answer
 
 
 rem Descending input makes permutations arrive

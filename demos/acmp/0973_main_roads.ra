@@ -152,4 +152,4 @@ if CritCnt greater 0
   Lines = array CntStr ListStr
   Result = Lines join "\n"
 end
-Result print
+return Result

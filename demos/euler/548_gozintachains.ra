@@ -110,4 +110,4 @@ Actual = Values canonical rank 0
 Matches = Actual equal Patterns
 Answer = Values Matches sum
 Answer += L greater 0 integer
-Answer print
+return Answer

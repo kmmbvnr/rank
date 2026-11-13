@@ -3,18 +3,14 @@ use testing
 rem Small radii check the geometry and
 rem cross chunk boundaries cheaply.
 test "small radii"
-  use "210_obtuse"
-  R = 8
-  run
+  use "210_obtuse" as solve
+  Answer = solve 8
 
   Answer equal 100
-  R = 24
-  run
+  Answer = solve 24
 
   Answer equal 916
-  R = 800
-  Chunk = 100
-  run
+  Answer = solve 800 100
 
   Answer equal 1022626
 end

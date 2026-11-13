@@ -1,21 +1,17 @@
 use testing
 
 test "small limits"
-  use "457_polynomialmodulosquare"
-  L = 10
-  run
+  use "457_polynomialmodulosquare" as solve
+  Answer = solve 10
   Answer equal 5
-  L = 100
-  run
+  Answer = solve 100
   Answer equal 1752
-  L = 1000
-  run
+  Answer = solve 1000
   Answer equal 6728355
 end
 
 test "limit 10^5"
-  use "457_polynomialmodulosquare"
-  L = 100000
-  run
+  use "457_polynomialmodulosquare" as solve
+  Answer = solve 100000
   Answer equal 3710903873569
 end

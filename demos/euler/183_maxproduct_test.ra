@@ -1,24 +1,21 @@
 use testing
 
 test "default input"
-  use "183_maxproduct"
-  run
+  use "183_maxproduct" as solve
+  Answer = solve
 
   Answer equal 48861552
 end
 
 test "smaller limits"
-  use "183_maxproduct"
-  Limit = 11
-  run
+  use "183_maxproduct" as solve
+  Answer = solve 11
 
   Answer equal -26
-  Limit = 100
-  run
+  Answer = solve 100
 
   Answer equal 2438
-  Limit = 1000
-  run
+  Answer = solve 1000
 
   Answer equal 452936
 end

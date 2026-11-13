@@ -1,41 +1,37 @@
 use testing
 
 test "sample 1: 512 with K=1 gives 319"
-  use "0655_data_encoding"
-  run
+  use "0655_data_encoding" as solve
+  Answer = solve
 
   Answer equal "319"
 end
 
 test "symmetric 4-digit code with K=2"
-  use "0655_data_encoding"
-  Input = "4646\n2"
-  run
+  use "0655_data_encoding" as solve
+  Answer = solve "4646\n2"
 
   Answer equal "1036"
 end
 
 test "carry to L+1 digits with K=2"
-  use "0655_data_encoding"
-  Input = "1753152\n2"
-  run
+  use "0655_data_encoding" as solve
+  Answer = solve "1753152\n2"
 
   Answer equal "987654"
 end
 
 test "large 15-digit number with K=5"
-  use "0655_data_encoding"
-  Input = "802358023524690\n5"
-  run
+  use "0655_data_encoding" as solve
+  Answer = solve "802358023524690\n5"
 
   Answer equal "123456789012345"
 end
 
 test "K=3 with 6-digit cyclic shift"
-  use "0655_data_encoding"
+  use "0655_data_encoding" as solve
   rem N = 100200, cyclic 3 -> 300300
-  Input = "300300\n3"
-  run
+  Answer = solve "300300\n3"
 
   Answer equal "100200"
 end

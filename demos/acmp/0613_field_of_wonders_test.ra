@@ -3,48 +3,49 @@ use testing
 use numbers
 
 test "ACMP 613: Maximal 10 players"
-  use "0613_field_of_wonders"
-  run
+  use "0613_field_of_wonders" as solve
+  use numbers
+  Answer = solve
   Diff = (Answer - 0.01080612902) abs
   (Diff less 0.00000001) equal true
 end
 
 test "ACMP 613: Sample 1 CONTEST"
-  use "0613_field_of_wonders"
-  Input = "3 1
+  use "0613_field_of_wonders" as solve
+  use numbers
+  Answer = solve "3 1
 CONTEST
 0.7 0.2 0.1"
-  run
   Diff = (Answer - 0.4648222937) abs
   (Diff less 0.00000001) equal true
 end
 
 test "ACMP 613: Single letter A"
-  use "0613_field_of_wonders"
-  Input = "2 1
+  use "0613_field_of_wonders" as solve
+  use numbers
+  Answer = solve "2 1
 A
 0.5 0.5"
-  run
   Diff = (Answer - 0.5573706019) abs
   (Diff less 0.00000001) equal true
 end
 
 test "ACMP 613: Same letters AAAA"
-  use "0613_field_of_wonders"
-  Input = "2 2
+  use "0613_field_of_wonders" as solve
+  use numbers
+  Answer = solve "2 2
 AAAA
 0.0 0.0"
-  run
   Diff = (Answer - 0.5) abs
   (Diff less 0.00000001) equal true
 end
 
 test "ACMP 613: 10 players distinct"
-  use "0613_field_of_wonders"
-  Input = "10 5
+  use "0613_field_of_wonders" as solve
+  use numbers
+  Answer = solve "10 5
 ABCDEFGHIJKL
 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1"
-  run
   Diff = (Answer - 0.4348538717) abs
   (Diff less 0.00000001) equal true
 end

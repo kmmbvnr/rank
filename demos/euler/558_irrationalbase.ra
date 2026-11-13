@@ -98,4 +98,4 @@ for More
   Alive = Rest len greater 0
   More = Start at most M or Alive
 end
-Answer print
+return Answer

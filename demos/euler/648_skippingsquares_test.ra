@@ -1,30 +1,25 @@
 use testing
 
 test "smallest truncations"
-  use "648_skippingsquares"
-  N = 1
-  run
+  use "648_skippingsquares" as solve
+  Answer = solve 1
   Answer equal 1
-  N = 2
-  run
+  Answer = solve 2
   Answer equal 1
-  N = 3
-  run
+  Answer = solve 3
   Answer equal 0
 end
 
 test "statement values"
-  use "648_skippingsquares"
-  N = 10
-  run
+  use "648_skippingsquares" as solve
+  Answer = solve 10
   Answer equal 53964
-  N = 50
-  run
+  Answer = solve 50
   Answer equal 842418857
 end
 
 test "default input"
-  use "648_skippingsquares"
-  run
+  use "648_skippingsquares" as solve
+  Answer = solve
   Answer equal 301483197
 end

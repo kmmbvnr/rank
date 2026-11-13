@@ -1,8 +1,8 @@
 use testing
 
 test "next shared value"
-  use "045_tripolygonal"
-  run
+  use "045_tripolygonal" as solve
+  Answer = solve
 
   Answer equal 1533776805
 end

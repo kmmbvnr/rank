@@ -53,4 +53,4 @@ for Ln in 1 to Ml
   end
   Answer += (Cb ((Mo - Rt) mod Mo)) sum
 end
-Answer print
+return Answer

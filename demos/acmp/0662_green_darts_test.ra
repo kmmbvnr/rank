@@ -3,43 +3,40 @@ use testing
 use text
 
 test "ACMP 662: Sample 1 (N = 3)"
-  use "0662_green_darts"
-  run
+  use "0662_green_darts" as solve
+  Result = solve
   Result equal 3
 end
 
 test "ACMP 662: Single player"
-  use "0662_green_darts"
-  Input = "1\n10 20 30"
-  run
+  use "0662_green_darts" as solve
+  Result = solve "1\n10 20 30"
   Result equal 1
 end
 
 test "ACMP 662: Two identical players"
-  use "0662_green_darts"
-  Input = (
+  use "0662_green_darts" as solve
+  Result = solve (
     "2\n" +
     "50 50 50\n" +
     "50 50 50"
   )
-  run
   Result equal 1
 end
 
 test "ACMP 662: Two crossing players"
-  use "0662_green_darts"
-  Input = (
+  use "0662_green_darts" as solve
+  Result = solve (
     "2\n" +
     "0 100 0\n" +
     "0 0 50"
   )
-  run
   Result equal 3
 end
 
 test "ACMP 662: Maximal 50 players"
-  use "0662_green_darts"
-  Input = (
+  use "0662_green_darts" as solve
+  Result = solve (
     "50\n" +
     "5 13 29\n" +
     "22 44 76\n" +
@@ -92,6 +89,5 @@ test "ACMP 662: Maximal 50 players"
     "13 87 63\n" +
     "30 17 9"
   )
-  run
   Result equal 149
 end

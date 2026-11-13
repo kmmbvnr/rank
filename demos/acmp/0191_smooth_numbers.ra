@@ -42,4 +42,4 @@ for Pos in 1 to L
 end
 
 Answer = AnswerText integer
-Answer print
+return Answer

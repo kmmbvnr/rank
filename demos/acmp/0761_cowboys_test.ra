@@ -1,32 +1,30 @@
 use testing
 
 test "sample 1: 1 0 -> 0"
-  use "0761_cowboys"
-  Input = "1 0"
-  run
+  use "0761_cowboys" as solve
+  Ans = solve "1 0"
 
   Ans equal 0
 end
 
 test "sample 2: 2 1 -> 1"
-  use "0761_cowboys"
-  Input = "2 1
+  use "0761_cowboys" as solve
+  Ans = solve "2 1
 1 2"
-  run
 
   Ans equal 1
 end
 
 test "sample 3: two triangles -> 2"
-  use "0761_cowboys"
-  run
+  use "0761_cowboys" as solve
+  Ans = solve
 
   Ans equal 2
 end
 
 test "figure 8 graph -> 1"
-  use "0761_cowboys"
-  Input = "7 8
+  use "0761_cowboys" as solve
+  Ans = solve "7 8
 1 2
 2 3
 3 4
@@ -35,7 +33,6 @@ test "figure 8 graph -> 1"
 5 6
 6 7
 7 1"
-  run
 
   Ans equal 1
 end

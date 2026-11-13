@@ -78,4 +78,4 @@ for Job in 0 to Jobs - 1
   Part = Used sum
   Answer = (Answer + Part) mod Mod
 end
-Answer print
+return Answer

@@ -36,4 +36,4 @@ for Round in 1 to 40
 end
 Gain = (Prefix Lo - Prefix Ps) max 0
 Answer = Gain sum
-Answer print
+return Answer

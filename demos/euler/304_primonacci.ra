@@ -47,4 +47,4 @@ for Bit in Bits reverse
   F1 = Set choose Next Odd
 end
 Answer = F0 sum mod Mod
-Answer print
+return Answer

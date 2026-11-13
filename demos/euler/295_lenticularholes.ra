@@ -216,4 +216,4 @@ for J in 0 till Nj
   end
 end
 Answer = Total
-Answer print
+return Answer

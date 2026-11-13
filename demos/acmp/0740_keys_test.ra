@@ -1,46 +1,43 @@
 use testing
 
 test "sample 1: identical single holes"
-  use "0740_keys"
-  Input = "10 10
+  use "0740_keys" as solve
+  MaxHoles = solve "10 10
 1
 1 1 2 2
 1
 1 1 2 2"
-  run
 
   MaxHoles equal 1
 end
 
 test "sample 2: two non-adjacent holes"
-  use "0740_keys"
-  Input = "10 10
+  use "0740_keys" as solve
+  MaxHoles = solve "10 10
 2
 1 1 2 2
 3 3 4 4
 1
 1 1 2 2"
-  run
 
   MaxHoles equal 1
 end
 
 test "sample 3: half-integer shift"
-  use "0740_keys"
-  Input = "10 10
+  use "0740_keys" as solve
+  MaxHoles = solve "10 10
 2
 1 1 2 2
 3 3 4 4
 1
 1 1 3 3"
-  run
 
   MaxHoles equal 2
 end
 
 test "multiple holes alignment"
-  use "0740_keys"
-  Input = "20 20
+  use "0740_keys" as solve
+  MaxHoles = solve "20 20
 3
 1 1 2 2
 5 5 6 6
@@ -49,19 +46,17 @@ test "multiple holes alignment"
 2 2 3 3
 6 6 7 7
 10 10 11 11"
-  run
 
   MaxHoles equal 3
 end
 
 test "no overlapping holes possible"
-  use "0740_keys"
-  Input = "100 100
+  use "0740_keys" as solve
+  MaxHoles = solve "100 100
 1
 0 0 1 1
 1
 0 0 1 1"
-  run
 
   MaxHoles equal 1
 end

@@ -84,4 +84,4 @@ Answer = Limit
 if Limit greater 1
   Answer = (Hi 1 + Limit + 1) // 2
 end
-Answer print
+return Answer

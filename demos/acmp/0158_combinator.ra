@@ -18,4 +18,4 @@ arg K integer = 100
 Banknotes = X // 5
 Answer = Banknotes + K binomial K
 
-Answer print
+return Answer

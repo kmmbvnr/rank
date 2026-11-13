@@ -29,4 +29,7 @@ for M in 2 to Root
   end
 end
 Answer = Cnt equal 1 count
-Answer print
+return record
+  .answer = Answer
+  .cnt = Cnt
+end
