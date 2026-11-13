@@ -79,5 +79,4 @@ for Ee greater 0
     Bm = Cm sum axis 1 mod P
   end
 end
-Answer = Vv 0
-return Answer
+return Vv 0

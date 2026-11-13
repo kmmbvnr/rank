@@ -24,5 +24,4 @@ fun solve_trains Input
   return (Terms sum)
 end
 
-Result = solve_trains Input
-return Result
+return solve_trains Input

@@ -28,6 +28,4 @@ C = 1 till K
 DiffTerm = (C * (A - B)) + (K * B)
 Diffs = DiffTerm abs
 MinDiff = Diffs min
-BestC = (C (Diffs equal MinDiff)) 0
-
-return BestC
+return (C (Diffs equal MinDiff)) 0

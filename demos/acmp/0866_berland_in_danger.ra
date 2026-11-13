@@ -185,5 +185,4 @@ Ans2 = concat HeadArr RevTail
 Line1 = Ans1 join " "
 Line2 = Ans2 join " "
 Lines = array Line1 Line2
-Result = Lines join "\n"
-return Result
+return Lines join "\n"

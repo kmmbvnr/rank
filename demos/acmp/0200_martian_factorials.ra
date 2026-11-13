@@ -27,5 +27,4 @@ for P in Primes
   Ks push (Legendre // E)
 end
 
-Answer = Ks array min
-return Answer
+return Ks array min

@@ -28,5 +28,4 @@ Ways = Orders * C * (C - 1) mod Modulo
 Pa = A Na Modulo powmod
 Pb = B Nb Modulo powmod
 Mix = Ways * Pa mod Modulo
-Answer = Mix * Pb mod Modulo
-return Answer
+return Mix * Pb mod Modulo

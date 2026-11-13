@@ -72,5 +72,4 @@ F2 = Tw Th H form
 C4 = (W mod Lcm equal 0) and F2
 
 Ok = C1 or C2 or C3 or C4
-Ans = Ok choose "YES" "NO"
-return Ans
+return Ok choose "YES" "NO"

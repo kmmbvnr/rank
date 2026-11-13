@@ -42,5 +42,4 @@ Sox' = Ox sum axis 0
 Soy' = Oy sum axis 0
 Diag' = Sex * Sey + Sox * Soy
 Cnt' = Diag sum
-Answer = Top + Cnt
-return Answer
+return Top + Cnt

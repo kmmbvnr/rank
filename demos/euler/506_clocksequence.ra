@@ -50,5 +50,4 @@ Bk = B K Md powmod
 P = (Bk - 1) * Iv mod Md
 Q = (P - K) mod Md * Iv mod Md
 Tr = (Bv mod Md) * P + (Av mod Md) * Q
-Answer = Tr mod Md sum mod Md
-return Answer
+return Tr mod Md sum mod Md

@@ -13,5 +13,4 @@ arg Top integer = 25
 Pows' = 1 to Top
 Grid' = (1 to 9) Pows outer **
 Size' = Grid text rank 0 len rank 0
-Answer = Size equal Pows count
-return Answer
+return Size equal Pows count

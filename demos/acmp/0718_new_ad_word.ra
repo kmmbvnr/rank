@@ -82,5 +82,4 @@ fun solve_ad Input
   return "-1"
 end
 
-Result = solve_ad Input
-return Result
+return solve_ad Input

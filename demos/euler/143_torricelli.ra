@@ -66,5 +66,4 @@ Edges = new set Keys
 Third' = Hi A * (Limit + 1) + Hi B
 Hit' = Fit and Third in Edges
 Found' = Sums filter Hit array unique
-Answer = Found sum
-return Answer
+return Found sum

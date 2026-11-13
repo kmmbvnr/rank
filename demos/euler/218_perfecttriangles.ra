@@ -37,5 +37,4 @@ N = 2 * Rc * R mod Mod
 A' = (M * M - N * N) mod Mod
 B' = 2 * M * N mod Mod
 Bad' = A * B mod Mod not equal 0
-Answer = (Pair and Bad) count
-return Answer
+return (Pair and Bad) count

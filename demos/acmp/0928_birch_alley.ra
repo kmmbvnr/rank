@@ -72,5 +72,4 @@ fun solve_birch Input
   return Ans
 end
 
-Result = solve_birch Input
-return Result
+return solve_birch Input

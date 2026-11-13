@@ -26,5 +26,4 @@ Ac = Xs * Xs / (2 * Ns) + Dl
 Ac = Ac - (Dl * Rd + As) / 2
 Al = 1 - 3.141592653589793 / 4
 Ix = Ac / Al less Eps indices
-Answer = Ix 0 + 1
-return Answer
+return Ix 0 + 1

@@ -27,5 +27,4 @@ Tail = Inv * Inv * Inv * (1.0 - Rate)
 Gap = (1.0 - Inv) * (1.0 - Inv)
 Terms = Dens * Tail / Gap
 Total = Terms sum
-Answer = Total round 12
-return Answer
+return Total round 12

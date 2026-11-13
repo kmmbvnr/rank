@@ -103,5 +103,4 @@ for Half greater 0
   Cycles = Low * High mod Prime
   Half = Half // 2
 end
-Answer = Cycles 0
-return Answer
+return Cycles 0

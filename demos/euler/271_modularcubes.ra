@@ -33,5 +33,4 @@ for P in Ps
   Cells = Rows * (Terms len)
   Sums = Both reshape Cells
 end
-Answer = Sums sum - 1
-return Answer
+return Sums sum - 1

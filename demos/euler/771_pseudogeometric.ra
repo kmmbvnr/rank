@@ -152,5 +152,4 @@ for Depth in 1 to 140
   end
 end
 Whole = Runs + Geo + Big + Mixed
-Answer = Whole mod Mod
-return Answer
+return Whole mod Mod

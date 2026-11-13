@@ -75,5 +75,4 @@ for QIdx in 0 till KCount
   OutChars QIdx = AnsChar
 end
 
-Ans = OutChars join ""
-return Ans
+return OutChars join ""

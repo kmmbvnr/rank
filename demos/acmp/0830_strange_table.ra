@@ -45,5 +45,4 @@ PairsB = ZerosN * OnesM
 Pairs = PairsA + PairsB
 Terms = H * Pairs
 Total = Terms sum
-Result = Total text
-return Result
+return Total text

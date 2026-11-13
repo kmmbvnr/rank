@@ -126,5 +126,4 @@ for N in 1 to Nn
   Sm = Pr sum mod P
   Ti N = Sm * Iv N mod P
 end
-Answer = Ti Nn
-return Answer
+return Ti Nn

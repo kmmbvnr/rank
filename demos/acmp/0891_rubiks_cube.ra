@@ -192,5 +192,4 @@ U = (T1 4) + (T2 4)
 D = (T1 5) + (T2 5)
 StartCube = F + L + B + R + U + D
 
-Ans = StartCube solve_cube
-return Ans
+return StartCube solve_cube

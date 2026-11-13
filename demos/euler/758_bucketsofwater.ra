@@ -62,5 +62,4 @@ for Round in 1 to 90
   Small = Live choose Rest Small
 end
 Moves = 2 * (Last - 1) mod Prime
-Answer = Moves sum mod Prime
-return Answer
+return Moves sum mod Prime

@@ -89,5 +89,4 @@ if (MatchFrom len) greater 0
 end
 
 Res = G 0 Sink maxflow
-MinUFOs = N - (Res .value)
-return MinUFOs
+return N - (Res .value)

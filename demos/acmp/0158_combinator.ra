@@ -16,6 +16,4 @@ arg X integer = 500
 arg K integer = 100
 
 Banknotes = X // 5
-Answer = Banknotes + K binomial K
-
-return Answer
+return Banknotes + K binomial K

@@ -280,5 +280,4 @@ fun solve_circles Input
 " + Res2
 end
 
-Result = solve_circles Input
-return Result
+return solve_circles Input

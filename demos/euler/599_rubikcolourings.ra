@@ -37,5 +37,4 @@ for K in 1 to 8
   Cc = Cs K
   Tot += Cc * 3 ** (8 - K) * In
 end
-Answer = Tot // (40320 * 3 ** 7)
-return Answer
+return Tot // (40320 * 3 ** 7)

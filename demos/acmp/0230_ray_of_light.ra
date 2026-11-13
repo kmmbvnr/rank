@@ -200,5 +200,4 @@ for Row in 0 till N
   )
 end
 
-Answer = ResultLines join "\n"
-return Answer
+return ResultLines join "\n"

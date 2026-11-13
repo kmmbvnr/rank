@@ -39,5 +39,4 @@ Odd = (Steps - Half) mod Prime
 Extra = (Bits mod 2 equal 0) integer
 Last = 4 Half Prime powmod
 Sum = Even + Odd + Extra * Last
-Answer = Sum mod Prime
-return Answer
+return Sum mod Prime

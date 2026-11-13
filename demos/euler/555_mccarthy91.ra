@@ -23,5 +23,4 @@ St = T * (T + 1) // 2 - 1
 A = Cn * G * (M + G + 1)
 B = Cn * G * (G - 1) // 2
 C = G * G * St
-Answer = A + B - C sum
-return Answer
+return A + B - C sum

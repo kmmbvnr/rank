@@ -32,6 +32,4 @@ rem Compat A B: can A be next to B?
 Bad' = Adj1 bor Adj0
 Compat = Bad equal 0 integer
 
-Answer = Compat matpow (Cols - 1) sum
-
-return Answer
+return Compat matpow (Cols - 1) sum

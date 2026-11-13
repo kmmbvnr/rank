@@ -37,5 +37,4 @@ Value = Ratio - Base
 Wide = Value acos
 Half = (Arc + Wide) / 2
 Drop = Half cos
-Answer = (1 / Drop) round 8
-return Answer
+return (1 / Drop) round 8

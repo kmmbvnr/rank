@@ -24,5 +24,4 @@ Perf = Pow choose 1 0 scan +
 Low' = Xs - 1 greater Q * Perf
 Hits' = Xs filter Low
 X = Hits min
-Answer = X * (X - 1)
-return Answer
+return X * (X - 1)

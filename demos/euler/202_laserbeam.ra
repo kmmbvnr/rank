@@ -30,5 +30,4 @@ Top' = (N - 1) // D
 Num' = (Top + 3 - R) // 3
 Ok' = D mod 3 not equal 0
 Term' = Sign * Num
-Answer = Term filter Ok sum
-return Answer
+return Term filter Ok sum

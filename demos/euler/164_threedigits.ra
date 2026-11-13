@@ -35,5 +35,4 @@ V = Start choose 1 0
 for Step in 3 to Digits
   V = V matmul Mat
 end
-Answer = V sum
-return Answer
+return V sum

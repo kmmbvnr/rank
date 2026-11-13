@@ -32,5 +32,4 @@ for C in 1 to 1990
     Total += K * (C + 5)
   end
 end
-Answer = Total
-return Answer
+return Total

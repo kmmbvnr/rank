@@ -63,5 +63,4 @@ Tt = (Wt * Ds * (Y * G1 + X * G2)) sum
 Hp = (Lx * Lx + Ly * Ly) * 1.0 sqrt
 Pr = Tt * Hp / (3.0 * Np)
 Pr = Pr / (Tp * Lx * Ly / 2.0)
-Answer = Pr text ".10f"
-return Answer
+return Pr text ".10f"

@@ -112,5 +112,4 @@ Half1 = Top * Inv mod Mod
 Chose = Half1 * Mirror mod Mod
 Half2 = Chose * Alpha mod Mod
 Terms = Half2 * Rise mod Mod
-Answer = Terms sum mod Mod
-return Answer
+return Terms sum mod Mod

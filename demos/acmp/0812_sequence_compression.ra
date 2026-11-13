@@ -21,5 +21,4 @@ for I in 2 to N
   DP I = (2 * (DP (I - 1))) - Sub
 end
 
-Ans = DP N
-return Ans
+return DP N

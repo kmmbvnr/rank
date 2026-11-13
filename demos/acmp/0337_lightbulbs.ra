@@ -76,5 +76,4 @@ end
 
 TermsCount = N // TermsV
 Contributions = TermsCount * TermsC
-Answer = Contributions sum
-return Answer
+return Contributions sum

@@ -98,5 +98,4 @@ for Iter in 0 till 2000000000
   end
 end
 
-Ans = N
-return Ans
+return N

@@ -231,5 +231,4 @@ for R in 0 to (N - 1)
   end
 end
 
-Ans = MaxArea format_2
-return Ans
+return MaxArea format_2

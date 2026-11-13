@@ -52,5 +52,4 @@ for SIdx in 0 till N
   TotalWays = TotalWays * SetWays
 end
 
-Answer = TotalWays
-return Answer
+return TotalWays

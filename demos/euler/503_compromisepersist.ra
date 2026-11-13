@@ -22,5 +22,4 @@ for T in N - 1 to 1 by -1
   Sv = St * K * (K + 1) / 2
   V = (Sv + (T - K) * V) / T
 end
-Answer = V text ".10f"
-return Answer
+return V text ".10f"

@@ -126,5 +126,4 @@ fun solve_rod Input
   return Best
 end
 
-Result = solve_rod Input
-return Result
+return solve_rod Input

@@ -25,6 +25,4 @@ for I in 2 till 40
 end
 
 LessN = F less N
-Candies = LessN count
-
-return Candies
+return LessN count

@@ -44,5 +44,4 @@ for Db in 0 to Nb
     end
   end
 end
-Answer = Cnt Nb Nw
-return Answer
+return Cnt Nb Nw

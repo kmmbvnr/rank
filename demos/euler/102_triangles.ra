@@ -30,5 +30,4 @@ Cross = Xs * Ny - Ys * Nx
 Left' = Cross greater 0 all axis 1
 Right' = Cross less 0 all axis 1
 Inside' = Left or Right
-Answer = Inside count
-return Answer
+return Inside count

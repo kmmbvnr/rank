@@ -202,5 +202,4 @@ fun solve_bike Input
   return Best
 end
 
-Result = solve_bike Input
-return Result
+return solve_bike Input

@@ -59,5 +59,4 @@ En = M to M array
 Nx = concat (Nd (1 to (Nn - 1))) En
 Cn = Nx - Nd
 Sd = Cn * Cn sum
-Answer = M * M - Sd
-return Answer
+return M * M - Sd

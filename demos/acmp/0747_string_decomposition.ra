@@ -95,5 +95,4 @@ for K in 0 till Count
   OutLines (K + 1) = Row join " "
 end
 
-Ans = OutLines join "\n"
-return Ans
+return OutLines join "\n"

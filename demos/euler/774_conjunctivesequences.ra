@@ -262,5 +262,4 @@ for Index in 0 to Count - 1
   Tab Where = Out
 end
 Fin = Root row 0
-Answer = Fin Length
-return Answer
+return Fin Length

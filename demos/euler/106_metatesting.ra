@@ -23,5 +23,4 @@ Pairs = K * 2 binomial K
 Pool' = Size binomial (K * 2)
 Catalan' = Pairs // (K + 1)
 Open' = Pairs // 2 - Catalan
-Answer = Pool * Open sum
-return Answer
+return Pool * Open sum

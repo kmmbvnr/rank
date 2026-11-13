@@ -25,5 +25,4 @@ Col' = Vals reshape (Vals len) 1
 Div' = Col mod Sq equal 0
 Free' = not (Div any axis 1)
 Kept' = Vals filter Free
-Answer = Kept sum
-return Answer
+return Kept sum

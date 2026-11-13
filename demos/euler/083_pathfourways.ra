@@ -41,5 +41,4 @@ Net add Id
 Net add Edges
 Dist = (Net dijkstra 0) .distance
 End = Count - 1
-Answer = Cells 0 + Dist End
-return Answer
+return Cells 0 + Dist End

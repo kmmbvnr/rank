@@ -93,5 +93,4 @@ for TestIdx in 0 till T
   Results = ResNext
 end
 
-Answer = Results join "\n"
-return Answer
+return Results join "\n"

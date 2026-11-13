@@ -30,5 +30,4 @@ Den' = K // (Ns gcd K)
 Ten = 2 ** 14 * 5 ** 6
 Ends' = Ten mod Den equal 0
 Sign' = Ends choose (0 - Ns) Ns
-Answer = Sign sum
-return Answer
+return Sign sum

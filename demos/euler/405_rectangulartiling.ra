@@ -23,5 +23,4 @@ if Base mod 2 equal 0 and K at least 1
 end
 S = 15 - Sg - 20 * T1 + 6 * T2
 Inv = 15 (Phi - 1) M powmod
-Answer = S * Inv mod M
-return Answer
+return S * Inv mod M

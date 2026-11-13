@@ -64,5 +64,4 @@ end
 
 Tour = concat (array 1) Path
 Tour = concat Tour (array N)
-Ans = Tour join " "
-return Ans
+return Tour join " "

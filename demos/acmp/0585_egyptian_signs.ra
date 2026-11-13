@@ -59,5 +59,4 @@ fun N solve_egyptian
 end
 
 Num = (Input words real) 0
-Result = Num solve_egyptian
-return Result
+return Num solve_egyptian

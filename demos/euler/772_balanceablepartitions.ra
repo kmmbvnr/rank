@@ -34,5 +34,4 @@ Large = Primes filter High
 Parts = concat Tops Large
 Chain = Parts scan mulp
 Lcm = Chain (Chain len - 1)
-Answer = 2 * Lcm mod Mod
-return Answer
+return 2 * Lcm mod Mod

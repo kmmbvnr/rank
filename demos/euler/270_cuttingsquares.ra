@@ -65,5 +65,4 @@ for Len in 2 to (Size - 1)
     end
   end
 end
-Answer = T 0 (Size - 1)
-return Answer
+return T 0 (Size - 1)

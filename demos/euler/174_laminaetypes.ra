@@ -23,5 +23,4 @@ Ways = array shape (Pairs + 1) fill 0
 for K in 1 to Lim
   Ways (K * (K + 1) to Pairs by K) += 1
 end
-Answer = (Ways at least 1 and Ways at most Most) count
-return Answer
+return (Ways at least 1 and Ways at most Most) count

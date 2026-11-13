@@ -25,5 +25,4 @@ Pre' = (D + 1) scan * with 1 take Width
 Tri' = D * (D + 1) // 2
 Pos' = 0 till Width array
 Free' = 28 ** (Width - 1 - Pos)
-Answer = Pre * Tri * Free sum
-return Answer
+return Pre * Tri * Free sum

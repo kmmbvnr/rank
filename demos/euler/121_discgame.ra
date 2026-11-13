@@ -27,5 +27,4 @@ All' = 2 to Turns + 1 array
 Total' = All reduce *
 Wins' = Ways filter Win array
 Sum' = Wins sum
-Answer = Total // Sum
-return Answer
+return Total // Sum

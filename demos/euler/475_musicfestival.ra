@@ -54,5 +54,4 @@ Tm = Tm * Fc A mod Md
 I6 = 6 (Md - 2) Md powmod
 Tm = Tm * (I6 Q Md powmod) mod Md
 Tm = Tm * Fi Q mod Md
-Answer = Tm sum mod Md
-return Answer
+return Tm sum mod Md

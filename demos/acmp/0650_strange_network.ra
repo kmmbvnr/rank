@@ -83,5 +83,4 @@ NotEven = (not IsEven) integer
 OddPart = NotEven * OddAns
 CycleAns = EvenPart + OddPart
 
-Ans = (PathAns sum) + (CycleAns sum)
-return Ans
+return (PathAns sum) + (CycleAns sum)

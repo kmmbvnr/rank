@@ -13,5 +13,4 @@ rem n / phi(n) = product of p / (p - 1)
 rem over primes p of n. More primes win,
 rem so take the largest primorial.
 Prods' = primes scan * with 1
-Answer = Prods till greater Limit last
-return Answer
+return Prods till greater Limit last

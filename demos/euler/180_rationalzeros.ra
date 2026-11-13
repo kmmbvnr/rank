@@ -55,5 +55,4 @@ S4' = (Z1 + Z4) filter H4 array
 All' = concat S1 S2 S3 S4 unique
 Total = All sum
 G = Total gcd L
-Answer = Total // G + L // G
-return Answer
+return Total // G + L // G

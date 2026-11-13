@@ -88,5 +88,4 @@ if TotalXor at least Half32
   TotalXor = TotalXor - Two32
 end
 
-Answer = TotalXor
-return Answer
+return TotalXor

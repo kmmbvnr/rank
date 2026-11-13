@@ -81,5 +81,4 @@ for Nd len greater 0
     Best = Best max (Nd max)
   end
 end
-Answer = P * Best + P - 1
-return Answer
+return P * Best + P - 1

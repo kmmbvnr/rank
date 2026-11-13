@@ -65,5 +65,4 @@ if K greater 1
 end
 
 NextOut1 = NextOutcome + 1
-Answer = NextOut1 text
-return Answer
+return NextOut1 text

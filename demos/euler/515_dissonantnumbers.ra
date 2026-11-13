@@ -15,5 +15,4 @@ rem the inverse of k - 1 mod p, so sum
 rem (k - 1)^(p - 2) mod p over the
 rem primes a <= p < a + b.
 P = primes from A till A + B array
-Answer = ((K - 1) (P - 2) P powmod) sum
-return Answer
+return ((K - 1) (P - 2) P powmod) sum

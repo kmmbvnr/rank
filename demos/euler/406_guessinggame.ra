@@ -59,5 +59,4 @@ for T in 1 to Terms
   F1 = F2
   F2 = F3
 end
-Answer = Tot round 8
-return Answer
+return Tot round 8

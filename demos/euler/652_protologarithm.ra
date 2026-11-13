@@ -57,5 +57,4 @@ Pm = Br * Bw - Id * Br
 Pm = (Pm + M) mod M
 Rat = Qm (L - 1) (L - 1)
 Tt = Pm * Qm mod M sum
-Answer = (Rat + Tt) mod M
-return Answer
+return (Rat + Tt) mod M

@@ -30,5 +30,4 @@ for E greater 0
   A = A matmul A mod Md
   E //= 2
 end
-Answer = V sum mod Md
-return Answer
+return V sum mod Md

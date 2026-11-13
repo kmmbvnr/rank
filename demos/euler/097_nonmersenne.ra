@@ -11,5 +11,4 @@ arg Exponent integer = 7830457
 arg Modulus integer = 10000000000
 
 Power = 2 Exponent Modulus powmod
-Answer = (28433 * Power + 1) mod Modulus
-return Answer
+return (28433 * Power + 1) mod Modulus

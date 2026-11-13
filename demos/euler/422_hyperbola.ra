@@ -95,5 +95,4 @@ Ix = Gx (P - 2) P powmod
 Iy = Gy (P - 2) P powmod
 Tot = Sg * Xn * Ix + Xd * Ix
 Tot += Sg * Yn * Iy + Xd * Iy
-Answer = Tot mod P
-return Answer
+return Tot mod P

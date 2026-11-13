@@ -31,5 +31,4 @@ Free' = Fact (M - J)
 Moves = Sign * Binom * Free sum
 Pick = P binomial Keep
 Total = Fact N
-Answer = Pick * Moves / Total round 12
-return Answer
+return Pick * Moves / Total round 12

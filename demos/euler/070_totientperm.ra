@@ -27,5 +27,4 @@ PKey' = Phi text rank 0 sort rank 0
 Same = NKey equal PKey
 Ns = N Same array
 Ratio' = Ns / (Phi Same array)
-Answer = Ns (Ratio min .index)
-return Answer
+return Ns (Ratio min .index)

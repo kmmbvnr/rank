@@ -174,5 +174,4 @@ fun solve_domino Input
   return (Scores sum)
 end
 
-Result = solve_domino Input
-return Result
+return solve_domino Input

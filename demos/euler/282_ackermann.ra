@@ -56,5 +56,4 @@ for T in 0 to 1
 end
 Seven = Vals 0
 Tall = Vals 1
-Answer = (63 + Seven + 2 * Tall) mod Mod
-return Answer
+return (63 + Seven + 2 * Tall) mod Mod

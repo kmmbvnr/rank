@@ -33,5 +33,4 @@ Root = (Pi * Near) sqrt
 Ratio = Series / Root
 Above = Ratio greater Cap
 Count = Above integer sum
-Answer = Start + Count
-return Answer
+return Start + Count

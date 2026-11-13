@@ -115,5 +115,4 @@ for I in 0 till At
   end
 end
 Row = 31 * 32 * 2
-Answer = Ev Row 12 round Digits
-return Answer
+return Ev Row 12 round Digits

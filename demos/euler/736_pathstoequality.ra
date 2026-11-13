@@ -98,5 +98,4 @@ for Move in 1 to BestR + BestS
     Blues -= 1
   end
 end
-Answer = ValueX
-return Answer
+return ValueX

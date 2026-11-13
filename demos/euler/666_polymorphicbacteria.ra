@@ -47,5 +47,4 @@ for Df greater 0.0000000000001
   Df = Nw - Pp abs max
   Pp = Nw
 end
-Answer = Pp 0 text ".8f"
-return Answer
+return Pp 0 text ".8f"

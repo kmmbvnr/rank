@@ -15,5 +15,4 @@ for P in primes to Limit
   Rad (P to Limit by P) *= P
 end
 Order = Rad drop 1 argsort
-Answer = Order (K - 1) + 1
-return Answer
+return Order (K - 1) + 1

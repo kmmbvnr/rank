@@ -105,5 +105,4 @@ fun problem3
   return Result
 end
 
-Answer = problem3
-return Answer
+return problem3

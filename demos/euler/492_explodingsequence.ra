@@ -34,5 +34,4 @@ for Bt in 30 to 0 by -1
 end
 I6 = 6 (P - 2) P powmod
 An = (Va - 5) mod P * I6 mod P
-Answer = An sum
-return Answer
+return An sum

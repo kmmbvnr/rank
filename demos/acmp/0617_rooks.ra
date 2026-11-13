@@ -87,5 +87,4 @@ G = G3 sum axis 2
 
 TotalMat = G * WaysB
 FlatTot = TotalMat reshape (M * N)
-Result = FlatTot sum
-return Result
+return FlatTot sum

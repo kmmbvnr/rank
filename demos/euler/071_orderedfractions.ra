@@ -14,5 +14,4 @@ rem below 3/7; keep the largest ratio.
 D' = 1 to Limit
 N = (3 * D - 1) // 7
 Ratio' = N / D
-Answer = N (Ratio max .index)
-return Answer
+return N (Ratio max .index)

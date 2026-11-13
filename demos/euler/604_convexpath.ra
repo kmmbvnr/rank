@@ -30,5 +30,4 @@ Ps = Ph (2 to L) scan +
 M = (Cs at most (2 * N)) count
 R = 2 * N - Cs (M - 1)
 T = R // (M + 2)
-Answer = Ps (M - 1) + T + 1
-return Answer
+return Ps (M - 1) + T + 1

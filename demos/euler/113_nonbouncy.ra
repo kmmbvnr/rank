@@ -20,5 +20,4 @@ Rising = Digits + 9 binomial 9 - 1
 Falling = Digits + 10 binomial 10 - 1
 Runs = Digits * 9
 Both = Runs + Digits
-Answer = Rising + Falling - Both
-return Answer
+return Rising + Falling - Both

@@ -29,5 +29,4 @@ Sums' = Ds sum axis 0
 Hit' = Fit and Sums equal Base
 Found' = Pow filter Hit array
 Sorted = Found sort
-Answer = Sorted (Nth - 1)
-return Answer
+return Sorted (Nth - 1)

@@ -86,5 +86,4 @@ for Pos in RevN1
   end
 end
 
-Answer = DP 0 0
-return Answer
+return DP 0 0

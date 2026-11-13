@@ -223,5 +223,4 @@ fun solve_macro Input
     eval_text))
 end
 
-Result = solve_macro Input
-return Result
+return solve_macro Input

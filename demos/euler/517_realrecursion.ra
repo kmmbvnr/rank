@@ -33,5 +33,4 @@ Ce = K * K * Pk isqrt + 1
 Ce = K greater 0 choose Ce 0
 N = Pk - Ce + K
 T = N K M binomialmod
-Answer = T sum mod M
-return Answer
+return T sum mod M

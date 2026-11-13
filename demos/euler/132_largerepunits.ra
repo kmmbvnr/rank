@@ -28,5 +28,4 @@ for E greater 0
 end
 Hit' = Res equal 1
 Found' = Ps filter Hit array
-Answer = Found take Count sum
-return Answer
+return Found take Count sum

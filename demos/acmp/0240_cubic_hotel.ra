@@ -156,5 +156,4 @@ for Running
   end
 end
 
-Answer = (Pos not equal ".") count
-return Answer
+return (Pos not equal ".") count

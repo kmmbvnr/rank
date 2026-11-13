@@ -18,5 +18,4 @@ rem is sum k C(N - 3k + 3, 3).
 K = 1 to N // 3 array
 M = N - 3 * K + 1
 Tm = K * M * (M + 1) * (M + 2) // 6
-Answer = Tm sum
-return Answer
+return Tm sum

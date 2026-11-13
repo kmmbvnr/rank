@@ -37,5 +37,4 @@ end
 Sn = Lo * Vl
 Cs = 1.0 - Sn * Sn sqrt
 Tm = (Wd / (Vl * Cs)) sum
-Answer = Tm text ".10f"
-return Answer
+return Tm text ".10f"

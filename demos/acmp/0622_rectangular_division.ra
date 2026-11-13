@@ -121,5 +121,4 @@ for J in 0 till LenY
   end
 end
 
-Ans = D components
-return Ans
+return D components

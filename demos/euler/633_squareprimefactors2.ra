@@ -41,5 +41,4 @@ V = C0 * Ek K
 Ex = ((V log) / (10.0 log)) floor
 Mn = V / (10.0 ** Ex)
 Mt = Mn text ".4f"
-Answer = Mt + "e" + (Ex text)
-return Answer
+return Mt + "e" + (Ex text)

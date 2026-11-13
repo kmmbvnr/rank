@@ -24,5 +24,4 @@ TwoPow = 2 Primes Squares powmod
 Lift = Half * TwoPow mod Squares
 Diff = (Lift - Power) mod Squares
 Digits = Diff // Primes
-Answer = Digits sum
-return Answer
+return Digits sum

@@ -79,5 +79,4 @@ High = Up prefix 0
 Low = Down prefix 0
 Fix = (High - Low) mod Mod
 Part = (6 * Total - Fixed - Fix) mod Mod
-Answer = Part sum mod Mod
-return Answer
+return Part sum mod Mod

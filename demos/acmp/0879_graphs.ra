@@ -73,5 +73,4 @@ fun solve_counts Input
   return (N less 2) choose Zero Base
 end
 
-Result = solve_counts Input
-return Result
+return solve_counts Input

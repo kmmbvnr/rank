@@ -72,5 +72,4 @@ Rest' = Per - Dg reshape Cells
 Flat' = Rest (Pick reshape Cells)
 Rot' = Flat reshape Rows 5
 Key' = Rot * Pw sum axis 1
-Answer = (Ways * (Tab Key)) sum
-return Answer
+return (Ways * (Tab Key)) sum

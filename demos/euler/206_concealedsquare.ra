@@ -36,5 +36,4 @@ for J in 0 to 8
   Ok' = S mod 10 equal 9 - J
   M = M filter Ok array
 end
-Answer = M 0 * 10
-return Answer
+return M 0 * 10

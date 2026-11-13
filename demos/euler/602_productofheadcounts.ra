@@ -18,5 +18,4 @@ Cb = (N + 1) Js M binomialmod
 Pw = (K - Js) N M powmod
 Sg = 1 - 2 * (Js mod 2)
 Tm = Sg * Cb mod M
-Answer = Tm * Pw mod M sum mod M
-return Answer
+return Tm * Pw mod M sum mod M

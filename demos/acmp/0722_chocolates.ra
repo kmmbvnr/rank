@@ -30,6 +30,4 @@ end
 
 FN = F (N + 1)
 FM = F (M + 1)
-Combinations = (2 * FN) + (2 * FM) - 2
-
-return Combinations
+return (2 * FN) + (2 * FM) - 2

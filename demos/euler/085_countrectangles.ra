@@ -26,5 +26,4 @@ Size = Rows * Cols
 Flat = Gap reshape Size
 Area' = A B outer *
 Cells = Area reshape Size
-Answer = Cells (Flat min .index)
-return Answer
+return Cells (Flat min .index)

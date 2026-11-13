@@ -131,5 +131,4 @@ fun solve_young Input
   return (Total text) + "\n" + Entry
 end
 
-Result = solve_young Input
-return Result
+return solve_young Input

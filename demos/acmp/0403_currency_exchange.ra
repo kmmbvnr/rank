@@ -133,5 +133,4 @@ end
 
 AnsR = R countUpTo
 AnsL = (L - 1) countUpTo
-Answer = AnsR - AnsL
-return Answer
+return AnsR - AnsL

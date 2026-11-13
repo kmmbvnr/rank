@@ -22,5 +22,4 @@ Down' = (Size - X) * G // Y
 Left' = Y * G // X
 Inner' = Down min Left
 Cells = Inner sum
-Answer = 3 * Size * Size + 2 * Cells
-return Answer
+return 3 * Size * Size + 2 * Cells

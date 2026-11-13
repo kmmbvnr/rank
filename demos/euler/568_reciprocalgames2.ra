@@ -30,5 +30,4 @@ Fr = Lh / L10 - Fn / Sc
 Fl = Fr floor
 Fr = Fr - Fl
 Pw = 10.0 ** (Fr + 6)
-Answer = Pw floor integer
-return Answer
+return Pw floor integer

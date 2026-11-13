@@ -99,5 +99,4 @@ for Item in Dirs
     T = Old + 2 * T
   end
 end
-Answer = Num // 4
-return Answer
+return Num // 4

@@ -20,5 +20,4 @@ U = (1 - K * K) mod Md
 Un = U N Md powmod
 Iv = (K * K mod Md) (Md - 2) Md powmod
 T = U * (1 - Un) mod Md * Iv mod Md
-Answer = T sum mod Md
-return Answer
+return T sum mod Md

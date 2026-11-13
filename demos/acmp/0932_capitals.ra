@@ -265,5 +265,4 @@ if (RemD equal 0) and (N greater 2)
   end
 end
 
-Result = TotalAns text
-return Result
+return TotalAns text

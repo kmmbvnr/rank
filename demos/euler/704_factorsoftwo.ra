@@ -23,5 +23,4 @@ Extra = Count - 2 ** (Top - Levels)
 Cut = Extra sum
 Size = Limit - 2 ** Top + 1
 Tail = Top * Size - Cut
-Answer = Full + Tail
-return Answer
+return Full + Tail

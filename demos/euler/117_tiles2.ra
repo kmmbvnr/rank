@@ -32,5 +32,4 @@ First' = Pieces binomial A
 Second' = Rest binomial B
 Third' = Mix binomial C
 Ways' = First * Second * Third
-Answer = Fits choose Ways 0 sum
-return Answer
+return Fits choose Ways 0 sum

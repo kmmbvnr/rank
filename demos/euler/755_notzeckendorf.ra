@@ -46,5 +46,4 @@ memo Count cnt Room
 end
 Fibs = fibonacci to Limit copy
 Last = Fibs len
-Answer = Last cnt Limit
-return Answer
+return Last cnt Limit

@@ -51,5 +51,4 @@ Ex = Lg / 2.302585092994046 floor
 Mt = Total / (10.0 ** Ex)
 Ms = Mt text ".8f"
 Es = Ex text ".0f"
-Answer = Ms + "e" + Es
-return Answer
+return Ms + "e" + Es

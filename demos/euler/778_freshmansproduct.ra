@@ -51,5 +51,4 @@ Weights = (0 to 9) reshape 1 10
 Sums = (Ends * Weights) sum axis 1
 Plain = Unit mod Mod
 Mixed = Sums * Plain mod Mod
-Answer = Mixed sum mod Mod
-return Answer
+return Mixed sum mod Mod

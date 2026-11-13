@@ -47,5 +47,4 @@ for Spot in 0 to 61
   Count = Fresh mod Prime
   Sum = Added mod Prime
 end
-Answer = 2 * (Sum 0) mod Prime
-return Answer
+return 2 * (Sum 0) mod Prime

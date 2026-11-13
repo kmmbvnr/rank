@@ -215,5 +215,4 @@ fun solve_petya Input
   return Total
 end
 
-Result = solve_petya Input
-return Result
+return solve_petya Input

@@ -83,6 +83,4 @@ for Mask in 1 till NumMasks
 end
 
 MaskK = PopCounts equal K
-Ways = DP MaskK sum
-
-return Ways
+return DP MaskK sum

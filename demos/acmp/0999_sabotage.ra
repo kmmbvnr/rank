@@ -81,5 +81,4 @@ fun solve_sabotage Input
   return ((SubDiff equal 1) count)
 end
 
-Result = solve_sabotage Input
-return Result
+return solve_sabotage Input

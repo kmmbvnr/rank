@@ -70,5 +70,4 @@ S2' = C * C sum
 S3' = C * C * C sum
 Cube' = S1 * S1 * S1
 All' = (Cube - 3 * S1 * S2 + 2 * S3) // 6
-Answer = All - Bad
-return Answer
+return All - Bad

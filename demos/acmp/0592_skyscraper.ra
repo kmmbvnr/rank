@@ -111,5 +111,4 @@ TopComp = Comp SafeTop
 TopDelta = DistFn TopComp
 TopAns = (R SafeTop) - TopDelta
 ZeroM = 0 * Cols
-FinalAns = HasBlocks choose TopAns ZeroM
-return FinalAns
+return HasBlocks choose TopAns ZeroM

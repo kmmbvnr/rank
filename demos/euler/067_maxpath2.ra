@@ -44,5 +44,4 @@ Net add Edges
 Dist = (Net dijkstra 0) .distance
 Base = Id (Row equal Last) array
 Short = Dist Base min
-Answer = Vals 0 + Last * 100 - Short
-return Answer
+return Vals 0 + Last * 100 - Short

@@ -29,5 +29,4 @@ Long' = Twice + 2
 Short' = Twice - 2
 Perim = Plus choose Long Short
 Fits' = Perim at most Limit
-Answer = Perim Fits sum
-return Answer
+return Perim Fits sum

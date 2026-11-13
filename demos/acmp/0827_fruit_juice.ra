@@ -64,6 +64,4 @@ end
 Res = G 0 Sink maxflow
 Flow = Res .value
 Empty = N equal 0
-Ans = Empty choose 0 (N - Flow)
-
-return Ans
+return Empty choose 0 (N - Flow)

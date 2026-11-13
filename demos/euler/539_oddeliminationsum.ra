@@ -33,5 +33,4 @@ for J in Nb - 2 to 0 by -1
     S = (So - P) mod Md
   end
 end
-Answer = S
-return Answer
+return S

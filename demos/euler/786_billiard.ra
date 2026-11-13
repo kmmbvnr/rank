@@ -129,5 +129,4 @@ Left = Plain * ((Limit // Small) area 0)
 Right = (Hi - Lo) * (Q area 0)
 Sum1 = Left sum
 Sum2 = Right sum
-Answer = 4 * (Sum1 + Sum2) + 2
-return Answer
+return 4 * (Sum1 + Sum2) + 2

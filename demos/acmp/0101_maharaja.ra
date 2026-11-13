@@ -42,5 +42,4 @@ fun Free solve Need
 end
 
 Free = 0 till (N * N)
-Answer = Free solve K
-return Answer
+return Free solve K

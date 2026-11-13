@@ -61,5 +61,4 @@ fun Moves solve
   return Counts 0 + Cycles * 12 + Gain
 end
 
-Answer = Moves solve
-return Answer
+return Moves solve

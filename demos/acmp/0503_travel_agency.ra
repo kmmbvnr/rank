@@ -147,5 +147,4 @@ Z0 = array 0
 FullTour = concat Z0 Tour
 FullTour = concat FullTour Z0
 AnsArr = concat (array MinTsak) FullTour
-Result = AnsArr join " "
-return Result
+return AnsArr join " "

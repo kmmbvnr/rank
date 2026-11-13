@@ -44,5 +44,4 @@ Terms = Ways * Digit * Sign mod Mod
 Mixed = (Terms sum) mod Mod
 Extra = 5 * Phi mod Mod
 Both = (Mixed + Extra) mod Mod
-Answer = Prod * Both mod Mod
-return Answer
+return Prod * Both mod Mod

@@ -125,5 +125,4 @@ if Nn mod 2 equal 0
 end
 Eu = (Ed + Dg + P) * I2 mod P
 Vs = Vr + Vb + Vy
-Answer = (Vs + Eu - Ed + P) mod P
-return Answer
+return (Vs + Eu - Ed + P) mod P

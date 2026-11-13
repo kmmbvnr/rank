@@ -82,5 +82,4 @@ QueryPosR = SortedQueryIdxR IsQueryR
 CountR = array shape M fill 0
 CountR QueryPosR = QueryAnsR
 
-Answer = CountL - CountR
-return Answer
+return CountL - CountR

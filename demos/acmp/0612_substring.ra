@@ -115,6 +115,4 @@ Lpart = (array Xleft InvPprime) join ""
 Rpart = (array InvQprime Xright) join ""
 
 Parts = array Lpart Y Rpart
-Answer = Parts join ""
-
-return Answer
+return Parts join ""

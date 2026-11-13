@@ -57,5 +57,4 @@ for V in Vals drop Half
 end
 Seen = new counter Right
 Hits' = Seen (L // 2 - Left)
-Answer = Hits sum
-return Answer
+return Hits sum

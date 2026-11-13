@@ -43,5 +43,4 @@ for I in 4 to Nn
   Dd = Gs reshape 1024
 end
 Fl = Dd (15 to 1023 by 16)
-Answer = Fl sum
-return Answer
+return Fl sum

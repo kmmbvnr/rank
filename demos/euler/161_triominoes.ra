@@ -72,5 +72,4 @@ for C in 0 to Wide * High - 1
   Keys = K2 Starts copy
   Cnts = Cum Ends - Cum Starts copy
 end
-Answer = Cnts sum
-return Answer
+return Cnts sum

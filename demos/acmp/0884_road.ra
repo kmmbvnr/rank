@@ -145,5 +145,4 @@ CntStr = BestPop text
 UsedLet = OutLet take OutCnt
 HeadArr = array CntStr
 AllLines = concat HeadArr UsedLet
-Result = AllLines join "\n"
-return Result
+return AllLines join "\n"

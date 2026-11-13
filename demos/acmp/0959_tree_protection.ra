@@ -225,5 +225,4 @@ fun solve_protect Input
   return Best
 end
 
-Result = solve_protect Input
-return Result
+return solve_protect Input

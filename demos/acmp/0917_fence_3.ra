@@ -74,5 +74,4 @@ fun solve_fence Input
   return Area
 end
 
-Result = solve_fence Input
-return Result
+return solve_fence Input

@@ -57,5 +57,4 @@ for J in 1 to Np - 1
   Bt J = Ok choose Cs 1000000.0 min
 end
 Ed = Px equal W indices
-Answer = (2 * Bt Ed min) round 9
-return Answer
+return (2 * Bt Ed min) round 9

@@ -108,5 +108,4 @@ fun solve_knights_tour Input
   return (Rows join "\n")
 end
 
-Result = solve_knights_tour Input
-return Result
+return solve_knights_tour Input

@@ -38,5 +38,4 @@ Adj = Flat reshape N N
 Common = (Adj matpow 2) reshape #
 Pairs = (Common * (Common - 1)) // 2
 Diag = Pairs ((0 till N) * (N + 1))
-Ans = ((Pairs sum) - (Diag sum)) // 4
-return Ans
+return ((Pairs sum) - (Diag sum)) // 4

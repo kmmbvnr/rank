@@ -67,5 +67,4 @@ Moms = Table reshape Bits 9
 Cell = Part * Moms mod Prime
 Block = Cell sum axis 1
 Used = Mask * Block
-Answer = Used sum mod Prime
-return Answer
+return Used sum mod Prime

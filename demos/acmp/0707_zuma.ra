@@ -242,5 +242,4 @@ Tokens = (
 )
 StartStr = Tokens 0
 
-Ans = StartStr solve_zuma
-return Ans
+return StartStr solve_zuma

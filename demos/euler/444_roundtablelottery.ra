@@ -41,5 +41,4 @@ Ex = Lg floor
 Mn = 10 ** (Lg - Ex)
 Mt = Mn round Digits
 Parts = array (Mt text) "e" (Ex text)
-Answer = Parts join ""
-return Answer
+return Parts join ""

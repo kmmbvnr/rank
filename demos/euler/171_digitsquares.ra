@@ -37,5 +37,4 @@ end
 Lim = Top - 1 isqrt
 Roots = 1 to Lim array
 Pick' = Sum (Roots * Roots)
-Answer = Pick sum mod Mod
-return Answer
+return Pick sum mod Mod

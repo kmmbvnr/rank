@@ -96,5 +96,4 @@ Ans2Arr = PN Idx2
 Line1 = Ans1Arr join ""
 Line2 = Ans2Arr join ""
 Lines = array Line1 Line2
-Result = Lines join "\n"
-return Result
+return Lines join "\n"

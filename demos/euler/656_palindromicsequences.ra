@@ -46,5 +46,4 @@ for I in 1 to 2 * G
   Qa = Qb
   Qb = Qn
 end
-Answer = Sm sum mod Q
-return Answer
+return Sm sum mod Q

@@ -51,5 +51,4 @@ for Low less High
   end
 end
 
-Answer = Low
-return Answer
+return Low

@@ -47,5 +47,4 @@ for J in 1 to (N - 1)
   Used = Next filter Free array
   Val = Val filter Free array
 end
-Answer = Val sum
-return Answer
+return Val sum

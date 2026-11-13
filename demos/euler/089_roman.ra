@@ -49,5 +49,4 @@ Short' = Thou + Hundreds + Tens + Ones
 Size = Codes len
 Lines = Ends len
 Kept = Short sum
-Answer = Size - Lines - Kept
-return Answer
+return Size - Lines - Kept

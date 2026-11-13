@@ -115,5 +115,4 @@ for Pos in 1 to Ln
     Rank -= Cn
   end
 end
-Answer = Out
-return Answer
+return Out

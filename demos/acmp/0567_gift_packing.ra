@@ -71,5 +71,4 @@ fun solve_packing Inp
   return BestW round 6
 end
 
-Ans = solve_packing Input
-return Ans
+return solve_packing Input

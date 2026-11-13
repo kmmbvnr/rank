@@ -70,5 +70,4 @@ for K in 0 till M
   Head = Head - 1
 end
 
-Out = Ans join " "
-return Out
+return Ans join " "

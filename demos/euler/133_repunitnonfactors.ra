@@ -26,5 +26,4 @@ for E greater 0
   E = E // 2
 end
 Never' = Res not equal 1
-Answer = Ps filter Never sum
-return Answer
+return Ps filter Never sum

@@ -41,5 +41,4 @@ Y2 = (1 - X22) mod P
 Dt = (Y1 * Y2 - X12 * X12) mod P
 Nm = (X12 * X12 + X22 * Y1) mod P
 Iv = Dt (P - 2) P powmod
-Answer = Nm * Iv mod P
-return Answer
+return Nm * Iv mod P

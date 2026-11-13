@@ -336,5 +336,4 @@ end
 
 QLeaf = UPlayers lowerindex Queries
 Ans = MaxRound QLeaf
-Result = Ans join " "
-return Result
+return Ans join " "

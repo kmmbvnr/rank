@@ -41,5 +41,4 @@ for Pos in 1 to L
   D = Chosen
 end
 
-Answer = AnswerText integer
-return Answer
+return AnswerText integer
