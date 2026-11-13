@@ -24,7 +24,7 @@ describe('symbol keyboard', () => {
     it('keeps import-gated forms in their module tabs', () => {
         const tabs = keyboardTabs(['algo', 'cli', 'io', 'sequences', 'tables', 'testing']);
         const keys = (module: string) => tabs.find(tab => tab.module === module)!.keys;
-        for (const key of ['args', 'arg', 'flag', 'new', 'push', 'stdin',
+        for (const key of ['arg', 'new', 'push', 'stdin',
             'sort by', 'argsort by', 'group by', 'leftjoin by', 'innerjoin on', 'select', 'test'])
             expect(keys('core')).not.toContain(key);
         expect(keys('algo')).toContain('push');

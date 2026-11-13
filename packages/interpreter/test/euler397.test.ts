@@ -40,10 +40,9 @@ describe.each([false, true])('Euler 397 (compilation=%s)', compilation => {
     it('matches direct triangle enumeration, including overlaps and empty domains', () => {
         const r = runtime(compilation);
         try {
-            r.execute('use "397_parabola"');
+            r.execute('use "397_parabola" as parabola');
             for (const [k, x] of [[0, 5], [1, 0], [1, 1], [1, 10], [2, 3], [3, 5], [8, 7], [10, 10], [25, 12]]) {
-                r.execute(`K = ${k}\nX = ${x}\nrun`);
-                expect(r.variables.get('Answer'), `K=${k}, X=${x}`).toBe(brute(k, x));
+                expect(r.execute(`parabola ${k} ${x}`), `K=${k}, X=${x}`).toBe(brute(k, x));
             }
         } finally { r.dispose(); }
     });
@@ -51,8 +50,7 @@ describe.each([false, true])('Euler 397 (compilation=%s)', compilation => {
     it('preserves exact results when the coordinate bound exceeds safe integers', () => {
         const r = runtime(compilation);
         try {
-            r.execute('use "397_parabola"\nK = 1\nX = 10 ** 20\nrun');
-            expect(r.variables.get('Answer')).toBe(400000000000000000001n);
+            expect(r.execute('use "397_parabola" as parabola\nparabola 1 (10 ** 20)')).toBe(400000000000000000001n);
         } finally { r.dispose(); }
     });
 });

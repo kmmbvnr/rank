@@ -85,9 +85,6 @@ export class Interpreter {
     private readonly parsingPrograms = new Set<string>();
     private readonly openPrograms = new Map<string, LoadedProgram>();
     private readonly aliases = new Map<string, Interpreter>();
-    private currentRunTarget: LoadedProgram | undefined;
-    private pendingArgs: string[] | undefined;
-    private loadedProgram: LoadedProgram | undefined;
     private syntheticNames: ReadonlySet<string> = new Set();
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
@@ -293,10 +290,7 @@ export class Interpreter {
             program: {
                 useFile: (path, alias) => { this.useFile(path, alias); },
                 useStandard: module => this.useStandard(module),
-                run: path => this.run(path),
-                runAlias: alias => this.runAlias(alias),
                 test: (name, statements) => this.executeTest(name, statements),
-                setArguments: values => { this.pendingArgs = values; },
             },
             loops: this.loops,
             writes: this.writes,
@@ -468,10 +462,6 @@ export class Interpreter {
         const program = diagnostics
             ? diagnostics.measure('program.parse', () => this.parse(source, this.syntheticNames))
             : this.parse(source, this.syntheticNames);
-        this.loadedProgram = {
-            id: this.options.sourceId ?? '<input>',
-            program,
-        };
         if (this.options.persistentResources) {
             this.resources.ensureScope();
             return this.executeProgram(program, this.options.args ?? []);
@@ -553,7 +543,6 @@ export class Interpreter {
             const { alias, member } = qualified;
             const child = this.aliases.get(alias);
             if (!child) throw new RankError(`unknown module alias: ${alias}`);
-            if (member === 'run') throw new RankError(`${alias}.run is only valid as a statement`);
             return child.resolveVariable(member);
         }
         const variable = this.bindings.find(name);
@@ -640,7 +629,6 @@ export class Interpreter {
             maxCallDepth: this.functions.maxDepth,
             sourceId: loaded.id,
         });
-        child.loadedProgram = loaded;
         for (const [key, value] of this.openPrograms) child.openPrograms.set(key, value);
         child.prepareModule(loaded.program);
 
@@ -667,7 +655,6 @@ export class Interpreter {
                 this.assign(statement.name, child.resolveVariable(statement.name));
                 if (isFunctionStatement(statement)) this.bindings.lockFunction(statement.name);
             }
-            this.currentRunTarget = loaded;
         }
         if (isFileFunction(loaded.program)) this.bindFileFunction(loaded, specifier, alias);
         return loaded;
@@ -700,7 +687,6 @@ export class Interpreter {
             maxCallDepth: this.functions.maxDepth,
             sourceId: loaded.id,
         });
-        child.loadedProgram = loaded;
         for (const [key, value] of this.openPrograms) child.openPrograms.set(key, value);
         child.prepareModule(loaded.program);
         // An omitted right operand arrives as `.NA`; its `arg` default applies.
@@ -749,33 +735,6 @@ export class Interpreter {
             this.openPrograms.set(key, loaded);
             return loaded;
         } finally { this.parsingPrograms.delete(source.id); }
-    }
-
-    private run(specifier?: string): RankValue | undefined {
-        const target = specifier ? this.useFile(specifier) : this.currentRunTarget;
-        if (!target) {
-            throw new RankError('run requires a previously used program or a file name');
-        }
-        const args = this.pendingArgs ?? [];
-        this.pendingArgs = undefined;
-        // The named run becomes the target for later bare runs. Imports or nested
-        // runs inside it must not replace that target, even when execution fails.
-        const callerRunTarget = this.currentRunTarget;
-        try {
-            return this.resources.withResourceScope(() => this.executeProgram(target.program, args));
-        } finally {
-            this.currentRunTarget = callerRunTarget;
-        }
-    }
-
-    private runAlias(alias: string): RankValue | undefined {
-        const child = this.aliases.get(alias);
-        if (!child?.loadedProgram) {
-            throw new RankError(`unknown module alias: ${alias}`);
-        }
-        const result = child.resources.withResourceScope(() => child.executeProgram(child.loadedProgram!.program));
-        this.resources.ownFiles(result);
-        return result;
     }
 
     private executeTest(name: string, statements: Statement[]): void {

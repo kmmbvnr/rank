@@ -74,32 +74,7 @@ or NUL. Values cannot contain NUL.
 
 ### See also
 
-args, arg
-
-## args
-
-Set the command-line arguments for the
-next program run.
-
-```rank
-use cli
-args "--limit" "10"
-```
-
-### Usage
-
-```text
-args Words
-```
-
-Each quoted word is one argument, as if
-typed after the program name in a
-terminal. Lets you try a program's
-options inside the app.
-
-### See also
-
-arg, run
+arg
 
 ## arg
 
@@ -166,7 +141,3 @@ URL. CLI input binding preserves it
 unchanged. Reading a URL downloads its
 contents; local paths are not resolved
 against the program's directory.
-
-### See also
-
-args

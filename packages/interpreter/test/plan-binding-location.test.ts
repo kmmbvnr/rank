@@ -37,32 +37,6 @@ describe.each([false, true])('plan binding locations (compilation=%s)', compilat
         } finally { host.dispose(); }
     });
 
-    it('identifies the module plan when a second run fails', () => {
-        const host = new Interpreter(undefined, { compilation, sourceId: 'test.ra', loadModule: () => ({
-            id: 'fixture.ra', source: [
-                'use sequences', 'W = (1 to 5 array) * 2', 'W 0 = 7', "Pw' = W scan +", 'Pw array',
-            ].join('\n'),
-        }) });
-        try {
-            host.execute('use "fixture" as F\nF.run');
-            const error = failure(() => host.execute('F.run'));
-            expect(error.message).toContain('Plan bound at fixture.ra:4:1.');
-            expect(error.location).toMatchObject({ sourceId: 'fixture.ra', line: 3, sourceLine: 'W 0 = 7' });
-        } finally { host.dispose(); }
-    });
-
-    it('uses the importing plan origin for protection of a qualified source', () => {
-        const host = new Interpreter(undefined, { compilation, sourceId: 'parent.ra', loadModule: () => ({
-            id: 'data.ra', source: 'A = array 1 2',
-        }) });
-        try {
-            host.execute('use "data" as H\nH.run\nPlan\' = H.A * 2');
-            const error = failure(() => host.execute('H.A 0 = 9'));
-            expect(error.message).toContain('Plan bound at parent.ra:3:1.');
-            expect(error.location).toMatchObject({ sourceId: 'parent.ra', line: 1 });
-        } finally { host.dispose(); }
-    });
-
     it('retains the origin for writes through shared container aliases', () => {
         const host = new Interpreter(undefined, { compilation, sourceId: 'aliases.ra' });
         try {

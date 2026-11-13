@@ -398,9 +398,9 @@ it('recognizes core operations without imports and still reports specialized nam
 });
 
 it('reports CLI declarations and args without their own import', async () => {
-    const lines = ['arg N integer = 3', 'arg Path path', 'arg Verbose boolean = false', 'args "--n" "7"'];
+    const lines = ['arg N integer = 3', 'arg Path path', 'arg Verbose boolean = false'];
     expect((await facts(lines)).missing.map(op => [op.name, op.module])).toEqual([
-        ['arg', 'cli'], ['args', 'cli'],
+        ['arg', 'cli'],
     ]);
     expect((await facts(['use cli', ...lines])).missing).toEqual([]);
 });

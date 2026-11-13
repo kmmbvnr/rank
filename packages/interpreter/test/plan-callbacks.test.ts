@@ -50,16 +50,4 @@ describe.each([false, true])('plan callback dependencies (compilation=%s)', comp
         } finally { host.dispose(); }
     });
 
-    it('captures imported callback dependencies in the defining module', () => {
-        const host = new Interpreter(undefined, { compilation,
-            loadModule: () => ({ id: 'callback.ra', source: 'Limit = 6\nfun X below = X less Limit' }),
-        });
-        try {
-            host.execute('use "callback" as H\nH.run');
-            host.execute("Plan' = 1 to 10 filter H.below");
-            host.execute('H.Limit = 3');
-            expect(formatValue(host.execute('Plan')!)).toBe('1 2 3 4 5');
-            expect(formatValue(host.execute('Plan')!)).toBe('1 2 3 4 5');
-        } finally { host.dispose(); }
-    });
 });

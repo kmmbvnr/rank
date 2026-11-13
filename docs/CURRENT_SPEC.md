@@ -627,7 +627,7 @@ Model X predict
 
 This is the canonical call order for standard-library and user-defined
 functions. Nullary sources such as `fibonacci` and `primes` are values rather
-than calls. Keywords such as `use`, `run`, `arg` and `if` introduce their own
+than calls. Keywords such as `use`, `arg` and `if` introduce their own
 statements and do not follow the function-call rule.
 
 An application may form an unambiguous left-to-right pipeline. Each function
@@ -1222,53 +1222,29 @@ A function keeps the module workspace in which it was declared. Its body can
 use standard modules and source definitions imported by its own file without
 requiring the caller to repeat those imports.
 
-An alias keeps the module in a namespace:
+An alias keeps the module's functions in a namespace:
 
 ```rank
-use "my_module" as M
-
-M.Limit = 10
-M.run
-Answer = M.Answer
+use "helpers" as h
+4 h.twice
 ```
 
 An open import does not create an implicit namespace, so its file name need not
-be a Rank identifier. To use prefixed access, provide a valid alias explicitly:
-
-```rank
-use "001_multiples" as E
-E.run
-```
+be a Rank identifier. To use prefixed access, provide a valid alias explicitly.
+A file that ends with `return` is also callable under a lowercase alias; see
+[Files as functions](#files-as-functions).
 
 Relative names are resolved from the importing file. The `.ra` suffix may be
 omitted.
 
 ## Running programs
 
-`use` makes code available. `run` executes its top-level lines.
+`use` makes code available. A host runs a program by executing its top-level
+lines from the first to the last, or until a top-level `return`.
 
-```rank
-use "worker"
-run
-```
-
-A named run loads the file first when necessary:
-
-```rank
-run "worker"
-```
-
-This is equivalent to `use "worker"` followed by `run "worker"`. A bare `run`
-uses the most recently opened source module. Execution starts at its first
-top-level line, reaches the end of the file and then returns to the statement
-after `run`.
-
-A named `run "worker"` also selects `worker` for subsequent bare runs. Imports
-and nested runs executed inside `worker` do not change that selection after it
-returns, including when execution raises an error.
-
-Running a file from the host, as in `rank worker.ra`, performs an implicit run.
-Rank does not require a `main` function.
+Running a file from the host, as in `rank worker.ra`, prints the value the file
+returns. Rank does not require a `main` function. A program is also a function:
+see [Files as functions](#files-as-functions).
 
 ## Files as functions
 
@@ -1318,10 +1294,10 @@ the cell with its value.
 ## Program inputs
 
 Declare program inputs with `use cli`. The import is required even when all
-inputs have defaults or receive values from the workspace.
+inputs have defaults.
 
 `arg` declares an input parameter of a program. It is broader than a
-terminal-only CLI option: a caller may bind it through the current workspace, a
+terminal-only CLI option: a caller may bind it as an operand of a call, through a
 command-line adapter, a browser host or another runner.
 
 ```rank
@@ -1331,28 +1307,19 @@ rem Upper boundary, excluded.
 arg Limit integer = 1000
 ```
 
-Input resolution has one fixed precedence order:
-
-```text
-workspace -> args -> default
-```
-
-Therefore these calls provide the same logical input through different
-adapters:
+A file receives its inputs as the operands of a call, or from the host adapter
+when it is run directly. A call argument wins over a default; the declared type
+is checked against the selected value before program statements execute:
 
 ```rank
-Limit = 10
-run
+use "multiples.ra" as sum35
+sum35 10
 ```
 
-```rank
-use cli
-args "--limit" "10"
-run
+```console
+rank multiples.ra --limit 10
+rank multiples.ra 10
 ```
-
-The workspace value wins when both are present. Every selected value is checked
-against the declared type before program statements execute.
 
 Positional and boolean inputs use the same model:
 
@@ -1399,18 +1366,16 @@ indentation:
 use testing
 
 test "limit 10"
-  use "001_multiples"
-  Limit = 10
-  run
+  use "001_multiples" as sum35
+  Answer = sum35 10
 
   Answer equal 23
 end
 ```
 
-Each test receives a clean workspace. Source modules are loaded without running
-their top-level lines, so the test may prepare values before transferring
-control with `run`. Values created by the program remain available after it
-returns.
+Each test receives a clean workspace. A source module is loaded without running
+its top-level lines; calling a file that returns a value runs it and gives the
+test that value. The names the file assigns stay private to that call.
 
 Standalone boolean expression statements are assertions. A scalar assertion
 must evaluate to `true`. An array or tensor of booleans is a single assertion
@@ -1429,27 +1394,15 @@ are consumed by the test runner, including generator effects and errors.
 `equal` remains elementwise. Mixed sequence/array comparisons use array
 broadcasting rules, and incompatible shapes raise `.DimensionMismatch`.
 
-Arguments exercise the same input declarations through the host adapter:
+A call argument exercises the same input declarations that the host adapter
+binds. A file that returns several values returns a record, and the test reads
+its fields:
 
 ```rank
-test "argument input"
-  use "001_multiples"
-  args "--limit" "10"
-  run
-
-  Answer equal 23
-end
-```
-
-An alias provides isolation when a test loads several programs:
-
-```rank
-test "aliased program"
-  use "001_multiples" as E
-  E.Limit = 10
-  E.run
-
-  E.Answer equal 23
+test "record result"
+  use "pair" as pair
+  Out = pair 3
+  Out .total equal 12
 end
 ```
 

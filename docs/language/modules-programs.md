@@ -97,83 +97,29 @@ A function keeps the module workspace in which it was declared. Its body can
 use standard modules and source definitions imported by its own file without
 requiring the caller to repeat those imports.
 
-An alias keeps the module in a namespace:
+An alias keeps the module's functions in a namespace:
 
 ```rank
-use "my_module" as M
-
-M.Limit = 10
-M.run
-Answer = M.Answer
+use "helpers" as h
+4 h.twice
 ```
 
 An open import does not create an implicit namespace, so its file name need not
-be a Rank identifier. To use prefixed access, provide a valid alias explicitly:
-
-```rank
-use "001_multiples" as E
-E.run
-```
+be a Rank identifier. To use prefixed access, provide a valid alias explicitly.
+A file that ends with `return` is also callable under a lowercase alias; see
+[Files as functions](#files-as-functions).
 
 Relative names are resolved from the importing file. The `.ra` suffix may be
 omitted.
 
 ## Running programs
 
-`use` makes code available. `run` executes its top-level lines.
+`use` makes code available. A host runs a program by executing its top-level
+lines from the first to the last, or until a top-level `return`.
 
-```rank
-use "worker"
-run
-```
-
-A named run loads the file first when necessary:
-
-```rank
-run "worker"
-```
-
-This is equivalent to `use "worker"` followed by `run "worker"`. A bare `run`
-uses the most recently opened source module. Execution starts at its first
-top-level line, reaches the end of the file and then returns to the statement
-after `run`.
-
-A named `run "worker"` also selects `worker` for subsequent bare runs. Imports
-and nested runs executed inside `worker` do not change that selection after it
-returns, including when execution raises an error.
-
-Running a file from the host, as in `rank worker.ra`, performs an implicit run.
-Rank does not require a `main` function.
-
-## Reading a program without running it
-
-Two commands answer questions about a file that has not run. `rank check`
-checks every `*.ra` file under a path for syntax, scope and removed builtin
-spellings, without running it. This is the gate a repository runs in CI.
-`rank explain` reports one program's binding facts:
-
-```
-rank explain demos/cses/tree/003_diameter.ra
-```
-
-For every scope — the program, each function, each test — it lists the names
-bound there, how each one came to exist, where it was bound, how often it is
-written and read, and whether it is reassigned, carried across a loop, hiding
-an outer name of the same spelling, or never read at all. It then lists the
-standard-library names the program calls, the ones whose module it forgot to
-open, and any word that is neither. Reading a source module with `use "file"`
-brings that module's names along, so a test file resolves the names it borrows.
-
-Each name also carries the runtime types it may hold, taken from literals,
-constructors, declared `arg` types, operators and the
-catalogue. Rank states no types, so many names report `unknown`, and that is the
-intended answer rather than a gap to fill with a guess: a parameter, a loop
-value and anything a user function returns all report it. What the pass does
-say is checked against the runtime over the whole demo corpus, so a reported
-type is one the program will really produce.
-
-A name reported under `needs a use` is a program that cannot run, and
-`rank explain` exits nonzero when it reports one.
+Running a file from the host, as in `rank worker.ra`, prints the value the file
+returns. Rank does not require a `main` function. A program is also a function:
+see [Files as functions](#files-as-functions).
 
 ## Files as functions
 
@@ -223,10 +169,10 @@ the cell with its value.
 ## Program inputs
 
 Declare program inputs with `use cli`. The import is required even when all
-inputs have defaults or receive values from the workspace.
+inputs have defaults.
 
 `arg` declares an input parameter of a program. It is broader than a
-terminal-only CLI option: a caller may bind it through the current workspace, a
+terminal-only CLI option: a caller may bind it as an operand of a call, through a
 command-line adapter, a browser host or another runner.
 
 ```rank
@@ -236,28 +182,19 @@ rem Upper boundary, excluded.
 arg Limit integer = 1000
 ```
 
-Input resolution has one fixed precedence order:
-
-```text
-workspace -> args -> default
-```
-
-Therefore these calls provide the same logical input through different
-adapters:
+A file receives its inputs as the operands of a call, or from the host adapter
+when it is run directly. A call argument wins over a default; the declared type
+is checked against the selected value before program statements execute:
 
 ```rank
-Limit = 10
-run
+use "multiples.ra" as sum35
+sum35 10
 ```
 
-```rank
-use cli
-args "--limit" "10"
-run
+```console
+rank multiples.ra --limit 10
+rank multiples.ra 10
 ```
-
-The workspace value wins when both are present. Every selected value is checked
-against the declared type before program statements execute.
 
 Scalar, array and boolean inputs use the same model:
 

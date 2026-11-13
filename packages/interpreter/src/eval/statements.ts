@@ -1,10 +1,10 @@
 import {
-    applicationForm, isApplicationExpression, isDeclaredCallExpression, isArgsStatement,
+    applicationForm, isApplicationExpression, isDeclaredCallExpression,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
-    isNameExpression, isArgStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
+    isArgStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
     isOperationAssignmentStatement,
-    isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
+    isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type FunctionBindingStatement, type FunctionStatement, type Operation, type Statement,
 } from '@arrrank/language';
 import type { BindingEnvironment } from '../binding-environment.js';
@@ -15,7 +15,7 @@ import { completed, runExecution, emit, mapExecution, mapResult, resume, type Ev
 import {
     prepareIfStatement, prepareTryStatement, type ExecutionContext, type PreparedStatement,
 } from '../statement-control.js';
-import { formatValue, isNativeFunction, isRankArray, isRankSequence, type RankValue } from '../value.js';
+import { isNativeFunction, isRankArray, isRankSequence, type RankValue } from '../value.js';
 import {
     prepareArrayAssignment, prepareAssignment, prepareCollectionMutation,
     preparePushStatement, prepareUnpackStatement, type AssignmentContext,
@@ -26,11 +26,7 @@ import { prepareForStatement, type LoopContext } from './loops.js';
 export interface ProgramControl {
     useFile(path: string, alias?: string): void;
     useStandard(module: string): void;
-    run(path?: string): RankValue | undefined;
-    runAlias(alias: string): RankValue | undefined;
     test(name: string, statements: Statement[]): void;
-    /** The arguments the next `run` passes to its program. */
-    setArguments(values: string[]): void;
 }
 
 /** What preparing a statement needs beyond the loop and write owners. */
@@ -68,16 +64,6 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             } else {
                 host.program.useStandard(statement.module!);
             }
-            return undefined;
-        } };
-    }
-    if (isRunStatement(statement)) {
-        return { stream: function* (): Execution<RankValue | undefined> { return host.program.run(statement.path); } };
-    }
-    if (isArgsStatement(statement)) {
-        return { stream: function* (): Execution<RankValue | undefined> {
-            host.requireModule('cli', 'args');
-            host.program.setArguments((yield* resume(mapExecution(statement.values, value => host.evaluate(value)))).map(formatValue));
             return undefined;
         } };
     }
@@ -206,10 +192,6 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         const form = applicationForm(statement.value, name => host.operationOf(name), true);
         const mutation = form.kind === 'collection-mutation' ? form : undefined;
         if (mutation) return prepareCollectionMutation(mutation, host.writes);
-        if (isNameExpression(statement.value) && statement.value.name.endsWith('.run')) {
-            const alias = statement.value.name.slice(0, -4);
-            return { stream: function* (): Execution<RankValue | undefined> { return host.program.runAlias(alias); } };
-        }
         const direct = host.compileDirect(statement.value);
         if (direct) {
             return { run: context => {

@@ -119,11 +119,11 @@ end
         expect(error.location?.line).toBe(2);
     });
 
-    it('uses the loaded file name for imported functions and run', () => {
-        for (const source of ['use "helper"\n1 bad', 'run "helper"']) {
+    it('uses the loaded file name for imported functions and called files', () => {
+        for (const source of ['use "helper"\n1 bad', 'use "helper" as helper\nhelper']) {
             const interpreter = new Interpreter(() => {}, {
                 sourceId: 'contest.ra',
-                loadModule: () => ({ id: 'helper.ra', source: 'fun N bad\n  return N / 0\nend\n1 bad' }),
+                loadModule: () => ({ id: 'helper.ra', source: 'fun N bad\n  return N / 0\nend\nreturn 1 bad' }),
             });
             expect(failure(source, interpreter).location).toMatchObject({ sourceId: 'helper.ra', line: 2 });
         }

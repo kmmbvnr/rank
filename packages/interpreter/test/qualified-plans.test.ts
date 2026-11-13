@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isRankPlan } from '../src/index.js';
+import { Interpreter } from '../src/index.js';
 
 function moduleRuntime(source: string, compilation: boolean, output?: string[]) {
     return new Interpreter(text => output?.push(text), {
@@ -8,39 +8,6 @@ function moduleRuntime(source: string, compilation: boolean, output?: string[]) 
 }
 
 describe.each([false, true])('qualified plan dependencies (compilation=%s)', compilation => {
-    it('captures a qualified value before its module binding is replaced', () => {
-        const host = moduleRuntime('A = array 1 2', compilation);
-        try {
-            host.execute('use "data" as H\nH.run');
-            host.execute("Plan' = H.A * 2");
-            host.execute('H.A = array 7 8');
-            expect(formatValue(host.execute('Plan')!)).toBe('2 4');
-            expect(formatValue(host.execute('H.A')!)).toBe('7 8');
-            expect(formatValue(host.execute('Plan')!)).toBe('2 4');
-        } finally { host.dispose(); }
-    });
-
-    it.each(['H.Plan ignore', '(H.Plan + 1) ignore'])(
-        'passes a qualified plan to a deferred parameter without demanding it: %s', expression => {
-            const host = moduleRuntime("Plan' = 1 // 0", compilation);
-            try {
-                host.execute('use "data" as H\nH.run\nfun X\' ignore = 7\nfun X consume = 7');
-                expect(host.execute(expression)).toBe(7n);
-                expect(() => host.execute('H.Plan consume')).toThrow();
-            } finally { host.dispose(); }
-        },
-    );
-
-    it('returns a qualified plan without adding a demand boundary', () => {
-        const host = moduleRuntime("Plan' = 1 // 0", compilation);
-        try {
-            host.execute('use "data" as H\nH.run\nfun relay\n return H.Plan\nend');
-            host.execute("Result' = relay");
-            expect(isRankPlan(host.variables.get('Result')!)).toBe(true);
-            expect(() => host.execute('Result')).toThrow();
-        } finally { host.dispose(); }
-    });
-
     it('stages a qualified user call once and replays its surrounding recipe', () => {
         const output: string[] = [];
         const host = moduleRuntime([

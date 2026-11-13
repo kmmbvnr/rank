@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray } from '../src/index.js';
+import { Interpreter } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/343_fractional.ra', import.meta.url), 'utf8');
 function createRuntime(compilation: boolean, testing = false): Interpreter {
@@ -34,21 +34,17 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
     it('matches every quadratic largest factor against independent trial division', () => {
         const runtime = createRuntime(compilation);
         try {
-            runtime.execute('use "343_fractional"\nLimit = 1000\nrun');
-            const result = runtime.variables.get('Largest');
-            if (!result || !isRankArray(result)) throw Error('expected factor array');
-            expect(result.shape).toEqual([1001]);
-            for (let k = 0; k <= 1000; k++) {
-                expect(result.items[k], `k=${k}`).toBe(largestFactor(k * k - k + 1));
-            }
+            runtime.execute('use "343_fractional" as fractional');
             // Check every short prefix, including the double root modulo 3,
-            // repeated prime powers and the second root of a discovered prime.
+            // repeated prime powers and the second root of a discovered prime,
+            // then the longer ranges that exercise the factor table.
             let expected = 0n;
-            for (let limit = 1; limit <= 100; limit++) {
+            for (let limit = 1; limit <= 1000; limit++) {
                 const a = largestFactor(limit + 1), b = largestFactor(limit * limit - limit + 1);
                 expected += (a > b ? a : b) - 1n;
-                runtime.execute(`Limit = ${limit}\nrun`);
-                expect(runtime.variables.get('Answer'), `limit=${limit}`).toBe(expected);
+                if (limit <= 100 || limit % 100 === 0) {
+                    expect(runtime.execute(`fractional ${limit}`), `limit=${limit}`).toBe(expected);
+                }
             }
         } finally { runtime.dispose(); }
     });

@@ -108,9 +108,7 @@ entry Program:
 
 Statement:
     UseStatement |
-    RunStatement |
     ArgStatement |
-    ArgsStatement |
     TestStatement |
     FunctionStatement |
     FunctionBindingStatement |
@@ -130,16 +128,10 @@ Statement:
 UseStatement:
     'use' (module=TypeName | path=STRING ('as' alias=Identifier)?);
 
-RunStatement:
-    'run' path=STRING?;
-
 ArgStatement:
     'arg' name=VARIABLE valueType=TypeName (many?='array')?
     ('shape' dimensions+=NumberLiteral+)?
     ('=' defaultValue=Expression)?;
-
-ArgsStatement:
-    'args' values+=PrimaryExpression+;
 
 TestStatement:
     'test' description=STRING NL+

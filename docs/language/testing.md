@@ -28,18 +28,16 @@ indentation:
 use testing
 
 test "limit 10"
-  use "001_multiples"
-  Limit = 10
-  run
+  use "001_multiples" as sum35
+  Answer = sum35 10
 
   Answer equal 23
 end
 ```
 
-Each test receives a clean workspace. Source modules are loaded without running
-their top-level lines, so the test may prepare values before transferring
-control with `run`. Values created by the program remain available after it
-returns.
+Each test receives a clean workspace. A source module is loaded without running
+its top-level lines; calling a file that returns a value runs it and gives the
+test that value. The names the file assigns stay private to that call.
 
 Standalone boolean expression statements are assertions. A scalar assertion
 must evaluate to `true`. An array or tensor of booleans is a single assertion
@@ -58,28 +56,15 @@ are consumed by the test runner, including generator effects and errors.
 `equal` remains elementwise. Mixed sequence/array comparisons use array
 broadcasting rules, and incompatible shapes raise `.DimensionMismatch`.
 
-Arguments exercise the same input declarations through the host adapter:
+A call argument exercises the same input declarations that the host adapter
+binds. A file that returns several values returns a record, and the test reads
+its fields:
 
 ```rank
-test "argument input"
-  use "001_multiples"
-  use cli
-  args "--limit" "10"
-  run
-
-  Answer equal 23
-end
-```
-
-An alias provides isolation when a test loads several programs:
-
-```rank
-test "aliased program"
-  use "001_multiples" as E
-  E.Limit = 10
-  E.run
-
-  E.Answer equal 23
+test "record result"
+  use "pair" as pair
+  Out = pair 3
+  Out .total equal 12
 end
 ```
 

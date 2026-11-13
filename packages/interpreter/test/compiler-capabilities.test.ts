@@ -94,18 +94,18 @@ it('children and test blocks inherit the captured configuration and hooks', () =
     const hooks = { onIntegerLoopExecuted: original };
     const options: InterpreterOptions = {
         compiler: { hooks },
-        loadModule: () => ({ id: 'worker', source: program }),
+        loadModule: () => ({ id: 'worker', source: program.replace(/Total$/, 'return Total') }),
     };
     const runtime = new Interpreter(() => {}, options);
     try {
         hooks.onIntegerLoopExecuted = replacement;
-        runtime.execute('use "worker"\nrun');
+        runtime.execute('use "worker" as worker\nworker');
         expect(original).toHaveBeenCalled();
         original.mockClear();
         runtime.execute(`use testing
 test "child"
-  use "worker"
-  run
+  use "worker" as worker
+  Total = worker
   Total equal 5050
 end`);
         expect(runtime.testResults.at(-1)?.passed).toBe(true);

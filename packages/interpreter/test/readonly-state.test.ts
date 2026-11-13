@@ -101,18 +101,6 @@ describe.each([false, true])('scope protection across executions (compilation=%s
         } finally { host.dispose(); }
     });
 
-    it('checks a qualified module source and its helper in later cells', () => {
-        const host = new Interpreter(undefined, { compilation, loadModule: () => ({ id: 'data.ra', source:
-            'A = array 1 2\nfun X change\n X 0 = 9\n return X\nend' }) });
-        try {
-            host.execute('use "data" as H\nH.run');
-            host.execute("Plan' = H.A * 2");
-            expect(() => host.execute('H.A 0 = 9')).toThrowError('is read-only because plan Plan reads it');
-            expect(() => host.execute('H.A H.change')).toThrowError('is read-only because plan Plan reads it');
-            expect(formatValue(host.execute('H.A')!)).toBe('1 2');
-        } finally { host.dispose(); }
-    });
-
     it('does not protect a source when construction of the binding fails', () => {
         const host = new Interpreter(undefined, { compilation });
         try {

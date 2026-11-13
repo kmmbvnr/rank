@@ -59,7 +59,7 @@ for (const compiled of [true, false]) {
         });
 
         it('gates each CLI construct and keeps ordinary files parameterless', () => {
-            for (const source of ['arg N integer = 3', 'arg Verbose boolean = false', 'args "--n" "7"']) {
+            for (const source of ['arg N integer = 3', 'arg Verbose boolean = false']) {
                 expect(() => runtime().execute(source)).toThrow(`${source.split(' ')[0]} requires: use cli`);
                 expect(() => runtime().execute(`use cli\n${source}`)).not.toThrow();
             }

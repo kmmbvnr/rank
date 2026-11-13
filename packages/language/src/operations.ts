@@ -1463,8 +1463,6 @@ export const moduleForms: readonly ModuleForm[] = [
         summary: 'Lazily joins arrays along an existing axis (default 0); rank-one sequences remain sequences.' },
     { module: 'cli', form: 'arg Name Type = Default', example: 'arg N integer = 3',
         summary: 'Declares a program input, passed by name or position; a boolean input is set by a bare --name.' },
-    { module: 'cli', form: 'args Values', example: 'args "--limit" "10"',
-        summary: 'Sets arguments for the next run.' },
     { module: 'algo', form: 'new queue', example: 'Q = new queue',
         summary: 'Empty container: queue, stack, deque, heap, set, counter, multiset or index.' },
     { module: 'algo', form: 'new heap Priorities Values .descending',

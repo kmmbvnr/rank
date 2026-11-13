@@ -484,68 +484,38 @@ describe('Rank IO, modules and programs', () => {
         expect(new Interpreter(undefined, { args: ['--file', './other.txt'] }).execute(source)).toBe('./other.txt');
     });
 
-    it('overrides a text option with a multiline text block before run', () => {
+    it('passes a multiline text block as an argument', () => {
         const runtime = new Interpreter(undefined, {
             loadModule: specifier => ({
                 id: specifier,
-                source: 'use cli\narg Value text = "abc"\nAnswer = Value',
+                source: 'use cli\narg Value text = "abc"\nreturn Value',
             }),
         });
         expect(runtime.execute([
-            'use "worker"', 'Value = text lines', '  "first"', '  "second"', 'end', 'run', 'Answer',
+            'use "worker"', 'Value = text lines', '  "first"', '  "second"', 'end', 'worker Value',
         ].join('\n'))).toBe('first\nsecond');
     });
 
-    it('loads an open program and runs it in the current workspace', () => {
+    it('calls a program with an argument', () => {
         const interpreter = new Interpreter(undefined, {
             sourceId: '/tests/example_test.ra',
             loadModule: specifier => ({
                 id: `/tests/${specifier}.ra`,
-                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nreturn Limit + 1',
             }),
         });
-        expect(interpreter.execute('use "worker"\nLimit = 10\nrun\nAnswer')).toBe(11n);
+        expect(interpreter.execute('use "worker"\nworker 10')).toBe(11n);
+        expect(interpreter.execute('worker')).toBe(1001n);
     });
 
-    it.each([false, true])('restores the named run target after nested imports (throws: %s)', throws => {
-        const output: string[] = [];
-        const sources: Record<string, string> = {
-            old: 'use io\n"old" print',
-            a: `use "b"\nuse io\n"a" print${throws ? '\n.Broken raise' : ''}`,
-            b: 'use io\n"b" print',
-        };
-        const runtime = new Interpreter(line => output.push(line), {
-            loadModule: specifier => ({ id: specifier, source: sources[specifier] }),
-        });
-        runtime.execute('use "old"');
-        for (const command of ['run "a"', 'run']) {
-            if (throws) expect(() => runtime.execute(command)).toThrow('.Broken');
-            else runtime.execute(command);
-        }
-        expect(output).toEqual(['a', 'a']);
-    });
-
-    it('restores the caller target after a nested named run', () => {
-        const output: string[] = [];
-        const sources: Record<string, string> = {
-            a: 'run "b"\nuse io\n"a" print',
-            b: 'use io\n"b" print',
-        };
-        const runtime = new Interpreter(line => output.push(line), {
-            loadModule: specifier => ({ id: specifier, source: sources[specifier] }),
-        });
-        runtime.execute('run "a"\nrun');
-        expect(output).toEqual(['b', 'a', 'b', 'a']);
-    });
-
-    it('runs a program through an explicit module alias', () => {
+    it('calls a program through an explicit alias', () => {
         const interpreter = new Interpreter(undefined, {
             loadModule: specifier => ({
                 id: specifier,
-                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nreturn Limit + 1',
             }),
         });
-        expect(interpreter.execute('use "worker" as W\nW.Limit = 20\nW.run\nW.Answer')).toBe(21n);
+        expect(interpreter.execute('use "worker" as add_one\nadd_one 20')).toBe(21n);
     });
 
     it('executes isolated Rank test blocks', () => {
@@ -554,15 +524,14 @@ describe('Rank IO, modules and programs', () => {
             testing: true,
             loadModule: specifier => ({
                 id: `/tests/${specifier}.ra`,
-                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nreturn Limit + 1',
             }),
         });
         interpreter.execute([
             'use testing',
             'test "workspace input"',
-            '  use "worker"',
-            '  Limit = 10',
-            '  run',
+            '  use "worker" as worker',
+            '  Answer = worker 10',
             '  Answer equal 11',
             'end',
             'test "false result"',
@@ -600,7 +569,7 @@ describe('Rank IO, modules and programs', () => {
                 name: 'false result',
                 passed: false,
                 output: [],
-                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:9:3\n9 |   1 equal 2\n      ^',
+                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:8:3\n8 |   1 equal 2\n      ^',
                 durationMs: expect.any(Number),
             },
             { name: 'matching arrays', passed: true, output: [], durationMs: expect.any(Number) },
@@ -608,7 +577,7 @@ describe('Rank IO, modules and programs', () => {
                 name: 'different arrays',
                 passed: false,
                 output: [],
-                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:17:3\n17 |   Answer equal array 7 1 8\n       ^',
+                error: 'RankError [Runtime]: boolean test expression evaluated to false\n  at /tests/worker_test.ra:16:3\n16 |   Answer equal array 7 1 8\n       ^',
                 durationMs: expect.any(Number),
             },
             { name: 'matching tensors', passed: true, output: [], durationMs: expect.any(Number) },
@@ -616,7 +585,7 @@ describe('Rank IO, modules and programs', () => {
                 name: 'different shapes',
                 passed: false,
                 output: [],
-                error: 'RankError [DimensionMismatch]: shape mismatch: 2,2 and 3\n  at /tests/worker_test.ra:34:3\n34 |   Answer equal array 7 0 8\n       ^',
+                error: 'RankError [DimensionMismatch]: shape mismatch: 2,2 and 3\n  at /tests/worker_test.ra:33:3\n33 |   Answer equal array 7 0 8\n       ^',
                 durationMs: expect.any(Number),
             },
         ]);

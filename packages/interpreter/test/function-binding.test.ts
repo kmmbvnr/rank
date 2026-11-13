@@ -109,10 +109,10 @@ describe('single-expression function bindings', () => {
         const parameters = kind === 'memo' ? 'N Seed' : 'N';
         const call = kind === 'memo' ? '2 value Seed' : '2 value';
         const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} ${parameters} value\n  ${body}\nend\n`
-            + (kind === 'generator' ? `(${call}) first` : call);
+            + 'return ' + (kind === 'generator' ? `(${call}) first` : call);
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source }) });
-        expect(runtime.execute('run "module.ra"')).toBe(9n);
-        expect(runtime.execute('run "module.ra"')).toBe(9n);
+        expect(runtime.execute('use "module.ra" as module\nmodule')).toBe(9n);
+        expect(runtime.execute('module')).toBe(9n);
     });
 });
 

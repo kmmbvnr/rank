@@ -15,7 +15,7 @@ import { flattenApplication as flatten, forIteration } from '../expressions.js';
  */
 
 import {
-    isDeclaredCallExpression, isTupleExpression, isApplicationExpression, isArgsStatement,
+    isDeclaredCallExpression, isTupleExpression, isApplicationExpression,
     isAliasedTableExpression, isBoundClauseExpression, isCountClauseExpression,
     isFirstWhereExpression, isFirstIndexWhereExpression, isTakeWhileExpression, isSubjectComparisonExpression,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement,
@@ -410,11 +410,10 @@ class Analyzer {
             this.block(statement.finallyStatements, nested);
             return;
         }
-        if (isArgStatement(statement) || isArgsStatement(statement)) {
-            const name = isArgStatement(statement) ? 'arg' : 'args';
-            const sites = this.cliForms.get(name) ?? [];
+        if (isArgStatement(statement)) {
+            const sites = this.cliForms.get('arg') ?? [];
             sites.push(site(statement));
-            this.cliForms.set(name, sites);
+            this.cliForms.set('arg', sites);
         }
         if (isArgStatement(statement)) {
             if (statement.defaultValue) this.expression(statement.defaultValue);
@@ -425,10 +424,6 @@ class Analyzer {
         if (isPushStatement(statement)) {
             this.mutate(statement.receiver);
             this.expression(statement.value);
-            return;
-        }
-        if (isArgsStatement(statement)) {
-            for (const value of statement.values) this.expression(value);
             return;
         }
         if (isReturnStatement(statement) || isYieldStatement(statement)) {

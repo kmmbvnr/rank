@@ -162,8 +162,8 @@ a recursive step, or a generator, as in the Euler 1-11 demos.
 
 Declare every value a test may want to change as an `arg` from `use cli`,
 with a one-line `rem` above it as its help text: a limit, a seed, a rate, a
-tolerance, the text to search. Give each result a name (`Answer`, `Positions`,
-`Noisy`) so a test can read it after `run`.
+tolerance, the text to search. End the program with `return` and the result, or a `record` when a
+test needs several named results (`Answer`, `Positions`, `Noisy`).
 
 ```rank
 use cli
@@ -201,21 +201,17 @@ test "official example"
 end
 ```
 
-A program written as a main program with options is tested by setting the
-options in the workspace and calling `run`; a test may change an option and
-`run` again:
+A program written as a main program with options is tested by calling the
+file with different options; each call starts clean:
 
 ```rank
 test "tolerance boundary"
-  use "002_names"
-  Text = "Jakc Jonnson"
-  Tolerance = 2
-  run
-  Missed = Positions len equal 0
+  use "002_names" as names
+  Out = names "Jakc Jonnson" 2
+  Out .positions len equal 0
 
-  Tolerance = 3
-  run
-  Missed and Positions len equal 1
+  Out = names "Jakc Jonnson" 3
+  Out .positions len equal 1
 end
 ```
 

@@ -583,38 +583,6 @@ the function, not the whole program.
 
 fun, memo, break
 
-## run
-
-Run another Rank program file.
-
-```rank
-run "hello.ra"
-```
-
-```result
-hello
-```
-
-### Usage
-
-```text
-run "file.ra"
-```
-
-Every statement in the file runs, as if
-typed here. The file must be available
-to the app.
-
-### Notes
-
-To borrow functions from a file without
-running its other statements, use use
-instead.
-
-### See also
-
-use, as
-
 ## inf
 
 A real number larger than every other
@@ -777,7 +745,7 @@ list adds the use line for you.
 
 ### See also
 
-as, run, rank-basics
+as, rank-basics
 
 ## yield
 
