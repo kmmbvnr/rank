@@ -373,7 +373,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
     border: 0; border-radius: 4px; background: #000; color: #aaa;
     font: inherit; cursor: pointer; pointer-events: auto;
 }
-#program-inputs { border: 1px solid #3d3f55; border-radius: 0; padding: 16px 16px 14px; background: #232436; color: #e5e5e5; font: inherit; width: 380px; box-sizing: border-box; max-width: calc(100vw - 32px); max-height: 80dvh; overflow: auto; box-shadow: 0 12px 40px #000c; }
+#program-inputs { border: 1px solid #3d3f55; border-radius: 0; padding: 16px 16px 14px; background: #232436; color: #e5e5e5; font: inherit; width: 340px; box-sizing: border-box; max-width: calc(100vw - 72px); max-height: 80dvh; overflow: auto; box-shadow: 0 12px 40px #000c; }
 #program-inputs form { display: grid; gap: 6px; }
 #program-inputs h2 { margin: 0 0 2px; font: inherit; font-weight: 700; color: #fff; }
 #program-inputs .input-row { display: grid; gap: 2px; }
