@@ -1,3 +1,4 @@
+import { constructingTensorPlan, registerTensorChoice } from '../jit/tensor-map.js';
 import { arithmeticRange } from '../range-plan.js';
 import { registerSequenceCompletion } from '../sequence-completion.js';
 import { storedMaskSelection } from '../array-mask-selection.js';
@@ -171,17 +172,17 @@ export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse
     const shape = arrays.reduce<readonly number[]>(
         (current, array) => broadcastShape(current, array.shape), []);
     const read = (value: RankValue, index: number): RankValue => broadcastRead(shape, value, index);
-    const dense = chooseDenseArrays(condition, whenTrue, whenFalse, shape);
+    const dense = constructingTensorPlan(condition, whenTrue, whenFalse) ? undefined : chooseDenseArrays(condition, whenTrue, whenFalse, shape);
     if (dense) return dense;
     const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
         || (isRankArray(value) && value.containsFiles === false));
-    return derivedArray(shape, values, index => {
+    return registerTensorChoice(derivedArray(shape, values, index => {
         const selected = read(condition, index);
         if (typeof selected !== 'boolean') {
             throw new RankError('choose expects a boolean condition', 'TypeError');
         }
         return read(selected ? whenTrue : whenFalse, index);
-    }, fileFree);
+    }, fileFree), condition, whenTrue, whenFalse);
 }
 
 /** The item of `value` at a flat position of `shape`, which it broadcasts to by trailing axes. */

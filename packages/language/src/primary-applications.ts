@@ -145,16 +145,18 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
         node.accumulate = extracted.accumulate;
         if (extracted.accumulate) AstUtils.linkContentToContainer(node);
     }
-    // A glued minus after axis belongs to its literal, including symbolic folds
-    // and implicit pipelines. Spaced subtraction keeps its arithmetic meaning.
+    // A glued minus after a modifier belongs to its literal. Spaced subtraction
+    // keeps its arithmetic meaning.
     for (const node of AstUtils.streamAst(program).toArray().reverse()) {
         if (!isBinaryExpression(node) || !attachedSign(node)) continue;
         const left = isBinaryExpression(node.left) ? node.left.right : node.left;
         const parts = flattenApplication(left);
-        const marker = parts.map(part => isNameExpression(part) && part.name === 'axis').lastIndexOf(true);
+        const right = flattenApplication(node.right);
+        const filledShape = right.some(part => isNameExpression(part) && part.name === 'fill');
+        const marker = parts.map(part => isNameExpression(part) && (part.name === 'axis' || part.name === 'fill'
+            || part.name === 'shape' && filledShape)).lastIndexOf(true);
         if (marker < 0 || !parts.slice(marker + 1).every(part => isNumberLiteral(part)
             || isUnaryExpression(part) && part.operator === '-' && isNumberLiteral(part.operand))) continue;
-        const right = flattenApplication(node.right);
         if (!isNumberLiteral(right[0])) continue;
         const signed = { $type: 'UnaryExpression', operator: '-', operand: right[0],
             $cstNode: node.right.$cstNode } as Expression;
@@ -162,6 +164,19 @@ export function normalizePrimaryApplications(program: Program, operatorOffsets: 
         const replacement = isBinaryExpression(node.left) ? { ...node.left, right: call, $cstNode: node.$cstNode } : call;
         for (const key of Object.keys(node)) if (!key.startsWith('$')) Reflect.deleteProperty(node, key);
         Object.assign(node, replacement);
+        AstUtils.linkContentToContainer(node);
+    }
+    // Complete fill before downstream operations, including rank/axis modifiers.
+    for (const node of AstUtils.streamAst(program).toArray().reverse()) {
+        if (!isApplicationExpression(node)) continue;
+        const parts = flattenApplication(node);
+        const fill = parts.findIndex(part => isNameExpression(part) && part.name === 'fill');
+        if (fill < 0 || parts.length <= fill + 2) continue;
+        const source = applicationExpression(parts.slice(0, fill + 2), node);
+        const grouped = { $type: 'ParenthesizedExpression', value: source, $cstNode: source.$cstNode } as Expression;
+        const next = applicationExpression([grouped, ...parts.slice(fill + 2)], node);
+        for (const key of Object.keys(node)) if (!key.startsWith('$')) Reflect.deleteProperty(node, key);
+        Object.assign(node, next);
         AstUtils.linkContentToContainer(node);
     }
 }

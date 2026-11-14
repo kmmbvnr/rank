@@ -1,3 +1,4 @@
+import { maskFill, collectFilled } from '../collection-fill.js';
 import { weightedAxisSum } from '../jit/weighted-axis-sum.js';
 import { functionReference } from './function-reference.js';
 import { rankedAddress } from '../ranked-address.js';
@@ -161,6 +162,27 @@ export class ApplicationEvaluator {
         const application = this;
         const parts = flattenApplication(expression);
         switch (form.kind) {
+            case 'collection-fill': {
+                const source = context.compile(form.source);
+                const selector = form.selector && context.compile(form.selector);
+                const shapeArguments = form.shape?.map(dimension => context.compile(dimension));
+                const fill = context.compile(form.fill);
+                return function* (): Execution<RankValue> {
+                    const input = yield* resume(source());
+                    if (form.operationName) context.resolve(form.operationName);
+                    const mask = selector ? yield* resume(selector()) : undefined;
+                    const dimensions: RankValue[] | undefined = shapeArguments ? [] : undefined;
+                    if (shapeArguments) for (const dimension of shapeArguments) dimensions!.push(yield* resume(dimension()));
+                    const otherwise = yield* resume(fill());
+                    const result = dimensions === undefined ? maskFill(input, mask!, otherwise)
+                        : collectFilled(form.operation, input, mask, dimensions, otherwise);
+                    if (!form.rest.length) return result;
+                    const values = [result];
+                    for (const part of form.rest) values.push(yield* resume(context.evaluate(part)));
+                    return yield* resume(application.apply(values, missing, 0, [], tail));
+                };
+            }
+
             case 'ranked-address': {
                 const source = context.compile(form.source);
                 const selectors = form.selectors.map(selector => isAllAxisExpression(selector)

@@ -790,6 +790,13 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 try { shape = reshapeDimensions(dimensions, () => count); } catch { return undefined; }
                 if (shape.reduce((size, n) => size * BigInt(n), 1n) !== count) return undefined;
                 result = { shape, boolean: a.boolean };
+            } else if (node.kind === 'choose') {
+                const condition = bind(node.condition), source = bind(node.source), fill = bind(node.fill);
+                if (!condition?.boolean || !source || !fill || [condition, source, fill].some(info => info.sequence || info.filter)) return undefined;
+                let shape: readonly number[] = [];
+                try { for (const info of [condition, source, fill]) shape = broadcastShape(shape, info.shape ?? []); }
+                catch { return undefined; }
+                result = { shape: [...shape], boolean: source.boolean && fill.boolean };
             } else if (node.kind === 'binary') {
                 const a = bind(node.left), b = bind(node.right);
                 // Sequence arithmetic zips streams rather than broadcasting.
@@ -988,6 +995,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             }
             if (node.kind === 'shift' && domain(node.source)) throw false;
             if (node.kind === 'concat' && node.sources.some(domain)) throw false;
+            if (node.kind === 'choose' && tensorChildren(node).some(domain)) throw false;
             if (node.kind === 'select') value ||= domain(node.selector);
             if (node.kind === 'binary') {
                 const a = domain(node.left), b = domain(node.right);
@@ -1016,6 +1024,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             else if (node.kind === 'unary') types = matchCompiledOperatorDomains(
                 tensorOperatorSignatures(node.op, 1), [outputTypes(node.operand)])?.result ?? types;
             else if (node.kind === 'shift') types = [...new Set([...outputTypes(node.source), ...outputTypes(node.fill)])];
+            else if (node.kind === 'choose') types = [...new Set([...outputTypes(node.source), ...outputTypes(node.fill)])];
             else if (node.kind === 'select' || node.kind === 'reshape' || node.kind === 'slice' || node.kind === 'view') types = outputTypes(node.source);
             resolved.set(node, types);
             return types;
@@ -1130,6 +1139,18 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         lines.push(`const ${name}rem = ${name}raw % scalars[${divisor}];`);
                         lines.push(`const ${name} = ${binaryOperatorSource(findCompiledOperator('mod')!, `${name}raw`, `scalars[${divisor}]`, { remainder: `${name}rem` })};`);
                     }
+                }
+                else if (node.kind === 'choose') {
+                    const condition = child(node.condition);
+                    lines.push(`if (typeof ${condition} !== 'boolean') return decline('tensor:condition-type');`, `let ${name};`, `if (${condition}) {`);
+                    const saved = emitted;
+                    emitted = new Map([...saved].map(([node, values]) => [node, new Map(values)]));
+                    const source = child(node.source);
+                    lines.push(`${name} = ${source};`, '} else {');
+                    emitted = new Map([...saved].map(([node, values]) => [node, new Map(values)]));
+                    const fill = child(node.fill);
+                    lines.push(`${name} = ${fill};`, '}');
+                    emitted = saved;
                 }
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(${at}) - 48);`);
                 else if (info.view) lines.push(`const ${name} = ${load(info.slot, at)};`);

@@ -2,6 +2,7 @@ import type { CompiledExpression } from '@arrrank/language';
 import type { RankValue } from '../value.js';
 
 export type TensorNode =
+    | { kind: 'choose'; condition: TensorNode; source: TensorNode; fill: TensorNode }
     | { kind: 'reduction'; operation: 'sum' | 'count' | 'min' | 'max'; source: TensorNode; rows: boolean }
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue; uniform?: boolean }
@@ -52,6 +53,7 @@ export function tensorChildren(node: TensorNode): readonly TensorNode[] {
     if (node.kind === 'shift') return [node.source, node.fill];
     if (node.kind === 'concat') return node.sources;
     if (node.kind === 'reshape') return [node.source, ...node.dimensions.filter((n): n is TensorNode => !!n)];
+    if (node.kind === 'choose') return [node.condition, node.source, node.fill];
     if (node.kind === 'select') return [node.source, node.selector];
     if (node.kind === 'slice') return [node.source, node.count];
     return node.kind === 'input' ? [] : [node.source];

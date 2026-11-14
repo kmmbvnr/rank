@@ -36,6 +36,17 @@ export function registerTensorScalarMap(value: RankArray, source: RankArray, cal
 }
 
 const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
+const choices = new WeakMap<RankArray, { condition: RankValue; source: RankValue; fill: RankValue;
+    reader: RankArray['itemAt']; shape: readonly number[] }>();
+
+/** A conditional recipe keeps branch readers lazy and the result shape fixed. */
+export function registerTensorChoice(value: RankArray, condition: RankValue, source: RankValue, fill: RankValue): RankArray {
+    choices.set(value, { condition, source, fill, reader: value.itemAt, shape: [...value.shape] });
+    const scope = active ?? [condition, source, fill].flatMap(operand => isRankArray(operand) ? [mapScope(operand)] : [])
+        .find(scope => scope?.enabled());
+    if (scope?.enabled()) owners.set(value, scope);
+    return value;
+}
 const selections = new WeakMap<RankArray, { source: RankArray; selector: RankArray; reader: RankArray['itemAt']; shape: readonly number[] }>();
 /** The pure deferred frontend owns both operands; no selector callback is run. */
 /** A native recipe, or a checked view of one, owned by a plan scope. */
@@ -315,6 +326,14 @@ function prepareNativeTensorGraph(value: TensorValue, textDigits = false, intege
         if (!isRankArray(value) || visiting.has(value)) return undefined;
         visiting.add(value);
         try {
+            const choice = choices.get(value);
+            if (choice && choice.reader === value.itemAt && choice.shape.length === value.shape.length
+                && choice.shape.every((n, axis) => n === value.shape[axis])) {
+                const condition = lower(choice.condition), source = lower(choice.source), fill = lower(choice.fill);
+                if (!condition || !source || !fill || domains.get(condition)?.join() !== 'boolean') return undefined;
+                guardArray(value); transformed = true;
+                return typed({ kind: 'choose', condition, source, fill }, [...new Set([...domains.get(source)!, ...domains.get(fill)!])]);
+            }
             const selected = selections.get(value);
             if (selected && selected.reader === value.itemAt && selected.shape.length === value.shape.length
                 && selected.shape.every((n, axis) => n === value.shape[axis])) {

@@ -380,6 +380,9 @@ type Recognized<K extends string, F extends (...args: never[]) => unknown> =
 const FILLED_STRUCTURES: ReadonlySet<string> = new Set(['queue', 'stack', 'deque', 'heap', 'set', 'counter', 'multiset', 'orderedset']);
 
 export type ApplicationForm =
+    | { readonly kind: 'collection-fill'; readonly operation: 'mask' | 'unique' | 'findall' | 'indices';
+        readonly source: Expression; readonly selector?: Expression; readonly operationName?: string; readonly shape?: readonly Expression[];
+        readonly fill: Expression; readonly rest: readonly Expression[] }
     | { readonly kind: 'ranked-address'; readonly source: Expression;
         readonly selectors: readonly Expression[]; readonly ranks: readonly (number | '#')[] }
     | { readonly kind: 'plain' }
@@ -470,6 +473,26 @@ export function applicationForm(
 }
 
 function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: NameOf, isFunction?: (name: string) => boolean): ApplicationForm {
+    const fillAt = parts.findIndex(part => isNamed(part, 'fill', nameOf));
+    if (fillAt >= 0) {
+        if (!parts[fillAt + 1]) return { kind: 'invalid', message: 'fill expects a scalar value' };
+        const shapeAt = parts.map((part, index) => index < fillAt && isNamed(part, 'shape', nameOf)).lastIndexOf(true);
+        const end = shapeAt < 0 ? fillAt : shapeAt;
+        const shape = shapeAt < 0 ? undefined : parts.slice(shapeAt + 1, fillAt);
+        if (shape && !shape.length) return { kind: 'invalid', message: 'shape expects one or more dimensions' };
+        if (shape?.some(isAllAxisExpression)) return { kind: 'invalid', message: 'collection shape requires explicit dimensions; # cannot be inferred' };
+        const postfixFind = end === 3 && isNamed(parts[2], 'findall', nameOf);
+        const word = postfixFind ? 'findall' : nameOf(parts[1]);
+        const operation = word === 'unique' || word === 'findall' || word === 'indices' ? word : 'mask';
+        if (operation !== 'mask' && !shape) return { kind: 'invalid', message: `${operation} fill requires shape dimensions` };
+        const operands = operation === 'findall' ? 3 : 2;
+        if (end !== operands) return { kind: 'invalid', message: 'expected collection operation [shape Dimensions] fill Value' };
+        return { kind: 'collection-fill', operation, source: parts[0],
+            operationName: operation === 'mask' ? undefined : (parts[postfixFind ? 2 : 1] as NameExpression).name,
+            selector: operation === 'mask' ? parts[1] : operation === 'findall' ? parts[postfixFind ? 1 : 2] : undefined,
+            shape, fill: parts[fillAt + 1], rest: parts.slice(fillAt + 2) };
+    }
+
     if (isNamed(parts[2], 'repeat', nameOf)) {
         return parts.length === 4 || parts.length === 6 && isNamed(parts[4], 'till', nameOf)
             ? { kind: 'repeat', source: parts[0], operation: parts[1], count: parts[3], until: parts[5] }

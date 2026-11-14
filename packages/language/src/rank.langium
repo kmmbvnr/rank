@@ -634,7 +634,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-     ArrayReferenceName | 'shape';
+     ArrayReferenceName | 'shape' | 'fill';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

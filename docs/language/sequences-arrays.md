@@ -1071,6 +1071,109 @@ Cluster = Points Mask
 A condition that names a column is a table query instead; see
 [Tables](tables.md). Filtering a plain array or sequence needs no `use tables`.
 
+## Mask fill and fixed-shape collection results
+
+`A Mask fill Value` keeps the complete shape and positions of `A`. True mask
+cells keep the source cell; false cells use the scalar fill. The source and mask
+must be arrays of exactly the same shape. This form does not broadcast a row or
+column mask. It is equivalent to `Mask choose A Value` for those accepted shapes.
+
+```rank
+A = array -2 7 -1 4 9
+Mask = A greater 0
+A Mask fill 0
+rem 0 7 0 4 9
+
+A Mask fill -1
+rem -1 7 -1 4 9
+```
+
+The fill expression is evaluated once, including with an all-true or empty mask.
+Only selected source cells are demanded, as with `choose`. Missing source or
+mask reads follow `choose`'s ordinary completion and deferred-error rules.
+Discarded NaN/infinity values do not contaminate selected cells: this is
+conditional selection, not multiplication by a numeric mask. The source stays
+unchanged. Zero is neutral for a sum, one for a product; a zero-filled mean still
+counts every position. Use parentheses around a computed fill expression.
+
+`shape N fill Value` instead collects the first N results, truncating or padding
+at the end. It returns an ordinary array, even for a text or sequence input.
+
+```rank
+A Mask shape 4 fill 0
+rem 7 4 9 0
+
+A Mask shape 2 fill 0
+rem 7 4
+
+A unique shape 4 fill 0
+A findall 7 shape 3 fill -1
+Mask indices shape 3 fill -1
+```
+
+`shape D1 D2 ...` fixes the leading result dimensions. The number of collected
+items is their product; all dimensions must be explicit (no inferred `#`).
+Each dimension is evaluated once and must be a nonnegative safe integer, and
+the complete result must fit the CPU array allocation limit. Dimensions may be
+computed at runtime. A single vector of dimensions is accepted as in array
+construction:
+
+```rank
+Dims = array 2 3
+A Mask shape Dims fill 0
+
+A Mask shape 2 3 fill 0
+rem First six matches, padded if needed.
+rem The result has shape 2 3.
+```
+
+An empty shape vector requests a rank-zero array containing one result. Any
+zero dimension gives an empty result, preserving every requested dimension.
+Both shape and fill are required; shape is an explicit truncation request, not
+an overflow diagnostic. Collection order and equality retain the underlying
+operation's rules. Fill cells use ordinary homogeneous-array rules, without
+an implicit conversion of the input cells: incompatible selected and padding
+cell types raise a type error. Unselected or unused fill cells do not participate
+in the completed result's element type. An empty result uses the scalar fill's
+element type.
+
+These forms allocate at most the requested result capacity and stop reading when
+it is full. No extra result is requested to detect overflow. A short finite input
+is padded. A zero-capacity shape validates collection kinds, every dimension,
+mask shape and scalar fill but reads no input elements. Invalid discarded
+elements and errors in truncated tails are not demanded. Exhausting an unknown or infinite input while waiting for enough
+matches or distinct values may never terminate; normal cancellation and demand
+budgets still apply. Fill does not turn an infinite search into a finite one.
+
+The initial fixed-shape contract accepts scalar results: `unique` accepts rank-1
+arrays, text, queues, sets and sequences; `findall` accepts text and rank-1 arrays;
+mask collection accepts arrays of any rank with full-shape masks, or rank-1
+sequences. Array source and mask shapes must match exactly, including zero axes;
+selected scalar cells are traversed in row-major order. Stream masks remain
+rank 1 and must have matching lengths; unknown-length stream mismatches are
+diagnosed if reached before the result fills. `indices` also accepts tensor
+masks: for source rank greater than one, its result shape is the requested
+frame followed by the coordinate dimension. For example, `Mask indices shape
+2 3 fill -1` on a rank-2 mask has shape `2 3 2`: six coordinate rows, each of
+length two. Scalar padding fills whole coordinate rows. Other structured result
+cells are rejected rather than silently flattened.
+Existing intrinsic-rank behavior without these modifiers remains unchanged.
+
+The audit also considered `unique .counts`, `filter`, sorting and grouping.
+Counts need a paired values/counts contract, so the modifiers do not apply to
+`.counts`; `filter` keeps its existing clause syntax (use `A Mask shape N fill V`
+for bounded mask collection). Sorting preserves its input shape and needs no
+padding modifier. Grouped/row results need their own cell-shape contracts before
+extending this scalar API.
+
+Analysis retains mask-fill shapes and literal capacities; a runtime capacity is
+an unknown dimension until the call. Deferred numeric mask fill can fuse with
+adjacent maps and reductions as a conditional tensor node, without a selected
+index list, compaction, or a full scalar-fill tensor. Unsupported native graphs
+fall back to the same branch-demand behavior. There is no accelerator backend or
+`kernel` specialization in this change: a future backend must require capacity
+at specialization time and prove branch/error safety before device lowering.
+
 ## Ordering and uniqueness
 
 `sort`, `argsort` and `unique` have intrinsic rank 1. `sort` and `unique`

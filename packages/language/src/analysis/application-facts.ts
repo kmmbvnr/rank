@@ -156,6 +156,34 @@ export function applicationExpressionFacts(
 export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
+        case 'collection-fill': {
+            const source = infer(form.source, lookup), fill = infer(form.fill, lookup);
+            const arguments_ = form.shape?.map(dimension => infer(dimension, lookup));
+            const vector = arguments_?.length === 1 && arguments_[0].types.join() === 'array' ? arguments_[0] : undefined;
+            const dimensions = vector ? vector.integers?.map(value => value !== null && value >= 0 && Number.isSafeInteger(value) ? value : null) ?? (vector.rank === 1 && vector.shape?.[0] !== null
+                && vector.shape?.[0] !== undefined ? Array<number | null>(vector.shape[0]).fill(null) : undefined)
+                : arguments_?.map(value => value.integer !== undefined && BigInt(value.integer) >= 0n
+                    && BigInt(value.integer) <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value.integer) : null);
+            const sourceRank = source.rank ?? source.acceptedArrayRank;
+            const shape = form.shape ? dimensions && !(form.operation === 'indices' && sourceRank === undefined)
+                ? [...dimensions, ...(form.operation === 'indices' && sourceRank! > 1 ? [sourceRank!] : [])] : undefined
+                : source.shape ?? (sourceRank === undefined ? undefined : Array(sourceRank).fill(null));
+            const elements = form.shape && dimensions?.includes(0) ? fill.types
+                : form.operation === 'indices' || form.operation === 'findall'
+                ? ['integer' as const, ...fill.types] : [...source.elements ?? [], ...fill.types];
+            const selector = form.selector && infer(form.selector, lookup);
+            const safe = [source, ...(selector && form.operation === 'mask' ? [selector] : [])]
+                .every(value => value.eagerScalarCells || value.callbackFreeScalarCells) && isAtom(fill);
+            const result: ValueFacts = { types: ['array'], shape, rank: shape?.length, elements: [...new Set(elements)],
+                ...(safe ? { callbackFreeScalarCells: true as const } : {}) };
+            if (!form.rest.length) return result;
+            const name = '$collectionFilled';
+            const value = { $type: 'NameExpression', name } as Expression;
+            const nested = Object.assign((key: string) => key === name ? result : lookup(key),
+                { arity: lookup.arity, invoke: lookup.invoke });
+            return infer(applicationExpression([value, ...form.rest], expression), nested);
+        }
+
         case 'ranked-address': {
             const source = infer(form.source, lookup);
             const sourceShape = source.shape ?? (source.rank === undefined ? undefined : Array(source.rank).fill(null));
