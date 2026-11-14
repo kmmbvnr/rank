@@ -38,11 +38,8 @@ async page => {
     await dialog.waitFor();
     if (await dialog.getByRole('textbox', { name: 'Input', exact: true }).inputValue() !== 'numbers.txt')
         throw new Error('Selected path should display its filename');
-    await dialog.getByLabel('Use default: 3', { exact: true }).uncheck();
     await dialog.getByRole('textbox', { name: 'Limit', exact: true }).fill('5');
-    await dialog.getByLabel('Use default: array 1 2 3', { exact: true }).uncheck();
     await dialog.getByRole('textbox', { name: 'Numbers', exact: true }).fill('4\n5');
-    await dialog.getByLabel('Use default: false', { exact: true }).uncheck();
     await dialog.getByRole('textbox', { name: 'Verbose', exact: true }).fill('true');
     await dialog.getByRole('button', { name: 'Run', exact: true }).click();
     await dialog.waitFor({ state: 'hidden' });
@@ -76,7 +73,7 @@ async page => {
     await page.getByRole('button', { name: 'Open notebook history' }).click();
     await page.getByRole('dialog', { name: 'Notebook history' }).getByRole('button', { name: isolationTitle, exact: true }).click();
     await open();
-    if (!await dialog.getByLabel('Use default: 33', { exact: true }).isChecked())
+    if (await dialog.getByRole('textbox', { name: 'Limit', exact: true }).inputValue() !== '33')
         throw new Error('Inputs leaked between notebooks');
     await dialog.getByRole('button', { name: 'Run', exact: true }).click();
     await dialog.waitFor({ state: 'hidden' });

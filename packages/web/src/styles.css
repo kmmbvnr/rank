@@ -373,18 +373,18 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
     border: 0; border-radius: 4px; background: #000; color: #aaa;
     font: inherit; cursor: pointer; pointer-events: auto;
 }
-#program-inputs { border: 1px solid #555; border-radius: 16px; padding: 20px; background: #252535; color: #eee; font: 15px/1.5 sans-serif; width: 440px; box-sizing: border-box; max-width: min(480px, calc(100vw - 32px)); max-height: 80dvh; overflow: auto; }
-#program-inputs form { display: grid; gap: 12px; }
-#program-inputs h2 { margin: 0; font-size: 1.15rem; }
-#program-inputs fieldset { min-width: 0; display: grid; gap: 8px; padding: 12px; }
-#program-inputs input:not([type=checkbox]), #program-inputs textarea { width: 100%; box-sizing: border-box; font: inherit; }
-#program-inputs textarea { min-height: 80px; }
-#program-inputs .input-default, #program-inputs small { color: #888; overflow-wrap: anywhere; }
-#program-inputs button { min-height: 40px; }
-
+#program-inputs { border: 1px solid #444; border-radius: 8px; padding: 12px; background: #111; color: #e5e5e5; font: inherit; width: 360px; box-sizing: border-box; max-width: calc(100vw - 32px); max-height: 80dvh; overflow: auto; }
+#program-inputs form { display: grid; gap: 6px; }
+#program-inputs .input-row { display: grid; grid-template-columns: minmax(4ch, max-content) 1fr auto; align-items: center; gap: 4px 8px; }
+#program-inputs .input-name { color: #8fd18f; }
+#program-inputs input, #program-inputs textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: #eee; background: #000; border: 0; border-bottom: 1px solid #555; border-radius: 0; padding: 4px 2px; }
+#program-inputs textarea { resize: vertical; }
+#program-inputs small { color: #888; overflow-wrap: anywhere; }
+#program-inputs .input-row small:last-child:not([data-input-status]) { text-align: right; }
+#program-inputs .input-row button { grid-column: 2 / 4; justify-self: start; }
+#program-inputs [data-input-status] { grid-column: 2 / 4; }
+#program-inputs [role=alert] { margin: 0; color: #f88; }
 #program-inputs::backdrop { background: #0009; }
-#program-inputs input:not([type=checkbox]), #program-inputs textarea { color: #eee; background: #14141d; border: 1px solid #777; border-radius: 6px; padding: 8px; }
-#program-inputs button { border: 0; border-radius: 8px; background: #414968; color: #fff; font: inherit; padding: 8px 16px; }
-
-#program-inputs .program-input-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: -20px; margin: 0 -1px -20px; padding: 12px 0 20px; background: #252535; }
+#program-inputs button { border: 0; border-radius: 4px; background: #333; color: #fff; font: inherit; padding: 4px 12px; min-height: 32px; }
+#program-inputs .program-input-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
 #program-inputs .program-input-actions button { min-width: 90px; }

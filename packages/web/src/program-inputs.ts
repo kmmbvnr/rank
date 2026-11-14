@@ -64,6 +64,17 @@ export async function storeFile(path: string, file?: File): Promise<File | undef
     } finally { db.close(); }
 }
 
+/** The default as editable text: numbers and booleans as written, plain text literals unquoted. */
+function prefill(input: ProgramInput): string | undefined {
+    const source = input.defaultSource?.trim();
+    if (source === undefined || input.many) return undefined;
+    if (input.valueType === 'text' || input.valueType === 'path') {
+        const literal = /^"([^"\\]*)"$/.exec(source);
+        return literal ? literal[1] : undefined;
+    }
+    return /^[-\w.]+$/.test(source) ? source : undefined;
+}
+
 export class ProgramInputs {
     private key = '';
     private saved: Record<string, SavedInput> = {};
@@ -250,46 +261,41 @@ export class ProgramInputs {
         const inputs = programInputs(source);
         if (!inputs.length) { void this.run().catch(this.report); return; }
         const form = document.createElement('form');
-        const heading = document.createElement('h2'); heading.textContent = 'Run program'; form.append(heading);
         const readers: (() => void)[] = [];
         for (const input of inputs) {
-            const field = document.createElement('fieldset');
-            const legend = document.createElement('legend'); legend.textContent = input.name + ' · ' + input.valueType + (input.many ? ' array' : '');
-            field.append(legend);
+            const row = document.createElement('label'); row.className = 'input-row';
+            const name = document.createElement('span'); name.className = 'input-name'; name.textContent = input.name;
+            const hint = document.createElement('small'); hint.textContent = input.valueType + (input.many ? ' array' : '');
             const saved = this.value(input);
-            const useDefault = document.createElement('input'); useDefault.type = 'checkbox';
-            useDefault.checked = !saved && input.defaultSource !== undefined;
-            if (input.defaultSource !== undefined) {
-                const label = document.createElement('label'); label.className = 'input-default';
-                label.append(useDefault, document.createTextNode('Use default: ' + input.defaultSource)); field.append(label);
-            }
+            // A default is the field's starting text, so running at once uses it.
+            const start = prefill(input);
             const value = input.many ? document.createElement('textarea') : document.createElement('input');
+            if (input.many) (value as HTMLTextAreaElement).rows = 2;
             value.setAttribute('aria-label', input.name);
-            value.placeholder = input.many ? 'One value per line' : input.defaultSource ?? (input.valueType === 'path' ? 'File path or URL' : 'Required');
-            value.value = (saved?.fileNames ?? saved?.values)?.join(input.many ? '\n' : '') ?? '';
-            value.disabled = useDefault.checked;
-            value.required = !useDefault.checked && input.valueType !== 'text';
+            value.placeholder = input.many ? (input.defaultSource ?? 'One value per line')
+                : input.defaultSource ?? (input.valueType === 'path' ? 'File path or URL' : 'Required');
+            value.value = (saved?.fileNames ?? saved?.values)?.join(input.many ? '\n' : '') ?? (saved ? '' : start ?? '');
+            value.required = input.defaultSource === undefined && input.valueType !== 'text';
             value.autocapitalize = 'off'; value.spellcheck = false;
-            const updateDefault = () => { value.disabled = useDefault.checked; value.required = !useDefault.checked && input.valueType !== 'text'; };
-            useDefault.onchange = updateDefault;
-            field.append(value);
+            row.append(name, value, hint);
             if (input.valueType === 'path') {
                 const choose = document.createElement('button'); choose.type = 'button'; choose.textContent = 'Choose file';
-                const name = document.createElement('small'); name.dataset.inputStatus = input.name; name.textContent = this.filename(input) ?? '';
+                const file = document.createElement('small'); file.dataset.inputStatus = input.name; file.textContent = this.filename(input) ?? '';
                 choose.onclick = () => {
                     choose.disabled = true;
                     void this.pick(input).then(() => {
                         const selected = this.value(input);
                         if (!selected) return;
-                        useDefault.checked = false; updateDefault();
                         value.value = (selected.fileNames ?? selected.values).join(input.many ? '\n' : '');
-                        name.textContent = this.filename(input) ?? '';
+                        file.textContent = this.filename(input) ?? '';
                     }).catch(this.report).finally(() => { choose.disabled = false; });
                 };
-                field.append(choose, name);
+                row.append(choose, file);
             }
             readers.push(() => {
-                if (useDefault.checked) delete this.saved[input.name];
+                const unchanged = input.defaultSource !== undefined
+                    && (value.value === '' && start === undefined || start !== undefined && value.value === start);
+                if (unchanged) delete this.saved[input.name];
                 else {
                     const selected = this.value(input);
                     const fileSelected = input.valueType === 'path' && selected?.fileNames?.join(input.many ? '\n' : '') === value.value;
@@ -299,7 +305,7 @@ export class ProgramInputs {
                         fileNames: fileSelected ? selected!.fileNames : undefined };
                 }
             });
-            form.append(field);
+            form.append(row);
         }
         const error = document.createElement('p'); error.setAttribute('role', 'alert');
         const run = document.createElement('button'); run.type = 'submit'; run.textContent = 'Run';
@@ -309,7 +315,7 @@ export class ProgramInputs {
         form.append(error, actions);
         form.onsubmit = event => {
             event.preventDefault(); run.disabled = true;
-            for (const field of form.querySelectorAll('fieldset')) field.disabled = true;
+            for (const field of form.querySelectorAll('input, textarea')) (field as HTMLInputElement).disabled = true;
             void (async () => {
                 const previous = structuredClone(this.saved);
                 try {
@@ -321,7 +327,7 @@ export class ProgramInputs {
                 this.dialog.close(); await this.run();
             })().catch(reason => { error.textContent = String(reason); }).finally(() => {
                 run.disabled = false;
-                for (const field of form.querySelectorAll('fieldset')) field.disabled = false;
+                for (const field of form.querySelectorAll('input, textarea')) (field as HTMLInputElement).disabled = false;
             });
         };
         this.dialog.replaceChildren(form); this.dialog.showModal();
