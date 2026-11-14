@@ -261,6 +261,7 @@ export class ProgramInputs {
         const inputs = programInputs(source);
         if (!inputs.length) { void this.run().catch(this.report); return; }
         const form = document.createElement('form');
+        const heading = document.createElement('h2'); heading.textContent = 'Run program'; form.append(heading);
         const readers: (() => void)[] = [];
         for (const input of inputs) {
             const row = document.createElement('label'); row.className = 'input-row';
