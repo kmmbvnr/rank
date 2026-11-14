@@ -373,12 +373,12 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
     border: 0; border-radius: 4px; background: #000; color: #aaa;
     font: inherit; cursor: pointer; pointer-events: auto;
 }
-#program-inputs { border: 1px solid #3d3f55; border-radius: 16px; padding: 16px 16px 14px; background: #232436; color: #e5e5e5; font: inherit; width: 380px; box-sizing: border-box; max-width: calc(100vw - 32px); max-height: 80dvh; overflow: auto; box-shadow: 0 12px 40px #000c; }
+#program-inputs { border: 1px solid #3d3f55; border-radius: 0; padding: 16px 16px 14px; background: #232436; color: #e5e5e5; font: inherit; width: 380px; box-sizing: border-box; max-width: calc(100vw - 32px); max-height: 80dvh; overflow: auto; box-shadow: 0 12px 40px #000c; }
 #program-inputs form { display: grid; gap: 12px; }
 #program-inputs h2 { margin: 0 0 2px; font: inherit; font-weight: 700; color: #fff; }
 #program-inputs .input-row { display: grid; gap: 3px; }
 #program-inputs .input-name { color: #7fdc9a; font-size: 12px; }
-#program-inputs input, #program-inputs textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: #fff; background: #14151f; border: 1px solid #44465e; border-radius: 8px; padding: 7px 10px; outline: none; }
+#program-inputs input, #program-inputs textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: #fff; background: #14151f; border: 1px solid #44465e; border-radius: 0; padding: 7px 10px; outline: none; }
 #program-inputs input:focus, #program-inputs textarea:focus { border-color: #7fdc9a; }
 #program-inputs textarea { resize: vertical; }
 #program-inputs small { color: #8d8fa8; font-size: 11px; overflow-wrap: anywhere; }
@@ -387,7 +387,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #program-inputs [role=alert] { margin: 0; color: #ff8a8a; }
 #program-inputs [role=alert]:empty { display: none; }
 #program-inputs::backdrop { background: #000a; }
-#program-inputs button { border: 0; border-radius: 8px; background: #3a3c55; color: #fff; font: inherit; padding: 6px 14px; min-height: 36px; }
+#program-inputs button { border: 0; border-radius: 0; background: #3a3c55; color: #fff; font: inherit; padding: 6px 14px; min-height: 36px; }
 #program-inputs .program-input-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
 #program-inputs .program-input-actions button[type=submit] { background: #1f7a5a; }
 #program-inputs .program-input-actions button { min-width: 90px; }
