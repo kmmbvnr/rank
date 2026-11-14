@@ -374,9 +374,9 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
     font: inherit; cursor: pointer; pointer-events: auto;
 }
 #program-inputs { border: 1px solid #3d3f55; border-radius: 0; padding: 16px 16px 14px; background: #232436; color: #e5e5e5; font: inherit; width: 380px; box-sizing: border-box; max-width: calc(100vw - 32px); max-height: 80dvh; overflow: auto; box-shadow: 0 12px 40px #000c; }
-#program-inputs form { display: grid; gap: 12px; }
+#program-inputs form { display: grid; gap: 6px; }
 #program-inputs h2 { margin: 0 0 2px; font: inherit; font-weight: 700; color: #fff; }
-#program-inputs .input-row { display: grid; gap: 3px; }
+#program-inputs .input-row { display: grid; gap: 2px; }
 #program-inputs .input-name { color: #7fdc9a; font-size: 12px; }
 #program-inputs input, #program-inputs textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: #fff; background: #14151f; border: 1px solid #44465e; border-radius: 0; padding: 7px 10px; outline: none; }
 #program-inputs input:focus, #program-inputs textarea:focus { border-color: #7fdc9a; }
