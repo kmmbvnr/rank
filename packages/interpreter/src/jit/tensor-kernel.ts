@@ -134,7 +134,7 @@ function pair(value: Expression): Expression[] | undefined {
 const backing = (items: ArrayLike<RankValue>) => items instanceof BigInt64Array ? 'int64'
     : items instanceof Float64Array ? 'float64' : items instanceof Int32Array ? 'int32' : 'boxed';
 interface View { items: ArrayLike<RankValue>; offset: number; shape: readonly number[]; kind?: string }
-interface Bound { segments?: Bound[]; shape?: readonly number[]; operands?: readonly [readonly number[], readonly number[]]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
+interface Bound { sequence?: boolean; segments?: Bound[]; shape?: readonly number[]; operands?: readonly [readonly number[], readonly number[]]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 
@@ -566,8 +566,6 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     }
     const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
         node.kind === 'binary' && node.native ? [node.native] : []))];
-    const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
-        node.kind === 'select' && node.selector.kind === 'input' ? [node.selector] : []));
     let cachedKey: string | undefined;
     const checkedNodes = [...domains.keys()].filter(node => node.kind === 'check' || node.kind === 'call');
     const checks = checkedNodes.map(node => node.validate);
@@ -715,11 +713,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 if (numeric(value) || typeof value === 'boolean' || host.textDigits && typeof value === 'string') {
                     result = { scalar: value, boolean: typeof value === 'boolean', slot: scalars.push(value!) - 1 };
                 } else if (value && isRankSequence(value)) {
-                    if (!sequenceSelectors.has(node)) return undefined;
                     const modular = modularRange(value.plan);
                     const range = modular ?? arithmeticRange(value.plan);
                     if (!range || range.count < 0n || range.count > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
-                    result = { shape: [Number(range.count)], boolean: false, progression: {
+                    result = { sequence: true, shape: [Number(range.count)], boolean: false, progression: {
                         start: scalars.push(range.start) - 1, step: scalars.push(range.step) - 1,
                         divisor: modular ? scalars.push(modular.divisor) - 1 : undefined,
                     } };
@@ -736,7 +733,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 }
             } else if (node.kind === 'check' || node.kind === 'call' || node.kind === 'view') {
                 const source = bind(node.source);
-                if (!source?.shape || source.filter || source.progression) return undefined;
+                if (!source?.shape || source.filter || source.sequence) return undefined;
                 if (node.kind === 'view' && !Number.isSafeInteger(source.shape.reduce((size, n) => size * n, 1))) return undefined;
                 const shape = node.kind === 'view' ? node.shape : source.shape;
                 if (!shape.every(n => Number.isSafeInteger(n) && n >= 0)
@@ -744,7 +741,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 result = { shape, boolean: node.kind === 'call' ? false : source.boolean };
             } else if (node.kind === 'shift') {
                 const source = bind(node.source), fill = bind(node.fill);
-                if (!source?.shape?.length || source.filter || source.progression || source.digits
+                if (!source?.shape?.length || source.filter || source.sequence || source.digits
                     || fill?.scalar === undefined || !tensorShiftLayout(source.shape, node.axis, node.amount)) return undefined;
                 result = { shape: source.shape, boolean: source.boolean && fill.boolean };
             } else if (node.kind === 'slice') {
@@ -758,7 +755,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 const first = segments[0];
                 if (nativeGraph) {
                     if (!first?.shape?.length || segments.some(segment => !segment?.shape
-                        || segment.filter || segment.progression || segment.digits)) return undefined;
+                        || segment.filter || segment.sequence || segment.digits)) return undefined;
                     const layout = tensorConcatLayout(segments.map(segment => segment!.shape!), node.axis);
                     if (!layout) return undefined;
                     const { shape } = layout;
@@ -775,13 +772,13 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 }
             } else if (node.kind === 'outer') {
                 const a = bind(node.left), b = bind(node.right);
-                if (!a?.shape || !b?.shape || a.filter || b.filter || a.progression || b.progression) return undefined;
+                if (!a?.shape || !b?.shape || a.filter || b.filter || a.sequence || b.sequence) return undefined;
                 const shape = [...a.shape, ...b.shape];
                 if (!Number.isSafeInteger(shape.reduce((size, n) => size * n, 1))) return undefined;
                 result = { shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'reshape') {
                 const a = bind(node.source);
-                if (!a?.shape || a.filter || a.progression) return undefined;
+                if (!a?.shape || a.filter || a.sequence) return undefined;
                 const dimensions: (RankValue | undefined)[] = [];
                 for (const dimension of node.dimensions) {
                     const value = dimension && bind(dimension);
@@ -795,9 +792,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 result = { shape, boolean: a.boolean };
             } else if (node.kind === 'binary') {
                 const a = bind(node.left), b = bind(node.right);
-                // Sequence arithmetic zips streams; it does not broadcast like
-                // arrays. Proved progressions are used only as gather selectors.
-                if (!a || !b || a.progression || b.progression) return undefined;
+                // Sequence arithmetic zips streams rather than broadcasting.
+                // Native equal-length zips and scalar maps preserve this rule.
+                if (!a || !b) return undefined;
+                const zipped = nativeGraph && a.sequence && b.sequence && same(a.shape!, b.shape!);
+                if ((a.sequence && b.shape || b.sequence && a.shape) && !zipped
+                    || (a.sequence || b.sequence) && node.ranks) return undefined;
                 let shape = a.shape ?? b.shape;
                 let operands: Bound['operands'];
                 if (node.ranks) {
@@ -812,10 +812,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     catch { return undefined; }
                     broadcasts = true;
                 }
-                result = { shape, operands, boolean: domains.get(node)!.every(type => type === 'boolean') };
+                result = { shape, operands, sequence: a.sequence || b.sequence, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
-                if (a?.progression) return undefined;
+                if (a?.sequence) return undefined;
                 if (node.op === 'text') {
                     if (a && typeof a.scalar === 'bigint' && host.builtin('text')) {
                         const value = a.scalar.toString();
@@ -825,14 +825,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     if (a && typeof a.scalar === 'string' && !/[^0-9]/.test(a.scalar) && host.builtin('integer')) {
                         result = { shape: [a.scalar.length], boolean: false, digits: true, slot: scalars.push(a.scalar) - 1 };
                     }
-                } else if (a) result = { shape: a.shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
+                } else if (a) result = { shape: a.shape, sequence: a.sequence, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'reduction') {
                 const source = bind(node.source);
                 if (!source?.shape || source.shape.length !== (node.rows ? 2 : 1)) return undefined;
                 result = { shape: node.rows ? source.shape.slice(0, -1) : [], boolean: false };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
-                if (!a || !b || a.progression || !a.shape || a.shape.length === 0) return undefined;
+                if (!a || !b || !a.shape || a.shape.length === 0) return undefined;
                 if (typeof b.scalar === 'bigint' && a.view && b.scalar >= 0n && b.scalar < BigInt(a.shape[0])) {
                     const shape = a.shape.slice(1);
                     const stride = shape.reduce((p, n) => p * n, 1);
@@ -998,6 +998,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             return value;
         }
         try { domain(root); } catch { return recordFallback('tensor:filtered-domain'); }
+        if (terminal === 'copy' && bound.get(root)?.sequence) return recordFallback('tensor:sequence-copy');
         const compact = terminal === 'copy' && domain(root);
         if (implicit && compact) return recordFallback('tensor:implicit-filter');
         const resolved = new Map<TensorNode, readonly CompiledAtomType[]>();

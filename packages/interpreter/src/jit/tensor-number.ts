@@ -1,13 +1,13 @@
 import { declineCompiler, compilerSource, observeCompilerSource, observedSourceRun } from '../compiler-observation.js';
 import { checkedIntegerSumStep } from './tensor-reduction-codegen.js';
-import { arrayRange } from '../range-plan.js';
+import { arithmeticRange, arrayRange } from '../range-plan.js';
 import { safeIntegerSquareRoot } from '../integer-square-root.js';
 import type { CompiledAtomType } from '@arrrank/language';
 import { integer32Cells } from '../array-storage.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { checkpoint, privateLoopPolling, interruptsEnabled } from '../interrupt.js';
 import type { TensorCodeCache, TensorNode } from './tensor-kernel.js';
-import { isRankArray } from '../value.js';
+import { isRankArray, isRankSequence } from '../value.js';
 import type { RankValue } from '../value.js';
 
 const overflow = {}, zeroDivisor = {}, negativeRoot = {};
@@ -74,6 +74,21 @@ function prepareNumberTensorObservedImplementation(root: TensorNode, domains: Re
                 lines.push(`const ${name} = scalars[${scalars.push(node.value) - 1}];`);
                 return result;
             }
+            if (node.value !== undefined && isRankSequence(node.value)) {
+                const progression = arithmeticRange(node.value.plan, true);
+                if (!progression || progression.count < 0n || progression.count > 9007199254740991n) return undefined;
+                const count = Number(progression.count);
+                if (size !== undefined && size !== count) return declineCompiler('input-shape-guard');
+                size = count;
+                const last = progression.start + (progression.count > 0n ? progression.count - 1n : 0n) * progression.step;
+                const product = (progression.count > 0n ? progression.count - 1n : 0n) * progression.step;
+                if ([progression.start, progression.step, last, product].some(value => value < -9007199254740991n || value > 9007199254740991n)) return undefined;
+                const start = scalars.push(Number(progression.start)) - 1;
+                const step = scalars.push(Number(progression.step)) - 1;
+                lines.push(`const ${name} = scalars[${start}] + i * scalars[${step}];`);
+                bounds.set(node, progression.start <= last ? [progression.start, last] : [last, progression.start]);
+                return result;
+            }
             if (node.value === undefined || !isRankArray(node.value) || node.value.shape.length !== 1) return declineCompiler('vector-input-required');
             const cells = integer32Cells(node.value);
             const stored = cells ? undefined : prepareStoredScalarView(node.value, true);
@@ -97,6 +112,13 @@ function prepareNumberTensorObservedImplementation(root: TensorNode, domains: Re
                 const last = progression.start + (progression.count - 1n) * progression.step;
                 range = progression.start <= last ? [progression.start, last] : [last, progression.start];
             } else if (cells) range = [-2147483648n, 2147483647n];
+        } else if (node.kind === 'select' && node === root && domains.get(node.selector)?.join() === 'boolean') {
+            const mask = emit(node.selector);
+            if (!mask) return undefined;
+            lines.push(`if (!${mask.name}) continue;`);
+            const source = emit(node.source);
+            if (!source) return undefined;
+            value = source.name; range = bounds.get(node.source);
         } else if (node.kind === 'check' && node.uniform) {
             const a = emit(node.source);
             if (!a) return undefined;

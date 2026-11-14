@@ -1,0 +1,2 @@
+{"variant":"lazy","problem":"1","limit":"100000000","answer":"2333333316666668","ms":463.958833,"peakRssMiB":174.3125,"kernels":1,"numberTensors":1}
+{"variant":"stored","problem":"1","limit":"100000000","answer":"2333333316666668","ms":2104.5267910000002,"peakRssMiB":1551.8125,"kernels":1,"numberTensors":1}

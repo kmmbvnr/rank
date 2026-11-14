@@ -1,3 +1,4 @@
+import { registerSequenceTensor } from './jit/tensor-map.js';
 import { storedSelectorKind } from './integer-view.js';
 import { maskSelection, rangeMaskSelection } from './array-mask-selection.js';
 export { maskSelection };
@@ -192,7 +193,7 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
     if (values.length === 2 && isRankSequence(values[0]) && isRankSequenceMask(values[1])) {
         const [source, selector] = values;
         // The mask's own source can take its test; any other value reads it by position.
-        if (selector.source === source) return filterSequence(source, selector.predicate);
+        if (selector.source === source) return registerSequenceTensor(filterSequence(source, selector.predicate), 'select', [source, selector]);
         return positionalSelection(source, selector);
     }
     if (values.length === 2 && isRankSequence(values[0])

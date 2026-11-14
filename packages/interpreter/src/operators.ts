@@ -7,7 +7,7 @@ import { createOwned } from './owned-array.js';
 import { mapPackedBooleanArrays } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { demandValue } from './plan.js';
-import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
+import { constructingTensorPlan, registerSequenceTensor, registerTensorMap } from './tensor-map.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
@@ -468,7 +468,7 @@ export class Operators {
                 ? this.evaluateBinary(operator, lift(item), scalar)
                 : this.evaluateBinary(operator, scalar, lift(item))),
         };
-        return sequenceMask(source, predicate);
+        return registerSequenceTensor(sequenceMask(source, predicate), operator, [left, right]);
     }
 
     private combineSequenceMasks(operator: string, left: RankValue, right: RankValue): RankValue {
@@ -487,7 +487,7 @@ export class Operators {
             }, true);
             return positionalMask(zipped.plan);
         }
-        return sequenceMask(left.source, {
+        return registerSequenceTensor(sequenceMask(left.source, {
             pure: left.predicate.pure && right.predicate.pure,
             name: `${left.predicate.name} ${operator} ${right.predicate.name}`,
             expression: {
@@ -503,7 +503,7 @@ export class Operators {
                 if (operator === 'or') return a || b;
                 return a !== b;
             },
-        });
+        }), operator, [left, right]);
     }
 }
 
@@ -802,10 +802,10 @@ function mapBinary(
     if (isRankSequence(left) && isRankSequence(right)) {
         const zipped = zipSequences(left, right, name, scalarOperation, true);
         const [a, b] = [left.plan.at, right.plan.at];
-        return a && b ? withAt(zipped, index => {
+        return registerSequenceTensor(a && b ? withAt(zipped, index => {
             const x = a.call(left.plan, index), y = b.call(right.plan, index);
             return x === undefined || y === undefined ? undefined : scalarOperation(x, y);
-        }, left.plan.scalarItems && right.plan.scalarItems ? true : undefined) : zipped;
+        }, left.plan.scalarItems && right.plan.scalarItems ? true : undefined) : zipped, name, [left, right]);
     }
     if (isRankSequence(left)) {
         const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
@@ -813,14 +813,14 @@ function mapBinary(
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
         registerAffineRange(mapped.plan, left.plan, right, name, false);
         completeRangeMap(mapped, left, right, name, scalarOperation, false);
-        return mapped;
+        return registerSequenceTensor(mapped, name, [left, right]);
     }
     if (isRankSequence(right)) {
         const mapped = withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
             item => scalarOperation(left, item), left), right, item => scalarOperation(left, item));
         registerAffineRange(mapped.plan, right.plan, left, name, true);
         completeRangeMap(mapped, right, left, name, scalarOperation, true);
-        return mapped;
+        return registerSequenceTensor(mapped, name, [left, right]);
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);

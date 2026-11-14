@@ -1,5 +1,5 @@
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
-import { registerTensorResult, registerTensorShift } from './tensor-map.js';
+import { reduceTensorMap, registerTensorResult, registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
@@ -525,6 +525,8 @@ export function stackItems(
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
+    const tensor = reduceTensorMap(value, operation);
+    if (tensor !== undefined) return tensor;
     const planned = value.plan.reduce?.(operation);
     if (planned !== undefined) return planned;
     if (operation === 'sum') {

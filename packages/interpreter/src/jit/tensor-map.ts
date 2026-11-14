@@ -8,9 +8,9 @@ import { checkpoint } from '../interrupt.js';
 import { currentDiagnostics } from '../diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from '../integer-view.js';
 import { arrayRevision } from '../array-revision.js';
-import { registerMappedArrayRange } from '../range-plan.js';
+import { arithmeticRange, registerMappedArrayRange } from '../range-plan.js';
 import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorVisit, compileNativeTensorReduction, compileNativeTensorAxisReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
-import { isRankArray, type RankArray, type RankValue } from '../value.js';
+import { isRankArray, isRankSequence, type RankSequence, type RankArray, type RankValue } from '../value.js';
 
 interface MapRecipe {
     readonly reader: RankArray['itemAt'];
@@ -50,7 +50,32 @@ export function registerTensorSelection(value: RankArray, source: RankArray, sel
 }
 const shifts = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
     source: RankArray; amount: number; fill: RankValue; axis: number }>();
-const owners = new WeakMap<RankArray, PlanScope>();
+type TensorValue = RankArray | RankSequence;
+const owners = new WeakMap<TensorValue, PlanScope>();
+const sequenceMaps = new WeakMap<RankSequence, { operator: string; operands: readonly RankValue[];
+    valid(): boolean }>();
+
+/** Native sequence producers publish recipes without changing their values. */
+export function registerSequenceTensor<T extends RankSequence>(value: T, operator: string, operands: readonly RankValue[]): T {
+    if (!mapOperators.has(operator) && operator !== 'select') return value;
+    const fields = (object: object, keys: string[]) => {
+        const descriptors = keys.map(key => Object.getOwnPropertyDescriptor(object, key));
+        return () => keys.every((key, index) => {
+            const actual = Object.getOwnPropertyDescriptor(object, key), saved = descriptors[index];
+            return actual?.value === saved?.value && actual?.get === saved?.get && actual?.set === saved?.set;
+        });
+    };
+    const guards = [fields(value, ['plan', 'origin', 'source', 'predicate']),
+        fields(value.plan, ['iterate', 'at', 'size'])];
+    if (value.origin) guards.push(fields(value.origin, ['source', 'map']));
+    const predicate = Object.getOwnPropertyDescriptor(value, 'predicate')?.value;
+    if (predicate) guards.push(fields(predicate, ['test', 'expression', 'pure']));
+    sequenceMaps.set(value, { operator, operands, valid: () => guards.every(valid => valid()) });
+    const scope = active ?? operands.flatMap(operand => isRankArray(operand) || isRankSequence(operand)
+        ? [mapScope(operand)] : []).find(scope => scope?.enabled());
+    if (scope?.enabled()) owners.set(value, scope);
+    return value;
+}
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
     'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0', 'min', 'max']);
 const reductions: ReadonlySet<string> = new Set<TensorReduction>(['reduce+', 'reduce-', 'reduce*', 'sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
@@ -144,7 +169,7 @@ export function materializeTensorMap(value: RankArray): RankArray | undefined {
     return result !== undefined && isRankArray(result) ? result : undefined;
 }
 
-export function reduceTensorMap(value: RankArray, operation: string): RankValue | undefined {
+export function reduceTensorMap(value: TensorValue, operation: string): RankValue | undefined {
     return consumeTensorMap(value, operation);
 }
 
@@ -194,8 +219,8 @@ export function scanTensorMap(value: RankArray, seed: RankValue | undefined): Ra
     return result !== undefined && isRankArray(result) ? result : undefined;
 }
 
-function consumeTensorMap(value: RankArray, operation: string): RankValue | undefined {
-    if (operation === 'count') {
+function consumeTensorMap(value: TensorValue, operation: string): RankValue | undefined {
+    if (operation === 'count' && isRankArray(value)) {
         const packed = countPackedBooleans(value);
         if (packed !== undefined) return packed;
     }
@@ -220,7 +245,7 @@ export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | '
     };
 }
 
-function prepareTensorGraph(value: RankArray) {
+function prepareTensorGraph(value: TensorValue) {
     if (!consumerCompilation) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
@@ -233,9 +258,9 @@ function prepareTensorGraph(value: RankArray) {
 
 /** Native recipes are semantic data, independent of code generation.
  * Stored inputs remain boundaries in either execution engine. */
-function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerBuiltin?: () => boolean) {
+function prepareNativeTensorGraph(value: TensorValue, textDigits = false, integerBuiltin?: () => boolean) {
     const domains = new Map<TensorNode, readonly CompiledAtomType[]>();
-    const visiting = new Set<RankArray>();
+    const visiting = new Set<TensorValue>();
     const guards: (() => boolean)[] = [];
     let remaining = 1024;
     let transformed = false;
@@ -249,12 +274,12 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
         guards.push(() => value.itemAt === reader && value.shape.length === shape.length
             && value.shape.every((n, axis) => n === shape[axis]) && arrayRevision(value) === revision);
     }
-    const lowered = new Map<RankArray, TensorNode>();
+    const lowered = new Map<TensorValue, TensorNode>();
     function lower(value: RankValue): TensorNode | undefined {
-        const known = isRankArray(value) ? lowered.get(value) : undefined;
+        const known = (isRankArray(value) || isRankSequence(value)) ? lowered.get(value) : undefined;
         if (known) return known;
         const node = lowerValue(value);
-        if (node && isRankArray(value)) lowered.set(value, node);
+        if (node && (isRankArray(value) || isRankSequence(value))) lowered.set(value, node);
         return node;
     }
     function lowerValue(value: RankValue): TensorNode | undefined {
@@ -264,6 +289,29 @@ function prepareNativeTensorGraph(value: RankArray, textDigits = false, integerB
         if (typeof value === 'number' && Number.isFinite(value)) return typed({ kind: 'input', value }, ['real']);
         if (typeof value === 'boolean') return typed({ kind: 'input', value }, ['boolean']);
         if (typeof value === 'string' && textDigits) return typed({ kind: 'input', value }, ['text']);
+        if (isRankSequence(value)) {
+            if (visiting.has(value)) return undefined;
+            visiting.add(value);
+            try {
+                const recipe = sequenceMaps.get(value);
+                if (!recipe) {
+                    const range = arithmeticRange(value.plan, true);
+                    if (!range) return undefined;
+                    guards.push(() => arithmeticRange(value.plan, true) === range);
+                    return typed({ kind: 'input', value }, ['integer']);
+                }
+                if (!recipe.valid()) return undefined;
+                guards.push(recipe.valid);
+                const operands = recipe.operands.map(lower);
+                if (operands.some(node => !node)) return undefined;
+                const [left, right] = operands as TensorNode[];
+                transformed = true;
+                if (recipe.operator === 'select') return typed({ kind: 'select', source: left, selector: right }, domains.get(left)!);
+                const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(recipe.operator, 2),
+                    [domains.get(left)!, domains.get(right)!]);
+                return matched ? typed({ kind: 'binary', op: recipe.operator, left, right }, matched.result) : undefined;
+            } finally { visiting.delete(value); }
+        }
         if (!isRankArray(value) || visiting.has(value)) return undefined;
         visiting.add(value);
         try {
@@ -458,7 +506,7 @@ export function materializeTensorPositions(value: RankArray, positions: ArrayLik
     return result as RankArray;
 }
 
-function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined },
+function prepareTensorMap(value: TensorValue, operation: string, scan?: { seed: bigint | undefined },
     visit?: (cell: RankValue) => void):
     ((range?: TensorRange) => RankValue | undefined) | undefined {
     if (operation !== 'copy' && !reductions.has(operation)) return undefined;
@@ -466,7 +514,7 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
     if (!graph?.transformed) return undefined;
     const { root, domains, host, scope } = graph;
     if (visit && domains.get(root)?.join() !== 'integer') return undefined;
-    if (scan && (value.shape.length !== 1 || domains.get(root)?.join() !== 'integer')) return undefined;
+    if (scan && (!isRankArray(value) || value.shape.length !== 1 || domains.get(root)?.join() !== 'integer')) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.tensorMapPreparations++;
     const kernel = visit ? compileNativeTensorVisit(root, domains, host, scope.code, visit)
@@ -493,10 +541,11 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
     };
 }
 
-function mapScope(value: RankArray): PlanScope | undefined {
+function mapScope(value: TensorValue): PlanScope | undefined {
     for (let remaining = 1024; remaining > 0; remaining--) {
         const owner = owners.get(value);
         if (owner) return owner;
+        if (!isRankArray(value)) return undefined;
         const view = prepareNativeScalarView(value);
         if (!view) return undefined;
         value = view.source;

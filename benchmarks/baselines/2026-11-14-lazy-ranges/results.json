@@ -1,0 +1,15 @@
+{
+  "node": "v24.15.0",
+  "measurements": [
+    {"host":"Mac arm64","problem":1,"limit":100000000,"variant":"lazy","ms":497.39825,"peakRssMiB":169.96875,"kernels":1,"numberTensors":1,"answer":"2333333316666668"},
+    {"host":"Mac arm64","problem":1,"limit":100000000,"variant":"stored","ms":2083.025125,"peakRssMiB":1550.15625,"kernels":1,"numberTensors":1,"answer":"2333333316666668"},
+    {"host":"Mac arm64","problem":1,"limit":100000000,"variant":"reference","ms":7719.764833,"peakRssMiB":175.875,"kernels":0,"numberTensors":0,"answer":"2333333316666668"},
+    {"host":"Intel x86_64","problem":1,"limit":100000000,"variant":"lazy","ms":1207.307274,"peakRssMiB":157.5703125,"kernels":1,"numberTensors":1,"answer":"2333333316666668"},
+    {"host":"Intel x86_64","problem":1,"limit":100000000,"variant":"stored","ms":4966.956406,"peakRssMiB":1526.27734375,"kernels":1,"numberTensors":1,"answer":"2333333316666668"},
+    {"host":"Intel x86_64","problem":1,"limit":100000000,"variant":"reference","ms":15329.583839,"peakRssMiB":157.63671875,"kernels":0,"numberTensors":0,"answer":"2333333316666668"},
+    {"host":"Mac arm64","problem":6,"limit":1000000,"variant":"lazy","ms":148.709917,"peakRssMiB":177.046875,"kernels":1,"numberTensors":1,"answer":"250000166666416666500000"},
+    {"host":"Mac arm64","problem":6,"limit":1000000,"variant":"stored","ms":222.780333,"peakRssMiB":174.078125,"kernels":1,"numberTensors":0,"answer":"250000166666416666500000"},
+    {"host":"Intel x86_64","problem":6,"limit":1000000,"variant":"lazy","ms":251.963607,"peakRssMiB":158.16015625,"kernels":1,"numberTensors":1,"answer":"250000166666416666500000"},
+    {"host":"Intel x86_64","problem":6,"limit":1000000,"variant":"stored","ms":401.252023,"peakRssMiB":158.3125,"kernels":1,"numberTensors":0,"answer":"250000166666416666500000"}
+  ]
+}
