@@ -133,14 +133,16 @@ use cli
 arg Limit integer = 1000
 
 N = 1 till Limit
-Mask = N mod 3 equal 0
-Mask or= N mod 5 equal 0
+Mask' = N mod 3 equal 0
+Mask' or= N mod 5 equal 0
 
 return N Mask sum
 ```
 
-The names of a returning program are private, so the compiler reads the
-`Mask` chain as one expression and computes the sum in a single pass.
+When the whole program runs, its names are private, so the compiler reads a
+`Mask = …`, `Mask or= …` chain as one expression and computes the sum in a
+single pass. A notebook runs one cell at a time and cannot know that, so write
+`Mask'` there; the examples in the library do.
 
 `rank multiples.ra` runs the program and prints nothing itself. The
 option `rank --print multiples.ra` also shows the returned value, `233168`,

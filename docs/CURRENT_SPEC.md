@@ -1534,9 +1534,11 @@ Answer = N Mask sum
 Every compound operator accepts the apostrophe. `and=`, `or=` and `xor=`
 still evaluate both sides.
 
-In a program that ends with `return`, the other names are private, so a
+When a whole program that ends with `return` runs (`rank file.ra` or a
+call of the file), its other names are private, so a
 name that is set once and then only combined by `and=`, `or=` or `xor=` is
-bound as a plan without the apostrophe. The same chain written as
+bound as a plan without the apostrophe. A notebook runs cell by cell and
+does not do this: write the apostrophe there. The same chain written as
 `Mask = …`, `Mask or= …` and `return N Mask sum` is also one pass.
 
 A name captured by an apostrophe binding is read-only for the rest of its

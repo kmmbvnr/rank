@@ -477,8 +477,8 @@ it('keeps Euler 1 computed integer arrays and boolean masks, including compound 
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
         ['N =', 'N · c[#]<integer>'],
-        ["Mask =", 'Mask · c[#]<boolean>'],
-        ["Mask or=", 'Mask · c[#]<boolean>'],
+        ["Mask' =", 'Mask · c[#]<boolean>'],
+        ["Mask' or=", 'Mask · c[#]<boolean>'],
         ['Mask sum', 'Mask · c[#]<boolean>'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site) + (site.startsWith('return ') ? 7 : 0))!)).toBe(expected);
 });
