@@ -388,6 +388,6 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #program-inputs [role=alert]:empty { display: none; }
 #program-inputs::backdrop { background: #000a; }
 #program-inputs button { border: 0; border-radius: 0; background: #3a3c55; color: #fff; font: inherit; padding: 6px 14px; min-height: 36px; }
-#program-inputs .program-input-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
-#program-inputs .program-input-actions button[type=submit] { background: #1f7a5a; }
-#program-inputs .program-input-actions button { min-width: 90px; }
+#program-inputs .program-input-header { display: flex; align-items: center; justify-content: space-between; }
+#program-inputs .program-input-run:focus { outline: none; }
+#program-inputs .program-input-run { display: grid; place-items: center; width: 36px; min-height: 36px; padding: 0; background: #1f7a5a; color: #fff; }
