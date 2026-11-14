@@ -313,6 +313,11 @@ export class ProgramInputs {
         }
         const error = document.createElement('p'); error.setAttribute('role', 'alert');
         form.append(error, run);
+        const close = document.createElement('button'); close.type = 'button'; close.className = 'program-input-close';
+        close.setAttribute('aria-label', 'Close'); close.title = 'Close';
+        close.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
+        close.onclick = () => this.dialog.close();
+        form.append(close);
         form.onsubmit = event => {
             event.preventDefault(); run.disabled = true;
             for (const field of form.querySelectorAll('input, textarea')) (field as HTMLInputElement).disabled = true;

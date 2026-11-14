@@ -388,4 +388,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #program-inputs [role=alert]:empty { display: none; }
 #program-inputs::backdrop { background: #000a; }
 #program-inputs button { border: 0; border-radius: 0; background: #3a3c55; color: #fff; font: inherit; padding: 6px 14px; min-height: 36px; }
+#program-inputs { position: relative; }
+#program-inputs .program-input-close { position: absolute; top: 4px; right: 4px; width: 28px; min-height: 28px; padding: 0; display: grid; place-items: center; background: transparent; color: #8d8fa8; }
+#program-inputs .program-input-close:focus { outline: none; }
 #program-inputs .program-input-run { width: 100%; background: #1f7a5a; color: #fff; }
