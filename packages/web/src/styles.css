@@ -382,6 +382,7 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #program-inputs input:focus, #program-inputs textarea:focus { border-color: #7fdc9a; }
 #program-inputs textarea { resize: vertical; }
 #program-inputs small { color: #8d8fa8; font-size: 11px; overflow-wrap: anywhere; }
+#program-inputs .input-help { text-align: right; }
 #program-inputs .input-row button { justify-self: start; }
 #program-inputs [role=alert] { margin: 0; color: #ff8a8a; }
 #program-inputs [role=alert]:empty { display: none; }
