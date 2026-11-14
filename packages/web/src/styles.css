@@ -391,4 +391,4 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 #program-inputs { position: relative; }
 #program-inputs .program-input-close { position: absolute; top: 4px; right: 4px; width: 28px; min-height: 28px; padding: 0; display: grid; place-items: center; background: transparent; color: #8d8fa8; }
 #program-inputs .program-input-close:focus { outline: none; }
-#program-inputs .program-input-run { width: 100%; background: #1f7a5a; color: #fff; }
+#program-inputs .program-input-run { width: 100%; margin-top: 10px; background: #1f7a5a; color: #fff; }
