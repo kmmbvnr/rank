@@ -266,7 +266,9 @@ export class ProgramInputs {
         for (const input of inputs) {
             const row = document.createElement('label'); row.className = 'input-row';
             const name = document.createElement('span'); name.className = 'input-name'; name.textContent = input.name;
-            const hint = document.createElement('small'); hint.textContent = input.valueType + (input.many ? ' array' : '');
+            const hint = document.createElement('small'); hint.className = 'input-help';
+            hint.textContent = input.valueType + (input.many ? ' array' : '')
+                + (input.defaultSource !== undefined && prefill(input) === undefined ? ' · default ' + input.defaultSource : '');
             const saved = this.value(input);
             // A default is the field's starting text, so running at once uses it.
             const start = prefill(input);
