@@ -36,11 +36,11 @@ describe.each([false, true])('bounded producing previews (compilation=%s)', comp
             runtime.execute("Total' = Input sum");
             expect(reads).toBe(0);
             const total = runtime.variables.get('Total')!;
-            expect(preview(total)).toEqual({ text: '...', note: 'preview demand budget exhausted' });
+            expect(preview(total)).toEqual({ text: '...', note: '' });
             const first = reads;
             expect(first).toBeGreaterThan(0);
             expect(first).toBeLessThan(DEMAND_LIMIT);
-            expect(preview(total)).toEqual({ text: '...', note: 'preview demand budget exhausted' });
+            expect(preview(total)).toEqual({ text: '...', note: '' });
             expect(reads).toBe(first * 2);
             expect(closes).toBe(2);
             expect(runtime.execute('use sequences\nInput take 3 sum')).toBe(3n);
@@ -55,7 +55,7 @@ describe.each([false, true])('bounded producing previews (compilation=%s)', comp
             const array: RankArray = { kind: 'array', shape: [2],
                 itemAt: () => runtime.execute('20000 busy')!, get items() { throw Error('must not collect'); },
             };
-            expect(preview(array)).toEqual({ text: '...', note: 'preview demand budget exhausted' });
+            expect(preview(array)).toEqual({ text: '...', note: '' });
             expect(() => inspectValue(array, { count: [2] })).toThrow(DemandBudgetExhausted);
             expect(viewLabel(array)).toBe('c [2]');
             expect(runtime.execute('10 busy')).toBe(45n);
@@ -126,7 +126,7 @@ it('keeps the computed sequence head when a finite preview reaches its work limi
             finally { closes++; }
         },
     } };
-    expect(preview(source)).toMatchObject({ note: 'preview demand budget exhausted' });
+    expect(preview(source)).toMatchObject({ note: '' });
     const first = reads;
     expect(first).toBeLessThan(DEMAND_LIMIT + 1);
     expect(preview(source).text).toMatch(/^0 1 2 3 4 /);
@@ -143,7 +143,7 @@ describe.each([false, true])('inspection work limit in the notebook (compilation
             await session.execute("Slow' = (array 20000) busy rank 0", 1, []);
             const result = await session.execute('Slow', 2, []);
             expect(result.valueRef).toBeDefined();
-            expect(result.output.some(line => line.text.includes('preview demand budget exhausted'))).toBe(true);
+            expect(result.output.every(line => !line.text.includes('budget'))).toBe(true);
             const viewer = new ValueViewer('Slow', 2, request => session.inspect(result.valueRef!, request),
                 () => ({ rows: 20, columns: 80 }));
             expect(await viewer.load()).toBe(true);

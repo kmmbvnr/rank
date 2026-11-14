@@ -165,6 +165,13 @@ describe.each([false, true])('compound deferred bindings (compilation=%s)', comp
         } finally { runtime.dispose(); }
     });
 
+    it('selects a lazy range by a stored mask in a reduction', () => {
+        const source = "use numbers\nN' = 1 till 10\nMask = N mod 3 equal 0\nreturn N Mask sum";
+        expect(answer(source.replace('return', 'Answer ='))).toBe('18');
+        const runtime = new Interpreter(undefined, { compilation });
+        try { expect(formatValue(runtime.execute(source)!)).toBe('18'); } finally { runtime.dispose(); }
+    });
+
     it('does not evaluate a plan for an unused compound binding', () => {
         expect(answer("Unused' = array 1 0\nUnused' //= 0\nAnswer = 7")).toBe('7');
     });

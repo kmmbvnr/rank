@@ -44,7 +44,7 @@ const DOTS = '...';
 export function preview(value: RankValue, width = Infinity): Preview {
     try { return withDemandBudget(DEMAND_LIMIT, () => previewValue(value, width)); }
     catch (error) {
-        if (error instanceof DemandBudgetExhausted) return { text: DOTS, note: 'preview demand budget exhausted' };
+        if (error instanceof DemandBudgetExhausted) return { text: DOTS, note: '' };
         throw error;
     }
 }
@@ -133,17 +133,17 @@ function sequencePreview(
         const line = fit(head.items, [], width, !head.whole);
         return {
             text: line.text,
-            note: head.exhausted ? 'preview demand budget exhausted'
+            note: head.exhausted ? ''
                 : head.whole ? (line.cut ? `${head.items.length} values` : '')
                 : plan.size.kind === 'infinite' ? 'unbounded' : 'size unknown',
         };
     }
     const { head: shown, tail, count, whole, exhausted } = scan(plan, map);
-    if (exhausted) return { text: fit(shown, [], width, true).text, note: 'preview demand budget exhausted' };
+    if (exhausted) return { text: fit(shown, [], width, true).text, note: '' };
     const ending: string[] = [];
     try { for (const item of tail) ending.push(formatValue(item)); }
     catch (error) {
-        if (error instanceof DemandBudgetExhausted) return { text: fit(shown, [], width, true).text, note: 'preview demand budget exhausted' };
+        if (error instanceof DemandBudgetExhausted) return { text: fit(shown, [], width, true).text, note: '' };
         throw error;
     }
     if (whole && count <= PREVIEW_ITEMS) {

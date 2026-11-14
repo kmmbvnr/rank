@@ -8,6 +8,7 @@ import type { ModuleApplication } from './application-module.js';
 import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
 import { demand, isRankPlan } from '../plan.js';
+import { materializeSequence } from '../sequence.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
     isAllAxisExpression, isBinaryExpression, isMaterializeExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
@@ -492,6 +493,14 @@ export class ApplicationEvaluator {
                                 if (pending.length === 2) {
                                     const result = context.fastPaths.counterSum(pending[0], pending[1]);
                                     if (result !== undefined) { pending = [result]; continue; }
+                                }
+                                // A deferred or lazy left operand selected by a stored array is
+                                // completed first, so `N Mask sum` reads as a selection.
+                                if (pending.length === 2 && isRankArray(pending[1])) {
+                                    let left = pending[0];
+                                    if (isRankPlan(left)) left = yield* resume(demand(left));
+                                    if (isRankSequence(left)) left = materializeSequence(left);
+                                    pending = [left, pending[1]];
                                 }
                                 const receiver = pending.length === 1 ? pending[0]
                                     : canApplySelectors(pending) ? context.select(pending) : undefined;

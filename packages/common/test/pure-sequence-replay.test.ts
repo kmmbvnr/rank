@@ -10,8 +10,8 @@ describe.each([false, true])('explicit sequence plans alongside REPL tapes (comp
         try {
             runtime.execute("use sequences\nfun X never = false\nStuck' = (1 to # filter never) take 1 sum");
             const stuck = runtime.variables.get('Stuck')!;
-            expect(preview(stuck)).toEqual({ text: '...', note: 'preview demand budget exhausted' });
-            expect(preview(stuck)).toEqual({ text: '...', note: 'preview demand budget exhausted' });
+            expect(preview(stuck)).toEqual({ text: '...', note: '' });
+            expect(preview(stuck)).toEqual({ text: '...', note: '' });
             expect(runtime.execute('1 + 2')).toBe(3n);
         } finally { runtime.dispose(); }
     });

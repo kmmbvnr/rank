@@ -51,7 +51,7 @@ test('a selection that runs dry stops looking instead of hanging', () => {
         'Fib Mask',
     ].join('\n')));
     assert.equal(shown.text, '2 8 34 144 610 ...');
-    assert.equal(shown.note, 'preview demand budget exhausted');
+    assert.equal(shown.note, '');
 });
 
 test('a tensor reports the shape its flat text hides', () => {
