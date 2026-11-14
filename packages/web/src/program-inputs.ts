@@ -261,12 +261,8 @@ export class ProgramInputs {
         const inputs = programInputs(source);
         if (!inputs.length) { void this.run().catch(this.report); return; }
         const form = document.createElement('form');
-        const header = document.createElement('div'); header.className = 'program-input-header';
-        const heading = document.createElement('h2'); heading.textContent = 'Run program';
         const run = document.createElement('button'); run.type = 'submit'; run.className = 'program-input-run';
-        run.setAttribute('aria-label', 'Run'); run.title = 'Run';
-        run.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>';
-        header.append(heading, run); form.append(header);
+        run.textContent = 'Run program';
         const readers: (() => void)[] = [];
         for (const input of inputs) {
             const row = document.createElement('label'); row.className = 'input-row';
@@ -316,7 +312,7 @@ export class ProgramInputs {
             form.append(row);
         }
         const error = document.createElement('p'); error.setAttribute('role', 'alert');
-        form.append(error);
+        form.append(error, run);
         form.onsubmit = event => {
             event.preventDefault(); run.disabled = true;
             for (const field of form.querySelectorAll('input, textarea')) (field as HTMLInputElement).disabled = true;
