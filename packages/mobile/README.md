@@ -122,8 +122,8 @@ or to notebook history at the library root. Folder labels use the text of folder
 `README.md`, with the folder name as a fallback. Only `.ra`
 files appear; `_test.ra` files are excluded. Browsing the full debug catalog requires an internet
 connection. Opening an example saves a local notebook without executing it.
-Later edits stay on the device, and opening the same example again resumes
-that local copy. Delete the local notebook in history to import it afresh.
+Later edits stay on the device. Opening the same example from Library again
+loads it afresh into a new notebook; the earlier copy stays in history.
 
 The phone console uses 13 px code and a 12 px gutter, with six narrower columns
 for dots and up to three-digit line numbers. The `rank>` prompt uses the code
