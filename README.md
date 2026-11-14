@@ -53,10 +53,11 @@ rank> 1 to 5 sum
 15
 ```
 
-Run a file, optionally passing inputs:
+Run a file, optionally passing inputs. A file ends with `return`; `--print`
+shows the value it returns:
 
 ```console
-npx @arrrank/cli demos/euler/001_multiples.ra --limit 10
+npx @arrrank/cli --print demos/euler/001_multiples.ra --limit 10
 ```
 
 ## Tests

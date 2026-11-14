@@ -10,12 +10,16 @@ rank
 ```
 
 ```console
-rank program.ra --limit 10
+rank --print program.ra --limit 10
 rank test path/to/program_test.ra
 rank test path/to/directory
 ```
 
 `rank test` runs test files ending in `_test.ra`.
+
+A program that ends with `return` gives its result to the caller. `rank` shows it
+only with the first option `--print`; without it the file just runs and shows what
+it prints itself.
 
 `rank --diagnostics program.ra [arguments...]` runs the program and writes loop
 compiler counters and fallback reasons to stderr, including on runtime errors.

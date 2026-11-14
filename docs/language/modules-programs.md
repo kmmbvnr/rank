@@ -117,8 +117,9 @@ omitted.
 `use` makes code available. A host runs a program by executing its top-level
 lines from the first to the last, or until a top-level `return`.
 
-Running a file from the host, as in `rank worker.ra`, prints the value the file
-returns. Rank does not require a `main` function. A program is also a function:
+Running a file from the host, as in `rank worker.ra`, only runs it; the option
+`--print` (`rank --print worker.ra`) also shows the value the file returns.
+Rank does not require a `main` function. A program is also a function:
 see [Files as functions](#files-as-functions).
 
 ## Files as functions
@@ -199,8 +200,8 @@ sum35 10
 ```
 
 ```console
-rank multiples.ra --limit 10
-rank multiples.ra 10
+rank --print multiples.ra --limit 10
+rank --print multiples.ra 10
 ```
 
 Scalar, array and boolean inputs use the same model:
